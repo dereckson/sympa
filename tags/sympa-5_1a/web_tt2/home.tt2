@@ -1,0 +1,57 @@
+<!-- $Id$ -->
+
+<br />
+<p style="text-align: justify;">
+[%|loc(conf.email,conf.host)%]This server provides you access to your environment on mailing list server %1@%2. Starting from this URL, you can perform subscription options, unsubscription,
+archives, list management and so on.[%END%]
+</p>
+<br /><br />
+
+   <h1 class="block">[%|loc%]Mailing lists categories[%END%]</h1>
+
+
+<table border="0" style="margin-left: auto; margin-right: auto;">
+ <tr>
+  <td>
+   <table border="0" cellpadding="3"><tr valign="top">
+    <td style="width: 33%; white-space: nowrap;">
+     [% FOREACH topic = topics %]
+      o
+      [% IF topic.id == 'topicsless' %]
+       <a href="[% path_cgi %]/lists/[% topic.id %]"><strong>[%|loc%]Others[%END%]</strong></a><br />
+      [% ELSE %]
+       <a href="[% path_cgi %]/lists/[% topic.id %]"><strong>[% topic.current_title %]</strong></a><br />
+      [% END %]
+
+      [% IF topic.sub %]
+      [% FOREACH subtopic = topic.sub %]
+       <span style="font-size: smaller;">
+	&nbsp;&nbsp;<a href="[% path_cgi %]/lists/[% topic.id %]/[% subtopic.key %]">[% subtopic.value.current_title %]</a><br />
+       </span>
+      [% END %]
+      [% END %]
+      [% IF topic.next %]
+	</td><td></td><td style="width: 33%; white-space: nowrap;">
+      [% END %]
+     [% END %]
+    </td>	
+   </tr>
+   <tr>
+<td style="width: 100%;"></td>
+<td style="white-space: nowrap;">
+	<div>
+        <form action="[% path_cgi %]" method="post"> 
+         <input size="25" name="filter" value="[% filter %]" />
+         <input type="hidden" name="action" value="search_list" />
+         <input type="submit" name="action_search_list" value="[%|loc%]Search lists[%END%]" />
+	  <br />
+        </form>
+	</div>
+        
+   </td></tr>
+  </table>
+ </td>
+</tr>
+</table>
+
+<br /><br />
