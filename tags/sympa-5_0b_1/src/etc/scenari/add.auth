@@ -1,0 +1,6 @@
+title.gettext add need authentication
+
+is_owner([listname],[sender]) smtp -> request_auth
+is_listmaster([sender])	      smtp -> request_auth
+is_owner([listname],[sender]) md5,smime -> do_it
+is_listmaster([sender])       md5,smime -> do_it
