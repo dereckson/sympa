@@ -1,0 +1,5 @@
+title.gettext requires S/MIME signed
+
+is_subscriber([listname],[sender]) smtp,smime -> do_it
+true()				   smime      -> do_it
+

@@ -1,0 +1,5 @@
+[%|l%]Mailing list configuration to be used for a news letter[%END%]<BR>
+<UL>
+<LI>[%|l%]public and moderated list[%END%]
+<LI>[%|l%]subscribers emails are protected[%END%]
+</UL>

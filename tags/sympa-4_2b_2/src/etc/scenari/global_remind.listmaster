@@ -1,0 +1,4 @@
+title.gettext just for listmaster
+
+is_listmaster([sender])     smtp -> request_auth
+is_listmaster([sender])     md5,smime -> do_it

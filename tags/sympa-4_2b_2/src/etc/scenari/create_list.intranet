@@ -1,0 +1,5 @@
+title.gettext anyone from local domain 
+
+is_listmaster([sender])     md5,smime -> do_it
+match([sender],/[conf->host]$/)    md5,smime -> listmaster,notify
+
