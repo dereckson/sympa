@@ -1,0 +1,10 @@
+title.fr fermé
+title.us closed
+title.et suletud
+title.de geschlossen
+title.es cerrado
+title.cz uzavøeno
+title.hu senkisem
+title.nl gesloten
+
+true() smtp,md5,smime -> reject
