@@ -1,0 +1,6 @@
+title.gettext remind message sent to subscribers every year
+
+/INIT
+@selection = select_subs (older([execution_date]))
+send_msg (@selection, remind)
+next([execution_date]+1y,INIT)
