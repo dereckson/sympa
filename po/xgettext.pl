@@ -160,7 +160,7 @@ foreach my $file (@ARGV) {
 
     # Template Toolkit
     $line = 1; pos($_) = 0;
-    while (m!\G.*?\[%\s*\|l(?:oc)?(.*?)\s*%\](.*?)\[%\-?\s*END\s*\-?%\]!sg) {
+    while (m!\G.*?\[%\s*\|l(?:oc)?(.*?)\s*%\](.*?)\[%\s*END\s*%\]!sg) {
 	my ($vars, $str) = ($1, $2);
 	$line += ( () = ($& =~ /\n/g) ); # cryptocontext!
 	$str =~ s/\\'/\'/g; 
@@ -319,17 +319,9 @@ foreach my $entry (sort keys %Lexicon) {
 sub output {
     my $str = shift;
 
-    ## Normalize
-    $str =~ s/\\n/\n/g;
-
     if ($str =~ /\n/) {
 	print "\"\"\n";
-
-	## Avoid additional \n entries
-	my @lines = split(/\n/, $str, -1);
-	pop @lines if ($lines[$#lines] eq '');
-
-	print "\"$_\\n\"\n" foreach @lines;
+	print "\"$_\\n\"\n" foreach split(/\n/, $str, -1);
     }
     else {
 	print "\"$str\"\n"

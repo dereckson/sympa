@@ -296,9 +296,7 @@ while (!$end) {
 		    
 		    create ($current_date, 'INIT', $model, 'ttl', 'list', \%data);
 
-		}elsif (defined $list->{'admin'}{$model_task_parameter} && 
-			defined $list->{'admin'}{$model_task_parameter}{'name'}) {
-
+		}elsif ($list->{'admin'}{$model_task_parameter} ) {
 		    create ($current_date, '', $model, $list->{'admin'}{$model_task_parameter}{'name'}, 
 			    'list', \%data);
 		}

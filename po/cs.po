@@ -156,6 +156,11 @@ msgid ""
 "are no more web-archived. Please contact %5@%4. \n"
 msgstr ""
 
+#. (l.average)
+#: web_tt2/rss.tt2:102
+msgid "%1 by day "
+msgstr ""
+
 #. (body_count)
 #: web_tt2/arcsearch.tt2:56
 #, fuzzy
@@ -190,7 +195,7 @@ msgid "%1 messages selected out of %2"
 msgstr "%1 zprÃ¡v vybrÃ¡no z %2"
 
 #. (occurrence)
-#: web_tt2/lists.tt2:4 web_tt2/review.tt2:70
+#: web_tt2/lists.tt2:4 web_tt2/review.tt2:71
 msgid "%1 occurrence(s) found"
 msgstr "nalezeno %1 vÃ½skyt(Ã¹)"
 
@@ -204,19 +209,9 @@ msgstr "pÃ¸idÃ¡no %1 Ã¨lenÃ¹"
 msgid "%1: action failed"
 msgstr "%1: akce selhala"
 
-#. (l.name,l.host,l.subject)
-#: web_tt2/rss.tt2:51
-msgid "%1@%2 - %3"
-msgstr ""
-
-#. (l.name,l.host,l.msg_count)
-#: web_tt2/rss.tt2:61
-msgid "%1@%2 : %3 messages"
-msgstr ""
-
-#. (l.name,l.host,l.msg_count,l.average)
-#: web_tt2/rss.tt2:59
-msgid "%1@%2 : %3 messages - %4 by day "
+#. (l.name,l.host,l.subject,l.msg_count)
+#: web_tt2/rss.tt2:101
+msgid "%1@%2 - %3 : %4 messages"
 msgstr ""
 
 #. (list.name,list.host,param0)
@@ -308,7 +303,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: web_tt2/create_list_request.tt2:55
+#: web_tt2/create_list_request.tt2:48
 msgid "--Select a topic--"
 msgstr "--Vyberte tÃ©mata--"
 
@@ -362,6 +357,11 @@ msgstr ": neznÃ¡mÃ½ uÂ¾ivatel"
 msgid ": your environment as a subscriber or as owner"
 msgstr ": VaÂ¹e prostÃ¸edÃ­ jako Ã¨len nebo vlastnÃ­k"
 
+#. (email)
+#: web_tt2/lists.tt2:6
+msgid "<B>%1</B> is subscribed to the following mailing lists"
+msgstr "<B>%1</B> je pÃ¸ihlÃ¡Â¹en v nÃ¡sledujÃ­cÃ­ch konferencÃ­ch"
+
 #: web_tt2/help_editlist.tt2:18
 msgid ""
 "<em>modelist</em> is a list of modes (mail, notice, digest, digestplain, "
@@ -371,13 +371,7 @@ msgid ""
 "paragraph."
 msgstr ""
 
-#. (email)
-#: web_tt2/lists.tt2:6
-#, fuzzy
-msgid "<strong>%1</strong> is subscribed to the following mailing lists"
-msgstr "<B>%1</B> je pÃ¸ihlÃ¡Â¹en v nÃ¡sledujÃ­cÃ­ch konferencÃ­ch"
-
-#: web_tt2/help_admin.tt2:6
+#: web_tt2/help_admin.tt2:5
 #, fuzzy
 msgid ""
 "<strong>Create shared</strong> : initializes the shared document web space."
@@ -385,57 +379,57 @@ msgstr ""
 "inicializuje sdÃ­lenÃ½ prostor na webu.\n"
 "              Funkce"
 
-#: web_tt2/help_admin.tt2:11
+#: web_tt2/help_admin.tt2:10
 msgid ""
 "<strong>Customizing</strong> : editing of various files and messages "
 "attached to your list."
 msgstr ""
 
-#: web_tt2/help_admin.tt2:7
+#: web_tt2/help_admin.tt2:6
 msgid ""
 "<strong>Delete shared</strong> closes it. It can be restored using \"Restore "
 "shared\" button"
 msgstr ""
 
-#: web_tt2/help_admin.tt2:8
+#: web_tt2/help_admin.tt2:7
 msgid ""
 "<strong>Edit list config</strong>:  must be used with care : it allows to "
 "modify some of the list parameters. The list of parameters you can modify "
 "depends on your privilege."
 msgstr ""
 
-#: web_tt2/help_admin.tt2:12
+#: web_tt2/help_admin.tt2:11
 msgid ""
 "<strong>Manage Archives</strong>  : Allow you to download and delete list "
 "archives."
 msgstr ""
 
-#: web_tt2/help_admin.tt2:10
+#: web_tt2/help_admin.tt2:9
 #, fuzzy
 msgid ""
 "<strong>Moderate</strong> : reject and accept messages and documents for "
 "distribution."
 msgstr ""
-": sprÃ¡va Ã¨lenÃ¹, pÃ¸idÃ¡nÃ­, odebrÃ¡nÃ­, vyhledÃ¡vÃ¡nÃ­, vrÃ¡cenÃ© zprÃ¡vy, "
-"atd"
+": sprÃ¡va Ã¨lenÃ¹, pÃ¸idÃ¡nÃ­, odebrÃ¡nÃ­, vyhledÃ¡vÃ¡nÃ­, vrÃ¡cenÃ© "
+"zprÃ¡vy, atd"
 
-#: web_tt2/help_admin.tt2:5
+#: web_tt2/help_admin.tt2:4
 #, fuzzy
 msgid ""
 "<strong>Remove list</strong> : completely removes the current list. "
 "Listmaster privileges are required to Restore a list"
 msgstr "kompletnÃ¬ odstranÃ­ konferenci. Pro funkci"
 
-#: web_tt2/help_admin.tt2:9
+#: web_tt2/help_admin.tt2:8
 #, fuzzy
 msgid ""
 "<strong>Subscribers</strong> : subscribers management, add, del, search, "
 "bounces, etc..."
 msgstr ""
-": sprÃ¡va Ã¨lenÃ¹, pÃ¸idÃ¡nÃ­, odebrÃ¡nÃ­, vyhledÃ¡vÃ¡nÃ­, vrÃ¡cenÃ© zprÃ¡vy, "
-"atd"
+": sprÃ¡va Ã¨lenÃ¹, pÃ¸idÃ¡nÃ­, odebrÃ¡nÃ­, vyhledÃ¡vÃ¡nÃ­, vrÃ¡cenÃ© "
+"zprÃ¡vy, atd"
 
-#: web_tt2/create_list_request.tt2:77
+#: web_tt2/create_list_request.tt2:70
 msgid "A few lines describing the list"
 msgstr "NÃ¬kolik Ã¸Ã¡dkÃ¹ popisujÃ­cÃ­ch konferenci"
 
@@ -465,11 +459,11 @@ msgstr "PrÃ¡va pÃ¸Ã­stupu k dokumentu %1"
 msgid "Account"
 msgstr "poÃ¨et vrÃ¡cenÃ½ch zprÃ¡v"
 
-#: web_tt2/d_read.tt2:418 web_tt2/review.tt2:12
+#: web_tt2/d_read.tt2:411 web_tt2/review.tt2:13
 msgid "Add"
 msgstr "VytvoÃ¸it novÃ½ adresÃ¡Ã¸"
 
-#: web_tt2/d_read.tt2:413
+#: web_tt2/d_read.tt2:405
 msgid "Add a bookmark"
 msgstr "VytvoÃ¸it novÃ½ adresÃ¡Ã¸ v adresÃ¡Ã¸i [% path %]"
 
@@ -503,7 +497,7 @@ msgstr "Aliasy, kterÃ© byste mÃ¬l instalovat do poÂ¹tovnÃ­ho sys
 msgid "All commands must be sent to the electronic address %1"
 msgstr "VÂ¹echny pÃ¸Ã­kazy se musÃ­ posÃ­lat na adresu %1"
 
-#: src/sympa.pl:1629
+#: src/sympa.pl:1635
 msgid ""
 "Among subscriber of list %s since %d days, %d didn't confirm there "
 "subscription.\n"
@@ -537,7 +531,7 @@ msgstr ""
 msgid "Any information about this list :"
 msgstr ""
 
-#: web_tt2/d_properties.tt2:40
+#: web_tt2/d_properties.tt2:39
 msgid "Apply"
 msgstr "PouÂ¾Ã­t"
 
@@ -560,7 +554,7 @@ msgstr ""
 msgid "Archive powered by"
 msgstr ""
 
-#: web_tt2/admin_menu.tt2:152 web_tt2/edit_list_request.tt2:9
+#: web_tt2/admin_menu.tt2:152 web_tt2/edit_list_request.tt2:8
 #: web_tt2/serveradmin.tt2:173
 msgid "Archives"
 msgstr "Archives setup"
@@ -580,10 +574,9 @@ msgstr ""
 msgid "Are you sure you wish to close %1 list ?"
 msgstr ""
 
-#. (list.name,msg_from)
+#. (list.name)
 #: mail_tt2/moderate.tt2:3
-#, fuzzy
-msgid "Article to be approved for list %1 from %2"
+msgid "Article to be approved for %1"
 msgstr "Messaggio da approvare"
 
 #: src/List.pm:555
@@ -594,7 +587,7 @@ msgstr ""
 msgid "Auth method"
 msgstr "Metoda pÃ¸ihlÃ¡Â¹enÃ­"
 
-#: src/List.pm:2578
+#: src/List.pm:2573
 #, fuzzy
 msgid "Authentication requested"
 msgstr "Odeslat poÂ¾adavek na vytvoÃ¸enÃ­"
@@ -649,12 +642,12 @@ msgid ""
 "selected by Sympa as severe bouncing addresses:\n"
 msgstr ""
 
-#: web_tt2/arcsearch_form.tt2:63
+#: web_tt2/arcsearch_form.tt2:64
 msgid "Body"
 msgstr "TÃ¬lo zprÃ¡vy"
 
 #. (d.anchor)
-#: web_tt2/rss.tt2:78
+#: web_tt2/rss.tt2:121
 #, fuzzy
 msgid "Bookmark %1"
 msgstr "Nahradit soubor [% path %] VaÂ¹Ã­m souborem"
@@ -667,12 +660,12 @@ msgstr "Nahradit soubor [% path %] VaÂ¹Ã­m souborem"
 msgid "Bounce Settings"
 msgstr ""
 
-#: src/List.pm:2300
+#: src/List.pm:2299
 msgid ""
 "Bounce rate in list %s is %d%%.\n"
 "\n"
 "You should delete bouncing subscribers : \n"
-"%s/reviewbouncing/%s\n"
+"%s/reviewbouncing/%s"
 msgstr ""
 
 #: web_tt2/list_menu.tt2:105
@@ -684,16 +677,16 @@ msgstr "PomÃ¬r vrÃ¡cenÃ½ch zprÃ¡v:"
 msgid "Bounces"
 msgstr "VracejÃ­cÃ­ se adresa"
 
-#: web_tt2/editsubscriber.tt2:52
-#, fuzzy
-msgid "Bounces count :"
+#. (current_subscriber.bounce_count)
+#: web_tt2/editsubscriber.tt2:50
+msgid "Bounces count : %1"
 msgstr "PoÃ¨et vrÃ¡cenÃ½ch zprÃ¡v : %1"
 
-#: src/List.pm:365 web_tt2/edit_list_request.tt2:10
+#: src/List.pm:365 web_tt2/edit_list_request.tt2:9
 msgid "Bounces management"
 msgstr "Bounces management"
 
-#: web_tt2/editsubscriber.tt2:47
+#: web_tt2/editsubscriber.tt2:46
 msgid "Bouncing address"
 msgstr "VracejÃ­cÃ­ se adresa"
 
@@ -703,7 +696,7 @@ msgid ""
 "on the list's configuration)"
 msgstr ""
 
-#: web_tt2/d_install_shared.tt2:17 web_tt2/d_upload.tt2:28
+#: web_tt2/d_install_shared.tt2:17 web_tt2/d_upload.tt2:31
 msgid "Cancel"
 msgstr ""
 
@@ -734,7 +727,7 @@ msgstr "Nelze nahrÃ¡t soubor %1"
 msgid "Cannot upload file %1"
 msgstr "Nelze nahrÃ¡t soubor %1"
 
-#: web_tt2/arcsearch_form.tt2:35
+#: web_tt2/arcsearch_form.tt2:36
 msgid "Case"
 msgstr "Velkost pÃ­smen"
 
@@ -745,10 +738,6 @@ msgstr "datum vyprÂšenÃ­ certifikÃ¡tu"
 #: web_tt2/show_cert.tt2:10
 msgid "Certificate issuer"
 msgstr "Certifikaci vydal"
-
-#: web_tt2/main.tt2:225 web_tt2/main.tt2:309
-msgid "Change"
-msgstr ""
 
 #: web_tt2/change_email.tt2:11
 msgid "Change my email address"
@@ -762,7 +751,7 @@ msgstr "ZmÃ¬na VaÂ¹Ã­ emailovÃ© adresy"
 msgid "Changing your password"
 msgstr ""
 
-#: web_tt2/arcsearch_form.tt2:41
+#: web_tt2/arcsearch_form.tt2:42
 msgid "Check"
 msgstr "Shoda"
 
@@ -803,7 +792,7 @@ msgid ""
 "\tpassword. This will confirm your subscription to list %1\n"
 msgstr ""
 
-#: web_tt2/loginbanner.tt2:72
+#: web_tt2/loginbanner.tt2:73
 #, fuzzy
 msgid "Choose your authentication server"
 msgstr "PÃ¸i ovÃ¬Ã¸ovÃ¡nÃ­ totoÂ¾nosti ("
@@ -817,7 +806,7 @@ msgstr ""
 msgid "Cipher key size used"
 msgstr "PouÂita dÃ©lka klÃ­Ã¨e"
 
-#: web_tt2/set_pending_list_request.tt2:32
+#: web_tt2/set_pending_list_request.tt2:34
 #, fuzzy
 msgid "Close it"
 msgstr "ProveÃ¯"
@@ -830,7 +819,7 @@ msgstr ""
 msgid "Command 'quit' found : ignoring end of message.\n"
 msgstr ""
 
-#: src/sympa.pl:1485 src/sympa.pl:1516
+#: src/sympa.pl:1491 src/sympa.pl:1522
 msgid "Command not understood: ignoring end of message.\n"
 msgstr ""
 
@@ -843,7 +832,7 @@ msgstr ""
 msgid "Config file has been modified by %1. Cannot apply your changes"
 msgstr "%1 zmÃ¬nil konfiguraÃ¨nÃ­ soubor. VaÂ¹e zmÃ¬ny nelze pouÂ¾Ã­t"
 
-#: web_tt2/set_pending_list_request.tt2:61
+#: web_tt2/set_pending_list_request.tt2:67
 msgid "Configuration file"
 msgstr "KonfiguraÃ¨nÃ­ soubor"
 
@@ -886,20 +875,20 @@ msgstr ""
 msgid "Create Shared"
 msgstr ""
 
-#: web_tt2/d_read.tt2:392 web_tt2/d_read.tt2:397
+#: web_tt2/d_read.tt2:387 web_tt2/d_read.tt2:392
 msgid "Create a new file"
 msgstr "OprÃ¡vnÃ¬nÃ­"
 
 #. (visible_path)
-#: web_tt2/d_read.tt2:367
+#: web_tt2/d_read.tt2:365
 msgid "Create a new folder inside the folder %1"
 msgstr "Describe the folder %1"
 
-#: web_tt2/d_read.tt2:369
+#: web_tt2/d_read.tt2:367
 msgid "Create a new folder inside the folder SHARED"
 msgstr "Describe the folder [% path %]"
 
-#: web_tt2/d_read.tt2:374
+#: web_tt2/d_read.tt2:373
 msgid "Create a new subdirectory"
 msgstr "Apply"
 
@@ -956,16 +945,16 @@ msgstr "size=\"-1\"><b>Ãšpravy</b"
 msgid "Data have changed on disk. Cannot apply your changes"
 msgstr "Data zmÃ¬nÃ¬na na disku. VaÂ¹e zmÃ¬ny nelze pouÂ¾Ã­t"
 
-#: web_tt2/edit_list_request.tt2:11
+#: web_tt2/edit_list_request.tt2:10
 msgid "Data sources setup"
 msgstr "Data sources setup"
 
-#: web_tt2/arcsearch_form.tt2:61 web_tt2/latest_arc.tt2:19
+#: web_tt2/arcsearch_form.tt2:62 web_tt2/latest_arc.tt2:19
 #: web_tt2/modindex.tt2:17 web_tt2/modindex.tt2:69 web_tt2/subindex.tt2:11
 msgid "Date"
 msgstr "Datum"
 
-#: src/List.pm:2293
+#: src/List.pm:2292
 msgid ""
 "Dear owner of list %s,\n"
 "\n"
@@ -1007,7 +996,7 @@ msgid ""
 "with this parameter."
 msgstr ""
 
-#: web_tt2/d_read.tt2:126 web_tt2/d_upload.tt2:11
+#: web_tt2/d_read.tt2:126 web_tt2/d_upload.tt2:12
 msgid "Delete"
 msgstr "Smazat"
 
@@ -1020,7 +1009,7 @@ msgstr "Smazat vybranÃ© uÂ¾ivatele"
 msgid "Delete Shared"
 msgstr ""
 
-#: web_tt2/review.tt2:274 web_tt2/review.tt2:88 web_tt2/review.tt2:90
+#: web_tt2/review.tt2:275 web_tt2/review.tt2:89 web_tt2/review.tt2:91
 #: web_tt2/reviewbouncing.tt2:106 web_tt2/reviewbouncing.tt2:30
 msgid "Delete selected email addresses"
 msgstr "Smazat oznaÃ¨enÃ© adresy"
@@ -1033,12 +1022,12 @@ msgid ""
 msgstr ""
 
 #. (fname)
-#: web_tt2/d_properties.tt2:28
+#: web_tt2/d_properties.tt2:27
 msgid "Describe the directory %1"
 msgstr "Describe the file %1"
 
 #. (fname)
-#: web_tt2/d_properties.tt2:30
+#: web_tt2/d_properties.tt2:29
 msgid "Describe the file %1"
 msgstr "Describe the file %1"
 
@@ -1049,7 +1038,7 @@ msgstr "Describe the file %1"
 msgid "Description : %1"
 msgstr "popis : %1"
 
-#: web_tt2/create_list_request.tt2:75
+#: web_tt2/create_list_request.tt2:68
 msgid "Description:"
 msgstr "Popis:"
 
@@ -1084,10 +1073,6 @@ msgstr ""
 #. (error.name)
 #: web_tt2/error.tt2:154
 msgid "Directory %1 and its contents are not copied"
-msgstr ""
-
-#: src/List.pm:852
-msgid "Directory where the database is stored (used for DBD::CSV only)"
 msgstr ""
 
 #: web_tt2/modindex.tt2:10 web_tt2/modindex.tt2:48 web_tt2/viewmod.tt2:8
@@ -1133,7 +1118,7 @@ msgid ""
 msgstr "Chcete opravdu poslat upomÃ­nacÃ­ zprÃ¡vu k  %1 Ã¨lenÃ¹m?"
 
 #. (total)
-#: web_tt2/review.tt2:51
+#: web_tt2/review.tt2:52
 msgid ""
 "Do you really want to send a subscription remind message to the %1 "
 "subscribers ?"
@@ -1144,7 +1129,7 @@ msgstr "Chcete opravdu poslat pÃ¸ipomÃ­nacÃ­ zprÃ¡vu k %1 Ã¨
 msgid "Do you really want to subscribe to list %1?"
 msgstr ""
 
-#: web_tt2/review.tt2:88
+#: web_tt2/review.tt2:89
 msgid "Do you really want to unsubscribe ALL selected subscribers ?"
 msgstr "Do you really want to unsubscribe ALL selected subscribers ?"
 
@@ -1157,19 +1142,19 @@ msgstr "Opravdu se chcete odhlÃ¡sit z konference %1?"
 msgid "Do you want to DownLoad a Zip of the selected Archives before?"
 msgstr ""
 
-#: web_tt2/d_upload.tt2:25
+#: web_tt2/d_upload.tt2:28
 #, fuzzy
 msgid "Do you want to cancel the upload ?"
 msgstr "Opravdu chcete smazat %1%2 ?"
 
 #. (shortname)
-#: web_tt2/d_upload.tt2:8
+#: web_tt2/d_upload.tt2:9
 #, fuzzy
 msgid "Do you want to delete the old file %1 ?"
 msgstr "Opravdu chcete smazat %1%2 ?"
 
 #. (shortname)
-#: web_tt2/d_upload.tt2:16
+#: web_tt2/d_upload.tt2:18
 #, fuzzy
 msgid "Do you want to rename your file %1 ?"
 msgstr "Opravdu se chcete pÃ¸ihlÃ¡sit do konference %1"
@@ -1183,7 +1168,7 @@ msgstr "Dokument"
 msgid "Documents to moderate :"
 msgstr "PoÃ¨et zprÃ¡v k moderovÃ¡nÃ­ :"
 
-#: web_tt2/review.tt2:138 web_tt2/review.tt2:142
+#: web_tt2/review.tt2:139 web_tt2/review.tt2:143
 msgid "Domain"
 msgstr ""
 
@@ -1255,13 +1240,9 @@ msgid ""
 "who will decide whether to distribute or reject it."
 msgstr ""
 
-#: web_tt2/pref.tt2:22 web_tt2/review.tt2:129 web_tt2/review.tt2:133
-#: web_tt2/reviewbouncing.tt2:62 web_tt2/subindex.tt2:8
+#: web_tt2/review.tt2:130 web_tt2/review.tt2:134 web_tt2/reviewbouncing.tt2:62
+#: web_tt2/subindex.tt2:8
 msgid "Email"
-msgstr ""
-
-#: web_tt2/editsubscriber.tt2:12
-msgid "Email :"
 msgstr ""
 
 #: web_tt2/d_read.tt2:137
@@ -1279,11 +1260,11 @@ msgstr "Konec shrnutÃ­ konference %1 - %2"
 msgid "End of digest for list %1 - %2"
 msgstr "Konec shrnutÃ­ konference %1 - %2"
 
-#: src/sympa.pl:1601
+#: src/sympa.pl:1607
 msgid "End of your EXPIRE command on list %s"
 msgstr ""
 
-#: src/Conf.pm:224
+#: src/Conf.pm:221
 msgid "Error at line %d : %s"
 msgstr ""
 
@@ -1324,27 +1305,27 @@ msgstr "Informace o konferenci:"
 msgid "Expiration of unmoderated messages"
 msgstr "ModerovÃ¡nÃ­: potvrzenÃ­ zprÃ¡vy"
 
-#: web_tt2/arcsearch_form.tt2:69
+#: web_tt2/arcsearch_form.tt2:70
 msgid "Extend search field"
 msgstr "RozÂ¹Ã­Ã¸it pole hledÃ¡nÃ­"
 
-#: web_tt2/home.tt2:62
+#: web_tt2/home.tt2:61
 msgid "Extended search"
 msgstr ""
 
-#: src/List.pm:2315
+#: src/List.pm:2314
 msgid ""
 "FYI command %s list %s from %s %s \n"
 " (no action needed)\n"
 msgstr ""
 
-#: src/List.pm:2313
+#: src/List.pm:2312
 msgid ""
 "FYI command %s list %s from %s %s validated by %s\n"
 " (no action needed)\n"
 msgstr ""
 
-#: src/List.pm:2269 src/List.pm:2311
+#: src/List.pm:2268 src/List.pm:2310
 msgid "FYI: %s list %s from %s %s"
 msgstr ""
 
@@ -1479,7 +1460,7 @@ msgstr ""
 msgid "GET <list> <file>           * To get <file> of <list> archive"
 msgstr "Pro zÃ­skÃ¡nÃ­ souboru <file> z archÃ­vu konference <list>"
 
-#: web_tt2/loginbanner.tt2:53 web_tt2/loginbanner.tt2:79
+#: web_tt2/loginbanner.tt2:54 web_tt2/loginbanner.tt2:80
 msgid "Go"
 msgstr ""
 
@@ -1491,8 +1472,7 @@ msgstr ""
 msgid "HTTPS authentication information"
 msgstr "Informace o HTTPS autentizaci"
 
-#: web_tt2/edit_list_request.tt2:48 web_tt2/menu.tt2:118 web_tt2/menu.tt2:121
-#: web_tt2/suboptions.tt2:18
+#: web_tt2/edit_list_request.tt2:47 web_tt2/menu.tt2:118 web_tt2/menu.tt2:121
 msgid "Help"
 msgstr "NÃ¡povÃ¬da"
 
@@ -1526,11 +1506,6 @@ msgstr "NÃ¡vrat na zaÃ¨Ã¡tek"
 #: mail_tt2/info_report.tt2:20
 msgid "Homepage           : %1"
 msgstr "ZpÃ¹sob pÃ¸ijÃ­mÃ¡nÃ­      : [% available_reception_mode %]"
-
-#: src/etc/create_list_templates/hotline/comment.tt2:1
-#, fuzzy
-msgid "Hotline mailing list"
-msgstr "Konference"
 
 #: web_tt2/help.tt2:41
 msgid "I am not a list subscriber"
@@ -1597,7 +1572,7 @@ msgstr ""
 msgid "If you don't want to subscribe just ignore this message."
 msgstr "NemÃ¡te-li zÃ¡jem, ignorujte prosÃ­m tuto zpravu."
 
-#: src/sympa.pl:1649
+#: src/sympa.pl:1655
 #, fuzzy
 msgid ""
 "If you want to remove these subscriber from the list, use the following "
@@ -1610,13 +1585,13 @@ msgid "If you want to unsubscribe from some list, please save this mail."
 msgstr ""
 "Pokud se chcete odhlÃ¡sit z nÃ¬jakÃ© konference, uloÂ¾te si tuto zprÃ¡vu."
 
-#: web_tt2/loginbanner.tt2:121 web_tt2/sigrequest.tt2:71
+#: web_tt2/loginbanner.tt2:122 web_tt2/sigrequest.tt2:71
 #, fuzzy
 msgid ""
 "If you've never had a password from that server or if you don't remember it :"
 msgstr "Pokud zde nemÃ¡te heslo, nebo si ho nepamatujete :"
 
-#: src/sympa.pl:1438
+#: src/sympa.pl:1444
 msgid ""
 "Ignoring message body not in text/plain, please use text/plain only \n"
 "(or put your command in the subject).\n"
@@ -1634,11 +1609,11 @@ msgstr ""
 msgid "Inactive lists"
 msgstr "VytvoÃ¸enÃ­ konference"
 
-#: src/List.pm:1088
+#: src/List.pm:1087
 msgid "Inclusions timeout"
 msgstr ""
 
-#: web_tt2/set_pending_list_request.tt2:45
+#: web_tt2/set_pending_list_request.tt2:51
 msgid "Information file"
 msgstr "Soubor s popisem"
 
@@ -1662,7 +1637,7 @@ msgstr "Informace o konferenci %1"
 msgid "Install"
 msgstr "Nainstalovat &nbsp;&nbsp;"
 
-#: web_tt2/set_pending_list_request.tt2:33
+#: web_tt2/set_pending_list_request.tt2:35
 #, fuzzy
 msgid "Install it"
 msgstr "Nainstalovat &nbsp;&nbsp;"
@@ -1707,7 +1682,7 @@ msgid ""
 "was unable to access to your personal certificat (email %1).\n"
 msgstr ""
 
-#: src/etc/mhonarc-ressources.tt2:583
+#: src/etc/mhonarc-ressources.tt2:582
 msgid ""
 "January:February:March:April:May:June:July:August:September:October:November:"
 "December"
@@ -1732,14 +1707,14 @@ msgstr ""
 msgid "LISts                       * Directory of lists managed on this node"
 msgstr "Seznam konferencÃ­ na tomto poÃ¨Ã­taÃ¨i"
 
-#: web_tt2/pref.tt2:25
+#: web_tt2/pref.tt2:24
 msgid "Language"
 msgstr "Jazyk"
 
+#. (current_subscriber.lang)
 #: web_tt2/editsubscriber.tt2:23
-#, fuzzy
-msgid "Language :"
-msgstr "Jazyk"
+msgid "Language : %1"
+msgstr ""
 
 #: src/List.pm:877
 msgid "Language of the list"
@@ -1749,18 +1724,15 @@ msgstr ""
 msgid "Last update"
 msgstr "PoslednÃ­ zmÃ¬na"
 
-#: web_tt2/editsubscriber.tt2:15
-#, fuzzy
-msgid "Last update :"
-msgstr "PoslednÃ­ zmÃ¬na"
-
 #. (doc_date)
+#. (current_subscriber.update_date)
 #: web_tt2/d_control.tt2:10 web_tt2/d_editfile.tt2:20
 #: web_tt2/d_properties.tt2:18 web_tt2/d_read.tt2:51
+#: web_tt2/editsubscriber.tt2:15
 msgid "Last update : %1"
 msgstr "Ã¨lenem od [% current_subscriber.date %]"
 
-#: src/List.pm:1113
+#: src/List.pm:1112
 #, fuzzy
 msgid "Last update of config"
 msgstr "Ã¨lenem od [% current_subscriber.date %]"
@@ -1778,7 +1750,7 @@ msgstr ""
 msgid "Latest message"
 msgstr "ZaÃ¨Ã­t od nejnovÃ¬jÂ¹Ã­ch zprÃ¡v"
 
-#: web_tt2/arcsearch_form.tt2:47
+#: web_tt2/arcsearch_form.tt2:48
 msgid "Layout"
 msgstr "UspoÃ¸Ã¡dÃ¡nÃ­"
 
@@ -1819,6 +1791,7 @@ msgid ""
 "\n"
 "     Parameters : %4\n"
 "     Files : %5\n"
+"\n"
 msgstr ""
 
 #: src/Commands.pm:1582
@@ -1881,11 +1854,11 @@ msgstr "SprÃ¡va konference"
 msgid "List aliases have been removed."
 msgstr ""
 
-#: web_tt2/create_list_request.tt2:71
+#: web_tt2/create_list_request.tt2:64
 msgid "List classification in the directory"
 msgstr "Klasifikace konference v adresÃ¡Ã¸i"
 
-#: web_tt2/edit_list_request.tt2:6
+#: web_tt2/edit_list_request.tt2:5
 msgid "List definition"
 msgstr "List definition"
 
@@ -1995,14 +1968,14 @@ msgstr "NahrÃ¡t certifikÃ¡t"
 msgid "Loading admins failed"
 msgstr ""
 
-#: web_tt2/home.tt2:61
+#: web_tt2/home.tt2:60
 msgid "Local"
 msgstr ""
 "Hledat konference\">\n"
 "        <"
 
 #: web_tt2/help.tt2:22 web_tt2/help.tt2:25 web_tt2/help.tt2:28
-#: web_tt2/loginbanner.tt2:111 web_tt2/menu.tt2:35
+#: web_tt2/loginbanner.tt2:112 web_tt2/menu.tt2:35
 msgid "Login"
 msgstr "PÃ¸ihlÃ¡Â¹enÃ­"
 
@@ -2036,21 +2009,6 @@ msgstr "PÃ¸i ovÃ¬Ã¸ovÃ¡nÃ­ totoÂ¾nosti ("
 #, fuzzy
 msgid "Mail reception mode."
 msgstr "ZpÃ¹sob pÃ¸Ã­jÃ­mÃ¡nÃ­ :"
-
-#: src/etc/create_list_templates/news-letter/comment.tt2:1
-msgid "Mailing list configuration to be used for a news letter"
-msgstr ""
-
-#: src/etc/create_list_templates/html-news-letter/comment.tt2:1
-msgid ""
-"Mailing list configuration to be used for a news letter providing both text "
-"plain and HTML formats"
-msgstr ""
-
-#: src/etc/create_list_templates/intranet_list/comment.tt2:1
-#, fuzzy
-msgid "Mailing list for intranets"
-msgstr "Konference"
 
 #: web_tt2/home.tt2:16
 msgid "Mailing lists"
@@ -2135,12 +2093,6 @@ msgstr ""
 msgid "Messages are still archived but you should contact %2@%1"
 msgstr ""
 
-#: src/etc/create_list_templates/public_web_forum/comment.tt2:3
-msgid ""
-"Messages can either be read via email (subscription) or\n"
-"via the web (web archives)\n"
-msgstr ""
-
 #. (list.name,to,subscriber.first_bounce)
 #: mail_tt2/subscriber_notification.tt2:8
 msgid ""
@@ -2154,7 +2106,7 @@ msgstr ""
 msgid "Messages to moderate :"
 msgstr "PoÃ¨et zprÃ¡v k moderovÃ¡nÃ­ :"
 
-#: web_tt2/admin_menu.tt2:161 web_tt2/edit_list_request.tt2:13
+#: web_tt2/admin_menu.tt2:161 web_tt2/edit_list_request.tt2:12
 msgid "Miscellaneous"
 msgstr "Other parameters"
 
@@ -2198,7 +2150,7 @@ msgstr "Smazat vybranÃ© uÂ¾ivatele"
 msgid "Moderated, with editor confirmation"
 msgstr ""
 
-#: src/List.pm:2415
+#: src/List.pm:2414
 #, fuzzy
 msgid "Moderating your message"
 msgstr "ModerovÃ¡nÃ­: odmÃ­tnutÃ­ zprÃ¡vy"
@@ -2230,12 +2182,12 @@ msgstr "Moderatori della lista %1"
 #: web_tt2/loginbanner.tt2:13
 msgid ""
 "Most mailing list features require your email. Some mailing lists are hidden "
-"to  unidentified persons.<br />\n"
+"to  unidentified persons.<BR>\n"
 " In order to benefit from the full services provided by this server, you "
 "probably need to identify yourself first.\n"
 msgstr ""
 
-#: web_tt2/review.tt2:40
+#: web_tt2/review.tt2:41
 msgid "Multiple add"
 msgstr ""
 
@@ -2251,8 +2203,8 @@ msgid ""
 "              distributed.\n"
 msgstr ""
 
-#: web_tt2/latest_d_read.tt2:20 web_tt2/pref.tt2:23 web_tt2/review.tt2:147
-#: web_tt2/review.tt2:151 web_tt2/subindex.tt2:9
+#: web_tt2/latest_d_read.tt2:20 web_tt2/pref.tt2:22 web_tt2/review.tt2:148
+#: web_tt2/review.tt2:152 web_tt2/subindex.tt2:9
 msgid "Name"
 msgstr "JmÃ©no"
 
@@ -2268,7 +2220,7 @@ msgid ""
 "again. Active if task_manager.pl is running."
 msgstr ""
 
-#: web_tt2/pref.tt2:68
+#: web_tt2/pref.tt2:67
 msgid "New email address :"
 msgstr ""
 
@@ -2277,7 +2229,7 @@ msgstr ""
 msgid "New list name:"
 msgstr "jmÃ©no"
 
-#: web_tt2/choosepasswd.tt2:17 web_tt2/pref.tt2:77
+#: web_tt2/choosepasswd.tt2:17 web_tt2/pref.tt2:74
 msgid "New password :"
 msgstr "NovÃ¡ adresa :"
 
@@ -2301,7 +2253,7 @@ msgstr ""
 msgid "Newsletter, restricted to moderators after confirmation"
 msgstr ""
 
-#: web_tt2/review.tt2:116 web_tt2/review.tt2:289
+#: web_tt2/review.tt2:117 web_tt2/review.tt2:290
 #: web_tt2/reviewbouncing.tt2:118 web_tt2/reviewbouncing.tt2:52
 msgid "Next page"
 msgstr "DalÂ¹Ã­ strana"
@@ -2319,7 +2271,7 @@ msgstr ""
 msgid "No bounces for user  %1"
 msgstr "Pro uÂ¾ivatele %1 nejsou vrÃ¡cenÃ© zprÃ¡vy"
 
-#: src/sympa.pl:1507
+#: src/sympa.pl:1513
 msgid "No command found in message"
 msgstr ""
 
@@ -2331,10 +2283,6 @@ msgstr "Popis nespecifikovÃ¡n"
 #, fuzzy
 msgid "No document to moderate"
 msgstr "Â®Ã¡dnÃ¡ zprÃ¡va pro moderovÃ¡nÃ­"
-
-#: web_tt2/lists.tt2:81
-msgid "No mailing list available."
-msgstr ""
 
 #. (notice.list)
 #: web_tt2/notice.tt2:37
@@ -2373,8 +2321,8 @@ msgid "No subscription requests"
 msgstr ""
 
 #. (user.email)
-#: web_tt2/lists.tt2:40
-msgid "No subscriptions with address <strong>%1</strong>!"
+#: web_tt2/lists.tt2:39
+msgid "No subscriptions with address <B>%1</B>!"
 msgstr ""
 
 #: web_tt2/help_user_options.tt2:29
@@ -2404,12 +2352,6 @@ msgstr "OdmÃ­tnutÃ­ s upozornÃ¬nÃ­m"
 #: mail_tt2/stats_report.tt2:4
 msgid "Number of forwarded messages:      %1"
 msgstr "PoÃ¨et pÃ¸edanÃ½ch zprÃ¡v      :      %1"
-
-#. (mod_spool_size)
-#: mail_tt2/moderate.tt2:24
-#, fuzzy
-msgid "Number of messages awaiting moderation for this list : %1"
-msgstr "Na moderovÃ¡nÃ­ Ã¨ekÃ¡ %1 zprÃ¡v v konferenci %2@%3"
 
 #. (stats.msg_rcv)
 #: mail_tt2/stats_report.tt2:3
@@ -2443,11 +2385,11 @@ msgstr ""
 msgid "Or send a message to %1@%2 with the following subject :"
 msgstr ""
 
-#: web_tt2/create_list_request.tt2:68
+#: web_tt2/create_list_request.tt2:61
 msgid "Other"
 msgstr ""
 
-#: web_tt2/pref.tt2:117
+#: web_tt2/pref.tt2:113
 msgid "Other email address :"
 msgstr "NovÃ© heslo :"
 
@@ -2501,12 +2443,12 @@ msgid ""
 "edited from the web."
 msgstr ""
 
-#: src/List.pm:2265 src/List.pm:2280 src/List.pm:2292
+#: src/List.pm:2264 src/List.pm:2279 src/List.pm:2291
 #, fuzzy
 msgid "Owners of list %s"
 msgstr "Moderatori della lista %1"
 
-#: web_tt2/review.tt2:99 web_tt2/reviewbouncing.tt2:34
+#: web_tt2/review.tt2:100 web_tt2/reviewbouncing.tt2:34
 msgid "Page size"
 msgstr "Velikost strany"
 
@@ -2516,7 +2458,7 @@ msgstr "Velikost strany"
 msgid "Parameters of these search make on <strong> &quot;%1&quot;</strong>"
 msgstr "Parametry toho hledÃ¡nÃ­ <b> &quot;%1&quot;</b>"
 
-#: web_tt2/pref.tt2:119
+#: web_tt2/pref.tt2:115
 msgid "Password :"
 msgstr "Zopakujte novÃ© heslo :"
 
@@ -2529,30 +2471,25 @@ msgstr "Heslo pro %1"
 msgid "Path"
 msgstr ""
 
-#: web_tt2/get_pending_lists.tt2:10 web_tt2/serveradmin.tt2:77
+#: web_tt2/get_pending_lists.tt2:11 web_tt2/serveradmin.tt2:77
 msgid "Pending lists"
 msgstr "ÃˆekajÃ­cÃ­ konference"
 
-#: web_tt2/review.tt2:31
+#: web_tt2/review.tt2:32
 #, fuzzy
 msgid "Pending subscriptions"
 msgstr "PÃ¸ihlÃ¡Â¹enÃ© konference"
 
-#: web_tt2/editsubscriber.tt2:53
-#, fuzzy
-msgid "Period :"
-msgstr "obdobÃ­"
+#. (current_subscriber.first_bounce,current_subscriber.last_bounce)
+#: web_tt2/editsubscriber.tt2:51
+msgid "Period : from %1 to %2"
+msgstr "ObdobÃ­ : od %1 do %2"
 
-#: src/List.pm:544
-#, fuzzy
-msgid "Periodical subscription expiration task"
-msgstr "datum vyprÂšenÃ­ certifikÃ¡tu"
-
-#: web_tt2/main.tt2:182
+#: web_tt2/main.tt2:130
 msgid "Please activate JavaScript in your web browser"
 msgstr ""
 
-#: web_tt2/tt2_error.tt2:41
+#: web_tt2/tt2_error.tt2:23
 msgid "Please contact the listmaster."
 msgstr ""
 
@@ -2587,11 +2524,6 @@ msgstr ""
 msgid "Post"
 msgstr "PÃ¸Ã­spÃ¬vek do konference"
 
-#: web_tt2/main.tt2:316 web_tt2/tt2_error.tt2:47
-#, fuzzy
-msgid "Powered by"
-msgstr "Powered by Sympa"
-
 #: mail_tt2/helpfile.tt2:60
 msgid "Powered by Sympa"
 msgstr "Powered by Sympa"
@@ -2600,7 +2532,7 @@ msgstr "Powered by Sympa"
 msgid "Pref"
 msgstr "NastavenÃ­"
 
-#: web_tt2/arcsearch_form.tt2:29
+#: web_tt2/arcsearch_form.tt2:30
 msgid "Prefer"
 msgstr "DÃ¡vat pÃ¸ednost"
 
@@ -2608,17 +2540,13 @@ msgstr "DÃ¡vat pÃ¸ednost"
 msgid "Preferences"
 msgstr "NastavenÃ­"
 
-#: web_tt2/review.tt2:110 web_tt2/review.tt2:283
+#: web_tt2/review.tt2:111 web_tt2/review.tt2:284
 #: web_tt2/reviewbouncing.tt2:112 web_tt2/reviewbouncing.tt2:46
 msgid "Previous page"
 msgstr "PÃ¸edchozÃ­ strana"
 
 #: src/List.pm:966
 msgid "Priority"
-msgstr ""
-
-#: src/etc/create_list_templates/private_working_group/comment.tt2:1
-msgid "Private working group setup"
 msgstr ""
 
 #: src/etc/scenari/send.privateorpublickey:1
@@ -2643,7 +2571,7 @@ msgstr ""
 msgid "Privileged owner"
 msgstr "PrivilegovanÃ½ vlastnÃ­k"
 
-#: web_tt2/admin_menu.tt2:148 web_tt2/edit_list_request.tt2:8
+#: web_tt2/admin_menu.tt2:148 web_tt2/edit_list_request.tt2:7
 msgid "Privileges"
 msgstr "Commands setup"
 
@@ -2677,20 +2605,16 @@ msgstr "PoskytnutÃ© heslo je nekompletnÃ­"
 msgid "Provided password is incorrect"
 msgstr "PoskytnutÃ© heslo je nesprÃ¡vnÃ©"
 
-#: src/etc/create_list_templates/discussion_list/comment.tt2:1
-msgid "Public discussion mailing list"
-msgstr ""
-
 #: src/Commands.pm:245 web_tt2/help.tt2:18
 msgid "Public lists"
 msgstr "VeÃ¸ejnÃ© konference"
 
-#: web_tt2/d_editfile.tt2:41 web_tt2/d_editfile.tt2:66 web_tt2/d_read.tt2:444
-#: web_tt2/d_read.tt2:468
+#: web_tt2/d_editfile.tt2:41 web_tt2/d_editfile.tt2:66 web_tt2/d_read.tt2:433
+#: web_tt2/d_read.tt2:454
 msgid "Publish"
 msgstr "Publikovat"
 
-#: web_tt2/get_closed_lists.tt2:25
+#: web_tt2/get_closed_lists.tt2:26
 msgid "Purge selected lists"
 msgstr ""
 
@@ -2716,11 +2640,11 @@ msgstr ""
 msgid "REView <list>               * Displays the subscribers to <list>"
 msgstr "Zobrazi seznamu Ã¨lenÃ¹ konference <list>"
 
-#: src/List.pm:1017
+#: src/List.pm:1016
 msgid "RFC 2369 Header fields"
 msgstr ""
 
-#: web_tt2/pref.tt2:79
+#: web_tt2/pref.tt2:76
 msgid "Re-enter your new password :"
 msgstr ""
 
@@ -2742,7 +2666,7 @@ msgstr "Znovu sestavit archÃ­v"
 msgid "Received mega-bytes             :      %1"
 msgstr "OdeslÃ¡no"
 
-#: web_tt2/review.tt2:155
+#: web_tt2/review.tt2:156
 msgid "Reception"
 msgstr "ZpÃ¹sob pÃ¸ijÃ­mÃ¡nÃ­"
 
@@ -2777,7 +2701,7 @@ msgstr ""
 msgid "Related email"
 msgstr "SouvisejÃ­cÃ­ zprÃ¡va"
 
-#: web_tt2/review.tt2:51 web_tt2/reviewbouncing.tt2:16
+#: web_tt2/review.tt2:52 web_tt2/reviewbouncing.tt2:16
 msgid "Remind all subscribers"
 msgstr "Upomenout vÂ¹echny Ã¨leny"
 
@@ -2826,7 +2750,7 @@ msgstr ""
 msgid "Removed from %1"
 msgstr "Odhlaseni z konference %1"
 
-#: web_tt2/d_properties.tt2:64 web_tt2/d_upload.tt2:20
+#: web_tt2/d_properties.tt2:61 web_tt2/d_upload.tt2:22
 #, fuzzy
 msgid "Rename"
 msgstr "JmÃ©no"
@@ -2837,18 +2761,18 @@ msgid "Rename List"
 msgstr "UzavÃ¸Ã­t konferenci"
 
 #. (fname)
-#: web_tt2/d_properties.tt2:52
+#: web_tt2/d_properties.tt2:49
 #, fuzzy
 msgid "Rename directory %1"
 msgstr "Nelze vytvoÃ¸it adresÃ¡Ã¸ %1"
 
 #. (fname)
-#: web_tt2/d_properties.tt2:54
+#: web_tt2/d_properties.tt2:51
 #, fuzzy
 msgid "Rename file %1"
 msgstr "Odhlaseni z konference %1"
 
-#: web_tt2/edit_list_request.tt2:12
+#: web_tt2/edit_list_request.tt2:11
 #, fuzzy
 msgid "Rename list"
 msgstr "UzavÃ¸Ã­t konferenci"
@@ -2873,7 +2797,7 @@ msgstr "Nahradit soubor %1 VaÂ¹Ã­m souborem"
 msgid "Reply"
 msgstr ""
 
-#: src/List.pm:1005 src/List.pm:985
+#: src/List.pm:1004 src/List.pm:984
 #, fuzzy
 msgid "Reply address"
 msgstr "emailovÃ¡ adresa"
@@ -2887,7 +2811,7 @@ msgstr "OdpovÃ¬Ã¯ na            : %1"
 msgid "Reply to sender"
 msgstr ""
 
-#: web_tt2/get_closed_lists.tt2:12 web_tt2/get_pending_lists.tt2:15
+#: web_tt2/get_closed_lists.tt2:13 web_tt2/get_pending_lists.tt2:16
 msgid "Requested by"
 msgstr "kdo poÂ¾aduje"
 
@@ -2899,7 +2823,7 @@ msgstr "VyÂ¾adovanÃ© aliasy"
 msgid "Required file does not exist.\n"
 msgstr ""
 
-#: web_tt2/editsubscriber.tt2:55
+#: web_tt2/editsubscriber.tt2:53
 msgid "Reset errors"
 msgstr "Vynulovat chyby"
 
@@ -2923,7 +2847,7 @@ msgstr "VÃ½sledek"
 msgid "Result of your search in the archive"
 msgstr "VÃ½sledek VaÂ¹eho hledÃ¡nÃ­ v archÃ­vu"
 
-#: src/sympa.pl:1060
+#: src/sympa.pl:1062
 msgid "Results of your commands"
 msgstr ""
 
@@ -3043,7 +2967,7 @@ msgid "Scenario test module"
 msgstr "Modul testu scÃ©nÃ¡Ã¸e"
 
 #: web_tt2/arc.tt2:20 web_tt2/arcsearch_form.tt2:15
-#: web_tt2/arcsearch_form.tt2:22 web_tt2/review.tt2:67
+#: web_tt2/arcsearch_form.tt2:23 web_tt2/review.tt2:68
 #: web_tt2/reviewbouncing.tt2:11
 msgid "Search"
 msgstr "Hledat"
@@ -3052,7 +2976,7 @@ msgstr "Hledat"
 msgid "Search User"
 msgstr ""
 
-#: web_tt2/arcsearch_form.tt2:54
+#: web_tt2/arcsearch_form.tt2:55
 msgid "Search area"
 msgstr "Kde hledat"
 
@@ -3060,7 +2984,7 @@ msgstr "Kde hledat"
 msgid "Search field :"
 msgstr "VyhledÃ¡vacÃ­ pole :"
 
-#: web_tt2/home.tt2:59
+#: web_tt2/home.tt2:58
 msgid "Search lists"
 msgstr "Hledat konference"
 
@@ -3068,7 +2992,7 @@ msgstr "Hledat konference"
 msgid "Secret string for generating unique keys"
 msgstr ""
 
-#: web_tt2/lists.tt2:46
+#: web_tt2/lists.tt2:45
 msgid "See your subscriptions with the following email addresses"
 msgstr ""
 
@@ -3077,11 +3001,11 @@ msgid ""
 "Select below Archives months you want to delete or download (ZiP format):"
 msgstr ""
 
-#: web_tt2/review.tt2:72
+#: web_tt2/review.tt2:73
 msgid "Selection too wide, can not show selection"
 msgstr "VÃ½bÃ¬r pÃ¸Ã­liÂ¹ rozsÃ¡hlÃ½, nelze jej zobrazit"
 
-#: web_tt2/loginbanner.tt2:135
+#: web_tt2/loginbanner.tt2:136
 msgid "Send me a password"
 msgstr "ZaÂ¹lete mi heslo"
 
@@ -3093,7 +3017,7 @@ msgstr "ZaÂ¹lete mi heslo\">"
 msgid "Send this mail"
 msgstr "Poslat tuto zprÃ¡vu"
 
-#: web_tt2/arcsearch_form.tt2:55
+#: web_tt2/arcsearch_form.tt2:56
 msgid "Sender"
 msgstr "OdesÃ­latel"
 
@@ -3106,15 +3030,15 @@ msgstr "ZasÃ­lÃ¡nÃ­ zprÃ¡v        : %1"
 msgid "Sending/Reception"
 msgstr "><b>ModerovÃ¡nÃ­</b"
 
-#: web_tt2/edit_list_request.tt2:7
+#: web_tt2/edit_list_request.tt2:6
 msgid "Sending/reception setup"
 msgstr "Sending/reception setup"
 
-#: src/List.pm:1028
+#: src/List.pm:1027
 msgid "Serial number of the config"
 msgstr ""
 
-#: web_tt2/rss.tt2:17 web_tt2/rss.tt2:5
+#: web_tt2/rss.tt2:28 web_tt2/rss.tt2:7
 #, fuzzy
 msgid "Server error"
 msgstr "Vynulovat chyby"
@@ -3145,7 +3069,7 @@ msgstr "NastavenÃ­ Â¹ablon serveru"
 msgid "Shared document directory size"
 msgstr ""
 
-#: src/List.pm:1048
+#: src/List.pm:1047
 #, fuzzy
 msgid "Shared documents"
 msgstr "SdÃ­lenÃ½ adresÃ¡Ã¸"
@@ -3181,7 +3105,7 @@ msgstr "Velikost"
 msgid "Size (Kb)"
 msgstr "Velikost (Kb)"
 
-#: src/List.pm:8671
+#: src/List.pm:8675
 msgid ""
 "Someone (hopefully you) asked for your e-mail address\n"
 "to be added to list '%s'.\n"
@@ -3195,10 +3119,10 @@ msgid ""
 "- hit the following mailto %s\n"
 "\n"
 "If you do not want this action to be taken, you can safely ignore\n"
-"this message.\n"
+"this message."
 msgstr ""
 
-#: src/List.pm:8664
+#: src/List.pm:8668
 msgid ""
 "Someone (hopefully you) asked for your e-mail address\n"
 "to be removed from list '%s'.\n"
@@ -3212,10 +3136,10 @@ msgid ""
 "- hit the following mailto %s\n"
 "\n"
 "If you do not want this action to be taken, you can safely ignore\n"
-"this message\n"
+"this message"
 msgstr ""
 
-#: src/List.pm:8676 src/List.pm:8681
+#: src/List.pm:8680 src/List.pm:8685
 msgid ""
 "Someone (hopefully you) requested a user of list %s to be\n"
 "added or removed.\n"
@@ -3255,7 +3179,7 @@ msgstr "SetÃ¸Ã­dit podle jmÃ©na"
 msgid "Sort by size"
 msgstr "SetÃ¸Ã­dit podle velikosti"
 
-#: web_tt2/review.tt2:160 web_tt2/review.tt2:164
+#: web_tt2/review.tt2:161 web_tt2/review.tt2:165
 #, fuzzy
 msgid "Sources"
 msgstr "size=\"-1\"><b>Ãšpravy</b"
@@ -3265,21 +3189,21 @@ msgstr "size=\"-1\"><b>Ãšpravy</b"
 msgid "Status"
 msgstr "Stav : %1"
 
-#: web_tt2/editsubscriber.tt2:51
-#, fuzzy
-msgid "Status :"
+#. (current_subscriber.bounce_status)
+#: web_tt2/editsubscriber.tt2:49
+msgid "Status : %1"
 msgstr "Stav : %1"
 
-#: src/List.pm:1064
+#: src/List.pm:1063
 msgid "Status of the list"
 msgstr ""
 
-#: web_tt2/review.tt2:170 web_tt2/review.tt2:174
+#: web_tt2/review.tt2:171 web_tt2/review.tt2:175
 #, fuzzy
 msgid "Sub date"
 msgstr "SetÃ¸Ã­dit podle data"
 
-#: web_tt2/active_lists.tt2:26 web_tt2/arcsearch_form.tt2:57
+#: web_tt2/active_lists.tt2:26 web_tt2/arcsearch_form.tt2:58
 #: web_tt2/get_inactive_lists.tt2:9 web_tt2/get_latest_lists.tt2:8
 #: web_tt2/latest_arc.tt2:20 web_tt2/latest_lists.tt2:24
 #: web_tt2/modindex.tt2:19 web_tt2/review_family.tt2:9
@@ -3295,7 +3219,7 @@ msgstr "Subjekt               : %1"
 msgid "Subject :"
 msgstr "Subjekt :"
 
-#: src/List.pm:1071
+#: src/List.pm:1070
 msgid "Subject of the list"
 msgstr ""
 
@@ -3304,16 +3228,16 @@ msgstr ""
 msgid "Subject tagging"
 msgstr "Subjekt :"
 
-#: web_tt2/compose_mail.tt2:6 web_tt2/create_list_request.tt2:48
+#: web_tt2/compose_mail.tt2:6 web_tt2/create_list_request.tt2:41
 msgid "Subject:"
 msgstr "PÃ¸edmÃ¬t:"
 
-#: web_tt2/choosepasswd.tt2:21 web_tt2/pref.tt2:122 web_tt2/pref.tt2:38
-#: web_tt2/pref.tt2:71 web_tt2/pref.tt2:82
+#: web_tt2/choosepasswd.tt2:21 web_tt2/pref.tt2:117 web_tt2/pref.tt2:38
+#: web_tt2/pref.tt2:69 web_tt2/pref.tt2:78
 msgid "Submit"
 msgstr "Odeslat\">"
 
-#: web_tt2/create_list_request.tt2:85
+#: web_tt2/create_list_request.tt2:78
 msgid "Submit your creation request"
 msgstr "Odeslat poÂ¾adavek na vytvoÃ¸enÃ­"
 
@@ -3324,9 +3248,9 @@ msgstr "Odeslat poÂ¾adavek na vytvoÃ¸enÃ­"
 msgid "Subscribe"
 msgstr "PÃ¸ihlÃ¡sit se"
 
+#. (current_subscriber.date)
 #: web_tt2/editsubscriber.tt2:14
-#, fuzzy
-msgid "Subscribed since :"
+msgid "Subscribed since %1"
 msgstr "Ã¨lenem od %1"
 
 #: web_tt2/title.tt2:21
@@ -3369,7 +3293,7 @@ msgstr "Odhlaseni z konference %1"
 msgid "Subscription reminder sent to each of %d %s subscribers\n"
 msgstr ""
 
-#: src/List.pm:2279
+#: src/List.pm:2278
 #, fuzzy
 msgid "Subscription request to list %s"
 msgstr "PÃ¸ihlaÂ¹uji se do konference %1"
@@ -3383,7 +3307,7 @@ msgstr "NastavenÃ­ Ã¨lena"
 msgid "Summary"
 msgstr ""
 
-#: src/List.pm:3204
+#: src/List.pm:3199
 #, fuzzy
 msgid "Summary of list %s"
 msgstr "Moderatori della lista %1"
@@ -3393,7 +3317,7 @@ msgstr "Moderatori della lista %1"
 msgid "Summary of your subscription (using the e-mail %1)."
 msgstr "Souhrn VaÂ¹eho Ã¨lenstvÃ­ v konferencÃ­ch (pÃ¸i pouÂ¾itÃ­ adresy"
 
-#: src/etc/mhonarc-ressources.tt2:565
+#: src/etc/mhonarc-ressources.tt2:564
 msgid "Sunday:Monday:Tuesday:Wednesday:Thursday:Friday:Saturday"
 msgstr ""
 
@@ -3432,7 +3356,7 @@ msgid ""
 "file."
 msgstr ""
 
-#: web_tt2/tt2_error.tt2:27
+#: web_tt2/tt2_error.tt2:21
 msgid "Sympa could not deliver the requested page for the following reason : "
 msgstr ""
 
@@ -3462,18 +3386,14 @@ msgstr ""
 msgid "Sympa could not modify list %1 (Family %2)"
 msgstr ""
 
-#: web_tt2/main.tt2:94
+#: web_tt2/main.tt2:89
 msgid ""
 "Sympa could not set a cookie for login.\n"
-" Your should setup your navigator to accept cookies\n"
+" Your should setup your navigator to accept cookies"
 msgstr ""
 
-#: web_tt2/tt2_error.tt2:22
+#: web_tt2/tt2_error.tt2:16
 msgid "Sympa error - could not display web page"
-msgstr ""
-
-#: web_tt2/main.tt2:217 web_tt2/main.tt2:300
-msgid "Sympa in your language:"
 msgstr ""
 
 #: web_tt2/help_editlist.tt2:96
@@ -3483,7 +3403,7 @@ msgid ""
 "ignored. Headers/footers may be appended to text/plain messages only."
 msgstr ""
 
-#: web_tt2/review.tt2:22
+#: web_tt2/review.tt2:23
 msgid "Synchronize members with data sources"
 msgstr ""
 
@@ -3492,7 +3412,7 @@ msgstr ""
 msgid "Syntax errors with the following parameters : %1"
 msgstr "SyntaktickÃ¡ chyba s nÃ¡sledujcÃ­mi parametry : %1"
 
-#: mail_tt2/digest.tt2:12 mail_tt2/digest_plain.tt2:10 src/List.pm:3088
+#: mail_tt2/digest.tt2:12 mail_tt2/digest_plain.tt2:10 src/List.pm:3083
 #, fuzzy
 msgid "Table of contents:"
 msgstr "Obsah:"
@@ -3506,7 +3426,7 @@ msgstr ""
 msgid "Text archives"
 msgstr "Archives setup"
 
-#: web_tt2/lists.tt2:66
+#: web_tt2/lists.tt2:65
 msgid ""
 "That is to say using a unique email address in Sympa for your subscriptions "
 "and preferences"
@@ -3520,25 +3440,25 @@ msgid ""
 msgstr ""
 
 #. (count)
-#: web_tt2/rss.tt2:19
+#: web_tt2/rss.tt2:31
 #, fuzzy
 msgid "The %1 latest created lists"
 msgstr "VytvoÃ¸enÃ­ konference"
 
 #. (count)
-#: web_tt2/rss.tt2:31
+#: web_tt2/rss.tt2:51
 #, fuzzy
 msgid "The %1 latest messages"
 msgstr "ZaÃ¨Ã­t od nejnovÃ¬jÂ¹Ã­ch zprÃ¡v"
 
 #. (count)
-#: web_tt2/rss.tt2:36
+#: web_tt2/rss.tt2:60
 #, fuzzy
 msgid "The %1 latest shared documents"
 msgstr "SdÃ­lenÃ½ adresÃ¡Ã¸"
 
 #. (count)
-#: web_tt2/rss.tt2:25
+#: web_tt2/rss.tt2:41
 #, fuzzy
 msgid "The %1 most active lists"
 msgstr "VytvoÃ¸enÃ­ konference"
@@ -3654,17 +3574,16 @@ msgstr ""
 msgid "The following virtual robots are running on this server :"
 msgstr ""
 
-#: web_tt2/rss.tt2:20
-#, fuzzy
+#: web_tt2/rss.tt2:33
 msgid "The latest created lists"
-msgstr "VytvoÃ¸enÃ­ konference"
+msgstr ""
 
-#: web_tt2/rss.tt2:32
+#: web_tt2/rss.tt2:53
 #, fuzzy
 msgid "The latest messages"
 msgstr "ZaÃ¨Ã­t od nejnovÃ¬jÂ¹Ã­ch zprÃ¡v"
 
-#: web_tt2/rss.tt2:37
+#: web_tt2/rss.tt2:62
 #, fuzzy
 msgid "The latest shared documents"
 msgstr "SdÃ­lenÃ½ adresÃ¡Ã¸"
@@ -3695,7 +3614,7 @@ msgstr ""
 msgid "The list status has been set to error_config."
 msgstr ""
 
-#: web_tt2/create_list_request.tt2:45
+#: web_tt2/create_list_request.tt2:38
 msgid ""
 "The list type is a set of parameters' profile. Parameters will be editable, "
 "once the list created"
@@ -3703,11 +3622,11 @@ msgstr ""
 "Typ konference je pÃ¸ednastavenÃ½ profil. Parametry se budou moci mÃ¬nit, "
 "aÂ¾ se konference vytvoÃ¸Ã­"
 
-#: web_tt2/create_list_request.tt2:50
+#: web_tt2/create_list_request.tt2:43
 msgid "The list's subject"
 msgstr "TÃ©ma konference"
 
-#: web_tt2/rss.tt2:26
+#: web_tt2/rss.tt2:43
 #, fuzzy
 msgid "The most active lists"
 msgstr "VytvoÃ¸enÃ­ konference"
@@ -3763,7 +3682,7 @@ msgstr ""
 msgid "There is not any owner defined for the list"
 msgstr ""
 
-#: src/sympa.pl:1631
+#: src/sympa.pl:1637
 #, fuzzy
 msgid "These subscribers are :\n"
 msgstr "pÃ¸idÃ¡no %1 Ã¨lenÃ¹"
@@ -3845,7 +3764,7 @@ msgid ""
 "the list.\n"
 msgstr ""
 
-#: web_tt2/pref.tt2:128
+#: web_tt2/pref.tt2:123
 msgid ""
 "This other email address, that should be known by Sympa, will be recognized "
 "by Sympa as \n"
@@ -4097,7 +4016,8 @@ msgstr ""
 msgid ""
 "To confirm your subscription, you need to provide the following password"
 msgstr ""
-"Pro potvrzenÃ­ VaÂ¹eho pÃ¸ihlÃ¡Â¹enÃ­, musÃ­te poskytnout nÃ¡sledujÃ­cÃ­ heslo"
+"Pro potvrzenÃ­ VaÂ¹eho pÃ¸ihlÃ¡Â¹enÃ­, musÃ­te poskytnout nÃ¡sledujÃ­cÃ­ "
+"heslo"
 
 #. (list)
 #: web_tt2/sigrequest.tt2:60
@@ -4115,7 +4035,7 @@ msgstr "Kontakt na sprÃ¡vce :"
 msgid "To distribute the attached message in list %1:"
 msgstr "Per inoltrare il messaggio allegato alla lista '%1' :"
 
-#: src/List.pm:2589
+#: src/List.pm:2584
 msgid ""
 "To distribute the attached message in list %s :\n"
 "mailto:%s?subject=CONFIRM%%20%s\n"
@@ -4136,7 +4056,7 @@ msgstr ""
 
 #: web_tt2/loginbanner.tt2:18
 msgid ""
-"To login, select your organization authentication server below.<br />\n"
+"To login, select your organization authentication server below.<BR>\n"
 "If it is not listed or if you don't have any, login using your email and "
 "password on the right column.\n"
 msgstr ""
@@ -4145,6 +4065,7 @@ msgstr ""
 msgid ""
 "To read the list of subscribers who haven't confirm their\n"
 "subscription : EXPIREINDEX %s\n"
+"\n"
 msgstr ""
 
 #. (conf.email,conf.host)
@@ -4180,22 +4101,23 @@ msgstr ""
 msgid ""
 "To unsubscribe from the list, you need to provide the following password"
 msgstr ""
-"Pro potvrzenÃ­ VaÂ¹eho pÃ¸ihlÃ¡Â¹enÃ­, musÃ­te poskytnout nÃ¡sledujÃ­cÃ­ heslo"
+"Pro potvrzenÃ­ VaÂ¹eho pÃ¸ihlÃ¡Â¹enÃ­, musÃ­te poskytnout nÃ¡sledujÃ­cÃ­ "
+"heslo"
 
 #. (mailto)
 #: web_tt2/compose_mail.tt2:5
 msgid "To: %1"
 msgstr "Pro: %1"
 
-#: web_tt2/review.tt2:295 web_tt2/reviewbouncing.tt2:121
+#: web_tt2/review.tt2:296 web_tt2/reviewbouncing.tt2:121
 msgid "Toggle Selection"
 msgstr "ObrÃ¡tit vÃ½bÃ¬r"
 
-#: src/List.pm:1081
+#: src/List.pm:1080
 msgid "Topics for the list"
 msgstr ""
 
-#: web_tt2/create_list_request.tt2:53
+#: web_tt2/create_list_request.tt2:46
 msgid "Topics:"
 msgstr "TÃ©mata:"
 
@@ -4219,16 +4141,16 @@ msgid ""
 "address, usefull if different from your \"From:\" address."
 msgstr ""
 
-#: src/List.pm:2291
+#: src/List.pm:2290
 #, fuzzy
 msgid "UNsubscription request from list %s"
 msgstr "Odhlaseni z konference %1"
 
-#: web_tt2/d_read.tt2:415
+#: web_tt2/d_read.tt2:407
 msgid "URL"
 msgstr "[% END %]"
 
-#: src/sympa.pl:1528
+#: src/sympa.pl:1534
 msgid "Unable to access directory %s : %m"
 msgstr ""
 
@@ -4249,7 +4171,7 @@ msgstr ""
 #: src/Commands.pm:1656
 msgid ""
 "Unable to find the message of the list %s locked by the key %s.\n"
-"Warning : this message could have ever been send by another editor\n"
+"Warning : this message could have ever been send by another editor"
 msgstr ""
 
 #: web_tt2/remove_arc.tt2:11
@@ -4272,7 +4194,7 @@ msgstr "Nelze Ã¨Ã­st soubor %1 : prÃ¡zdnÃ½ dokument"
 msgid "Unable to read help file : %s\n"
 msgstr ""
 
-#: web_tt2/lists.tt2:65
+#: web_tt2/lists.tt2:64
 msgid "Unify your subscriptions with the email"
 msgstr ""
 
@@ -4287,7 +4209,7 @@ msgstr "Unknown"
 msgid "Unsubscribe"
 msgstr "OdhlÃ¡sit"
 
-#: soap/sympasoap.pm:553 src/Commands.pm:946 wwsympa/wwsympa.fcgi:3433
+#: soap/sympasoap.pm:553 src/Commands.pm:946 wwsympa/wwsympa.fcgi:3271
 #, fuzzy
 msgid "Unsubscribe from list %s"
 msgstr "OdhlaÂ¹uji se z konference %1"
@@ -4326,12 +4248,12 @@ msgid ""
 msgstr ""
 
 #. (visible_path)
-#: web_tt2/d_read.tt2:460
+#: web_tt2/d_read.tt2:445
 #, fuzzy
 msgid "Unzip a file inside the folder %1"
 msgstr "NahrÃ¡t soubor do adresÃ¡Ã¸e %1"
 
-#: web_tt2/d_read.tt2:462
+#: web_tt2/d_read.tt2:447
 #, fuzzy
 msgid "Unzip a file inside the folder SHARED"
 msgstr "NahrÃ¡t soubor do sdÃ­lenÃ©ho adresÃ¡Ã¸e"
@@ -4341,7 +4263,7 @@ msgstr "NahrÃ¡t soubor do sdÃ­lenÃ©ho adresÃ¡Ã¸e"
 msgid "Up to higher level directory"
 msgstr "> O ÃºroveÃ² vÃ½Â¹"
 
-#: web_tt2/d_editfile.tt2:39 web_tt2/edit_list_request.tt2:417
+#: web_tt2/d_editfile.tt2:39 web_tt2/edit_list_request.tt2:410
 #: web_tt2/editsubscriber.tt2:38 web_tt2/suboptions.tt2:31
 msgid "Update"
 msgstr "ZmÃ¬nit"
@@ -4351,11 +4273,11 @@ msgid "Update of list members based on the TTL"
 msgstr ""
 
 #. (visible_path)
-#: web_tt2/d_read.tt2:436
+#: web_tt2/d_read.tt2:425
 msgid "Upload a file inside the folder %1"
 msgstr "NahrÃ¡t soubor do adresÃ¡Ã¸e %1"
 
-#: web_tt2/d_read.tt2:438
+#: web_tt2/d_read.tt2:427
 msgid "Upload a file inside the folder SHARED"
 msgstr "NahrÃ¡t soubor do sdÃ­lenÃ©ho adresÃ¡Ã¸e"
 
@@ -4376,7 +4298,7 @@ msgstr ""
 msgid "User certificate belong to"
 msgstr "UÂivatelskÃ½ certifikÃ¡t patÃ¸Ã­"
 
-#: src/List.pm:1119
+#: src/List.pm:1118
 #, fuzzy
 msgid "User data source"
 msgstr "size=\"-1\"><b>Ãšpravy</b"
@@ -4394,11 +4316,11 @@ msgstr "PÃ¸Ã­ruÃ¨ka uÂ¾ivatele"
 msgid "Users"
 msgstr ""
 
-#: web_tt2/lists.tt2:72
+#: web_tt2/lists.tt2:71
 msgid "Validate"
 msgstr ""
 
-#: web_tt2/editsubscriber.tt2:54
+#: web_tt2/editsubscriber.tt2:52
 msgid "View last bounce"
 msgstr "Zobrazit poslednÃ­ vrÃ¡cenou zprÃ¡vu"
 
@@ -4406,11 +4328,18 @@ msgstr "Zobrazit poslednÃ­ vrÃ¡cenou zprÃ¡vu"
 msgid "Virtual Robots"
 msgstr ""
 
-#: web_tt2/editsubscriber.tt2:22 web_tt2/suboptions.tt2:23
+#: web_tt2/suboptions.tt2:23
 msgid "Visibility :"
 msgstr ""
 
-#: src/List.pm:1125
+#. (current_subscriber.visibility)
+#: web_tt2/editsubscriber.tt2:22
+msgid "Visibility : %1"
+msgstr ""
+"Viditelnost : %1\n"
+"<DD>Jazyk"
+
+#: src/List.pm:1124
 #, fuzzy
 msgid "Visibility of the list"
 msgstr ""
@@ -4421,14 +4350,14 @@ msgstr ""
 msgid "Visibility of the subscriber with the REVIEW command."
 msgstr ""
 
-#: src/List.pm:2270
+#: src/List.pm:2269
 msgid ""
 "WARNING : %s %s failed to unsubscribe from %s because his address was not "
 "found in the list\n"
-" (You may help this person)\n"
+" (You may help this person)"
 msgstr ""
 
-#: src/List.pm:2299
+#: src/List.pm:2298
 msgid "WARNING: bounce rate too high in list %s"
 msgstr ""
 
@@ -4445,23 +4374,20 @@ msgstr "WWSympa VÃ¡m zaÂ¹le heslo emailem :"
 #: web_tt2/help.tt2:8
 msgid "WWSympa provides  you access to your environment on mailing list server"
 msgstr ""
-"WWSympa VÃ¡m poskytuje pÃ¸Ã­stup k VaÂ¹emu prostÃ¸edÃ­ na konferenÃ¨nÃ­m serveru"
+"WWSympa VÃ¡m poskytuje pÃ¸Ã­stup k VaÂ¹emu prostÃ¸edÃ­ na konferenÃ¨nÃ­m "
+"serveru"
 
 #: mail_tt2/your_infected_msg.tt2:10
 msgid "We stopped delivery of this email."
 msgstr ""
 
-#: src/List.pm:1141
+#: src/List.pm:1140
 #, fuzzy
 msgid "Web archives"
 msgstr "Znovu sestavit archÃ­v"
 
 #: web_tt2/stats.tt2:2
 msgid "Web archives size"
-msgstr ""
-
-#: src/etc/create_list_templates/public_web_forum/comment.tt2:1
-msgid "Web forum ML"
 msgstr ""
 
 #: web_tt2/help_editfile.tt2:29
@@ -4476,13 +4402,13 @@ msgstr ""
 
 #: soap/sympasoap.pm:701 soap/sympasoap.pm:702 src/Commands.pm:1062
 #: src/Commands.pm:1063 src/Commands.pm:685 src/Commands.pm:686
-#: wwsympa/wwsympa.fcgi:3204 wwsympa/wwsympa.fcgi:3205
-#: wwsympa/wwsympa.fcgi:3803 wwsympa/wwsympa.fcgi:3804
+#: wwsympa/wwsympa.fcgi:3042 wwsympa/wwsympa.fcgi:3043
+#: wwsympa/wwsympa.fcgi:3641 wwsympa/wwsympa.fcgi:3642
 #, fuzzy
 msgid "Welcome on list %s"
 msgstr "Vitejte v konferenci %1"
 
-#: src/List.pm:1147
+#: src/List.pm:1146
 msgid "Welcome return-path"
 msgstr ""
 
@@ -4522,7 +4448,7 @@ msgstr "PÃ¸idat Ã¨leny"
 msgid "Who can delete subscribers"
 msgstr "Smazat vybranÃ© uÂ¾ivatele"
 
-#: src/List.pm:1037
+#: src/List.pm:1036
 msgid "Who can edit"
 msgstr ""
 
@@ -4530,12 +4456,12 @@ msgstr ""
 msgid "Who can invite people"
 msgstr ""
 
-#: src/List.pm:1010
+#: src/List.pm:1009
 #, fuzzy
 msgid "Who can review subscribers"
 msgstr "Seznam Ã¨lenÃ¹          : %1"
 
-#: src/List.pm:1021
+#: src/List.pm:1020
 #, fuzzy
 msgid "Who can send messages"
 msgstr "shod v poli"
@@ -4544,17 +4470,17 @@ msgstr "shod v poli"
 msgid "Who can start a remind process"
 msgstr ""
 
-#: src/List.pm:1075
+#: src/List.pm:1074
 #, fuzzy
 msgid "Who can subscribe to the list"
 msgstr "Nejsem Ã¨lenem konference %1"
 
-#: src/List.pm:1092
+#: src/List.pm:1091
 #, fuzzy
 msgid "Who can unsubscribe"
 msgstr "MÃ¹Â¾ete se pÃ¸ihlÃ¡sit znovu pomocÃ­ odkazu:"
 
-#: src/List.pm:1033
+#: src/List.pm:1032
 msgid "Who can view"
 msgstr ""
 
@@ -4657,7 +4583,7 @@ msgid ""
 "You did not choose a password, request a reminder of the initial password"
 msgstr ""
 
-#: wwsympa/wwsympa.fcgi:3434 wwsympa/wwsympa.fcgi:3909
+#: wwsympa/wwsympa.fcgi:3272 wwsympa/wwsympa.fcgi:3747
 #, fuzzy
 msgid "You have been removed from list %s.\n"
 msgstr "VaÂ¹e emailovÃ¡ adresa %1 byla odstranÃ¬na ze seznamu"
@@ -4724,7 +4650,7 @@ msgid ""
 "email address. Please try subscribing using your canonical address.\n"
 msgstr ""
 
-#: src/List.pm:8686 src/List.pm:8693
+#: src/List.pm:8690 src/List.pm:8697
 msgid ""
 "You requested a subscription reminder to be sent\n"
 "to each subscriber of list %s\n"
@@ -4886,7 +4812,7 @@ msgstr ""
 msgid "Your list is created."
 msgstr "VaÂ¹e konference je vytvoÃ¸ena."
 
-#: src/sympa.pl:1280
+#: src/sympa.pl:1285
 msgid ""
 "Your message could not be sent because its size \n"
 "was over the maximum size allowed on this list.\n"
@@ -4900,12 +4826,12 @@ msgid ""
 "has been rejected by the moderator (%3).\n"
 msgstr "Vase zprava byla odmitnuta"
 
-#: src/List.pm:2416
+#: src/List.pm:2415
 #, fuzzy
 msgid "Your message for list %s has been forwarded to editor(s)\n"
 msgstr "VÃ¡Â¹ poÂ¾adavek byl odeslÃ¡n sprÃ¡vci konference"
 
-#: src/Commands.pm:1776 src/sympa.pl:1356
+#: src/Commands.pm:1776 src/sympa.pl:1361
 msgid ""
 "Your message for list %s has been rejected.\n"
 "The message is thus sent back to you.\n"
@@ -4921,7 +4847,7 @@ msgstr "Vase zprava byla odmitnuta"
 msgid "Your message signature was succesfuly verified using S/MIME"
 msgstr ""
 
-#: src/Commands.pm:1772 src/sympa.pl:1276 src/sympa.pl:1352
+#: src/Commands.pm:1772 src/sympa.pl:1281 src/sympa.pl:1357
 #, fuzzy
 msgid "Your message to %s has been rejected"
 msgstr "Vase zprava byla odmitnuta"
@@ -4930,10 +4856,10 @@ msgstr "Vase zprava byla odmitnuta"
 msgid ""
 "Your message was not a multipart/signed message or Sympa could not\n"
 "verify the signature (be aware that Sympa can't check signature if you use "
-"the subject header to write a command).\n"
+"the subject header to write a command)."
 msgstr ""
 
-#: web_tt2/pref.tt2:93
+#: web_tt2/pref.tt2:89
 msgid "Your other email addresses"
 msgstr ""
 
@@ -4950,8 +4876,8 @@ msgstr "VaÂ¹e heslo VÃ¡m bylo odeslÃ¡no emailem"
 #: web_tt2/loginbanner.tt2:5
 #, fuzzy
 msgid ""
-"Your password has been sent to your email address %1.<br />Please check your "
-"e-mail box to provide your password below."
+"Your password has been sent to your email address %1.<BR>Please check your e-"
+"mail box to provide your password below."
 msgstr ""
 "ProsÃ­m prohlÃ©dnÃ¬te si VaÂ¹i emailovou schrÃ¡nku a napiÂ¹te dolÃ¹ VaÂ¹e "
 "heslo."
@@ -4978,6 +4904,7 @@ msgid ""
 "list's\n"
 "owners for approval. You will receive a notification when you will have\n"
 "been subscribed (or unsubscribed) to the list.\n"
+"\n"
 msgstr ""
 
 #: src/Commands.pm:625 src/Commands.pm:892
@@ -4985,6 +4912,7 @@ msgid ""
 "Your request to subscribe/unsubscribe has been forwarded to the list's\n"
 "owners for approval. You will receive a notification when you will have\n"
 "been subscribed (or unsubscribed) to the list.\n"
+"\n"
 msgstr ""
 
 #. (user.email)
@@ -4992,7 +4920,7 @@ msgstr ""
 msgid "Your subscription email is %1"
 msgstr "Jste pÃ¸ihlÃ¡Â¹en z adresy %1"
 
-#: src/Commands.pm:1484 wwsympa/wwsympa.fcgi:3908
+#: src/Commands.pm:1484 wwsympa/wwsympa.fcgi:3746
 #, fuzzy
 msgid "Your subscription to list %s has been removed."
 msgstr "PoÂ¾adujete pÃ¸ihlÃ¡Â¹enÃ­ do konference %1."
@@ -5017,26 +4945,6 @@ msgstr ""
 #: src/PlainDigest.pm:327
 msgid "[ Text converted from HTML ]\n"
 msgstr ""
-
-#: web_tt2/main.tt2:162 web_tt2/main.tt2:165
-#, fuzzy
-msgid "\"RSS Active lists\""
-msgstr "VytvoÃ¸enÃ­ konference"
-
-#: web_tt2/main.tt2:158
-#, fuzzy
-msgid "\"RSS Latest documents\""
-msgstr "SdÃ­lenÃ½ adresÃ¡Ã¸"
-
-#: web_tt2/main.tt2:161 web_tt2/main.tt2:164
-#, fuzzy
-msgid "\"RSS Latest lists\""
-msgstr "VytvoÃ¸enÃ­ konference"
-
-#: web_tt2/main.tt2:157
-#, fuzzy
-msgid "\"RSS Latest messages\""
-msgstr "ZaÃ¨Ã­t od nejnovÃ¬jÂ¹Ã­ch zprÃ¡v"
 
 #: src/PlainDigest.pm:296 src/PlainDigest.pm:317
 msgid ""
@@ -5084,7 +4992,7 @@ msgid ""
 "command.\n"
 msgstr ""
 
-#: src/List.pm:2281
+#: src/List.pm:2280
 msgid ""
 "\n"
 "Dear owner of list %s,\n"
@@ -5149,7 +5057,7 @@ msgstr ""
 msgid "access"
 msgstr "[% path %][% f.doc %]\">oprÃ¡vnÃ¬nÃ­"
 
-#: src/List.pm:1129 src/List.pm:327
+#: src/List.pm:1128 src/List.pm:327
 #, fuzzy
 msgid "access right"
 msgstr "[% path %][% f.doc %]\">oprÃ¡vnÃ¬nÃ­"
@@ -5175,7 +5083,7 @@ msgstr ""
 msgid "add performed by owner do not need authentication (notification)"
 msgstr ""
 
-#: web_tt2/lists.tt2:18
+#: web_tt2/lists.tt2:17
 msgid "admin"
 msgstr "Admin"
 
@@ -5184,7 +5092,7 @@ msgstr "Admin"
 msgid "admins update failed for list %1"
 msgstr ""
 
-#: web_tt2/arcsearch_form.tt2:24
+#: web_tt2/arcsearch_form.tt2:25
 #, fuzzy
 msgid "all of these words"
 msgstr "(VÂ¹echny slova,"
@@ -5247,7 +5155,7 @@ msgstr ""
 msgid "bounce score"
 msgstr "poÃ¨et vrÃ¡cenÃ½ch zprÃ¡v"
 
-#: web_tt2/review.tt2:209
+#: web_tt2/review.tt2:210
 #, fuzzy
 msgid "bouncing"
 msgstr "pomocÃ­"
@@ -5312,12 +5220,6 @@ msgstr ""
 msgid "connection timeout"
 msgstr ""
 
-#: src/etc/create_list_templates/hotline/comment.tt2:5
-#: src/etc/create_list_templates/private_working_group/comment.tt2:5
-#, fuzzy
-msgid "controlled subscription"
-msgstr "PÃ¸ihlÃ¡Â¹enÃ© konference"
-
 #. (list.name,list.host)
 #: mail_tt2/x509-user-cert-missing.tt2:2
 msgid "crypted message for list %1@%2"
@@ -5349,13 +5251,9 @@ msgstr ""
 msgid "days"
 msgstr ""
 
-#: web_tt2/edit_list_request.tt2:408
+#: web_tt2/edit_list_request.tt2:398
 msgid "default"
 msgstr "vÃ½chozÃ­ hodnota"
-
-#: src/etc/create_list_templates/html-news-letter/comment.tt2:5
-msgid "default reception format is HTML"
-msgstr ""
 
 #: web_tt2/d_read.tt2:166 web_tt2/d_read.tt2:168 web_tt2/d_read.tt2:303
 #: web_tt2/d_read.tt2:305 web_tt2/d_read.tt2:41
@@ -5400,12 +5298,12 @@ msgstr ""
 msgid "editor rejection message"
 msgstr "ModerovÃ¡nÃ­: odmÃ­tnutÃ­ zprÃ¡vy"
 
-#: src/List.pm:499 src/List.pm:909 web_tt2/loginbanner.tt2:108
+#: src/List.pm:499 src/List.pm:909
 #, fuzzy
 msgid "email address"
 msgstr "emailovÃ¡ adresa"
 
-#: src/List.pm:1053 src/List.pm:1058
+#: src/List.pm:1052 src/List.pm:1057
 msgid "email address protection method"
 msgstr ""
 
@@ -5417,7 +5315,7 @@ msgstr ""
 msgid "email2@dom2 Name2"
 msgstr ""
 
-#: web_tt2/arcsearch_form.tt2:43
+#: web_tt2/arcsearch_form.tt2:44
 #, fuzzy
 msgid "entire word"
 msgstr "celÃ©"
@@ -5429,10 +5327,6 @@ msgstr ": VaÂ¹e prostÃ¸edÃ­ jako Ã¨len nebo vlastnÃ­k"
 
 #: mail_tt2/listmaster_notification.tt2:68
 msgid "errors in param_constraint.conf file"
-msgstr ""
-
-#: src/etc/create_list_templates/hotline/comment.tt2:3
-msgid "everyone can post"
 msgstr ""
 
 #: src/etc/list_task_models/expire.yearly.task:1
@@ -5488,12 +5382,6 @@ msgstr ""
 msgid "frequency"
 msgstr ""
 
-#. (current_subscriber.first_bounce,current_subscriber.last_bounce)
-#: web_tt2/editsubscriber.tt2:53
-#, fuzzy
-msgid "from %1 to %2"
-msgstr "ObdobÃ­ : od %1 do %2"
-
 #: web_tt2/scenario_test.tt2:70
 #, fuzzy
 msgid "get matched rule"
@@ -5535,7 +5423,7 @@ msgstr ""
 msgid "incorrect format of edit_list.conf"
 msgstr ""
 
-#: web_tt2/arcsearch_form.tt2:36
+#: web_tt2/arcsearch_form.tt2:37
 msgid "insensitive"
 msgstr "nerozliÂ¹ovat"
 
@@ -5598,7 +5486,7 @@ msgstr ""
 msgid "list homepage"
 msgstr "jmÃ©no"
 
-#: web_tt2/get_closed_lists.tt2:10 web_tt2/get_pending_lists.tt2:13
+#: web_tt2/get_closed_lists.tt2:11 web_tt2/get_pending_lists.tt2:14
 msgid "list name"
 msgstr "jmÃ©no"
 
@@ -5606,7 +5494,7 @@ msgstr "jmÃ©no"
 msgid "list owners, authentication not needed (notification)"
 msgstr ""
 
-#: web_tt2/get_closed_lists.tt2:11 web_tt2/get_pending_lists.tt2:14
+#: web_tt2/get_closed_lists.tt2:12 web_tt2/get_pending_lists.tt2:15
 msgid "list subject"
 msgstr "subjekt"
 
@@ -5674,7 +5562,7 @@ msgstr "PÃ¸i ovÃ¬Ã¸ovÃ¡nÃ­ totoÂ¾nosti ("
 msgid "need authentication (notification is sent to owners)"
 msgstr ""
 
-#: web_tt2/arcsearch_form.tt2:30
+#: web_tt2/arcsearch_form.tt2:31
 #, fuzzy
 msgid "newest messages"
 msgstr "ZaÃ¨Ã­t od nejnovÃ¬jÂ¹Ã­ch zprÃ¡v"
@@ -5696,11 +5584,11 @@ msgstr ""
 msgid "notification"
 msgstr ""
 
-#: web_tt2/set_pending_list_request.tt2:36
+#: web_tt2/set_pending_list_request.tt2:40
 msgid "notify owner"
 msgstr ""
 
-#: web_tt2/arcsearch_form.tt2:31
+#: web_tt2/arcsearch_form.tt2:32
 #, fuzzy
 msgid "oldest messages"
 msgstr "ZaÃ¨it od nejstarÂ¹Ã­ch zprÃ¡v"
@@ -5711,7 +5599,7 @@ msgstr "ZaÃ¨it od nejstarÂ¹Ã­ch zprÃ¡v"
 msgid "on %1"
 msgstr "Pro: %1"
 
-#: web_tt2/arcsearch_form.tt2:25
+#: web_tt2/arcsearch_form.tt2:26
 #, fuzzy
 msgid "one of these words"
 msgstr "(VÂ¹echny slova,"
@@ -5720,13 +5608,7 @@ msgstr "(VÂ¹echny slova,"
 msgid "only owner (and listmaster)"
 msgstr ""
 
-#: src/etc/create_list_templates/discussion_list/comment.tt2:3
-#: src/etc/create_list_templates/private_working_group/comment.tt2:3
-#, fuzzy
-msgid "only subscribers can post"
-msgstr "ÃˆlenovÃ© : %1"
-
-#: src/List.pm:996
+#: src/List.pm:995
 #, fuzzy
 msgid "other email address"
 msgstr "NovÃ© heslo :"
@@ -5740,14 +5622,13 @@ msgstr ""
 msgid "page %1 / %2"
 msgstr "strana %1 z %2"
 
-#: web_tt2/arcsearch_form.tt2:42
+#: web_tt2/arcsearch_form.tt2:43
 #, fuzzy
 msgid "part of word"
 msgstr "slova"
 
-#: web_tt2/loginbanner.tt2:109 web_tt2/sigrequest.tt2:35
-#: web_tt2/sigrequest.tt2:64 web_tt2/subrequest.tt2:28
-#: web_tt2/subrequest.tt2:58
+#: web_tt2/sigrequest.tt2:35 web_tt2/sigrequest.tt2:64
+#: web_tt2/subrequest.tt2:28 web_tt2/subrequest.tt2:58
 msgid "password"
 msgstr "heslo"
 
@@ -5755,12 +5636,6 @@ msgstr "heslo"
 #: mail_tt2/sendpasswd.tt2:17 mail_tt2/sendpasswd.tt2:24
 msgid "password: %1"
 msgstr "heslo: %1"
-
-#: src/etc/create_list_templates/hotline/comment.tt2:4
-#: src/etc/create_list_templates/private_working_group/comment.tt2:4
-#, fuzzy
-msgid "private archives"
-msgstr "Znovu sestavit archÃ­v"
 
 #: src/List.pm:514
 #, fuzzy
@@ -5785,17 +5660,6 @@ msgstr ""
 #, fuzzy
 msgid "public"
 msgstr "Publikovat"
-
-#: src/etc/create_list_templates/html-news-letter/comment.tt2:3
-#: src/etc/create_list_templates/news-letter/comment.tt2:3
-#, fuzzy
-msgid "public and moderated list"
-msgstr "VeÃ¸ejnÃ© konference"
-
-#: src/etc/create_list_templates/discussion_list/comment.tt2:2
-#, fuzzy
-msgid "public archives"
-msgstr "Znovu sestavit archÃ­v"
 
 #: src/etc/scenari/d_edit.public:1 src/etc/scenari/d_read.public:1
 msgid "public documents"
@@ -5823,12 +5687,12 @@ msgid "purge of orphan entries in user table every month"
 msgstr ""
 
 #: web_tt2/add_request.tt2:13 web_tt2/editsubscriber.tt2:40
-#: web_tt2/review.tt2:12 web_tt2/review.tt2:276 web_tt2/review.tt2:92
+#: web_tt2/review.tt2:13 web_tt2/review.tt2:277 web_tt2/review.tt2:93
 #: web_tt2/reviewbouncing.tt2:107
 msgid "quiet"
 msgstr "skrytÃ¬"
 
-#: src/List.pm:1044 src/List.pm:1136
+#: src/List.pm:1043 src/List.pm:1135
 #, fuzzy
 msgid "quota"
 msgstr "skrytÃ¬"
@@ -5900,7 +5764,7 @@ msgstr ""
 msgid "requires authentication then owner approval"
 msgstr ""
 
-#: src/List.pm:1001
+#: src/List.pm:1000
 msgid "respect of existing header field"
 msgstr ""
 
@@ -5926,7 +5790,8 @@ msgstr ""
 msgid "restricted to local domain users"
 msgstr ""
 
-#: src/etc/scenari/d_edit.private:1 src/etc/scenari/d_read.private:1
+#: src/etc/scenari/d_edit.private-https~:1 src/etc/scenari/d_edit.private:1
+#: src/etc/scenari/d_read.private-https~:1 src/etc/scenari/d_read.private:1
 #: src/etc/scenari/info.private:1 src/etc/scenari/invite.private:1
 #: src/etc/scenari/review.private:1 src/etc/scenari/send.private:1
 #, fuzzy
@@ -5956,8 +5821,8 @@ msgstr ""
 msgid "resubscription to %1"
 msgstr ""
 
-#: web_tt2/arcsearch_form.tt2:48 web_tt2/arcsearch_form.tt2:49
-#: web_tt2/arcsearch_form.tt2:50
+#: web_tt2/arcsearch_form.tt2:49 web_tt2/arcsearch_form.tt2:50
+#: web_tt2/arcsearch_form.tt2:51
 msgid "results by page"
 msgstr "vÃ½sledkÃ¹ na stranu"
 
@@ -6014,7 +5879,7 @@ msgstr ""
 msgid "sender email"
 msgstr "adresa odesÃ­latele"
 
-#: web_tt2/arcsearch_form.tt2:37
+#: web_tt2/arcsearch_form.tt2:38
 msgid "sensitive"
 msgstr "rozliÂ¹ovat"
 
@@ -6027,7 +5892,7 @@ msgstr ""
 msgid "short name for this source"
 msgstr ""
 
-#: web_tt2/set_pending_list_request.tt2:35 web_tt2/subrequest.tt2:47
+#: web_tt2/set_pending_list_request.tt2:39 web_tt2/subrequest.tt2:47
 msgid "submit"
 msgstr "Odeslat"
 
@@ -6035,11 +5900,6 @@ msgstr "Odeslat"
 #, fuzzy
 msgid "subscribe is impossible"
 msgstr "OdhlÃ¡sit uÂ¾ivatele"
-
-#: src/etc/create_list_templates/html-news-letter/comment.tt2:4
-#: src/etc/create_list_templates/news-letter/comment.tt2:4
-msgid "subscribers emails are protected"
-msgstr ""
 
 #: src/etc/scenari/access_web_archive.private:1
 #, fuzzy
@@ -6092,7 +5952,7 @@ msgstr ""
 msgid "the list name ; be careful, not its address !"
 msgstr "jmÃ©no konference ; ne jejÃ­ adresu!"
 
-#: web_tt2/arcsearch_form.tt2:23
+#: web_tt2/arcsearch_form.tt2:24
 #, fuzzy
 msgid "this sentence"
 msgstr "(Tato vÃ¬ta,"
@@ -6101,7 +5961,7 @@ msgstr "(Tato vÃ¬ta,"
 msgid "threshold"
 msgstr ""
 
-#: web_tt2/d_read.tt2:414
+#: web_tt2/d_read.tt2:406
 msgid "title"
 msgstr ""
 "[% ELSE %]\n"
@@ -6122,7 +5982,7 @@ msgstr "Vymazat sdÃ­lenÃ½ adresÃ¡Ã¸"
 msgid "unsubscription message"
 msgstr "PÃ¸ihlÃ¡Â¹enÃ© konference"
 
-#: src/List.pm:991 web_tt2/help_editlist.tt2:131
+#: src/List.pm:990 web_tt2/help_editlist.tt2:131
 msgid "value"
 msgstr ""
 
@@ -6170,14 +6030,6 @@ msgstr "VaÂ¹e adresa  : %1"
 #: mail_tt2/sendpasswd.tt2:30
 msgid "your password : %1"
 msgstr "VaÂ¹e heslo   : %1"
-
-#~ msgid "Status : %1"
-#~ msgstr "Stav : %1"
-
-#~ msgid "Visibility : %1"
-#~ msgstr ""
-#~ "Viditelnost : %1\n"
-#~ "<DD>Jazyk"
 
 #, fuzzy
 #~ msgid "The [% count %] latest messages"
@@ -6274,6 +6126,9 @@ msgstr "VaÂ¹e heslo   : %1"
 #, fuzzy
 #~ msgid "password, is your password."
 #~ msgstr ", je VaÂ¹e heslo."
+
+#~ msgid "period"
+#~ msgstr "obdobÃ­"
 
 #, fuzzy
 #~ msgid "subscribers"

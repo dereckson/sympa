@@ -120,18 +120,6 @@ sub qencode {
     return $encoded_string;
 }
 
-sub escape_xml {
-    my $string = shift;
-    
-    $string =~ s/&/&amp;/g; 
-    $string =~ s/</&lt;/g;
-    $string =~ s/>/&gt;/g;
-    $string =~ s/\'/&apos;/g;
-    $string =~ s/\"/&quot;/g;
-    
-    return $string;
-}
-
 sub maketext {
     my ($context, @arg) = @_;
 
@@ -208,8 +196,7 @@ sub parse_tt2 {
 	    unescape => \&CGI::Util::unescape,
 	    l => [\&tt2::maketext, 1],
 	    loc => [\&tt2::maketext, 1],
-	    qencode => [\&qencode, 0],
- 	    escape_xml => [\&escape_xml, 0]
+	    qencode => [\&qencode, 0]
 	    },
 	    };
 
