@@ -1,0 +1,10 @@
+title.us restricted to list owners
+title.et lubatud listiomanikele
+title.fr limité aux propriétaires de la liste
+title.de beschraenkt auf Listen-Besitzer
+title.es restringido a los propietarios de la lista
+title.cz omezeno pro vlastníky
+title.hu lista tulajdonosok és
+title.nl beperkt tot lijst eigenaren
+
+is_owner([listname],[sender])                  smime,md5    -> do_it

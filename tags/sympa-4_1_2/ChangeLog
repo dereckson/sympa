@@ -1,0 +1,295 @@
+2004-06-21 09:04  sympa-authors
+
+	* wwsympa/wwsympa.fcgi:
+
+	  Fix a bug that allow to "open" a pending list without listmaster
+	  privilege.
+
+2004-06-16 17:25  sympa-authors
+
+	* soap/sympa_soap_server.fcgi, src/List.pm: Fix: Using
+	  error_message() subroutine where it is not defined
+
+2004-06-16 14:29  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: [reported by Y.Edelist] Fix: wwsympa would
+	  log a warning if Net::LDAP was not installed, even though it was
+	  not used : "Unable to use LDAP library, Net::LDAP
+	  required,install perl-ldap (CPAN) first"
+
+2004-06-15 11:54  sympa-authors
+
+	* src/List.pm, wwsympa/wwsympa.fcgi: [BugID 295] Fix:  "Internal
+	  Server Error" while accessing to modindex
+
+2004-06-14 14:53  olivier.salaun
+
+	* src/etc/edit_list.conf: Fix: new include_xxx parameters should be
+	  hidden for owners
+
+2004-06-14 14:38  olivier.salaun
+
+	* Makefile.in, configure: Update
+
+2004-06-14 14:28  olivier.salaun
+
+	* configure.in: [reported by L.Veillon] [O.Lacroix] Fix: incorrect
+	  AC_ARG_WITH
+
+2004-06-03 18:00  olivier.salaun
+
+	* doc/sympa.tex.tpl: Add doc for purge_user_table task
+
+2004-06-03 17:29  olivier.salaun
+
+	* wwsympa/: archived.pl, bounced.pl: Fix: when in debug mode, log
+	  entries were not printed
+
+2004-06-03 17:03  olivier.salaun
+
+	* src/tools.pl: [reported by O. Lacroix] Change: previously made
+	  too many trials for safefork()
+
+2004-06-03 11:58  olivier.salaun
+
+	* src/List.pm: [reported by P.Maes] Fix: list creation request
+	  message could not be sent (foo-owner User Unknown) because
+	  Return-path address was not yet created
+
+2004-05-18 10:56  salaun
+
+	* wwsympa/wwsympa.fcgi: [reported by V. Mathieu] Fix: incorrectly
+	  handled multiple enum parameters in edit_list
+
+2004-05-14 14:10  salaun
+
+	* src/Commands.pm: Add a log entry if confirmed message could not
+	  be distributed
+
+2004-05-14 10:35  salaun
+
+	* src/Conf.pm: Change: check Sympa access to capath and cafile if
+	  defined
+
+2004-05-04 16:55  salaun
+
+	* src/List.pm: Fix: set 'subscribed' to 1 if neither subscribed nor
+	  included is set
+
+2004-05-03 17:37  salaun
+
+	* wwsympa/wwsympa.fcgi: Fix: notify user that the config will be
+	  updated soon when user_data_source changed from anything to
+	  'include2'
+
+2004-05-03 14:59  salaun
+
+	* wwsympa/wwsympa.fcgi, src/Language.pm: Add &POSIX::setlocale to
+	  SetLang(), for better dates syntax
+
+2004-05-03 14:34  salaun
+
+	* src/List.pm: Fix: did not take the list language into account in
+	  send_file()
+
+2004-04-30 14:02  salaun
+
+	* wwsympa/wwsympa.fcgi: Fix: previously created ML directory
+	  directly in expl/ directory if robot was also the default host.
+
+2004-04-30 11:51  salaun
+
+	* src/tools.pl: [O.Lacroix] Fix: failed to remove list directory
+	  (while purging) becaude finddepth() used to chdir. rmdir() failed
+	  with 'device busy' error
+
+2004-04-28 17:14  salaun
+
+	* wwsympa/wwsympa.fcgi: [reported by mwk] Fix: escape single quotes
+	  in archives search engine (could cause a 500 error)
+
+2004-04-26 14:24  salaun
+
+	* .version, ChangeLog: Preparing Sympa 4.1.1.1
+
+2004-04-26 11:42  salaun
+
+	* wwsympa/Makefile: [BugID 152] Fix: UMASK was not set when
+	  installing web templates
+
+2004-04-26 11:34  salaun
+
+	* wwsympa/Makefile: [BugID 205] Fix: wws_templates/ directory was
+	  installed with wrong permissions
+
+2004-04-22 17:48  salaun
+
+	* src/task_manager.pl: Fix: Do not warn/remove boucing members that
+	  are included
+
+2004-04-21 11:54  salaun
+
+	* doc/sympa.tex.tpl: [reported by V.Mathieu] Fix
+	  include_ldap_2level example
+
+2004-04-20 11:41  salaun
+
+	* src/List.pm: [reported by O.Thalmann] Fix: total of subscribers
+	  was not uptodate just after a DEL or ADD operation.  Added
+	  'nocache' option to the call to _load_total_db() in
+	  get_first_user()
+
+2004-04-19 15:22  salaun
+
+	* src/List.pm, src/sympa.pl, wwsympa/wwsympa.fcgi: [reported by
+	  V.Mathieu] Fix: Ldap.pm was not loaded in sympa_soap_server.fcgi
+
+2004-04-19 15:07  salaun
+
+	* check_perl_modules.pl: [reported by V.Mathieu] Change: FCGI 0.67
+	  is required for the SOAP server.  Corresponding error message :
+	  Can't locate object method "BINMODE" via package "FCGI::Stream"
+
+2004-04-19 14:56  salaun
+
+	* doc/: sympa.pdf, sympa.ps, sympa.tex, sympa.tex.tpl,
+	  html/index.html, html/node1.html, html/node10.html,
+	  html/node11.html, html/node12.html, html/node13.html,
+	  html/node14.html, html/node15.html, html/node16.html,
+	  html/node17.html, html/node18.html, html/node19.html,
+	  html/node2.html, html/node20.html, html/node21.html,
+	  html/node22.html, html/node23.html, html/node24.html,
+	  html/node3.html, html/node4.html, html/node5.html,
+	  html/node6.html, html/node7.html, html/node8.html,
+	  html/node9.html, html/sympa.html, html/sympa.ps: [reported by
+	  V.Mathieu] Fix a few SOAP-related typos
+
+2004-04-19 09:03  salaun
+
+	* src/.core.swp: removal of .core.swp
+
+2004-04-02 10:45  salaun
+
+	* src/tools.pl: [L. Labat] Fix: Antivirus check would fail under
+	  some circumstances (Unable to open xxx). BODY filehandle was
+	  never closed
+
+2004-04-02 09:21  salaun
+
+	* nls/README, nls/cz.msg, nls/us.msg,
+	  src/etc/create_list_templates/discussion_list/comment,
+	  src/etc/create_list_templates/hotline/comment,
+	  src/etc/create_list_templates/html-news-letter/comment,
+	  src/etc/create_list_templates/intranet_list/comment,
+	  src/etc/create_list_templates/news-letter/comment,
+	  src/etc/create_list_templates/private_working_group/comment,
+	  src/etc/create_list_templates/public_web_forum/comment,
+	  src/etc/global_task_models/chk_cert_expiration.daily.task,
+	  src/etc/global_task_models/crl_update.daily.task,
+	  src/etc/global_task_models/eval_bouncers.daily.task,
+	  src/etc/global_task_models/expire_bounce.daily.task,
+	  src/etc/global_task_models/process_bouncers.weekly.task,
+	  src/etc/global_task_models/purge_orphan_bounces.monthly.task,
+	  src/etc/global_task_models/purge_user_table.monthly.task,
+	  src/etc/list_task_models/expire.yearly.task,
+	  src/etc/list_task_models/remind.2month.task,
+	  src/etc/list_task_models/remind.monthly.task,
+	  src/etc/list_task_models/remind.yearly.task,
+	  src/etc/list_task_models/sync_include.ttl.task,
+	  src/etc/scenari/create_list.listmaster,
+	  src/etc/scenari/send.editor, src/etc/scenari/send.editorkey,
+	  src/etc/scenari/send.publicnoattachment,
+	  src/etc/scenari/topics_visibility.conceal,
+	  src/etc/scenari/topics_visibility.identified,
+	  src/etc/templates/cz/bye.cz.tpl,
+	  src/etc/templates/cz/info_report.cz.tpl,
+	  src/etc/templates/us/certif_warning.us.tpl,
+	  src/etc/templates/us/expire_warning1.us.tpl,
+	  src/etc/templates/us/expire_warning2.us.tpl,
+	  src/etc/templates/us/helpfile.us.tpl,
+	  src/etc/templates/us/listmaster_notification.us.tpl,
+	  src/etc/templates/us/listowner_notification.us.tpl,
+	  src/etc/templates/us/remind.us.tpl,
+	  src/etc/templates/us/your_infected_msg.us.tpl,
+	  wwsympa/wws_templates/cz/arc.cz.tpl,
+	  wwsympa/wws_templates/cz/arcsearch.cz.tpl,
+	  wwsympa/wws_templates/cz/compose_mail.cz.tpl,
+	  wwsympa/wws_templates/cz/d_control.cz.tpl,
+	  wwsympa/wws_templates/cz/d_editfile.cz.tpl,
+	  wwsympa/wws_templates/cz/d_read.cz.tpl,
+	  wwsympa/wws_templates/cz/edit_list_request.cz.tpl,
+	  wwsympa/wws_templates/cz/editfile.cz.tpl,
+	  wwsympa/wws_templates/cz/editsubscriber.cz.tpl,
+	  wwsympa/wws_templates/cz/error.cz.tpl,
+	  wwsympa/wws_templates/cz/get_pending_lists.cz.tpl,
+	  wwsympa/wws_templates/cz/help.cz.tpl,
+	  wwsympa/wws_templates/cz/help_editfile.cz.tpl,
+	  wwsympa/wws_templates/cz/help_editlist.cz.tpl,
+	  wwsympa/wws_templates/cz/home.cz.tpl,
+	  wwsympa/wws_templates/cz/list_menu.cz.tpl,
+	  wwsympa/wws_templates/cz/lists.cz.tpl,
+	  wwsympa/wws_templates/cz/loginbanner.cz.tpl,
+	  wwsympa/wws_templates/cz/menu.cz.tpl,
+	  wwsympa/wws_templates/cz/notice.cz.tpl,
+	  wwsympa/wws_templates/cz/pref.cz.tpl,
+	  wwsympa/wws_templates/cz/remindpasswd.cz.tpl,
+	  wwsympa/wws_templates/cz/remove_arc.cz.tpl,
+	  wwsympa/wws_templates/cz/review.cz.tpl,
+	  wwsympa/wws_templates/cz/reviewbouncing.cz.tpl,
+	  wwsympa/wws_templates/cz/scenario_test.cz.tpl,
+	  wwsympa/wws_templates/cz/serveradmin.cz.tpl,
+	  wwsympa/wws_templates/cz/set_pending_list_request.cz.tpl,
+	  wwsympa/wws_templates/cz/show_cert.cz.tpl,
+	  wwsympa/wws_templates/cz/sigrequest.cz.tpl,
+	  wwsympa/wws_templates/cz/suboptions.cz.tpl,
+	  wwsympa/wws_templates/cz/subrequest.cz.tpl,
+	  wwsympa/wws_templates/cz/view_translations.cz.tpl,
+	  wwsympa/wws_templates/cz/viewmod.cz.tpl,
+	  wwsympa/wws_templates/us/arc.us.tpl,
+	  wwsympa/wws_templates/us/arc_manage.us.tpl,
+	  wwsympa/wws_templates/us/d_read.us.tpl,
+	  wwsympa/wws_templates/us/help_editlist.us.tpl,
+	  wwsympa/wws_templates/us/lists.us.tpl,
+	  wwsympa/wws_templates/us/loginbanner.us.tpl,
+	  wwsympa/wws_templates/us/translate.us.tpl: [Petr Prazak] Update
+	  Czech translations + some English typos fixed
+
+2004-04-01 16:44  salaun
+
+	* wwsympa/wwsympa.fcgi: Fix: renaming a list if the list was moved
+	  to another robot with the same name
+
+2004-04-01 14:29  salaun
+
+	* src/sympa.pl: Fix: remove call to deprecated MIME::Head::decode()
+
+2004-03-23 11:54  salaun
+
+	* src/List.pm: [reported by V. Mathieu] Fix: removed
+	  'visibility.private' scenario is considered the same as
+	  'visibility.conceal'
+
+2004-03-22 17:05  salaun
+
+	* .version, ChangeLog, NEWS: Preparing Sympa 4.1.1
+
+2004-03-22 16:59  salaun
+
+	* src/etc/script/arcrepair.pl: This script will fix an archiving
+	  bug of Sympa 4.1
+
+2004-03-22 16:13  salaun
+
+	* wwsympa/archived.pl: Fix: web archives were stored in the wrong
+	  directory
+
+2004-03-22 11:16  salaun
+
+	* wwsympa/wwsympa.fcgi: [reported by V. Mathieu] Fix: list of
+	  inactive lists did not consider the msg_count file was not
+	  ordered
+
+2004-03-22 11:02  salaun
+
+	* src/List.pm: Fix: sorting msg_count file when it is updated
+
