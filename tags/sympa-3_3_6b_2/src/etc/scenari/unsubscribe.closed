@@ -1,0 +1,9 @@
+title.fr impossible
+title.us impossible
+title.et võimatu
+title.de unmoeglich
+title.es imposible
+title.cz zakázáno
+title.hu senkisem
+
+true()                              smtp,md5,smime -> reject
