@@ -1,0 +1,88 @@
+# configure.in - Top-level configure.in for Sympa
+# RCS Identication ; $Revision$ ; $Date$ 
+#
+# Sympa - SYsteme de Multi-Postage Automatique
+# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
+# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+AC_INIT(check_perl_modules.pl)
+PACKAGE=sympa
+VERSION=`cat ${srcdir}/.version`
+MAJOR_VERSION=[`expr $VERSION : '\([0-9][0-9]*\)'`]
+AC_SUBST(MAJOR_VERSION)
+MINOR_VERSION=[`expr $VERSION : '[0-9][0-9]*\.\([0-9][0-9]*\)'`]
+AC_SUBST(MINOR_VERSION)
+MICRO_VERSION=[`expr $VERSION : '[0-9][0-9]*\.[0-9][0-9]*\.\([0-9][0-9]*\)'`]
+AC_SUBST(MICRO_VERSION)
+AM_INIT_AUTOMAKE([sympa], $VERSION, nosubst)
+AC_PREREQ(2.13)
+
+AC_PREFIX_DEFAULT(/home/sympa)
+
+## Directories setup
+## for main config files
+sysconfdir=/etc
+
+## for executable programs
+bindir='${prefix}/bin'
+
+## for executable programs run by sysadmin
+sbindir='${prefix}/bin'
+
+## for libraries
+libdir='${prefix}/bin'
+
+## for *read-only* data files
+datadir='${prefix}/bin/etc'
+
+## for modifiable data files
+localstatedir='${prefix}/expl'
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_MAKE_SET
+AC_AIX
+
+AC_PATH_PROG(PERL, perl, /usr/bin/perl)
+AC_SUBST(PERL)
+
+AC_PATH_PROG(OPENSSL, openssl, /usr/local/ssl/bin)
+AC_SUBST(OPENSSL)
+
+AC_PATH_PROG(GENCAT, gencat, /usr/bin/gencat)
+AC_SUBST(GENCAT)
+
+AC_PATH_PROG(CVS2CL, cvs2cl.pl, /usr/local/bin)
+AC_SUBST(CVS2CL)
+
+AC_PATH_PROG(SH, sh, /bin/sh)
+
+USER=sympa
+AC_ARG_WITH(user, [  --with-user=LOGIN       set sympa user name (default sympa)], [USER="$withval"])
+AC_SUBST(USER)
+
+GROUP=sympa
+AC_ARG_WITH(group, [  --with-group=LOGIN     set sympa group name (default sympa)], [GROUP="$withval"])
+AC_SUBST(GROUP)
+
+dnl Initialize maintainer mode
+AM_MAINTAINER_MODE
+
+AC_OUTPUT(Makefile)
+
+
+
