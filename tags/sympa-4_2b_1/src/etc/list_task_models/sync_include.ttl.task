@@ -1,0 +1,6 @@
+title.us Update of list users
+title.cz Aktualizace èlenù konference
+
+/INIT
+sync_include ()
+next([execution_date]+[list->ttl]sec,INIT)
