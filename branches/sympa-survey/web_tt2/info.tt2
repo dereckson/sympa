@@ -1,0 +1,32 @@
+<!-- $Id$ -->
+
+<TABLE WIDTH="100%" BORDER=0 CELLSPACING=0  CELLPADDING=0>
+  <TR VALIGN=top>
+    <TD> 
+      <BR>
+      [% IF homepage %]
+ 	  [% TRY %]
+            [% INSERT 'homepage' %]
+          [% CATCH %]
+	  [% END %]
+      [% ELSE %]
+         <PRE>
+	  [% TRY %]
+            [% INSERT 'info' %]
+          [% CATCH %]
+	  [% END %]
+         </PRE>
+      [% END %]
+    </TD>
+  </TR>
+</TABLE>
+
+
+
+
+
+
+
+
+
+
