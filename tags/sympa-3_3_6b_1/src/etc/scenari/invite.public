@@ -1,0 +1,10 @@
+title.fr public
+title.us public
+title.et avalik
+title.de oeffentlich
+title.es público
+title.cz kdokoli
+title.hu bárki
+
+true() smtp,md5,smime -> do_it
+
