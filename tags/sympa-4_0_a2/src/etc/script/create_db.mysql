@@ -1,0 +1,53 @@
+## MySQL Database creation script
+
+CREATE DATABASE sympa;
+
+## Connect to DB 
+\r sympa
+
+CREATE TABLE user_table (
+  	email_user          	varchar (100) NOT NULL,
+  	gecos_user          	varchar (150),
+  	password_user		varchar (40),
+	cookie_delay_user	int,
+	lang_user		varchar (10),
+	PRIMARY KEY (email_user)
+);
+
+CREATE TABLE subscriber_table (
+  	list_subscriber       	varchar (50) NOT NULL,
+	user_subscriber		varchar (100) NOT NULL,
+	date_subscriber		datetime NOT NULL,
+	update_subscriber	datetime,
+	visibility_subscriber	varchar (20),
+	reception_subscriber	varchar (20),
+	bounce_subscriber	varchar (35),
+	comment_subscriber	varchar (150),
+	subscribed_subscriber 	enum ('0','1'),
+	included_subscriber 	enum ('0','1'),
+	include_sources_subscriber varchar(50),
+	PRIMARY KEY (list_subscriber, user_subscriber),
+	INDEX (user_subscriber,list_subscriber)
+);
+
+# CREATE TABLE log_table (
+# 	id			INT UNSIGNED DEFAULT 0 NOT NULL auto_increment,
+# 	date			int NOT NULL,
+# 	pid			int,
+# 	process			enum ('task','archived','sympa','wwsympa','bounced'),
+#   	email_user          	varchar (100),
+# 	auth			enum ('smtp','md5','smime','null'),	
+# 	ip			varchar (15),
+#   	operation		varchar (40),
+# 	list			varchar (50),
+# 	robot			varchar (60),
+# 	arg			varchar (100),
+# 	status			varchar (100),
+# 	subscriber_count	int,
+# 	PRIMARY KEY (id),
+# 	INDEX (date),	
+# 	INDEX (robot),
+# 	INDEX (list),
+# 	INDEX (email_user)
+# );
+
