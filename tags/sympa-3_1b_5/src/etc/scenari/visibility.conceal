@@ -1,0 +1,14 @@
+title.us conceal unless for subscribers
+title.fr liste cachée sauf aux abonnés
+title.de conceal unless for subscribers
+title.es visibilidad sólo para subscriptores
+
+is_owner([listname],[sender]) 	    smtp,smime,md5    -> do_it
+is_editor([listname],[sender])      smtp,smime,md5    -> do_it
+is_subscriber([listname],[sender])  smtp,smime,md5    -> do_it
+
+
+
+
+
+
