@@ -1,0 +1,16 @@
+[IF lang=fr]
+<I>Configuration de type «forum web».<BR>
+Les messages sont consultables soit par messagerie (abonnement),
+soit via le web (archives de la liste).</I>
+[ELSIF lang=es]
+ <i>Listas de ámbito público, que pueden accederse desde internet.</i><br>
+[ELSIF lang=hu]
+ <i>Nyilvános levelezõlista (fórum)</i><br>
+<ul>
+<li>Az archívum bárkinek elérhetõ e-mailen vagy weben keresztül.</li>
+</ul>
+[ELSE]
+<I>Web forum ML.<BR>
+Messages can either be read via email (subscription) or
+via the web (web archives)</I>
+[ENDIF]
