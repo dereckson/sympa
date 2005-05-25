@@ -1,0 +1,78 @@
+
+<H1><A NAME="SECTION00600000000000000000"><tex2html_anchor_invisible_mark></A>
+    <A NAME="upgrading-sympa"><tex2html_anchor_mark></A><BR>
+5. Upgrading Sympa
+</H1>
+
+<P>
+Sympa upgrade is a relatively riskless operations, mainly because the install process preserves your
+customizations (templates, configuration, authorization scenarios,...) and also because Sympa automates
+a few things (DB update, CPAN modules installation).
+
+<P>
+
+<H1><A NAME="SECTION00610000000000000000"><tex2html_anchor_invisible_mark></A>
+    <A NAME="635"><tex2html_anchor_invisible_mark></A><BR>
+5.1 Uncompatible changes
+</H1>
+
+<P>
+New features, changes and bug fixes are summarized in the <A NAME="6883"><tex2html_anchor_invisible_mark></A><TT>NEWS</TT> file, part of the tar.gz (the 
+<A NAME="6886"><tex2html_anchor_invisible_mark></A><TT>Changelog</TT> file is a complete log file of CVS changes). As mentionned at the beginning of this
+file, uncompatible changes are preceded by '*****'. While running the <A NAME="6889"><tex2html_anchor_invisible_mark></A><TT>make install</TT> Sympa will
+detect the previously installed version and will prompt you with uncompatible changes between both versions
+of the software. You can interrupt the install process at that stage if you are too frightened.
+Output of the <A NAME="6892"><tex2html_anchor_invisible_mark></A><TT>make install</TT> :
+<BLOCKQUOTE>
+</BLOCKQUOTE><PRE><tex2html_verbatim_mark>verbatim272#</PRE><BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<P>
+
+<H1><A NAME="SECTION00620000000000000000"><tex2html_anchor_invisible_mark></A>
+    <A NAME="645"><tex2html_anchor_invisible_mark></A><BR>
+5.2 CPAN modules update
+</H1>
+
+<P>
+Required and optional perl modules (CPAN) installation is automatically handled at the <A NAME="6895"><tex2html_anchor_invisible_mark></A><TT>make</TT> time. You are asked before each module is installed. For optional modules, associated features are listed.
+
+<P>
+Output of the <A NAME="6898"><tex2html_anchor_invisible_mark></A><TT>make</TT> command :
+<BLOCKQUOTE>
+</BLOCKQUOTE><PRE><tex2html_verbatim_mark>verbatim273#</PRE><BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<P>
+
+<H1><A NAME="SECTION00630000000000000000"><tex2html_anchor_invisible_mark></A>
+    <A NAME="653"><tex2html_anchor_invisible_mark></A><BR>
+5.3 Database structure update
+</H1>
+
+<P>
+Whatever RDBMS you are using (mysql, Pg, Sybase or Oracle) Sympa will check every database tables and fields. If one is missing <A NAME="6901"><tex2html_anchor_invisible_mark></A><TT>sympa.pl</TT>
+will not start. If you are using <A NAME="6904"><tex2html_anchor_invisible_mark></A>mysql Sympa will also check field types and will try to change them (or create them) automatically ; 
+assuming that the DB user configured has sufficient privileges. If You are not using Mysql or if the DB user configured in <A NAME="6905"><tex2html_anchor_invisible_mark></A><TT>sympa.conf</TT> 
+does have sufficient privileges, then you should change the database structure yourself, as mentionned in the <A NAME="6908"><tex2html_anchor_invisible_mark></A><TT>NEWS</TT> file.
+
+<P>
+Output of Sympa logs :
+<BLOCKQUOTE>
+</BLOCKQUOTE><PRE><tex2html_verbatim_mark>verbatim274#</PRE><BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<P>
+
+<H1><A NAME="SECTION00640000000000000000"><tex2html_anchor_invisible_mark></A>
+    <A NAME="663"><tex2html_anchor_invisible_mark></A><BR>
+5.4 Preserving your customizations
+</H1>
+
+<P>
+Sympa comes with default configuration files (templates, scenarios,...) that will be installed in the <A NAME="6911"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/bin</TT> directory. 
+If you need to customize some of them, you should copy the file first in a safe place, ie in the <A NAME="6914"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/etc</TT> directory.
+If you do so, the Sympa upgrade process will preserve your site customizations.
+
+<P>
+

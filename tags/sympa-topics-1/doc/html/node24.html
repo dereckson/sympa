@@ -1,0 +1,20 @@
+
+<H1><A NAME="SECTION002400000000000000000"><tex2html_anchor_invisible_mark></A>
+<A NAME="antivirus"><tex2html_anchor_mark></A><BR>
+23. Antivirus
+</H1>
+
+<P>
+<I>Sympa</I> lets you use an external antivirus solution to check incoming mails.
+In this case you must set the <A NAME="10647"><tex2html_anchor_invisible_mark></A><TT>antivirus_path</TT> and 
+<A NAME="10650"><tex2html_anchor_invisible_mark></A><TT>antivirus_args</TT> configuration parameters
+ (see <A HREF=<tex2html_cr_mark>#Antivirus_plug-in#4030><tex2html_cr_mark></A>, page~<A HREF=<tex2html_cr_mark>#Antivirus_plug-in#4031><tex2html_cross_ref_visible_mark></A>.
+<I>Sympa</I> is already compatible with McAfee/uvscan, Fsecure/fsav, Sophos, AVP, Trend Micro/VirusWall and Clam Antivirus.
+For each mail received, <I>Sympa</I> extracts its MIME parts in the <A NAME="10655"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/spool/tmp/antivirus</TT> directory and
+then calls the antivirus software to check them.
+When a virus is detected, <I>Sympa</I> looks for the virus name in the virus scanner STDOUT and sends a
+<A NAME="10659"><tex2html_anchor_invisible_mark></A><TT>your_infected_msg.tt2</TT> warning to the sender of the mail.
+The mail is saved as 'bad' and the working directory is deleted (except if <I>Sympa</I> is running in debug mode).
+
+<P>
+

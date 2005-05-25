@@ -1,0 +1,191 @@
+
+<H1><A NAME="SECTION001500000000000000000"><tex2html_anchor_invisible_mark></A>
+    <A NAME="virtual-robot"><tex2html_anchor_mark></A><BR>
+14. Virtual robot
+</H1>
+
+<P>
+Sympa is designed to manage multiple distinct mailing list servers on
+a single host with a single Sympa installation. Sympa virtual robots
+are like Apache virtual hosting. Sympa virtual robot definition includes
+a specific email address for the robot itself and its lists and also a virtual
+http server. Each robot provides access to a set of lists, each list is
+related to only one robot.
+
+<P>
+Most configuration parameters can be redefined for each robot except 
+general Sympa installation parameters (binary and spool location, smtp engine,
+antivirus plugging,...).
+
+<P>
+The Virtual robot name as defined in <I>Sympa</I> documentation and configuration file refers
+to the Internet domaine of the Virtual robot.
+
+<P>
+Note that the main limitation of virtual robots in Sympa is that you cannot create 
+2 lists with the same name (local part) among your virtual robots.
+
+<P>
+
+<H1><A NAME="SECTION001510000000000000000">
+14.1 How to create a virtual robot</A>
+</H1>
+
+<P>
+You don't need to install several Sympa servers. A single <A NAME="8353"><tex2html_anchor_invisible_mark></A><TT>sympa.pl</TT> daemon
+and one or more fastcgi servers can serve all virtual robot. Just configure the 
+server environment in order to accept the new domain definition.
+
+<UL>
+<LI><B>The DNS</B> must be configured to define a new mail exchanger record (MX) 
+to route message to your server. A new host (A record) or alias (CNAME) are mandatory
+to define the new web server.
+</LI>
+<LI>Configure your <B>MTA (sendmail, postfix, exim, ...)</B> to accept incoming 
+messages for the new robot domain. Add mail aliases for the robot :
+
+<P>
+<I>Examples (with sendmail):</I> 
+<BLOCKQUOTE>
+</BLOCKQUOTE><PRE><tex2html_verbatim_mark>verbatim327#</PRE><BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<P>
+</LI>
+<LI>Define a <B>virtual host in your HTTPD server</B>. The fastcgi servers defined 
+in the common section of you httpd server can be used by each virtual host. You don't 
+need to run dedicated fascgi server for each virtual robot.
+
+<P>
+<I>Examples:</I> 
+<BLOCKQUOTE>
+</BLOCKQUOTE><PRE><tex2html_verbatim_mark>verbatim328#</PRE><BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<P>
+</LI>
+<LI>Create a <A NAME="8356"><tex2html_anchor_invisible_mark></A><TT>robot.conf</TT> for the virtual robot (current web interface does
+not provide Virtual robot creation yet).
+
+<P>
+</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION001520000000000000000">
+14.2 robot.conf</A>
+</H1>
+A robot is named by its domain, let's say my.domain.organd defined by a directory 
+<A NAME="8359"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/etc/my.domain.org</TT>. This directory must contain at least a 
+<A NAME="8362"><tex2html_anchor_invisible_mark></A><TT>robot.conf</TT> file. This files has the same format as  <A NAME="8365"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/etc/sympa.conf</TT>
+(have a look at robot.conf in the sample dir).
+Only the following parameters can be redefined for a particular robot :
+
+<P>
+
+<UL>
+<LI><A NAME="8368"><tex2html_anchor_invisible_mark></A><TT>http_host</TT> 
+<BR>	This hostname will be compared with 'SERVER_NAME' environment variable in wwsympa.fcgi
+	to determine the current Virtual Robot. You can a path at the end of this parameter if
+	you are running multiple Virtual robots on the same host. 
+	<BLOCKQUOTE>
+</BLOCKQUOTE><PRE><tex2html_verbatim_mark>verbatim329#</PRE><BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<P>
+</LI>
+<LI><A NAME="8371"><tex2html_anchor_invisible_mark></A><TT>wwsympa_url</TT> 
+<BR>	The base URL of WWSympa
+
+<P>
+</LI>
+<LI><A NAME="8374"><tex2html_anchor_invisible_mark></A><TT>soap_url</TT> 
+<BR>	The base URL of Sympa's SOAP server (if it is running ; see ~<A HREF=<tex2html_cr_mark>#soap#1912><tex2html_cr_mark></A>, page~<A HREF=<tex2html_cr_mark>#soap#1913><tex2html_cross_ref_visible_mark></A>)
+
+<P>
+</LI>
+<LI><A NAME="8377"><tex2html_anchor_invisible_mark></A><TT>cookie_domain</TT>
+
+<P>
+</LI>
+<LI><A NAME="8380"><tex2html_anchor_invisible_mark></A><TT>email</TT>
+
+<P>
+</LI>
+<LI><A NAME="8383"><tex2html_anchor_invisible_mark></A><TT>title</TT>
+
+<P>
+</LI>
+<LI><A NAME="8386"><tex2html_anchor_invisible_mark></A><TT>default_home</TT>
+
+<P>
+</LI>
+<LI><A NAME="8389"><tex2html_anchor_invisible_mark></A><TT>create_list</TT>
+
+<P>
+</LI>
+<LI><A NAME="8392"><tex2html_anchor_invisible_mark></A><TT>lang</TT>
+
+<P>
+</LI>
+<LI><A NAME="8395"><tex2html_anchor_invisible_mark></A><TT>supported_lang</TT>
+
+<P>
+</LI>
+<LI><A NAME="8398"><tex2html_anchor_invisible_mark></A><TT>log_smtp</TT>
+
+<P>
+</LI>
+<LI><A NAME="8401"><tex2html_anchor_invisible_mark></A><TT>listmaster</TT>
+
+<P>
+</LI>
+<LI><A NAME="8404"><tex2html_anchor_invisible_mark></A><TT>max_size</TT>
+
+<P>
+</LI>
+<LI><A NAME="8407"><tex2html_anchor_invisible_mark></A><TT>dark_color</TT>, <A NAME="8410"><tex2html_anchor_invisible_mark></A><TT>light_color</TT>, <A NAME="8413"><tex2html_anchor_invisible_mark></A><TT>text_color</TT>, <A NAME="8416"><tex2html_anchor_invisible_mark></A><TT>bg_color</TT>, <A NAME="8419"><tex2html_anchor_invisible_mark></A><TT>error_color</TT>, <A NAME="8422"><tex2html_anchor_invisible_mark></A><TT>selected_color</TT>, <A NAME="8425"><tex2html_anchor_invisible_mark></A><TT>shaded_color</TT> 
+</LI>
+</UL>
+
+<P>
+These settings overwrite the equivalent global parameter defined in <A NAME="8428"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/etc/sympa.conf</TT>
+for my.domain.orgrobot ; the main <A NAME="8431"><tex2html_anchor_invisible_mark></A><TT>listmaster</TT> still has privileges on Virtual
+Robots though. The http_host parameter is compared by wwsympa with the SERVER_NAME
+environment variable to recognize which robot is in used. 
+
+<P>
+
+<H2><A NAME="SECTION001521000000000000000">
+14.2.1 Robot customization</A>
+</H2>
+
+<P>
+If needed, you can customize each virtual robot using its set of templates and authorization scenarios.
+
+<P>
+<A NAME="8434"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/etc/my.domain.org/wws_templates/</TT>,
+<A NAME="8437"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/etc/my.domain.org/templates/</TT>, 
+<A NAME="8440"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/etc/my.domain.org/scenari/</TT> directories are searched when
+loading templates or scenari before searching into <A NAME="8443"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/etc</TT> and  <A NAME="8446"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/bin/etc</TT>. This allows to define different privileges and a different GUI for a Virtual Robot.
+
+<P>
+
+<H1><A NAME="SECTION001530000000000000000">
+14.3 Managing multiple virtual robots</A>
+</H1>
+
+<P>
+If you are managing more than 2 virtual robots, then you might cinsider moving all the mailing lists in the default
+robot to a dedicated virtual robot located in the <A NAME="8449"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/expl/my.domain.org/</TT> directory. The main benefit of 
+this organisation is the ability to define default configuration elements (templates or authorization scenarios) 
+for this robot without inheriting them within other virtual robots.
+
+<P>
+To create such a virtual robot, you need to create <A NAME="8452"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/expl/my.domain.org/</TT> and <A NAME="8455"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/etc/my.domain.org/</TT> directories ; 
+customize <A NAME="8458"><tex2html_anchor_invisible_mark></A><TT>host</TT>, <A NAME="8461"><tex2html_anchor_invisible_mark></A><TT>http_host</TT> and <A NAME="8464"><tex2html_anchor_invisible_mark></A><TT>wwsympa_url</TT> parameters in the <A NAME="8467"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/etc/my.domain.org/robot.conf</TT> 
+with the same values as the default robot (as defined in <A NAME="8470"><tex2html_anchor_invisible_mark></A><TT>sympa.conf</TT> and <A NAME="8473"><tex2html_anchor_invisible_mark></A><TT>wwsympa.conf</TT> files).
+
+<P>
+

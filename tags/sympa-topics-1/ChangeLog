@@ -1,0 +1,76 @@
+2005-04-18 16:21  sympa-authors
+
+	* src/: Family.pm, List.pm, sympa.pl, etc/script/create_db.Oracle,
+	  etc/script/create_db.Pg, etc/script/create_db.Sybase,
+	  etc/script/create_db.mysql: Adding msg_topic and
+	  msg_topic_keywords_apply_on list parameter. Adding field topics
+	  subscriber in the subscriber table, modifying function access to
+	  subscriber_table. Modifying subscriber otpion to able topic
+	  subscription.
+
+2005-04-18 15:47  sympa-authors
+
+	* mail_tt2/subscriber_notification.tt2, src/mail.pm: removing of
+	  mail_tt2/subscriber_notification.tt2 (forgotten before)
+
+2005-04-18 14:54  sympa-authors
+
+	* ChangeLog: [no log message]
+
+2005-04-18 14:53  sympa-authors
+
+	* doc/: sympa.pdf, sympa.ps, sympa.tex, sympa.tex.tpl,
+	  html/index.html, html/node1.html, html/node10.html,
+	  html/node11.html, html/node12.html, html/node13.html,
+	  html/node14.html, html/node15.html, html/node16.html,
+	  html/node17.html, html/node18.html, html/node19.html,
+	  html/node2.html, html/node20.html, html/node21.html,
+	  html/node22.html, html/node23.html, html/node24.html,
+	  html/node25.html, html/node26.html, html/node27.html,
+	  html/node3.html, html/node4.html, html/node5.html,
+	  html/node6.html, html/node7.html, html/node8.html,
+	  html/node9.html, html/sympa.html, html/sympa.ps: Adding internal
+	  documentation for sending messages functions.
+
+2005-04-18 11:46  sympa-authors
+
+	* ChangeLog: [no log message]
+
+2005-04-18 11:24  sympa-authors
+
+	* mail_tt2/archive.tt2, mail_tt2/bye.tt2,
+	  mail_tt2/certif_warning.tt2, mail_tt2/command_report.tt2,
+	  mail_tt2/d_install_shared.tt2, mail_tt2/d_reject_shared.tt2,
+	  mail_tt2/digest.tt2, mail_tt2/digest_plain.tt2,
+	  mail_tt2/expire_deletion.tt2, mail_tt2/expire_warning1.tt2,
+	  mail_tt2/expire_warning2.tt2, mail_tt2/global_remind.tt2,
+	  mail_tt2/helpfile.tt2, mail_tt2/index_archive.tt2,
+	  mail_tt2/info_report.tt2, mail_tt2/invite.tt2,
+	  mail_tt2/list_created.tt2, mail_tt2/list_rejected.tt2,
+	  mail_tt2/list_unknown.tt2, mail_tt2/listeditor_notification.tt2,
+	  mail_tt2/listmaster_notification.tt2,
+	  mail_tt2/listowner_notification.tt2, mail_tt2/lists.tt2,
+	  mail_tt2/message_report.tt2, mail_tt2/moderate.tt2,
+	  mail_tt2/modindex.tt2, mail_tt2/reject.tt2, mail_tt2/remind.tt2,
+	  mail_tt2/removed.tt2, mail_tt2/request_auth.tt2,
+	  mail_tt2/review.tt2, mail_tt2/send_auth.tt2,
+	  mail_tt2/sendpasswd.tt2, mail_tt2/stats_report.tt2,
+	  mail_tt2/summary.tt2, mail_tt2/urlized_part.tt2,
+	  mail_tt2/welcome.tt2, mail_tt2/which.tt2,
+	  mail_tt2/x509-user-cert-missing.tt2,
+	  mail_tt2/your_infected_msg.tt2, soap/sympa_soap_server.fcgi,
+	  soap/sympasoap.pm, src/Commands.pm, src/Conf.pm, src/Family.pm,
+	  src/List.pm, src/Log.pm, src/Makefile, src/mail.pm, src/smtp.pm,
+	  src/sympa.pl, src/task_manager.pl, src/tools.pl, src/tt2.pl,
+	  wwsympa/archived.pl, wwsympa/bounced.pl, wwsympa/wwsympa.fcgi:
+	  Sending messages reorganization :   - deletion of old functions,
+	  deletion of calling that breakes layers hierarchy, function
+	  creation to manage all sending.    - maximizing using of
+	  templates (every function that provides a mail service uses a
+	  template) and using of notification function with their own
+	  template.    - managing "pushing in spool" (for messages sending
+	  by other process than sympa.pl) by using normal functions for
+	  messages sending.    - authentication factorisation, function
+	  creation for commands report and deletion of "expire"command in
+	  package Commands.
+

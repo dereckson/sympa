@@ -1,0 +1,149 @@
+
+<H1><A NAME="SECTION001100000000000000000"><tex2html_anchor_invisible_mark></A>
+<A NAME="rss"><tex2html_anchor_mark></A><A NAME="1462"><tex2html_anchor_invisible_mark></A><BR>
+10. Sympa RSS channel
+</H1>
+
+<P>
+This service is provided by <A NAME="8002"><tex2html_anchor_invisible_mark></A><I>WWSympa</I> (<I>Sympa</I>'s web interface). 
+Here is the root of <A NAME="8006"><tex2html_anchor_invisible_mark></A><I>WWSympa</I>'s rss channel :
+<BR>
+<P>
+(Default value: <TT>http://<TT>;SPMlt;</TT>host<TT>;SPMgt;</TT>/wws/rss</TT>)
+<BR>      Example: <TT>https://my.server/wws/rss</TT>
+
+<P>
+The access control of RSS queries proceed on the same way as <A NAME="8013"><tex2html_anchor_invisible_mark></A><I>WWSympa</I> actions referred to.
+<I>Sympa</I> provides the following RSS features :
+
+<UL>
+<LI>the latest created lists on a robot (<A NAME="8017"><tex2html_anchor_invisible_mark></A><TT>latest_lists</TT>) ;
+</LI>
+<LI>the most active lists on a robot(<A NAME="8020"><tex2html_anchor_invisible_mark></A><TT>active_lists</TT>) ;  
+</LI>
+<LI>the latest messages of a list (<A NAME="8023"><tex2html_anchor_invisible_mark></A><TT>active_arc</TT>) ;   
+</LI>
+<LI>the latest shared documents of a list (<A NAME="8026"><tex2html_anchor_invisible_mark></A><TT>latest_d_read</TT>) ; 
+</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION001110000000000000000"><tex2html_anchor_invisible_mark></A><A NAME="8029"><tex2html_anchor_invisible_mark></A><BR>
+10.1 <TT>latest_lists</TT>
+</H1>
+
+<P>
+This provides the latest created lists.  
+
+<P>
+ Example: <TT>http://my.server/wws/rss/latest_lists?for=3<tex2html_ampersand_mark>count=6</TT>
+<BR>      This provides the 6 latest created lists for the last 3 days.
+<BR>
+<P>
+ Example: <TT>http://my.server/wws/rss/latest_lists/computing?count=6</TT>
+<BR>      This provides the 6 latest created lists with topic ``computing''.
+<BR>
+<P>
+Parameters : 
+
+<UL>
+<LI><A NAME="8034"><tex2html_anchor_invisible_mark></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
+     ``for'' or ``count'' is required.
+</LI>
+<LI><A NAME="8037"><tex2html_anchor_invisible_mark></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
+     ``for'' or ``count'' is required.
+</LI>
+<LI>topic : the topic is indicated in the path info (see example below with topic computing). 
+    This parameter is optional.
+</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION001120000000000000000"><tex2html_anchor_invisible_mark></A><A NAME="8040"><tex2html_anchor_invisible_mark></A><BR>
+10.2 <TT>active_lists</TT>
+</H1>
+
+<P>
+This provides the most active lists, based on the number of distributed messages (number of received messages).  
+
+<P>
+ Example: <TT>http://my.server/wws/rss/active_lists?for=3<tex2html_ampersand_mark>count=6</TT>
+<BR>      This provides the 6 most active lists for the last 3 days.
+<BR>
+<P>
+ Example: <TT>http://my.server/wws/rss/active_lists/computing?count=6</TT>
+<BR>      This provides the 6 most active lists with topic ``computing''.
+<BR>
+<P>
+Parameters : 
+
+<UL>
+<LI><A NAME="8045"><tex2html_anchor_invisible_mark></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
+     ``for'' or ``count'' is required.
+</LI>
+<LI><A NAME="8048"><tex2html_anchor_invisible_mark></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
+     ``for'' or ``count'' is required.
+</LI>
+<LI>topic : the topic is indicated in the path info (see example below with topic computing). 
+    This parameter is optional.
+</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION001130000000000000000"><tex2html_anchor_invisible_mark></A><A NAME="8051"><tex2html_anchor_invisible_mark></A><BR>
+10.3 <TT>latest_arc</TT>
+</H1>
+
+<P>
+This provides the latest messages of a list.  
+
+<P>
+ Example: <TT>http://my.server/wws/rss/latest_arc/mylist?for=3<tex2html_ampersand_mark>count=6</TT>
+<BR>      This provides the 6 latest messages received on the mylistlist for the last 3 days.
+<BR>
+<P>
+Parameters : 
+
+<UL>
+<LI>list : the list is indicated in the path info. This parameter is mandatory.
+</LI>
+<LI><A NAME="8055"><tex2html_anchor_invisible_mark></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
+     ``for'' or ``count'' is required.
+</LI>
+<LI><A NAME="8058"><tex2html_anchor_invisible_mark></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
+     ``for'' or ``count'' is required.
+</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION001140000000000000000"><tex2html_anchor_invisible_mark></A><A NAME="8061"><tex2html_anchor_invisible_mark></A><BR>
+10.4 <TT>latest_d_read</TT>
+</H1>
+
+<P>
+This provides the latest updated and uploaded shared documents of a list.  
+
+<P>
+ Example: <TT>http://my.server/wws/rss/latest_d_read/mylist?for=3<tex2html_ampersand_mark>count=6</TT>
+<BR>      This provides the 6 latest documents uploaded or updated on the mylistlist for the last 3 days.
+<BR>
+<P>
+Parameters : 
+
+<UL>
+<LI>list : the list is indicated in the path info. This parameter is mandatory.
+</LI>
+<LI><A NAME="8065"><tex2html_anchor_invisible_mark></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
+     ``for'' or ``count'' is required.
+</LI>
+<LI><A NAME="8068"><tex2html_anchor_invisible_mark></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
+     ``for'' or ``count'' is required.
+</LI>
+</UL>
+
+<P>
+

@@ -1,0 +1,267 @@
+
+<H1><A NAME="SECTION00700000000000000000"><tex2html_anchor_invisible_mark></A>
+    <A NAME="aliases"><tex2html_anchor_mark></A>    <A NAME="668"><tex2html_anchor_invisible_mark></A><BR>
+6. Mail aliases
+</H1>
+
+<P>
+Mail aliases are required in Sympa for <A NAME="6917"><tex2html_anchor_invisible_mark></A><TT>sympa.pl</TT> to receive mail commands and 
+list messages. Management of these aliases management will depend on the MTA (<A NAME="6920"><tex2html_anchor_invisible_mark></A><TT>sendmail</TT>, <A NAME="6923"><tex2html_anchor_invisible_mark></A><TT>qmail</TT>,
+<A NAME="6926"><tex2html_anchor_invisible_mark></A><TT>postfix</TT>, <A NAME="6929"><tex2html_anchor_invisible_mark></A><TT>exim</TT>) you're using, where you store aliases and whether
+you are managing virtual domains or not.
+
+<P>
+
+<H1><A NAME="SECTION00710000000000000000"><tex2html_anchor_invisible_mark></A>
+   <A NAME="robot-aliases"><tex2html_anchor_mark></A>    <A NAME="676"><tex2html_anchor_invisible_mark></A><BR>
+6.1 Robot aliases
+</H1>
+
+<P>
+An electronic list manager such as <I>Sympa</I> is built around two processing steps:
+
+<P>
+
+<UL>
+<LI>a message sent to a list or to <I>Sympa</I> itself
+        (commands such as subscribe or unsubscribe) is received
+        by the SMTP server. The SMTP server, on reception of this message, runs the
+        <A NAME="6934"><tex2html_anchor_invisible_mark></A><TT>queue</TT> program (supplied in this package) to store
+        the message in a spool.
+
+<P>
+</LI>
+<LI>the <A NAME="6937"><tex2html_anchor_invisible_mark></A><TT>sympa.pl</TT> daemon, set in motion at
+        system startup, scans this spool. As soon as it
+        detects a new message, it processes it and performs the
+        requested action (distribution or processing of a command).
+
+<P>
+</LI>
+</UL>
+
+<P>
+To separate the processing of commands (subscription,
+unsubscription, help requests, etc.) from the processing of messages destined for mailing
+lists, a special mail alias is reserved for administrative requests, so
+that <I>Sympa</I> can be permanently accessible to users. The following
+lines must therefore be added to the <A NAME="6941"><tex2html_anchor_invisible_mark></A><TT>sendmail</TT> alias file
+(often <A NAME="6944"><tex2html_anchor_invisible_mark></A><TT>/etc/aliases</TT>):
+
+<P>
+<BLOCKQUOTE>
+sympa:             ;SPMquot;| /usr/local/sympa-gb/bin/queue sympa@my.domain.org;SPMquot;
+<BR>listmaster: 	   ;SPMquot;| /usr/local/sympa-gb/bin/queue listmaster@my.domain.org;SPMquot;
+<BR>bounce+*:          ;SPMquot;| /usr/local/sympa-gb/bin/bouncequeue sympa@my.domain.org;SPMquot;
+<BR>sympa-request:     postmaster
+<BR>sympa-owner:       postmaster
+<BR>
+</BLOCKQUOTE>
+
+<P>
+Note: if you run <I>Sympa</I> virtual robots, you will need one <TT>sympa</TT>
+alias entry per virtual robot (see virtual robots section, <A HREF=<tex2html_cr_mark>#virtual-robot#686><tex2html_cr_mark></A>,
+page~<A HREF=<tex2html_cr_mark>#virtual-robot#687><tex2html_cross_ref_visible_mark></A>).
+
+<P>
+<TT>sympa-request</TT> should be the address of the robot
+<A NAME="6950"><tex2html_anchor_invisible_mark></A>administrator, i.e. a person who looks after
+<I>Sympa</I> (here <TT>postmaster<#6953#><#6953#>cru.fr</TT>).
+
+<P>
+<TT>sympa-owner</TT> is the return address for <I>Sympa</I> error
+messages.
+
+<P>
+The alias bounce+* is dedicated to collect bounces. It is useful
+only if at least one list uses <TT> welcome_return_path unique </TT> or
+<TT> remind_return_path unique</TT>.
+Don't forget to run <A NAME="6956"><tex2html_anchor_invisible_mark></A><TT>newaliases</TT> after any change to
+the <A NAME="6959"><tex2html_anchor_invisible_mark></A><TT>/etc/aliases</TT> file!
+
+<P>
+Note: aliases based on <TT>listserv</TT> (in addition to those
+based on <TT>sympa</TT>) can be added for the benefit of users
+accustomed to the <TT>listserv</TT> and <TT>majordomo</TT> names.
+For example:
+
+<P>
+<BLOCKQUOTE>
+</BLOCKQUOTE><PRE><tex2html_verbatim_mark>verbatim275#</PRE><BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<P>
+
+<H1><A NAME="SECTION00720000000000000000"><tex2html_anchor_invisible_mark></A>
+<A NAME="list-aliases"><tex2html_anchor_mark></A>    <A NAME="706"><tex2html_anchor_invisible_mark></A>
+    <A NAME="707"><tex2html_anchor_invisible_mark></A><BR>
+6.2 List aliases
+</H1>
+
+<P>
+For each new list, it is necessary to create up to six mail aliases (at least three).
+If you managed to setup the alias manager (see next section) then <I>Sympa</I> will
+install automatically the following aliases for you.
+
+<P>
+For example, to create the <TT>mylist</TT> list, the following
+aliases must be added:
+
+<P>
+<BLOCKQUOTE>
+<TT>    </TT><TABLE CELLPADDING=3>
+<TR><TD ALIGN="LEFT"><TT>
+        <TT>mylist</TT>:         </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            ;SPMquot;|/usr/local/sympa-gb/bin/queue mylist@my.domain.org;SPMquot;
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT> 
+        <TT>mylist-request</TT>: </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            ;SPMquot;|/usr/local/sympa-gb/bin/queue mylist-request@my.domain.org;SPMquot;
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT> 
+        <TT>mylist-editor</TT>:  </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            ;SPMquot;|/usr/local/sympa-gb/bin/queue mylist-editor@my.domain.org;SPMquot;
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT> 
+        <TT>mylist-owner</TT>:   </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            ;SPMquot;|/usr/local/sympa-gb/bin/bouncequeue mylist@my.domain.org
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT> 
+        <TT>mylist-subscribe</TT>:   </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            ;SPMquot;|/usr/local/sympa-gb/bin/queue mylist-subscribe@my.domain.org@my.domain.org;SPMquot;
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT> 
+        <TT>mylist-unsubscribe</TT>: </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            ;SPMquot;|/usr/local/sympa-gb/bin/queue mylist-unsubscribe@my.domain.org;SPMquot;
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT></TT><TT></TT></TD>
+<TD ALIGN="LEFT"><TT></TT></TD>
+</TR>
+</TABLE><TT>
+</TT></BLOCKQUOTE>
+
+<P>
+The address <TT>mylist-request</TT> should correspond
+to the person responsible for managing <TT>mylist</TT>
+(the <A NAME="6976"><tex2html_anchor_invisible_mark></A>owner).  <I>Sympa</I> will forward messages for
+<TT>mylist-request</TT> to the owner of <TT>mylist</TT>,
+as defined in the <A NAME="6980"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/expl/mylist/config</TT>
+file.  Using this feature means you would not need to modify the
+alias file if the owner of the list were to change.
+
+<P>
+Similarly, the address <TT>mylist-editor</TT> can be used
+to contact the list editors if any are defined in
+<A NAME="6984"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/expl/mylist/config</TT>.  This address definition
+is not compulsory.
+
+<P>
+The address <TT>mylist-owner</TT> is the address receiving
+non-delivery reports. The <A NAME="6988"><tex2html_anchor_invisible_mark></A><TT>bouncequeue</TT> program stores these messages 
+in the <A NAME="6991"><tex2html_anchor_invisible_mark></A><TT>queuebounce</TT> directory. <A NAME="6994"><tex2html_anchor_invisible_mark></A><I>WWSympa</I> ((see~<A HREF=<tex2html_cr_mark>#wwsympa#731><tex2html_cr_mark></A>, page~<A HREF=<tex2html_cr_mark>#wwsympa#732><tex2html_cross_ref_visible_mark></A>)
+may then analyze them and provide a web access to them.
+
+<P>
+The address <TT>mylist-subscribe</TT> is an address enabling
+users to subscribe in a manner which can easily be explained to them.
+Beware: subscribing this way is so straightforward that you may find spammers
+subscribing to your list by accident.
+
+<P>
+The address <TT>mylist-unsubscribe</TT> is the equivalent for
+unsubscribing. By the way, the easier it is for users to unsubscribe, the easier it will
+be for you to manage your list!
+
+<P>
+
+<H1><A NAME="SECTION00730000000000000000"><tex2html_anchor_invisible_mark></A>
+<A NAME="alias-manager"><tex2html_anchor_mark></A><BR>
+6.3 Alias manager
+</H1>	
+
+<P>
+The <A NAME="6999"><tex2html_anchor_invisible_mark></A><TT>alias_manager.pl</TT> script does aliases management. It is run by <A NAME="7002"><tex2html_anchor_invisible_mark></A><I>WWSympa</I> and
+ will install aliases for a new list and delete aliases for closed lists. 
+
+<P>
+The script expects the following arguments :
+
+<OL>
+<LI>add | del
+</LI>
+<LI><TT>;SPMlt;</TT>list name<TT>;SPMgt;</TT>
+</LI>
+<LI><TT>;SPMlt;</TT>list domain<TT>;SPMgt;</TT>
+</LI>
+</OL>
+Example : <A NAME="7005"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/bin/alias_manager.pl add mylistcru.fr</TT>
+
+<P>
+<A NAME="7008"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/bin/alias_manager.pl</TT> works on the alias file as defined in <A NAME="7011"><tex2html_anchor_invisible_mark></A><TT>sympa.conf</TT>)
+by the <A NAME="7014"><tex2html_anchor_invisible_mark></A>SENDMAIL_ALIASES  variable (default is <A NAME="7015"><tex2html_anchor_invisible_mark></A><TT>/etc/mail/sympa_aliases</TT>) in the main Makefile (see <A HREF=<tex2html_cr_mark>#makefile#749><tex2html_cr_mark></A>,  page~<A HREF=<tex2html_cr_mark>#makefile#750><tex2html_cross_ref_visible_mark></A>). You must refer to this aliases file in your <A NAME="7018"><tex2html_anchor_invisible_mark></A><TT>sendmail.mc</TT> (if using sendmail) :
+<BLOCKQUOTE>
+</BLOCKQUOTE><PRE><tex2html_verbatim_mark>verbatim276#</PRE><BLOCKQUOTE>
+</BLOCKQUOTE>
+
+<P>
+<A NAME="7021"><tex2html_anchor_invisible_mark></A><TT>/usr/local/sympa-gb/bin/alias_manager.pl</TT> runs a <A NAME="7024"><tex2html_anchor_invisible_mark></A><TT>newaliases</TT> command (via <A NAME="7027"><tex2html_anchor_invisible_mark></A><TT>aliaswrapper</TT>), after any changes to aliases file.
+
+<P>
+If you manage virtual domains with your mail server, then you might want to change
+the form of aliases used by the alias_manager. You can customize the <A NAME="7030"><tex2html_anchor_invisible_mark></A><TT>list_aliases</TT>
+template that is parsed to generate list aliases (see<A HREF=<tex2html_cr_mark>#list-aliases-tpl#760><tex2html_cr_mark></A>,  
+page~<A HREF=<tex2html_cr_mark>#list-aliases-tpl#761><tex2html_cross_ref_visible_mark></A>).
+
+<P>
+<A NAME="ldap-aliases"><tex2html_anchor_mark></A>L. Marcotte has written a version of <A NAME="7033"><tex2html_anchor_invisible_mark></A><TT>alias_manager.pl</TT> that is LDAP enabled.
+Check the contrib. page for more information : <A NAME="tex2html18"
+  HREF="http://sympa.org/contrib.html">http://sympa.org/contrib.html</A>.
+
+<P>
+
+<H1><A NAME="SECTION00740000000000000000"><tex2html_anchor_invisible_mark></A>
+<A NAME="virtual-domains"><tex2html_anchor_mark></A><BR>
+6.4 Virtual domains
+</H1>	
+
+<P>
+When using virtual domains with <A NAME="7036"><tex2html_anchor_invisible_mark></A><TT>sendmail</TT> or <A NAME="7039"><tex2html_anchor_invisible_mark></A><TT>postfix</TT>, you can't
+refer to  <TT>mylist@my.domain.org</TT> on the right-hand side of an 
+<A NAME="7043"><tex2html_anchor_invisible_mark></A><TT>/etc/aliases</TT> entry. You need to define an additional entry in a virtual table.
+You can also add a unique entry, with a regular expression, for your domain. 
+
+<P>
+With Postfix, you should edit the <A NAME="7046"><tex2html_anchor_invisible_mark></A><TT>/etc/postfix/virtual.regexp</TT> file as follows :
+<BLOCKQUOTE>
+/<tex2html_verb_mark>1<tex2html_verb_mark>(.*)@my.domain.org$/	 my.domain.org-$<#774#>1<#774#>
+
+</BLOCKQUOTE>
+ Entries in the 'aliases' file will look like this :
+<BLOCKQUOTE>
+my.domain.org-sympa:   ;SPMquot;|/usr/local/sympa-gb/bin/sympa.pl sympa@my.domain.org;SPMquot;
+    .....
+    my.domain.org-listA:   ;SPMquot;|/usr/local/sympa-gb/bin/sympa.pl listA@my.domain.org;SPMquot;
+
+</BLOCKQUOTE>
+
+<P>
+With Sendmail, add the following entry to <A NAME="7049"><tex2html_anchor_invisible_mark></A><TT>/etc/mail/virtusertable</TT> file :
+<BLOCKQUOTE>
+@my.domain.org       my.domain.org-<tex2html_percent_mark>1<tex2html_percent_mark>3
+
+</BLOCKQUOTE>
+
+<P>
+
