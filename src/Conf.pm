@@ -36,7 +36,7 @@ use Carp;
 
 my @valid_options = qw(
 		       avg bounce_warn_rate bounce_halt_rate bounce_email_prefix chk_cert_expiration_task expire_bounce_task
-		       clean_delay_queue clean_delay_queueauth clean_delay_queuemod default_remind_task
+		       clean_delay_queue clean_delay_queueauth clean_delay_queuemod clean_delay_queuetopic default_remind_task
 		       cookie cookie_cas_expire create_list crl_dir crl_update_task db_host db_env db_name 
 		       db_options db_passwd db_type db_user db_port db_additional_subscriber_fields db_additional_user_fields
 		       default_shared_quota default_archive_quota default_list_priority distribution_mode edit_list email etc
@@ -44,7 +44,7 @@ my @valid_options = qw(
 		       misaddressed_commands misaddressed_commands_regexp max_size maxsmtp nrcpt 
 		       owner_priority pidfile pidfile_distribute
 		       spool queue queuedistribute queueauth queuetask queuebounce queuedigest 
-		       queueexpire queuemod queuesubscribe queueoutgoing tmpdir
+		       queuemod queuetopic queuesubscribe queueoutgoing tmpdir
 		       loop_command_max loop_command_sampling_delay loop_command_decrease_factor
 		       purge_user_table_task  purge_orphan_bounces_task eval_bouncers_task process_bouncers_task
 		       minimum_bouncing_count minimum_bouncing_period bounce_delay 
@@ -54,10 +54,8 @@ my @valid_options = qw(
                        openssl capath cafile  key_passwd ssl_cert_dir remove_headers
 		       antivirus_path antivirus_args antivirus_notify anonymous_header_fields sendmail_aliases
 		       dark_color light_color text_color bg_color error_color selected_color shaded_color
-		       color_0 color_1 color_2 color_3 color_4 color_5 color_6 color_7 color_8 color_9 color_10 color_11 color_12 color_13 color_14 color_15
- 		       css_url css_path
 		       ldap_export_name ldap_export_host ldap_export_suffix ldap_export_password
-		       ldap_export_dnmanager ldap_export_connection_timeout update_db_field_types urlize_min_size
+		       ldap_export_dnmanager ldap_export_connection_timeout urlize_min_size
 		       list_check_smtp list_check_suffixes  spam_protection web_archive_spam_protection soap_url
 		       web_recode_to
 );
@@ -96,7 +94,7 @@ my %Default_Conf =
      'queuedistribute' => undef,
      'queuedigest'=> undef,
      'queuemod'   => undef,
-     'queueexpire'=> undef,
+     'queuetopic' => undef,
      'queueauth'  => undef,
      'queueoutgoing'  => undef,
      'queuebounce'  => undef,    
@@ -106,6 +104,7 @@ my %Default_Conf =
      'sleep'      => 5,
      'clean_delay_queue'    => 1,
      'clean_delay_queuemod' => 10,
+     'clean_delay_queuetopic' => 7,
      'clean_delay_queueauth' => 3,
      'log_socket_type'      => 'unix',
      'log_smtp'      => '',
@@ -150,29 +149,13 @@ my %Default_Conf =
      'antivirus_args' => '',
      'antivirus_notify' => 'sender',
      'anonymous_header_fields' => 'Sender,X-Sender,Received,Message-id,From,X-Envelope-To,Resent-From,Reply-To,Organization,Disposition-Notification-To,X-Envelope-From,X-X-Sender',
-     'dark_color' => 'silver',
-     'light_color' => '#aaddff',
+     'dark_color' => '#330099',
+     'light_color' => '#ccccff',
      'text_color' => '#000000',
-     'bg_color' => '#ffffcc',
+     'bg_color' => '#ffffff',
      'error_color' => '#ff6666',
-     'selected_color' => 'silver',
-     'shaded_color' => '#66cccc',
-     'color_0' => '#F0F0F0', # very light grey use in tables
-     'color_1' => '#999', # main menu button color                       
-     'color_2' => '#333', # font color                                   
-     'color_3' => '#929292', # top boxe and footer box bacground color   
-     'color_4' => 'silver', #  page backgound color                      
-     'color_5' => '#fff', # ??                                           
-     'color_6' => '#99ccff', # list menu current button                  
-     'color_7' => '#88bbdd', # main menu, button on mouse over,          
-     'color_8' => '#3366CC', #                                           
-     'color_9' => '#DEE7F7',
-     'color_10' => '#777777', # inactive button
-     'color_11' => '#3366CC', #                                          
-     'color_12' => '#000',
-     'color_13' => '#ffffcc',                                        # input backgound  | transparent
-     'color_14' => '#000',
-     'color_15' => '#000',
+     'selected_color' => '#3366cc',
+     'shaded_color' => '#eeeeee',
      'chk_cert_expiration_task' => '',
      'crl_update_task' => '',
      'ldap_export_name' => '',
@@ -200,13 +183,10 @@ my %Default_Conf =
      'default_bounce_level1_rate' => 45,
      'default_bounce_level2_rate' => 75,
      'soap_url' => '',
-     'css_url' => '',
-     'css_path' => '',
      'urlize_min_size' => 10240, ## 10Kb
      'supported_lang' => 'fr,en_US,hu,it',
      'web_recode_to' => '',
      'default_remind_task' => '',
-     'update_db_field_types' => 'auto',
      );
    
 my $wwsconf;
@@ -274,8 +254,8 @@ sub load {
     unless (defined $o{'queuemod'}) {
 	$o{'queuemod'}[0] = "$spool/moderation";
     }
-    unless (defined $o{'queueexpire'}) {
-	$o{'queueexpire'}[0] = "$spool/expire";
+    unless (defined $o{'queuetopic'}) {
+	$o{'queuetopic'}[0] = "$spool/topic";
     }
     unless (defined $o{'queueauth'}) {
 	$o{'queueauth'}[0] = "$spool/auth";
@@ -383,7 +363,6 @@ sub load_robots {
 				  host            => 1,
 				  wwsympa_url     => 1,
 				  'title'         => 1,
-				  logo_html_definition        => 1,
 				  lang            => 1,
 				  default_home    => 1,
 				  cookie_domain   => 1,
@@ -404,11 +383,6 @@ sub load_robots {
 				  bounce_level1_rate => 1,
 				  bounce_level2_rate => 1,
 				  soap_url => 1,
-				  css_url => 1,
- 				  css_path => 1,
- 				  color_0 => 1, color_2 => 1, color_3 => 1, color_4 => 1, color_5 => 1,color_6 => 1, 
-				  color_7 => 1, color_8 => 1, color_9 => 1,color_7 => 1, color_8 => 1, color_9 => 1,
-				  color_10 => 1, color_11 => 1, color_12 => 1,color_13 => 1, color_14 => 1, color_15 => 1,
 				  supported_lang => 1,
 				  default_shared_quota => 1,
 				  );
@@ -514,7 +488,7 @@ sub checkfiles {
 	}
     }
     
-    foreach my $qdir ('spool','queue','queuedigest','queuemod','queueexpire','queueauth','queueoutgoing','queuebounce','queuesubscribe','queuetask','queuedistribute','tmpdir')
+    foreach my $qdir ('spool','queue','queuedigest','queuemod','queuetopic','queueauth','queueoutgoing','queuebounce','queuesubscribe','queuetask','queuedistribute','tmpdir')
     {
 	unless (-d $Conf{$qdir}) {
 	    do_log('info', "creating spool $Conf{$qdir}");
@@ -546,7 +520,9 @@ sub checkfiles {
     if (defined $Conf{'cafile'} && $Conf{'cafile'}) {
 	unless (-f $Conf{'cafile'} && -r $Conf{'cafile'}) {
 	    &do_log('err', 'Cannot access cafile %s', $Conf{'cafile'});
-	    &List::send_notify_to_listmaster('cannot_access_cafile', $Conf{'domain'}, $Conf{'cafile'});
+	    unless (&List::send_notify_to_listmaster('cannot_access_cafile', $Conf{'domain'}, [$Conf{'cafile'}])) {
+		&do_log('err', 'Unable to send notify "cannot access cafile" to listmaster');	
+	    }
 	    $config_err++;
 	}
     }
@@ -554,7 +530,9 @@ sub checkfiles {
     if (defined $Conf{'capath'} && $Conf{'capath'}) {
 	unless (-d $Conf{'capath'} && -x $Conf{'capath'}) {
 	    &do_log('err', 'Cannot access capath %s', $Conf{'capath'});
-	    &List::send_notify_to_listmaster('cannot_access_capath', $Conf{'domain'}, $Conf{'capath'});
+	    unless (&List::send_notify_to_listmaster('cannot_access_capath', $Conf{'domain'}, [$Conf{'capath'}])) {
+		&do_log('err', 'Unable to send notify "cannot access capath" to listmaster');	
+	    }
 	    $config_err++;
 	}
     }
@@ -562,7 +540,9 @@ sub checkfiles {
     ## queuebounce and bounce_path pointing to the same directory
     if ($Conf{'queuebounce'} eq $wwsconf->{'bounce_path'}) {
 	&do_log('err', 'Error in config : queuebounce and bounce_path parameters pointing to the same directory (%s)', $Conf{'queuebounce'});
-	&List::send_notify_to_listmaster('queuebounce_and_bounce_path_are_the_same', $Conf{'domain'}, $Conf{'queuebounce'});
+	unless (&List::send_notify_to_listmaster('queuebounce_and_bounce_path_are_the_same', $Conf{'domain'}, [$Conf{'queuebounce'}])) {
+	    &do_log('err', 'Unable to send notify "queuebounce_and_bounce_path_are_the_same" to listmaster');	
+	}
 	$config_err++;
     }
 

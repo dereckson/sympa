@@ -281,14 +281,8 @@ sub get_exported_lists{
 	return undef;
     }
    
-    my $cnx = $ldap->bind();
+    $ldap->bind();
 	
-    unless(defined($cnx) && ($cnx->code == 0)){
-	&Log::do_log('err', 'Ldap::exported_lists: Bind failed on  %s',$Conf{'ldap_export'}{$directory}{'host'});
-	$ldap->unbind;
-	return undef;
-    }
-
     my $search_filter = "(|(listEmailAddress=*$filter*)(listSubject=*$filter*))";
     my $result_search = $ldap->search (
 				       base => "$Conf{'ldap_export'}{$directory}{'suffix'}",
@@ -340,14 +334,7 @@ sub get_dn_anonymous{
     }
 
     ##Bind
-    my $cnx = $ldap->bind();
-
-    unless(defined($cnx) && ($cnx->code == 0)){
-	&Log::do_log('err', 'Ldap::exported_lists: Bind failed on  %s',$datas->{'host'});
-	$ldap->unbind;
-	return undef;
-    }
-    
+    $ldap->bind();
 
     ##Search
     my $result_search = $ldap->search (

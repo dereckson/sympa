@@ -327,37 +327,9 @@ sub output {
 
 	## Avoid additional \n entries
 	my @lines = split(/\n/, $str, -1);
-	my @output_lines;
+	pop @lines if ($lines[$#lines] eq '');
 
-	## Move empty lines to previous line as \n
-	my $current_line;
-	foreach my $i (0..$#lines) {
-	    if ($lines[$i] eq '') {
-		if ($#output_lines < 0) {
-		    $current_line .= '\n';
-		    next;
-		}else {
-		    $output_lines[$#output_lines] .= '\n';
-		    next;
-		}
-	    }else {
-		$current_line .= $lines[$i];
-	    }
-	    push @output_lines, $current_line;
-	    $current_line = '';
-	}
-	
-	## Add \n unless 
-	foreach my $i (0..$#output_lines) {
-	    if ($i == $#output_lines) {
-		## No additional \n
-		print "\"$output_lines[$i]\"\n";
-	    }else {
-		print "\"$output_lines[$i]\\n\"\n";
-	    }
-	}
-
-	
+	print "\"$_\\n\"\n" foreach @lines;
     }
     else {
 	print "\"$str\"\n"

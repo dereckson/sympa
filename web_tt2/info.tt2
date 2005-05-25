@@ -1,17 +1,25 @@
 <!-- $Id$ -->
-[% IF homepage %]
-  [% TRY %]
-     [% INSERT 'homepage' %]
-  [% CATCH %]
-  [% END %]
-[% ELSE %]
-   <pre>
-   [% TRY %]
-     [% INSERT 'info' %]
-   [% CATCH %]
-   [% END %]
-   </pre>
-[% END %]
+
+<table style="width: 100%;" border="0" cellspacing="0" cellpadding="0">
+  <tr valign="top">
+    <td> 
+      <br />
+      [% IF homepage %]
+ 	  [% TRY %]
+            [% INSERT 'homepage' %]
+          [% CATCH %]
+	  [% END %]
+      [% ELSE %]
+         <pre>
+	  [% TRY %]
+            [% INSERT 'info' %]
+          [% CATCH %]
+	  [% END %]
+         </pre>
+      [% END %]
+    </td>
+  </tr>
+</table>
 
 
 
