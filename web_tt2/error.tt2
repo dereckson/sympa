@@ -1,3 +1,4 @@
+
 <!-- $Id$ -->
 <!-- begin error.tt2 -->
 <div class="ErrorBlock"> <strong>
@@ -67,6 +68,8 @@
 [% ELSIF error.msg == 'ldap_user' %][%|loc%]Your password is stored in an LDAP directory, therefore Sympa cannot post you a reminder[%END%]
 [% ELSIF error.msg == 'select_month' %][%|loc%]Please select archive months[%END%]
 [% ELSIF error.msg == 'inaccessible_archive' %][%|loc(error.year_month)%]Archives from %1 are not accessible[%END%]
+[% ELSIF error.msg == 'auth_msg_failed' %][%|loc(error.key)%]Unable to access to the message authenticated with key %1[%END%]
+[% ELSIF error.msg == 'msg_topic_missing' %][%|loc%]Tagging message is required for this list[%END%]
 [% ELSE %]
 [% error.msg %]
 [% END %]
