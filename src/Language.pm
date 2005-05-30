@@ -128,8 +128,8 @@ sub SetLang {
 	unless (setlocale(&POSIX::LC_ALL, $lang)) {
 	    unless (setlocale(&POSIX::LC_ALL, $locale.'.'.$locale2charset{$locale})) {
 		&do_log('err','Failed to setlocale(%s) ; you should edit your /etc/locale.gen or /etc/sysconfig/i18n files', $locale2charset{$locale});
-		return undef;
-	    }
+	return undef;
+    }
 	}
     }
     $current_lang = $lang;
