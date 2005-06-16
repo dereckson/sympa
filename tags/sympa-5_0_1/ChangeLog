@@ -1,0 +1,242 @@
+2005-06-15 17:19  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: [S.Amrani] Fix: the regexp run by
+	  search_list could make wwsympa.fcgi process die ; now using
+	  eval{} Now escaping some more dangerous caracters.
+
+2005-06-15 14:28  sympa-authors
+
+	* web_tt2/arcsearch.tt2, wwsympa/wwsympa.fcgi: [BugId 427]
+	  [reported by K/Moriwaka] Fix: sort by age did not work properly
+	  in web archives search engine
+
+2005-06-15 14:10  sympa-authors
+
+	* doc/: sympa.pdf, sympa.ps, sympa.tex, sympa.tex.tpl,
+	  html/img1.old, html/img2.old, html/index.html, html/node1.html,
+	  html/node10.html, html/node11.html, html/node12.html,
+	  html/node13.html, html/node14.html, html/node15.html,
+	  html/node16.html, html/node17.html, html/node18.html,
+	  html/node19.html, html/node2.html, html/node20.html,
+	  html/node21.html, html/node22.html, html/node23.html,
+	  html/node24.html, html/node25.html, html/node26.html,
+	  html/node27.html, html/node3.html, html/node4.html,
+	  html/node5.html, html/node6.html, html/node7.html,
+	  html/node8.html, html/node9.html, html/sympa.html, html/sympa.ps:
+	  Replace old listes.cru.fr URLs
+
+2005-06-10 09:48  sympa-authors
+
+	* src/etc/script/create_db.Oracle: [E.Rynes] Restored boolean
+	  constraints
+
+2005-06-10 09:43  sympa-authors
+
+	* src/etc/script/create_db.Oracle: [reported by I.Vecchia] Fix:
+	  Oracle 5 does not accept number(0,1) data type
+
+2005-06-09 11:25  sympa-authors
+
+	* src/etc/topics.conf: [M.Redinger] Translated topics to German
+
+2005-06-09 11:22  sympa-authors
+
+	* web_tt2/: admin_menu.tt2, review.tt2: [M.Redinger] Fix: Some
+	  strings were not tagged as translatable
+
+2005-06-09 11:18  sympa-authors
+
+	* po/de.po: [M.Redinger] Updated German translations
+
+2005-06-09 09:42  sympa-authors
+
+	* src/etc/script/create_db.Oracle: [reported by Emr] Fix: incorrect
+	  enum types for Oracle
+
+2005-06-08 17:10  sympa-authors
+
+	* ChangeLog, NEWS: Preparing 5.0.1
+
+2005-06-08 17:05  sympa-authors
+
+	* src/etc/script/sympa: Made the init script compatible with Debian
+	  and Suze
+
+2005-06-08 16:38  sympa-authors
+
+	* src/etc/script/sympa: [BugID 403] Fix: made init script
+	  compatible with OS X
+
+2005-06-08 16:32  sympa-authors
+
+	* po/de.po: Fix: remove or add \n between msgids and msgtrs
+
+2005-06-08 14:57  sympa-authors
+
+	* src/etc/mhonarc-ressources.tt2: Fix: previous utf-8 related
+	  changes were not conditional
+
+2005-06-08 11:20  sympa-authors
+
+	* po/: de.po, it.po, ro.po: Remove \r in PO files
+
+2005-06-08 11:14  sympa-authors
+
+	* po/: cs.po, de.po, en_US.po, es.po, et.po, fi.po, fr.po, hu.po,
+	  it.po, ja.po, nl.po, pl.po, pt.po, ro.po, sympa.pot, zh_CN.po,
+	  zh_TW.po: Updated POT and PO files after xgettext.pl fix
+
+2005-06-08 11:11  sympa-authors
+
+	* po/xgettext.pl: [M.Redinger]Fix: xgettext.pl did not collect all
+	  gettext_id from List.pm
+
+2005-06-07 18:19  sympa-authors
+
+	* po/de.po: [M.Redinger] Updates
+
+2005-06-06 12:05  sympa-authors
+
+	* po/de.po: Fixes
+
+2005-06-06 11:56  sympa-authors
+
+	* po/: cs.po, en_US.po, es.po, et.po, fi.po, fr.po, hu.po, it.po,
+	  ja.po, nl.po, pl.po, pt.po, ro.po, sympa.pot, zh_CN.po, zh_TW.po:
+	  Updated POT and PO files
+
+2005-06-06 11:56  sympa-authors
+
+	* po/de.po, src/Conf.pm: [M.Redinger] Updated German translations
+
+2005-06-06 11:14  sympa-authors
+
+	* src/: Conf.pm, Language.pm: [K.Moriwaka] New translation to
+	  Japonese
+
+2005-06-06 11:11  sympa-authors
+
+	* po/: Makefile, ja.po: [no log message]
+
+2005-06-06 10:41  sympa-authors
+
+	* po/ja.po: file ja.po was added on branch sympa-5_0-branch on
+	  2005-06-06 09:11:13 +0000
+
+2005-06-01 11:05  sympa-authors
+
+	* mail_tt2/: helpfile.tt2, lists.tt2: [G. Bouteille] Add header
+	  fields top templates
+
+2005-05-30 12:10  sympa-authors
+
+	* soap/sympa_soap_server.fcgi: [S.Amrani] Fix: replace hard-coded
+	  path to Sympa libdir
+
+2005-05-27 17:00  sympa-authors
+
+	* src/List.pm: [BugID 418] Fix:  Ldap search return code was not
+	  examined in _include_users_ldap()
+
+2005-05-27 09:30  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: Fix: $rss variable was not reinitialized if
+	  in POST context. Wwsympa could provide RSS content instead of
+	  HTML content
+
+2005-05-26 15:48  sympa-authors
+
+	* .version: preparing 5.0.1
+
+2005-05-26 10:51  sympa-authors
+
+	* src/List.pm, wwsympa/wwsympa.fcgi: [reported by S.Amrani] Fix:
+	  for every web request, wwsympa was running List::probe_db() that
+	  performs a database structure checkup. Now using a lighter
+	  subroutine
+
+2005-05-26 09:56  sympa-authors
+
+	* src/List.pm: Fix: check if no null while doing a ALTER TABLE
+
+2005-05-25 16:10  sympa-authors
+
+	* src/etc/mhonarc-ressources.tt2: [requested by K.Moriwaka] Add
+	  utf-8 encoding options
+
+2005-05-25 11:59  sympa-authors
+
+	* src/: List.pm, mail.pm, tt2.pl: [BugID 415) [Moriwaka] Fix:
+	  incorrect parameters to encode_mimewords() ; Sympa previously
+	  encoded every string in iso-8859-1
+
+2005-05-25 11:40  sympa-authors
+
+	* src/List.pm: [valinux] Fix typo
+
+2005-05-24 17:16  sympa-authors
+
+	* src/Language.pm: Fix: Remove code required for a previous
+	  xgettext bug
+
+2005-05-17 10:53  sympa-authors
+
+	* Makefile.am, Makefile.in: [reported by S.Amrani] Fix umask while
+	  installing man pages
+
+2005-05-13 11:42  sympa-authors
+
+	* src/List.pm: [BugID 393 & 409] Fix: adding custom_subject would
+	  break subject encoding
+
+2005-05-09 10:31  sympa-authors
+
+	* po/it.po: Fix headers
+
+2005-05-04 14:39  sympa-authors
+
+	* src/tools.pl, wwsympa/wwsympa.fcgi: [reported by S.Lalonde] Fix:
+	  regexp for email was too restrictive, not allowing uid
+
+2005-05-04 14:08  sympa-authors
+
+	* src/: Message.pm, tools.pl: New feature: add sanity check of
+	  incoming email address
+
+2005-05-04 09:10  sympa-authors
+
+	* mail_tt2/: global_remind.tt2, moderate.tt2: [reported by
+	  O.Archer] some MUA require an empty line after mailto: URLs
+
+2005-05-03 17:55  sympa-authors
+
+	* po/sympa.pot: Update using new xgettext.pl
+
+2005-05-03 17:52  sympa-authors
+
+	* po/: cs.po, de.po, en_US.po, es.po, et.po, fi.po, fr.po, hu.po,
+	  it.po, nl.po, pl.po, pt.po, ro.po, sympa.pot, zh_CN.po, zh_TW.po:
+	  Fix: update incorrect strings in PO files ; mainly ending \n to
+	  remove in translations
+
+2005-05-03 17:36  sympa-authors
+
+	* po/xgettext.pl: Fix: some multi-line strings were not properly
+	  added to sympa.pot. Therefore these translations were not
+	  available.
+
+2005-04-26 14:40  sympa-authors
+
+	* wwsympa/Auth.pm: Fix: CAS authentication was not able to use
+	  ldap_bind_dn and ldap_bind_password
+
+2005-04-26 11:52  sympa-authors
+
+	* src/Ldap.pm, src/List.pm, wwsympa/wwsympa.fcgi: [BugID 402]
+	  [J.Dalbec] Fix: Sympa did not report failed LDAP binds
+
+2005-04-26 10:55  sympa-authors
+
+	* src/Language.pm: Change: try performing different setlocale()
+	  with $lang and with $locale.charset
+
