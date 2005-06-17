@@ -1,0 +1,5 @@
+title.gettext deletion performed only by list owners, need authentication
+
+is_owner([listname],[sender])  smtp       -> request_auth
+is_listmaster([sender])        smtp       -> request_auth
+true()			       md5,smime  -> do_it
