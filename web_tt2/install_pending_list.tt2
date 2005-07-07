@@ -3,10 +3,10 @@
 <br />
 
 <br />
-<table border="0" style="width: auto;">
+<table border="0" style="width: 100%;">
 <tr style="background-color: [% light_color %];">
 <td>
-<table border="0" style="width: auto;">
+<table border="0" style="width: 100%;">
 <tr style="background-color: [% light_color %];">
  <td><strong>[%|loc%]Listname :[%END%]</strong></td><td style="width: 100%;">[% list %]</td>
 </tr>
