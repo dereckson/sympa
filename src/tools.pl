@@ -89,8 +89,21 @@ sub safefork {
    ## No return.
 }
 
-## Check for commands in the body of the message. Returns true
-## if there are some commands in it.
+####################################################
+# checkcommand                              
+####################################################
+# Checks for no command in the body of the message.
+# If there are some command in it, it return true 
+# and send a message to $sender
+# 
+# IN : -$msg (+): ref(MIME::Entity) - message to check
+#      -$sender (+): the sender of $msg
+#      -$robot (+) : robot
+#
+# OUT : -1 if there are some command in $msg
+#       -0 else
+#
+###################################################### 
 sub checkcommand {
    my($msg, $sender, $robot) = @_;
    do_log('debug3', 'tools::checkcommand(msg->head->get(subject): %s,%s)',$msg->head->get('Subject'), $sender);
@@ -101,9 +114,9 @@ sub checkcommand {
 
    ## Check for commands in the subject.
    my $subject = $msg->head->get('Subject');
+
    if ($subject) {
        if ($Conf{'misaddressed_commands_regexp'} && ($subject =~ /^$Conf{'misaddressed_commands_regexp'}\b/im)) {
-	   &rejectMessage($msg, $sender,$robot);
 	   return 1;
        }
    }
@@ -112,7 +125,6 @@ sub checkcommand {
 
    foreach $i (@{$msg->body}) {
        if ($Conf{'misaddressed_commands_regexp'} && ($i =~ /^$Conf{'misaddressed_commands_regexp'}\b/im)) {
-	   &rejectMessage($msg, $sender, $robot);
 	   return 1;
        }
 
@@ -122,22 +134,7 @@ sub checkcommand {
    return 0;
 }
 
-sub rejectMessage {
-   my($msg, $sender, $robot) = @_;
-   do_log('debug2', 'tools::rejectMessage(%s)', $sender);
 
-   *REJ = smtp::smtpto(&Conf::get_robot_conf($robot, 'request'), \$sender);
-   print REJ "To: $sender\n";
-   print REJ "Subject: [sympa] " . gettext("Routing error ?") . "\n";
-   printf REJ "MIME-Version: 1.0\n";
-   printf REJ "Content-Type: text/plain; charset=%s\n", gettext("_charset_");
-   printf REJ "Content-Transfer-Encoding: %s\n", gettext("_encoding_");
-   print REJ "\n";
-   printf REJ gettext("The following message was sent to a list while it seems to contain\ncommands like subscribe, unsubscribe, help, index, get, ...\n\nIf your message effectively contained a command, please notice that \ncommands should never ever be sent to lists. Commands must be sent\nto %s exclusively.\n\nIf your message was effectively addressed to the list, it has been\ninterpreted by the software as a command. Please contact the manager\nof the service : %s so that they can take care of your message.\n\nThank you for your attention.\n\n------ Beginning of suspected message ------\n"), &Conf::get_robot_conf($robot, 'sympa'), &Conf::get_robot_conf($robot, 'request');
-   $msg->print(\*REJ);
-   print REJ gettext("------ End of suspected message ------\n");
-   close(REJ);
-}
 
 ## return a hash from the edit_list_conf file
 sub load_edit_list_conf {
@@ -183,7 +180,9 @@ sub load_edit_list_conf {
     }
 
     if ($error_in_conf) {
-	&List::send_notify_to_listmaster('edit_list_error', $robot, $file);
+	unless (&List::send_notify_to_listmaster('edit_list_error', $robot, [$file])) {
+	    &do_log('notice',"Unable to send notify 'edit_list_error' to listmaster");
+	}
     }
     
     close FILE;
@@ -277,104 +276,54 @@ sub mk_parent_dir {
     my $file = shift;
     $file =~ /^(.*)\/([^\/])*$/ ;
     my $dir = $1;
+    do_log('info', "xxxxxxxxxxxxxxxxxxxxxxx create $dir");
     return if (-d $dir);
     return undef unless (mkdir ($dir, 0755));
-}
-
-# shift file renaming it with date. If count is defined, keep $count file and unlink others
-sub shift_file {
-    my $file = shift;
-    my $count = shift;
-    do_log('debug', "shift_file ($file,$count)");
-
-    unless (-f $file) {
-	do_log('info', "shift_file : unknown file $file");
-	return undef;
-    }
-    
-    my @date = localtime (time);
-    my $file_extention = POSIX::strftime ("%Y:%m:%d:%H:%M:%S", @date);
-    
-    unless (rename ($file,$file.'\.'.$file_extention)) {
-	&do_log('err', "shift_file : Cannot rename file $file to $file.$file_extention" );
-	return undef;
-    }
-    if ($count) {
-	$file =~ /^(.*)\/([^\/])*$/ ;
-	my $dir = $1;
-
-	unless (opendir(DIR, $dir)) {
-	    &do_log('err', "shift_file : Cannot read dir $dir" );
-	    return ($file.'\.'.$file_extention);
-	}
-	my $i = 0 ;
-	foreach my $oldfile (reverse (sort (grep (/^$file\./,readdir(DIR))))) {
-	    $i ++;
-	    if ($count lt $i) {
-		if (unlink ($oldfile)) { 
-		    do_log('info', "shift_file : unlink $oldfile");
-		}else{
-		    do_log('info', "shift_file : unable to unlink $oldfile");
-		}
-	    }
-	}
-    }
-    return ($file.'\.'.$file_extention);
 }
 
 sub get_templates_list {
 
     my $type = shift;
     my $robot = shift;
-    my $langdir = shift;
     my $listdir = shift;
 
-    do_log('debug', "get_templates_list ($type, $robot, $langdir, $listdir)");
-    do_log('info', "xxxxxxxxxxxxxxxxxxxxxxxxxxxx get_templates_list ($type, $robot, $langdir, $listdir)");
+do_log('info', "xxxxxxxxxxxxxxxxxxxxxxxxxx get_templates_list () : $type $robot $listdir");
     unless (($type == 'web')||($type == 'mail')) {
 	do_log('info', 'get_templates_list () : internal error incorrect parameter');
     }
 
-    if ($langdir eq 'default') {
-	$langdir = '';
-    }else{
-	$langdir = '/'.$langdir;
-    }
-
     my $distrib_dir = '--ETCBINDIR--/'.$type.'_tt2';
-    my $site_dir = $Conf{'etc'}.'/'.$type.'_tt2'.$langdir;
-    my $robot_dir = $Conf{'etc'}.'/'.$robot.'/'.$type.'_tt2'.$langdir;
+    my $site_dir = $Conf{'etc'}.'/'.$type.'_tt2';
+    my $robot_dir = $Conf{'etc'}.'/'.$robot.'/'.$type.'_tt2';
 
     my @try;
-    push @try, $distrib_dir ;        
+    push @try, $distrib_dir ;
     push @try, $site_dir ;
     push @try, $robot_dir;
     
-    unless ($listdir) {
-	$listdir .='/'.$type.'_tt2'.$langdir;
+    if (defined ($listdir)) {
+	$listdir .='/'.$type.'_tt2';
 	push @try, $listdir ;
     }
-	
     my $i = 0 ;
     my $tpl;
-
     foreach my $dir (@try) {
+	do_log('info', "xxxxxxxxxxxxxxxxxxxxxxxxxx get_templates_list () : open '$dir'");
 	next unless opendir (DIR, $dir);
 	foreach my $file ( readdir(DIR)) {	    
-	    next unless ($file =~ /\.tt2$/);	    
-	    if ($dir eq $distrib_dir){$tpl->{$file}{'distrib'} = $dir.'/'.$file;}
+	    next unless ($file =~ /\.tt2$/);
+	    if ($dir eq $distrib_dir){$tpl->{$file}{'distrib'} = $dir.'/'.$file ;}
 	    if ($dir eq $site_dir)   {$tpl->{$file}{'site'} =  $dir.'/'.$file;}
-	    if ($dir eq $robot_dir)  {$tpl->{$file}{'robot'}  = $dir.'/'.$file;}
-	    if ($dir eq $listdir)    {$tpl->{$file}{'listname'} = $dir.'/'.$file;}
+	    if ($dir eq $robot_dir)  {$tpl->{$file}{'robot'} = $dir.'/'.$file;}
+	    if ($dir eq $listdir)    {$tpl->{$file}{'listname'} = $dir.'/'.$file ; do_log('info', "xxxxxxxxxxxxxxxxxxxxxxxxxx found list template $file");}
 	}
 	closedir DIR;
     }
 
-#    open DUMP, ">/tmp/dump";
-#    &tools::dump_var($tpl, 0, \*DUMP);
-#    close DUMP;
-	return ($tpl);
-
+    open DUMP, ">/tmp/dump";
+    &tools::dump_var($tpl, 0, \*DUMP);
+    close DUMP;
+    return ($tpl);
 }
 
 # return the path for a specific template
@@ -384,15 +333,9 @@ sub get_template_path {
     my $robot = shift;
     my $scope = shift;
     my $tpl = shift;
-    my $lang = shift;
     my $listname = shift;
 
-    do_log('info', "get_templates_path ($type,$robot,$scope,$tpl,$lang,$listname)");
-    if ($lang eq 'default') {
-	$lang = '';
-    }else{
-	$lang = '/'.$lang;
-    }
+    do_log('info', "get_templates_path () : type=$type; robot $robot scope $scope tpl $tpl listdir $listname");
 
     if ($listname) {
 	chomp ($listname);
@@ -408,25 +351,25 @@ sub get_template_path {
     }
 
     my $distrib_dir = '--ETCBINDIR--/'.$type.'_tt2';
-    my $site_dir = $Conf{'etc'}.'/'.$type.'_tt2'.$lang;
-    my $robot_dir = $Conf{'etc'}.'/'.$robot.'/'.$type.'_tt2'.$lang;
-
+    my $site_dir = $Conf{'etc'}.'/'.$type.'_tt2';
+    my $robot_dir = $Conf{'etc'}.'/'.$robot.'/'.$type.'_tt2';
 
     if ($scope eq 'list')  {
-do_log('info', "get_templates_path () : xxxxxxxxxxxxxxx resu $listdir/$type".'_tt2'."$lang/$tpll");
-	return $listdir.'/'.$type.'_tt2'.$lang.'/'.$tpl ;
+do_log('info', "get_templates_path () : xxxxxxxxxxxxxxxx$listdir/$tpl");
+	return $listdir.'/'.$type.'_tt2/'.$tpl ;
     }
+
     if (($scope eq 'robot')||($scope eq 'list'))  {
-do_log('info', "get_templates_path () : xxxxxxxxxxxxxxxx resu $robot_dir/$tpl");
+do_log('info', "get_templates_path () : xxxxxxxxxxxxxxxx $robot_dir/$tpl");
 	return $robot_dir.'/'.$tpl;
     }
     if (($scope eq 'site')||($scope eq 'robot')||($scope eq 'list')) {
-do_log('info', "get_templates_path () : xxxxxxxxxxxxxxxx resu $site_dir/$tpl");
+do_log('info', "get_templates_path () : xxxxxxxxxxxxxxxx $site_dir/$tpl");
 	return $site_dir.'/'.$tpl;
     }
     
     if (($scope eq 'distrib')||($scope eq 'site')||($scope eq 'robot')||($scope eq 'list')) {
-do_log('info', "get_templates_path () : xxxxxxxxxxxxxxxx resu $distrib_dir/$tpl");
+do_log('info', "get_templates_path () : xxxxxxxxxxxxxxxx $distrib_dir/$tpl");
 	return $distrib_dir.'/'.$tpl;
     }
 }
@@ -435,7 +378,6 @@ do_log('info', "get_templates_path () : xxxxxxxxxxxxxxxx resu $distrib_dir/$tpl"
 sub smime_sign {
     my $in_msg = shift;
     my $list = shift;
-    my $dir = shift;
 
     do_log('debug2', 'tools::smime_sign (%s,%s)',$in_msg,$list);
 
@@ -1419,7 +1361,12 @@ sub virus_infected {
 
     ## Error while running antivir, notify listmaster
     if ($error_msg) {
-	&List::send_notify_to_listmaster('virus_scan_failed', $Conf{'domain'}, ($file,$error_msg));
+	unless (&List::send_notify_to_listmaster('virus_scan_failed', $Conf{'domain'},
+						 {'filename' => $file,
+						  'error_msg' => $error_msg})) {
+	    &do_log('notice',"Unable to send notify 'virus_scan_failed' to listmaster");
+	}
+
     }
 
     ## if debug mode is active, the working directory is kept
@@ -1564,7 +1511,7 @@ sub get_filename {
     my ($type, $name, $robot, $object) = @_;
     my $list;
     my $family;
-    &do_log('debug3','tools::get_filename(%s,%s,%s,%s)', $type, $name, $robot, $list->{'name'});
+    &do_log('debug3','tools::get_filename(%s,%s,%s,%s)', $type, $name, $robot, $object->{'name'});
     
     if (ref($object) eq 'List') {
  	$list = $object;
@@ -1626,6 +1573,92 @@ sub get_filename {
     
     &do_log('notice','tools::get_filename: Cannot find %s in %s', $name, join(',',@try));
     return undef;
+}
+####################################################
+# make_tt2_include_path
+####################################################
+# make an array of include path for tt2 parsing
+# 
+# IN :-$robot : robot
+#    :-$dir : directory ending each path
+#    :-$lang : lang
+#    :$list : ref(List)
+#
+# OUT : ref(ARRAY) of tt2 include path
+#
+######################################################
+sub make_tt2_include_path {
+    my ($robot,$dir,$lang,$list) = @_;
+    &do_log('debug3','tools::make_tt2_include_path(%s,%s,%s,%s)',$robot,$dir,$lang,$list);
+
+    my @include_path;
+
+    my $path_etcbin;
+    my $path_etc;
+    my $path_robot;  ## optional
+    my $path_list;   ## optional
+    my $path_family; ## optional
+
+    if ($dir) {
+	$path_etcbindir = "--ETCBINDIR--/".$dir;
+	$path_etcdir = "$Conf{'etc'}/".$dir;
+	$path_robot = "$Conf{'etc'}/".$robot.'/'.$dir if (lc($robot) ne lc($Conf{'host'}));
+	if (ref($list) eq 'List'){
+	    $path_list = $list->{'dir'}.'/'.$dir;
+	    if (defined $self->{'admin'}{'family_name'}) {
+		my $family = $self->get_family();
+	        $path_family = $family->{'dir'}.'/'.$dir;
+	    }
+	} 
+    }else {
+	$path_etcbindir = "--ETCBINDIR--";
+	$path_etcdir = "$Conf{'etc'}";
+	$path_robot = "$Conf{'etc'}/".$robot if (lc($robot) ne lc($Conf{'host'}));
+	if (ref($list) eq 'List') {
+	    $path_list = $list->{'dir'} ;
+	    if (defined $self->{'admin'}{'family_name'}) {
+		my $family = $self->get_family();
+	        $path_family = $family->{'dir'};
+	    }
+	}
+    }
+    if ($lang) {
+	@include_path = ($path_etcdir.'/'.$lang,
+			 $path_etcdir,
+			 $path_etcbindir.'/'.$lang,
+			 $path_etcbindir);
+	if ($path_robot) {
+	    unshift @include_path,$path_robot;
+	    unshift @include_path,$path_robot.'/'.$lang;
+	}
+	if ($path_list) {
+	    unshift @include_path,$path_list;
+	    unshift @include_path,$path_list.'/'.$lang;
+
+	    if ($path_family) {
+		unshift @include_path,$path_family;
+		unshift @include_path,$path_family.'/'.$lang;
+	    }	
+	    
+	}
+    }else {
+	@include_path = ($path_etcdir,
+			 $path_etcbindir);
+
+	if ($path_robot) {
+	    unshift @include_path,$path_robot;
+	}
+	if ($path_list) {
+	    unshift @include_path,$path_list;
+	   
+	    if ($path_family) {
+		unshift @include_path,$path_family;
+	    }
+	}
+    }
+
+    return \@include_path;
+
 }
 
 ## Find a file in an ordered list of directories
@@ -2014,6 +2047,129 @@ sub dump_var {
     }
 }
 
+####################################################
+# get_array_from_splitted_string                          
+####################################################
+# return an array made on a string splited by ','.
+# It removes spaces.
+#
+# 
+# IN : -$string (+): string to split 
+#
+# OUT : -ref(ARRAY)
+#
+######################################################
+sub get_array_from_splitted_string {
+    my ($string) = @_;
+    my @array;
+
+    foreach my $word (split /,/,$string) {
+	$word =~ s/^\s+//;
+	$word =~ s/\s+$//;
+	push @array, $word;
+    }
+
+    return \@array;
+}
+
+
+####################################################
+# diff_on_arrays                     
+####################################################
+# Makes set operation on arrays (seen as set, with no double) :
+#  - deleted : A \ B
+#  - added : B \ A
+#  - intersection : A /\ B
+#  - union : A \/ B
+# 
+# IN : -$setA : ref(ARRAY) - set
+#      -$setB : ref(ARRAY) - set
+#
+# OUT : -ref(HASH) with keys :  
+#          deleted, added, intersection, union
+#
+#######################################################    
+sub diff_on_arrays {
+    my ($setA,$setB) = @_;
+    my $result = {'intersection' => [],
+	          'union' => [],
+	          'added' => [],
+	          'deleted' => []};
+    my %deleted;
+    my %added;
+    my %intersection;
+    my %union;
+    
+    my %hashA;
+    my %hashB;
+    
+    foreach my $eltA (@$setA) {
+	$hashA{$eltA} = 1;
+	$deleted{$eltA} = 1;
+	$union{$eltA} = 1;
+    }
+    
+    foreach my $eltB (@$setB) {
+	$hashB{$eltB} = 1;
+	$added{$eltB} = 1;
+	
+	if ($hashA{$eltB}) {
+	    $intersection{$eltB} = 1;
+	    $deleted{$eltB} = 0;
+	}else {
+	    $union{$eltB} = 1;
+	}
+    }
+    
+    foreach my $eltA (@$setA) {
+	if ($hashB{$eltA}) {
+	    $added{$eltA} = 0; 
+	}
+    }
+    
+    foreach my $elt (keys %deleted) {
+	next unless $elt;
+	push @{$result->{'deleted'}},$elt if ($deleted{$elt});
+    }
+    foreach my $elt (keys %added) {
+	next unless $elt;
+	push @{$result->{'added'}},$elt if ($added{$elt});
+    }
+    foreach my $elt (keys %intersection) {
+	next unless $elt;
+	push @{$result->{'intersection'}},$elt if ($intersection{$elt});
+    }
+    foreach my $elt (keys %union) {
+	next unless $elt;
+	push @{$result->{'union'}},$elt if ($union{$elt});
+    } 
+    
+    return $result;
+    
+} 
+
+####################################################
+# clean_msg_id
+####################################################
+# clean msg_id to use it without  \n, \s or <,>
+# 
+# IN : -$msg_id (+) : the msg_id
+#
+# OUT : -$msg_id : the clean msg_id
+#
+######################################################
+sub clean_msg_id {
+    my $msg_id = shift;
+  
+    ## remove leading and trailing spaces, cr
+    chomp($msg_id);
+    $msg_id =~ s/^\s*<?([^>\s]+)>?\s*/$1/i;
+
+    return $msg_id;
+}
+
+
+
 ## Change X-Sympa-To: header field in the message
 sub change_x_sympa_to {
     my ($file, $value) = @_;
@@ -2172,5 +2328,5 @@ sub move_message {
     }
     return 1;
 }
-1;
 
+1;
