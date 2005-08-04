@@ -41,6 +41,9 @@
 [% ELSIF notice.msg == 'subscribers_update_soon' %]
 [%|loc%]The list of list members will be built/updated soon (a few minutes).[%END%]
 
+[% ELSIF notice.msg == 'subscribers_noticed_deleted_topics' %]
+[%|loc%]Concerned subscribers have been noticed about deleted topics[%END%]
+
 [% ELSIF notice.msg == 'add_performed' %]
 [%|loc(notice.total)%]%1 addresses have been subscribed[%END%]
 
@@ -48,8 +51,8 @@
 [% notice.msg %]
 
 [% END %]
-</strong>
 <br />
-</div>
 [% END %]
+</strong>
+</div>
 <!-- end notice.tt2 -->

@@ -107,6 +107,16 @@ big5; big5
 big5; big5-eten
 </CHARSETALIASES>
 
+($tag$% IF conf.web_recode_to == 'utf-8' %$tag$)
+<TextEncode>
+utf-8; MHonArc::UTF8::to_utf8; MHonArc/UTF8.pm
+</TextEncode>
+
+<defcharset>
+utf-8
+</defcharset>
+($tag$% END %$tag$)
+
 <CharsetConverters override>
 plain;    mhonarc::htmlize
 default; -decode-
@@ -211,23 +221,23 @@ $POWERED_BY$
 
 <!-- links definition -->
 <PrevPgLink chop>
-<a class="ArcMenuLinks" href="$FIRSTPG$">&lt;&lt;</a>
-<a class="ArcMenuLinks" href="$PREVPG$">&lt;</a>
+<a class="ArcMenuLinks" href="$FIRSTPG$">($tag$%|loc%$tag$)First($tag$%END%$tag$)</a>
+<a class="ArcMenuLinks" href="$PREVPG$">($tag$%|loc%$tag$)Previous($tag$%END%$tag$)</a>
 </PrevPgLink>
 
 <PrevPgLinkIA chop>
-<a class="ArcMenuLinksInactive">&lt;&lt;</a>
-<a class="ArcMenuLinksInactive">&lt;</a>
+<a class="ArcMenuLinksInactive">First</a>
+<a class="ArcMenuLinksInactive">Previous</a>
 </PrevPgLinkIA>
 
 <NextPgLink chop>
-<a class="ArcMenuLinks" href="$NEXTPG$">&gt;</a>
-<a class="ArcMenuLinks" href="$LASTPG$">&gt;&gt;</a>
+<a class="ArcMenuLinks" href="$NEXTPG$">($tag$%|loc%$tag$)Next($tag$%END%$tag$)</a>
+<a class="ArcMenuLinks" href="$LASTPG$">($tag$%|loc%$tag$)Last($tag$%END%$tag$)</a>
 </NextPgLink>
 
 <NextPgLinkIA chop>
-<a class="ArcMenuLinksInactive">&gt;</a>
-<a class="ArcMenuLinksInactive">&gt;&gt;</a>
+<a class="ArcMenuLinksInactive">Next</a>
+<a class="ArcMenuLinksInactive">Last</a>
 </NextPgLinkIA>
 
 <!-- ============================================================== -->
@@ -363,7 +373,7 @@ MSGPGEND
      <a class="ArcMenuLinks" href="$TIDXFNAME$#$MSGNUM$">($tag$%|loc%$tag$)Thread($tag$% END %$tag$)</a>&nbsp;
    </span>
    <ul id="MainMenuLinks">
-     $PREVBUTTON$ ($tag$%|loc%$tag$)chronological($tag$%END%$tag$) $NEXTBUTTON$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$TPREVBUTTON$  ($tag$%|loc%$tag$)thread($tag$%END%$tag$) $TNEXTBUTTON$
+     ($tag$%|loc%$tag$)chronological($tag$%END%$tag$) : $PREVBUTTON$ $NEXTBUTTON$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;($tag$%|loc%$tag$)thread($tag$%END%$tag$) : $TPREVBUTTON$  $TNEXTBUTTON$
    </ul>
 </div>
 
@@ -507,35 +517,35 @@ Subject:strong
 
 <!-- Buttons definition -->
 <PREVBUTTON>
-<a class="ArcMenuLinks" href="$PREVMSG$">&lt;</a>
+<a class="ArcMenuLinks" href="$PREVMSG$">previous</a>
 </PREVBUTTON>
 
 <PREVBUTTONIA>
-<a class="ArcMenuLinksInactive">&lt;</a>
+&nbsp;&nbsp;
 </PREVBUTTONIA>
 
 <NEXTBUTTON>
-<a class="ArcMenuLinks" href="$NEXTMSG">&gt;</a>
+<a class="ArcMenuLinks" href="$NEXTMSG">next</a>
 </NEXTBUTTON>
 
 <NEXTBUTTONIA>
-<a class="ArcMenuLinksInactive">&gt;</a>
+&nbsp;&nbsp;
 </NEXTBUTTONIA>
 
 <TPREVBUTTON>
-<a class="ArcMenuLinks" href="$TPREVMSG$">&lt;</a>
+<a class="ArcMenuLinks" href="$TPREVMSG$">previous</a>
 </TPREVBUTTON>
 
 <TPREVBUTTONIA>
-<a class="ArcMenuLinksInactive">&lt;</a>
+&nbsp;&nbsp;
 </TPREVBUTTONIA>
 
 <TNEXTBUTTON>
-<a class="ArcMenuLinks" href="$TNEXTMSG$">&gt;</a>
+<a class="ArcMenuLinks" href="$TNEXTMSG$">next</a>
 </TNEXTBUTTON>
 
 <TNEXTBUTTONIA>
-<a class="ArcMenuLinksInactive">&gt;</a>
+&nbsp;&nbsp;
 </TNEXTBUTTONIA>
 
 <!-- ============================================================== -->

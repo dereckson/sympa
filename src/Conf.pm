@@ -36,15 +36,15 @@ use Carp;
 
 my @valid_options = qw(
 		       avg bounce_warn_rate bounce_halt_rate bounce_email_prefix chk_cert_expiration_task expire_bounce_task
-		       clean_delay_queue clean_delay_queueauth clean_delay_queuemod default_remind_task
+		       clean_delay_queue clean_delay_queueauth clean_delay_queuemod clean_delay_queuetopic clean_delay_queuetracability default_remind_task
 		       cookie cookie_cas_expire create_list crl_dir crl_update_task db_host db_env db_name 
 		       db_options db_passwd db_type db_user db_port db_additional_subscriber_fields db_additional_user_fields
 		       default_shared_quota default_archive_quota default_list_priority distribution_mode edit_list email etc
 		       global_remind home host domain lang listmaster listmaster_email localedir log_socket_type log_level 
-		       logo_html_definition misaddressed_commands misaddressed_commands_regexp max_size maxsmtp nrcpt 
+		       misaddressed_commands misaddressed_commands_regexp max_size maxsmtp nrcpt 
 		       owner_priority pidfile pidfile_distribute
 		       spool queue queuedistribute queueauth queuetask queuebounce queuedigest 
-		       queueexpire queuemod queuesubscribe queueoutgoing tmpdir
+		       queuemod queuetopic queuesubscribe queuetracability queueoutgoing tmpdir
 		       loop_command_max loop_command_sampling_delay loop_command_decrease_factor
 		       purge_user_table_task  purge_orphan_bounces_task eval_bouncers_task process_bouncers_task
 		       minimum_bouncing_count minimum_bouncing_period bounce_delay 
@@ -96,17 +96,20 @@ my %Default_Conf =
      'queuedistribute' => undef,
      'queuedigest'=> undef,
      'queuemod'   => undef,
-     'queueexpire'=> undef,
+     'queuetopic' => undef,
      'queueauth'  => undef,
      'queueoutgoing'  => undef,
      'queuebounce'  => undef,    
      'queuetask' => undef,
      'queuesubscribe' => undef,
+     'queuetracability' => undef,
      'tmpdir'  => undef,     
      'sleep'      => 5,
      'clean_delay_queue'    => 1,
      'clean_delay_queuemod' => 10,
+     'clean_delay_queuetopic' => 7,
      'clean_delay_queueauth' => 3,
+     'clean_delay_queuetracability' => 7,
      'log_socket_type'      => 'unix',
      'log_smtp'      => '',
      'remind_return_path' => 'owner',
@@ -203,11 +206,10 @@ my %Default_Conf =
      'css_url' => '',
      'css_path' => '',
      'urlize_min_size' => 10240, ## 10Kb
-     'supported_lang' => 'de,cs,el,en_US,fr,hu,it,ja_JP,nl,oc,pt_BR,tr',
+     'supported_lang' => 'fr,en_US,hu,it',
      'web_recode_to' => '',
      'default_remind_task' => '',
      'update_db_field_types' => 'auto',
-     'logo_html_definition' => '',
      );
    
 my $wwsconf;
@@ -253,12 +255,10 @@ sub load {
     unless (defined $o{'wwsympa_url'}) {
 	$o{'wwsympa_url'}[0] = "http://$o{'host'}[0]/wws";
     }
-    
     unless (defined $o{'css_url'}) {
 	$o{'css_url'}[0] = "$o{'wwsympa_url'}[0]/css/";
     }
 
-  
     # 'host' and 'domain' are mandatory and synonime.$Conf{'host'} is
     # still wydly use even if the doc require domain.
  
@@ -280,8 +280,8 @@ sub load {
     unless (defined $o{'queuemod'}) {
 	$o{'queuemod'}[0] = "$spool/moderation";
     }
-    unless (defined $o{'queueexpire'}) {
-	$o{'queueexpire'}[0] = "$spool/expire";
+    unless (defined $o{'queuetopic'}) {
+	$o{'queuetopic'}[0] = "$spool/topic";
     }
     unless (defined $o{'queueauth'}) {
 	$o{'queueauth'}[0] = "$spool/auth";
@@ -294,6 +294,9 @@ sub load {
     }
     unless (defined $o{'queuetask'}) {
 	$o{'queuetask'}[0] = "$spool/task";
+    }
+    unless (defined $o{'queuetracability'}) {
+	$o{'queuetracability'}[0] = "$spool/tracability";
     }
     unless (defined $o{'tmpdir'}) {
 	$o{'tmpdir'}[0] = "$spool/tmp";
@@ -412,8 +415,8 @@ sub load_robots {
 				  soap_url => 1,
 				  css_url => 1,
  				  css_path => 1,
- 				  color_0 => 1, color_1 => 1, color_2 => 1, color_3 => 1, color_4 => 1, color_5 => 1,color_6 => 1, 
-				  color_7 => 1, color_8 => 1, color_9 => 1,
+ 				  color_0 => 1, color_2 => 1, color_3 => 1, color_4 => 1, color_5 => 1,color_6 => 1, 
+				  color_7 => 1, color_8 => 1, color_9 => 1,color_7 => 1, color_8 => 1, color_9 => 1,
 				  color_10 => 1, color_11 => 1, color_12 => 1,color_13 => 1, color_14 => 1, color_15 => 1,
 				  supported_lang => 1,
 				  default_shared_quota => 1,
@@ -473,7 +476,6 @@ sub load_robots {
 	$robot_conf->{$robot}{'log_smtp'} ||= $Conf{'log_smtp'};
 	$robot_conf->{$robot}{'log_level'} ||= $Conf{'log_level'};
 	$robot_conf->{$robot}{'wwsympa_url'} ||= 'http://'.$robot_conf->{$robot}{'http_host'}.'/wws';
-	$robot_conf->{$robot}{'css_url'} ||= $robot_conf->{$robot}{'wwsympa_url'}.'/css';
 	$robot_conf->{$robot}{'sympa'} = $robot_conf->{$robot}{'email'}.'@'.$robot_conf->{$robot}{'host'};
 	$robot_conf->{$robot}{'request'} = $robot_conf->{$robot}{'email'}.'-request@'.$robot_conf->{$robot}{'host'};
 	$robot_conf->{$robot}{'cookie_domain'} ||= 'localhost';
@@ -521,7 +523,7 @@ sub checkfiles {
 	}
     }
     
-    foreach my $qdir ('spool','queue','queuedigest','queuemod','queueexpire','queueauth','queueoutgoing','queuebounce','queuesubscribe','queuetask','queuedistribute','tmpdir')
+    foreach my $qdir ('spool','queue','queuedigest','queuemod','queuetopic','queueauth','queueoutgoing','queuebounce','queuesubscribe','queuetask','queuedistribute','queuetracability','tmpdir')
     {
 	unless (-d $Conf{$qdir}) {
 	    do_log('info', "creating spool $Conf{$qdir}");
@@ -553,7 +555,9 @@ sub checkfiles {
     if (defined $Conf{'cafile'} && $Conf{'cafile'}) {
 	unless (-f $Conf{'cafile'} && -r $Conf{'cafile'}) {
 	    &do_log('err', 'Cannot access cafile %s', $Conf{'cafile'});
-	    &List::send_notify_to_listmaster('cannot_access_cafile', $Conf{'domain'}, $Conf{'cafile'});
+	    unless (&List::send_notify_to_listmaster('cannot_access_cafile', $Conf{'domain'}, [$Conf{'cafile'}])) {
+		&do_log('err', 'Unable to send notify "cannot access cafile" to listmaster');	
+	    }
 	    $config_err++;
 	}
     }
@@ -561,7 +565,9 @@ sub checkfiles {
     if (defined $Conf{'capath'} && $Conf{'capath'}) {
 	unless (-d $Conf{'capath'} && -x $Conf{'capath'}) {
 	    &do_log('err', 'Cannot access capath %s', $Conf{'capath'});
-	    &List::send_notify_to_listmaster('cannot_access_capath', $Conf{'domain'}, $Conf{'capath'});
+	    unless (&List::send_notify_to_listmaster('cannot_access_capath', $Conf{'domain'}, [$Conf{'capath'}])) {
+		&do_log('err', 'Unable to send notify "cannot access capath" to listmaster');	
+	    }
 	    $config_err++;
 	}
     }
@@ -569,7 +575,9 @@ sub checkfiles {
     ## queuebounce and bounce_path pointing to the same directory
     if ($Conf{'queuebounce'} eq $wwsconf->{'bounce_path'}) {
 	&do_log('err', 'Error in config : queuebounce and bounce_path parameters pointing to the same directory (%s)', $Conf{'queuebounce'});
-	&List::send_notify_to_listmaster('queuebounce_and_bounce_path_are_the_same', $Conf{'domain'}, $Conf{'queuebounce'});
+	unless (&List::send_notify_to_listmaster('queuebounce_and_bounce_path_are_the_same', $Conf{'domain'}, [$Conf{'queuebounce'}])) {
+	    &do_log('err', 'Unable to send notify "queuebounce_and_bounce_path_are_the_same" to listmaster');	
+	}
 	$config_err++;
     }
 

@@ -12,7 +12,7 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU General Public License for more detail.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
@@ -120,6 +120,15 @@ sub qencode {
     return $encoded_string;
 }
 
+sub escape_url {
+    # FAUX  put : [%|loc(...)%][% FILTER escape_url %] %1 %2 ...[% END %][% END %]
+    my $string = shift;
+    
+    $string =~ s/ /%%20/g;
+    
+    return $string;
+}
+
 sub escape_xml {
     my $string = shift;
     
@@ -171,7 +180,6 @@ sub get_error {
 
 sub parse_tt2 {
     my ($data, $template, $output, $include_path, $options) = @_;
-
     $include_path ||= ['--ETCBINDIR--'];
 
     ## Add directories that may have been added
@@ -182,7 +190,15 @@ sub parse_tt2 {
 
     ## An array can be used as a template (instead of a filename)
     if (ref($template) eq 'ARRAY') {
-	$template = \join('', @$template);
+	my $temp;
+	foreach my $line (@$template) {
+	    if ($line =~/^\s*$/) {
+		$temp = $temp."\n"; 
+	    } else {
+		$temp = $temp.$line."\n";
+	    }
+	}
+	$template = \$temp;
     }
 
     # Do we need to recode strings
@@ -210,10 +226,11 @@ sub parse_tt2 {
 	    l => [\&tt2::maketext, 1],
 	    loc => [\&tt2::maketext, 1],
 	    qencode => [\&qencode, 0],
- 	    escape_xml => [\&escape_xml, 0]
-	    },
-	    };
-
+ 	    escape_xml => [\&escape_xml, 0],
+	    escape_url => [\&escape_url, 0]
+	    }
+    };
+    
     if ($allow_absolute) {
 	$config->{'ABSOLUTE'} = 1;
 	$allow_absolute = 0;
