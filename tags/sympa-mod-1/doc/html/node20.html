@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with jLaTeX2HTML 2002-2-1 (1.70) JA patch-2.0
+patched version by:  Kenshi Muto, Debian Project.
+* modified by:  Shige TAKENO
+LaTeX2HTML 2002-2-1 (1.70),
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Required CPAN modules</TITLE>
+<META NAME="description" CONTENT="Required CPAN modules">
+<META NAME="keywords" CONTENT="sympa">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002-2-1 JA patch-2.0">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="sympa.css">
+
+<LINK REL="next" HREF="node21.html">
+<LINK REL="previous" HREF="node19.html">
+<LINK REL="up" HREF="node16.html">
+<LINK REL="next" HREF="node21.html">
+</HEAD>
+
+<BODY TEXT="#000000" BGCOLOR="#ffffff">
+<!--Navigation Panel-->
+<A NAME="tex2html1398"
+  HREF="node21.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1392"
+  HREF="node16.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1386"
+  HREF="node19.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1394"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
+<A NAME="tex2html1396"
+  HREF="node548.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html1399"
+  HREF="node21.html">Create a UNIX user</A>
+<B> Up:</B> <A NAME="tex2html1393"
+  HREF="node16.html">Prerequisites</A>
+<B> Previous:</B> <A NAME="tex2html1387"
+  HREF="node19.html">Install PERL and CPAN</A>
+ &nbsp; <B>  <A NAME="tex2html1395"
+  HREF="node1.html">Contents</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1397"
+  HREF="node548.html">Index</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00424000000000000000">
+Required CPAN modules</A>
+</H2>
+
+<P>
+The following CPAN modules required by <I>Sympa</I> are not included in the standard
+PERL distribution. At <A NAME="6674"></A><TT>make</TT> time, Sympa will prompt you for missing
+Perl modules and will attempt to install the missing ones automatically ; this 
+operation requires root privileges.
+
+<P>
+Because Sympa features evolve from one relaease to another, the following list 
+of modules might not be up to date :
+
+<P>
+
+<UL>
+<LI><A NAME="6677"></A><TT>DB_File</TT> (v. 1.50 or later)
+</LI>
+<LI><A NAME="6680"></A><TT>Digest-MD5</TT>
+</LI>
+<LI><A NAME="6683"></A><TT>MailTools</TT> (version 1.13 o later)
+</LI>
+<LI><A NAME="6686"></A><TT>IO-stringy</TT>
+</LI>
+<LI><A NAME="6689"></A><TT>MIME-tools</TT> (may require IO/Stringy)
+</LI>
+<LI><A NAME="6692"></A><TT>MIME-Base64</TT>
+</LI>
+<LI><A NAME="6695"></A><TT>CGI</TT>
+</LI>
+<LI><A NAME="6698"></A><TT>File-Spec</TT>
+</LI>
+<LI><A NAME="6701"></A><TT>libintl-perl</TT>
+</LI>
+<LI><A NAME="6704"></A><TT>Template-Toolkit</TT>
+</LI>
+</UL>
+
+<P>
+Since release 2, <I>Sympa</I> requires an RDBMS to work properly. It stores 
+users' subscriptions and preferences in a database. <I>Sympa</I> is also
+able to extract user data from within an external database. 
+These features require that you install database-related PERL libraries.
+This includes the generic Database interface (DBI) and a Database Driver
+for your RDBMS (DBD) :
+
+<P>
+
+<UL>
+<LI><A NAME="6709"></A><TT>DBI</TT> (DataBase Interface)
+
+<P>
+</LI>
+<LI><A NAME="6712"></A><TT>DBD</TT> (DataBase Driver) related to your RDBMS (e.g.
+       Msql-Mysql-modules for MySQL)
+
+<P>
+</LI>
+</UL>
+
+<P>
+If you plan to interface <I>Sympa</I> with an <A NAME="6716"></A>LDAP directory to build
+dynamical mailing lists, you need to install PERL LDAP libraries :
+
+<P>
+
+<UL>
+<LI><A NAME="6717"></A><TT>Net::LDAP</TT> (perlldap).
+
+<P>
+</LI>
+</UL>
+
+<P>
+Passwords in Sympa database can be crypted ; therefore you need to
+install the following reversible cryptography library :
+
+<P>
+
+<UL>
+<LI><A NAME="6720"></A><TT>CipherSaber</TT>
+
+<P>
+</LI>
+</UL>
+
+<P>
+For performence concerns, we recommend using <A NAME="6723"></A><I>WWSympa</I> as a persistent CGI,
+using <A NAME="6726"></A>FastCGI. Therefore you need to install the following Perl module :
+
+<P>
+
+<UL>
+<LI><A NAME="6727"></A><TT>FCGI</TT>
+
+<P>
+</LI>
+</UL>
+
+<P>
+If you want to Download Zip files of list's Archives, you'll need to install
+perl Module for Archive Management : 
+
+<P>
+
+<UL>
+<LI><A NAME="6730"></A><TT>Archive::Zip</TT>
+
+<P>
+</LI>
+</UL>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1398"
+  HREF="node21.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1392"
+  HREF="node16.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1386"
+  HREF="node19.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1394"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
+<A NAME="tex2html1396"
+  HREF="node548.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html1399"
+  HREF="node21.html">Create a UNIX user</A>
+<B> Up:</B> <A NAME="tex2html1393"
+  HREF="node16.html">Prerequisites</A>
+<B> Previous:</B> <A NAME="tex2html1387"
+  HREF="node19.html">Install PERL and CPAN</A>
+ &nbsp; <B>  <A NAME="tex2html1395"
+  HREF="node1.html">Contents</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1397"
+  HREF="node548.html">Index</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+root
+2005-08-02
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with jLaTeX2HTML 2002-2-1 (1.70) JA patch-2.0
+patched version by:  Kenshi Muto, Debian Project.
+* modified by:  Shige TAKENO
+LaTeX2HTML 2002-2-1 (1.70),
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Spools</TITLE>
+<META NAME="description" CONTENT="Spools">
+<META NAME="keywords" CONTENT="sympa">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002-2-1 JA patch-2.0">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="sympa.css">
+
+<LINK REL="previous" HREF="node12.html">
+<LINK REL="up" HREF="node9.html">
+<LINK REL="next" HREF="node14.html">
+</HEAD>
+
+<BODY TEXT="#000000" BGCOLOR="#ffffff">
+<!--Navigation Panel-->
+<A NAME="tex2html1284"
+  HREF="node14.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1278"
+  HREF="node9.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1274"
+  HREF="node12.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1280"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
+<A NAME="tex2html1282"
+  HREF="node548.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html1285"
+  HREF="node14.html">Installing Sympa</A>
+<B> Up:</B> <A NAME="tex2html1279"
+  HREF="node9.html">what does Sympa consist</A>
+<B> Previous:</B> <A NAME="tex2html1275"
+  HREF="node12.html">Configuration files</A>
+ &nbsp; <B>  <A NAME="tex2html1281"
+  HREF="node1.html">Contents</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1283"
+  HREF="node548.html">Index</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00340000000000000000"></A>
+<A NAME="spools"></A>
+<BR>
+Spools
+</H1>
+
+<P>
+See <A HREF="node91.html#spool-related">7.6</A>, page&nbsp;<A HREF="node91.html#spool-related"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A> for spool definition
+in <A NAME="6589"></A><TT>sympa.conf</TT>.
+
+<P>
+
+<UL>
+<LI><A NAME="6592"></A><TT>/usr/local/sympa-ff//spool/auth/</TT>
+<BR>
+For storing messages until they have been confirmed.
+
+<P>
+</LI>
+<LI><A NAME="6595"></A><TT>/usr/local/sympa-ff//spool/bounce/</TT>
+<BR>
+For storing incoming bouncing messages.
+
+<P>
+</LI>
+<LI><A NAME="6598"></A><TT>/usr/local/sympa-ff//spool/digest/</TT>
+<BR>
+For storing lists' digests before they are sent.
+
+<P>
+</LI>
+<LI><A NAME="6601"></A><TT>/usr/local/sympa-ff//spool/mod/</TT>
+<BR>
+For storing unmoderated messages.
+
+<P>
+</LI>
+<LI><A NAME="6604"></A><TT>/usr/local/sympa-ff//spool/msg/</TT>
+<BR>
+For storing incoming messages (including commands).
+
+<P>
+</LI>
+<LI><A NAME="6607"></A><TT>/usr/local/sympa-ff//spool/msg/bad/</TT>
+<BR>	<I>Sympa</I> stores rejected messages in this directory
+
+<P>
+</LI>
+<LI><A NAME="6611"></A><TT>/usr/local/sympa-ff//spool/distribute/</TT>
+<BR>
+For storing message ready for distribution. This spool is used only if the installation run 2 sympa.pl daemon, one for commands, one for messages. 
+
+<P>
+</LI>
+<LI><A NAME="6614"></A><TT>/usr/local/sympa-ff//spool/distribute/bad/</TT>
+<BR>	<I>Sympa</I> stores rejected messages in this directory
+
+<P>
+</LI>
+<LI><A NAME="6618"></A><TT>/usr/local/sympa-ff//spool/task/</TT>
+<BR>
+For storing all created tasks.
+
+<P>
+</LI>
+<LI><A NAME="6621"></A><TT>/usr/local/sympa-ff//spool/outgoing/</TT>
+<BR>	<A NAME="6624"></A><TT>sympa.pl</TT> dumps messages in this spool to await archiving
+	by <A NAME="6627"></A><TT>archived.pl</TT>.
+
+<P>
+</LI>
+<LI><A NAME="6630"></A><TT>/usr/local/sympa-ff//spool/topic/</TT>
+<BR>
+For storing topic information files. 
+
+<P>
+</LI>
+<LI><A NAME="6633"></A><TT>/usr/local/sympa-ff//spool/tracability/</TT>
+<BR>
+For storing subscription or authentication messages.  
+
+<P>
+</LI>
+</UL>
+
+<P>
+
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1284"
+  HREF="node14.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1278"
+  HREF="node9.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1274"
+  HREF="node12.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1280"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
+<A NAME="tex2html1282"
+  HREF="node548.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html1285"
+  HREF="node14.html">Installing Sympa</A>
+<B> Up:</B> <A NAME="tex2html1279"
+  HREF="node9.html">what does Sympa consist</A>
+<B> Previous:</B> <A NAME="tex2html1275"
+  HREF="node12.html">Configuration files</A>
+ &nbsp; <B>  <A NAME="tex2html1281"
+  HREF="node1.html">Contents</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1283"
+  HREF="node548.html">Index</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+root
+2005-08-02
+</ADDRESS>
+</BODY>
+</HTML>

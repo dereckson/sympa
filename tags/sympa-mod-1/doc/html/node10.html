@@ -1,0 +1,255 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with jLaTeX2HTML 2002-2-1 (1.70) JA patch-2.0
+patched version by:  Kenshi Muto, Debian Project.
+* modified by:  Shige TAKENO
+LaTeX2HTML 2002-2-1 (1.70),
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Organization</TITLE>
+<META NAME="description" CONTENT="Organization">
+<META NAME="keywords" CONTENT="sympa">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002-2-1 JA patch-2.0">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="sympa.css">
+
+<LINK REL="next" HREF="node11.html">
+<LINK REL="previous" HREF="node9.html">
+<LINK REL="up" HREF="node9.html">
+<LINK REL="next" HREF="node11.html">
+</HEAD>
+
+<BODY TEXT="#000000" BGCOLOR="#ffffff">
+<!--Navigation Panel-->
+<A NAME="tex2html1244"
+  HREF="node11.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1238"
+  HREF="node9.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1232"
+  HREF="node9.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1240"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
+<A NAME="tex2html1242"
+  HREF="node548.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html1245"
+  HREF="node11.html">Binaries</A>
+<B> Up:</B> <A NAME="tex2html1239"
+  HREF="node9.html">what does Sympa consist</A>
+<B> Previous:</B> <A NAME="tex2html1233"
+  HREF="node9.html">what does Sympa consist</A>
+ &nbsp; <B>  <A NAME="tex2html1241"
+  HREF="node1.html">Contents</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1243"
+  HREF="node548.html">Index</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00310000000000000000"></A>
+<A NAME="organization"></A>
+<BR>
+Organization
+</H1>
+
+<P>
+Here is a snapshot of what <I>Sympa</I> looks like once it has settled down
+on your system. This also illustrates the <I>Sympa</I> philosophy, I guess.
+Almost all configuration files can be defined for a particular list, for
+a virtual robot or for the whole site.  
+
+<P>
+
+<UL>
+<LI><A NAME="6377"></A><TT>/usr/local/sympa-ff/</TT>
+<BR>
+The root directory of <I>Sympa</I>. You will find almost everything
+	related to <I>Sympa</I> under this directory, except logs and main
+	configuration files.
+
+<P>
+</LI>
+<LI><A NAME="6382"></A><TT>/usr/local/sympa-ff//bin</TT>
+<BR>
+This directory contains the binaries, including the CGI. It
+	also contains the default authorization scenarios, templates and configuration
+	files as in the distribution.  <A NAME="6385"></A><TT>/usr/local/sympa-ff//bin</TT> may be completely
+        overwritten by the <A NAME="6388"></A><TT>make install</TT> so you must not customize
+        templates and authorization scenarios under  <A NAME="6391"></A><TT>/usr/local/sympa-ff//bin</TT>.
+
+<P>
+</LI>
+<LI><A NAME="6394"></A><TT>/usr/local/sympa-ff//bin/etc</TT>
+<BR>
+Here <I>Sympa</I> stores the default versions of what it will otherwise find
+	in <A NAME="6398"></A><TT>/usr/local/sympa-ff//etc</TT> (task models, authorization scenarios, templates and configuration
+	files, recognized S/Mime certificates, families).
+
+<P>
+</LI>
+<LI><A NAME="6401"></A><TT>/usr/local/sympa-ff//etc</TT>
+<BR>
+This is your site's configuration directory. Consult
+	<A NAME="6404"></A><TT>/usr/local/sympa-ff//bin/etc</TT> when drawing up your own.
+
+<P>
+</LI>
+<LI><A NAME="6407"></A><TT>/usr/local/sympa-ff//etc/create_list_templates/</TT>
+<BR>
+List templates (suggested at list creation time).
+
+<P>
+</LI>
+<LI><A NAME="6410"></A><TT>/usr/local/sympa-ff//etc/scenari/</TT>
+<BR>
+This directory will contain your authorization scenarios.
+	If you don't know what the hell an authorization scenario is, refer to <A HREF="node227.html#scenarios">13</A>,page&nbsp;<A HREF="node227.html#scenarios"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>. Those authorization scenarios are default scenarios but you may look at
+        <A NAME="6413"></A><TT>/usr/local/sympa-ff//etc/my.domain.org/scenari/</TT> for default scenarios of my.domain.org
+        virtual robot and <A NAME="6416"></A><TT>/usr/local/sympa-ff//expl/mylist/scenari</TT> for scenarios
+        specific to a particular list 
+
+<P>
+</LI>
+<LI><A NAME="6419"></A><TT>/usr/local/sympa-ff//etc/data_sources/</TT>
+<BR>
+This directory will contain your .incl files (see <A HREF="node272.html#data-inclusion-file">17.7</A>, page&nbsp;<A HREF="node272.html#data-inclusion-file"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>). 
+	For the moment it only deals with files requiered by paragraphs <A NAME="6422"></A><TT>owner_include</TT> and <A NAME="6425"></A><TT>editor_include</TT> in the config file.
+
+<P>
+</LI>
+<LI><A NAME="6428"></A><TT>/usr/local/sympa-ff//etc/list_task_models/</TT>
+<BR>
+This directory will store your own list task models (see <A HREF="node260.html#tasks">16.8</A>, page&nbsp;<A HREF="node260.html#tasks"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).	
+
+<P>
+</LI>
+<LI><A NAME="6431"></A><TT>/usr/local/sympa-ff//etc/global_task_models/</TT>
+<BR>
+Contains global task models of yours (see <A HREF="node260.html#tasks">16.8</A>, page&nbsp;<A HREF="node260.html#tasks"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).		
+
+<P>
+</LI>
+<LI><A NAME="6434"></A><TT>/usr/local/sympa-ff//etc/web_tt2/</TT> (used to be <A NAME="6437"></A><TT>/usr/local/sympa-ff//etc/wws_templates/</TT>)
+<BR>
+The web interface (<A NAME="6440"></A><I>WWSympa</I>) is composed of template HTML
+	files parsed by the CGI program. Templates can also 
+        be defined for a particular list in <A NAME="6443"></A><TT>/usr/local/sympa-ff//expl/mylist/web_tt2/</TT>
+        or in <A NAME="6446"></A><TT>/usr/local/sympa-ff//etc/my.domain.org/web_tt2/</TT>
+
+<P>
+</LI>
+<LI><A NAME="6449"></A><TT>/usr/local/sympa-ff//etc/mail_tt2/</TT> (used to be <A NAME="6452"></A><TT>/usr/local/sympa-ff//etc/templates/</TT>)
+<BR>
+Some of the mail robot's replies are defined by templates
+	(<A NAME="6455"></A><TT>welcome.tt2</TT> for SUBSCRIBE). You can overload
+	these template files in the individual list directories or
+        for each virtual robot, but these are the defaults.
+
+<P>
+</LI>
+<LI><A NAME="6458"></A><TT>/usr/local/sympa-ff//etc/families/</TT>
+<BR>
+Contains family directories of yours (see <A HREF="node288.html#ml-creation">18</A>, page&nbsp;<A HREF="node288.html#ml-creation"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+	Families directories can also be created in <A NAME="6461"></A><TT>/usr/local/sympa-ff//etc/my.domain.org/families/</TT>
+
+<P>
+</LI>
+<LI><A NAME="6464"></A><TT>/usr/local/sympa-ff//etc/my.domain.org</TT>
+<BR>
+The directory to define the virtual robot my.domain.orgdedicated to
+        managment of all lists of this domain (list description of my.domain.orgare stored
+        in <A NAME="6467"></A><TT>/usr/local/sympa-ff//expl/my.domain.org</TT>).
+        Those directories for virtual robots have the same structure as  <A NAME="6470"></A><TT>/usr/local/sympa-ff//etc</TT> which is
+        the configuration dir of the default robot. 
+
+<P>
+</LI>
+<LI><A NAME="6473"></A><TT>/usr/local/sympa-ff//expl</TT>
+<BR>	<I>Sympa</I>'s working directory.
+
+<P>
+</LI>
+<LI><A NAME="6477"></A><TT>/usr/local/sympa-ff//expl/mylist</TT>
+<BR>
+The list directory (refer to <A HREF="#list-directory"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>, 
+	page&nbsp;<A HREF="#list-directory"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>). Lists stored in this directory
+        belong to the default robot as defined in sympa.conf file, but a list
+        can be stored in <A NAME="6480"></A><TT>/usr/local/sympa-ff//expl/my.domain.org/mylist</TT> directory and it
+        is managed by my.domain.orgvirtual robot.
+
+<P>
+</LI>
+<LI><A NAME="6483"></A><TT>/usr/local/sympa-ff//expl/X509-user-certs</TT>
+<BR>
+The directory where Sympa stores all user's certificates
+
+<P>
+</LI>
+<LI><A NAME="6486"></A><TT>/usr/local/sympa-ff//locale</TT>
+<BR>
+Internationalization directory. It contains message catalogues in the GNU .po format. 
+
+<P>
+</LI>
+<LI><A NAME="6489"></A><TT>/usr/local/sympa-ff//spool</TT>
+<BR>	<I>Sympa</I> uses 9 different spools (see <A HREF="node13.html#spools">2.4</A>, page&nbsp;<A HREF="node13.html#spools"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+
+<P>
+</LI>
+<LI><A NAME="6493"></A><TT>/usr/local/sympa-ff//src/</TT>
+<BR>	<I>Sympa</I> sources.
+
+<P>
+</LI>
+</UL>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1244"
+  HREF="node11.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1238"
+  HREF="node9.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1232"
+  HREF="node9.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1240"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
+<A NAME="tex2html1242"
+  HREF="node548.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html1245"
+  HREF="node11.html">Binaries</A>
+<B> Up:</B> <A NAME="tex2html1239"
+  HREF="node9.html">what does Sympa consist</A>
+<B> Previous:</B> <A NAME="tex2html1233"
+  HREF="node9.html">what does Sympa consist</A>
+ &nbsp; <B>  <A NAME="tex2html1241"
+  HREF="node1.html">Contents</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1243"
+  HREF="node548.html">Index</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+root
+2005-08-02
+</ADDRESS>
+</BODY>
+</HTML>

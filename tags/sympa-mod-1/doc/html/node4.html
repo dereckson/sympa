@@ -1,0 +1,288 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with jLaTeX2HTML 2002-2-1 (1.70) JA patch-2.0
+patched version by:  Kenshi Muto, Debian Project.
+* modified by:  Shige TAKENO
+LaTeX2HTML 2002-2-1 (1.70),
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Features</TITLE>
+<META NAME="description" CONTENT="Features">
+<META NAME="keywords" CONTENT="sympa">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002-2-1 JA patch-2.0">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="sympa.css">
+
+<LINK REL="next" HREF="node5.html">
+<LINK REL="previous" HREF="node3.html">
+<LINK REL="up" HREF="node2.html">
+<LINK REL="next" HREF="node5.html">
+</HEAD>
+
+<BODY TEXT="#000000" BGCOLOR="#ffffff">
+<!--Navigation Panel-->
+<A NAME="tex2html1158"
+  HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1152"
+  HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1146"
+  HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1154"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
+<A NAME="tex2html1156"
+  HREF="node548.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html1159"
+  HREF="node5.html">Project directions</A>
+<B> Up:</B> <A NAME="tex2html1153"
+  HREF="node2.html">Presentation</A>
+<B> Previous:</B> <A NAME="tex2html1147"
+  HREF="node3.html">License</A>
+ &nbsp; <B>  <A NAME="tex2html1155"
+  HREF="node1.html">Contents</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1157"
+  HREF="node548.html">Index</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00220000000000000000">
+Features</A>
+</H1>
+
+<P>
+<I>Sympa</I> provides all the basic features that any mailing list management robot
+should include. While most <I>Sympa</I> features have their equivalents in other
+mailing list applications, <I>Sympa</I> is unique in including features
+in a single software package, including:
+
+<P>
+
+<UL>
+<LI><B>High speed distribution processing</B> and <B>load control</B>. <I>Sympa</I> 
+        can be tuned to allow the system administrator to control
+        the amount of computer resources used.  Its optimized algorithm
+        allows:
+
+<P>
+
+<UL>
+<LI>the use of your preferred SMTP engine, e.g.
+                <A NAME="6275"></A><TT>sendmail</TT>, <A NAME="6278"></A><TT>qmail</TT> or <A NAME="6281"></A><TT>postfix</TT>
+
+<P>
+</LI>
+<LI>tuning of the maximum number of SMTP child processes
+
+<P>
+</LI>
+<LI>grouping of messages according to recipients' domains,
+	    	and tuning of the grouping factor
+
+<P>
+</LI>
+<LI>detailed logging
+
+<P>
+</LI>
+</UL>
+
+<P>
+</LI>
+<LI><B>Multilingual</B> user interface. The full user/admin interface (mail and web)
+      is internationalized. Translations are gathered in a standard PO file.
+
+<P>
+</LI>
+<LI><B>Template based</B> user interface. Every web page and service message can
+    be customized via <B>TT2</B> template format.
+
+<P>
+</LI>
+<LI><B>MIME support</B>. <I>Sympa</I> naturally respects
+        <A NAME="6285"></A>MIME in the distribution process, and in addition
+        allows list owners to configure their lists with
+        welcome, goodbye and other predefined messages using complex
+        <A NAME="6286"></A>MIME structures. For example, a welcome message can be in
+        <B>multipart/alternative</B> format, using <B>text/html</B>,
+        <B>audio/x-wav</B>&nbsp;:-), or whatever (Note that <I>Sympa</I> 
+        commands in multipart messages are successfully processed, provided that
+	one part is <B>text/plain </B>).
+
+<P>
+</LI>
+<LI>The <B>sending process is controlled</B> on a per-list basis.
+        The list definition allows a number of different actions for
+        each incoming message. A <A NAME="6288"></A><TT>private</TT> list is a list where
+        only subscribers can send messages. A list configured using
+        <A NAME="6291"></A><TT>privateoreditorkey</TT> mode accepts incoming messages
+        from subscribers, but will forward any other (i.e. non-subscriber) message
+	to the editor with a one-time secret numeric key that will be used by the
+        editor to <I>reject</I> or <I>distribute</I> it.
+        For details about the different sending modes, refer to the
+        <A NAME="6294"></A><TT>send</TT> parameter (<A HREF="node344.html#par-send">20.3.8</A>, page&nbsp;<A HREF="node344.html#par-send"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>). 
+	The sending process configuration (as well as most other list
+	operations) is defined using  an <B>authorization scenario</B>. Any listmaster
+        can define new authorization scenarios in order to complement the 20
+	predefined configurations included in the distribution. 
+<BR>
+Example : forward multipart messages to the list editor, while
+	distributing others without requiring any further authorization.
+
+<P>
+</LI>
+<LI>Privileged operations can be performed by list editors or
+        list owners (or any other user category), as defined in the list
+        <A NAME="6297"></A><TT>config</TT> file or by
+        the robot <A NAME="6300"></A>administrator, the listmaster, defined
+        in the <A NAME="6301"></A><TT>/usr/local/sympa-ff//etc/sympa.conf</TT>  global configuration file (listmaster
+        can also be defined for a particular virtual robot).
+        Privileged operations include the usual <A NAME="6304"></A><TT>ADD</TT>, <A NAME="6307"></A><TT>DELETE</TT> or <A NAME="6310"></A><TT>REVIEW</TT> commands, which can be
+        authenticated via a one-time password or an S/MIME signature.
+
+<P>
+<A NAME="wwsympa"></A> 
+</LI>
+<LI><B>Web interface</B> : <A NAME="6313"></A><I>WWSympa</I>  is a global Web interface to all <I>Sympa</I> functions
+    	(including administration). It provides :
+
+<P>
+
+<UL>
+<LI>classification of lists, along with a search index
+
+<P>
+</LI>
+<LI>access control to all functions, including the list of lists
+                  (which makes WWSympa particularly well suited to be the main
+		  groupware tool within an intranet)
+
+<P>
+</LI>
+<LI>management of shared documents (download, upload, specific
+		  access control for each document)
+
+<P>
+</LI>
+<LI>an HTML document presenting each user with the list of
+		  her current subscriptions, including access to archives, and
+		  subscription options
+
+<P>
+</LI>
+<LI>management tools for list managers (bounce processing, changing of
+                  list parameters, moderating incoming messages)
+
+<P>
+</LI>
+<LI>tools for the robot administrator (list creation, global robot
+                  configuration) <A NAME="170"></A>
+
+<P>
+</LI>
+</UL>
+	(See <A HREF="node178.html#WWSympa">9.1</A>, page&nbsp; <A HREF="node178.html#WWSympa"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
+
+<P>
+</LI>
+<LI><B>RDBMS</B> : the internal subscriber and administrative data structure can be stored in a
+        database or, for compatibility with versions 1.x, in text
+        files for subscriber data. The introduction of databases came out of the
+        <A NAME="6317"></A><I>WWSympa</I> project.  The database ensures a secure access to
+        shared data. The PERL database API <A NAME="6320"></A><TT>DBI</TT>/<A NAME="6323"></A><TT>DBD</TT> enables
+        interoperability with various <A NAME="6326"></A>RDBMS (<A NAME="6327"></A>MySQL, <A NAME="6328"></A>PostgreSQL,
+        <A NAME="6329"></A>Oracle, <A NAME="6330"></A>Sybase).
+	(See ref sec-rdbms, page&nbsp;<A HREF="node164.html#sec-rdbms"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
+
+<P>
+</LI>
+<LI><B>Virtual robots</B> : a single <I>Sympa</I> installation
+        can provide multiple virtual robots with both email and web interface
+        customization (See <A HREF="node234.html#virtual-robot">14</A>, page&nbsp;<A HREF="node234.html#virtual-robot"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+
+<P>
+</LI>
+<LI><B><A NAME="6332"></A>LDAP-based mailing lists</B> : e-mail addresses can be retrieved dynamically from a database
+    	accepting <A NAME="6333"></A>SQL queries, or from an <A NAME="6334"></A>LDAP directory. In the interest
+	of reasonable response times, <I>Sympa</I> retains the data source in an
+	internal cache controlled by a TTL (Time To Live) parameter.
+	(See <A HREF="node332.html#include-ldap-query">20.2.6</A>, page&nbsp;<A HREF="node332.html#include-ldap-query"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
+
+<P>
+</LI>
+<LI><B><A NAME="6336"></A>LDAP authentication</B>:  via uid and emails stored 
+      	in LDAP Directories.  Alternative email addresses, extracted from LDAP 
+        directory, may be used to "unify" subscriptions.
+	(See ref ldap-auth, page&nbsp;<A HREF="node217.html#ldap-auth"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
+
+<P>
+</LI>
+<LI><B>Antivirus scanner</B> : <I>Sympa</I> extracts attachements from incoming
+	messages and run a virus scanner on them. Curently working with McAfee/uvscan,
+	Fsecure/fsav, Sophos, AVP, Trend Micro/VirusWall and Clam Antivirus.
+	(See ref antivirus, page&nbsp;<A HREF="node411.html#antivirus"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
+
+<P>
+</LI>
+<LI>Inclusion of the subscribers of one list among the subscribers of
+    	another. This is real inclusion, not the dirty, multi-level cascading
+	one might otherwise obtain by simply "subscribing list B to list A".
+
+<P>
+</LI>
+<LI>channel RSS.
+
+<P>
+</LI>
+</UL>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1158"
+  HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html1152"
+  HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html1146"
+  HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html1154"
+  HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
+<A NAME="tex2html1156"
+  HREF="node548.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html1159"
+  HREF="node5.html">Project directions</A>
+<B> Up:</B> <A NAME="tex2html1153"
+  HREF="node2.html">Presentation</A>
+<B> Previous:</B> <A NAME="tex2html1147"
+  HREF="node3.html">License</A>
+ &nbsp; <B>  <A NAME="tex2html1155"
+  HREF="node1.html">Contents</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1157"
+  HREF="node548.html">Index</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+root
+2005-08-02
+</ADDRESS>
+</BODY>
+</HTML>
