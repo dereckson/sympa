@@ -1,0 +1,64 @@
+2005-08-16 11:29  sympa-authors
+
+	* src/List.pm: Fix: keys were inverted in the hash exchanged
+	  between get_which_db() and get_which()
+
+2005-08-11 15:32  sympa-authors
+
+	* web_tt2/: create_list_request.tt2, editfile.tt2: [BugId 437] Fix:
+	  long list info text was displayed on one long line
+
+2005-08-11 14:57  sympa-authors
+
+	* po/hu.po: [G.Hargitai] Updates for  5.1 release
+
+2005-08-11 14:49  sympa-authors
+
+	* src/Language.pm: Change: If setlocale() failed, print an error
+
+2005-08-11 12:05  sympa-authors
+
+	* src/Language.pm: Fix: when 'web_recode_to' is set, also change
+	  the 'charset'
+
+2005-08-11 11:37  sympa-authors
+
+	* src/List.pm: Change: rename old-style templates because the HTML
+	  structure is not compliant with new ones.
+
+2005-08-11 10:03  sympa-authors
+
+	* doc/sympa.tex.tpl: Fix: remove unknown "rss_url" parameter
+
+2005-08-10 17:51  sympa-authors
+
+	* src/Language.pm: [M.Redinger] Fix: on Solaris, the LANGUAGE
+	  environment variable should be set
+
+2005-08-10 17:26  sympa-authors
+
+	* po/: de.po, fr.po: Update
+
+2005-08-10 17:25  sympa-authors
+
+	* po/ja.po: [K.Moriwaka] Update from Rosetta
+
+2005-08-10 14:30  sympa-authors
+
+	* src/sympa_wizard.pl: Complete list of languages
+
+2005-08-10 09:25  sympa-authors
+
+	* po/de.po: [M.Redinger] Update for next release
+
+2005-08-09 11:02  sympa-authors
+
+	* src/Language.pm, src/alias_manager.pl, web_tt2/css.tt2,
+	  web_tt2/reviewbouncing.tt2, web_tt2/skinsedit.tt2: Apply a set of
+	  changes from the main trunc
+
+2005-08-05 10:00  sympa-authors
+
+	* src/List.pm: [BugId 450] Fix: get_admin_user cache could mix
+	  editor and owner
+
