@@ -1,0 +1,427 @@
+2005-12-28 13:44  sympa-authors
+
+	* src/List.pm: [reported by M.Schoeb] Fix:
+	  List::has_include_data_sources() did not check owner_include and
+	  editor_include.  Therefore sync_include task might not be
+	  created.
+
+2005-12-28 13:44  sympa-authors
+
+	* src/List.pm: Reverse previous changes because boolean db fields
+	  were strangely transformed
+
+2005-12-27 11:38  sympa-authors
+
+	* src/List.pm: Change: turned the mysql subscribed and included
+	  fields into int(1) to be compatible with other RDBMS [reported by
+	  B.Riffle] Fix: no more use quoting in SQL queries with numeric
+	  fields
+
+2005-12-12 13:47  sympa-authors
+
+	* src/List.pm: [reported by B.Riffle] Fix: treat
+	  subscribed_subscriber DB field as a numeric
+
+2005-11-25 10:33  sympa-authors
+
+	* doc/sympa.tex.tpl: [reported by A.Lund] Typo in parameter name
+	  sendmail_aliases
+
+2005-11-22 17:19  sympa-authors
+
+	* Makefile.am, Makefile.in, important_changes.pl, src/List.pm:
+	  Changes related to sympa upgrade :   * no more saving
+	  data_structure.version if verion did not change   * adding a log
+	  "upgrading from x to y"   * initialize the data_structure.version
+	  file if missing
+
+2005-11-22 14:55  sympa-authors
+
+	* web_tt2/css.tt2: Fix: remove use of 'transparent' color ; it was
+	  interpreted as dark grey
+
+2005-11-17 11:50  sympa-authors
+
+	* ChangeLog: update
+
+2005-11-15 16:10  sympa-authors
+
+	* po/Makefile: [reported by JP Masse] Fix: swedish catalog was not
+	  compiled
+
+2005-11-14 12:08  sympa-authors
+
+	* src/tools.pl: Change: tools::lock() is now able to force the lock
+	  if the blocking lock was performed more than 20 minutes ago.	The
+	  PID is now written in the lockfile.  The number of attempts to
+	  lock is now different in a web context
+
+2005-11-09 11:27  sympa-authors
+
+	* check_perl_modules.pl: [reported by J.Beretta] Fix: the
+	  '-modifybodyaddresses' option is only available since mhonarc
+	  2.6.0
+
+2005-11-09 11:18  sympa-authors
+
+	* src/etc/mhonarc-ressources.tt2: Reverse previous changes
+
+2005-11-09 11:07  sympa-authors
+
+	* src/etc/mhonarc-ressources.tt2: Fix bug reported by
+	  Matthieu.Quenez (amue.fr)
+
+2005-11-02 13:10  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: Now use web_recode_to for the RSS feed
+
+2005-11-02 12:02  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: Fix RSS feed ; URL for virtual robots was
+	  incorrect
+
+2005-10-31 13:56  sympa-authors
+
+	* Makefile.in: Update
+
+2005-10-31 13:56  sympa-authors
+
+	* .version, ChangeLog, NEWS: preparing 5.1.2
+
+2005-10-28 16:39  sympa-authors
+
+	* src/task_manager.pl: [BugID 498] Change: 'process_bouncers' task
+	  failed if no owner could be contacted ; no more return undef
+
+2005-10-28 16:10  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: [BugID 528] Fix: adding a pending
+	  subscriber failed if the user gecos contained a comma (',')
+
+2005-10-27 17:45  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: missing ';'
+
+2005-10-27 17:42  sympa-authors
+
+	* web_tt2/rss.tt2, wwsympa/wwsympa.fcgi: Fixed some RSS problems
+
+2005-10-27 17:41  sympa-authors
+
+	* web_tt2/ls_templates.tt2: Fix
+
+2005-10-27 17:41  sympa-authors
+
+	* po/: cs.po, de.po, el.po, en_US.po, es.po, et.po, fi.po, fr.po,
+	  hu.po, it.po, ja.po, nl.po, oc.po, pl.po, pt.po, pt_BR.po, ro.po,
+	  sv.po, sympa.pot, tr.po, zh_CN.po, zh_TW.po: update
+
+2005-10-26 10:53  sympa-authors
+
+	* src/List.pm: Fix: get_which() for listamster returned all
+	  non-include2 lists
+
+2005-10-25 14:48  sympa-authors
+
+	* src/tt2.pl, web_tt2/admin_menu.tt2, web_tt2/arc_manage.tt2,
+	  web_tt2/d_read.tt2, web_tt2/list_admin_menu.tt2,
+	  web_tt2/list_menu.tt2, web_tt2/ls_templates.tt2,
+	  web_tt2/rename_list_request.tt2, web_tt2/review.tt2,
+	  web_tt2/reviewbouncing.tt2: [BugID 522] Fix: escape quotes in
+	  javascript calls
+
+2005-10-25 14:48  sympa-authors
+
+	* ChangeLog: update
+
+2005-10-25 13:33  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: Fix: never go back to the search action
+	  after a del
+
+2005-10-24 15:04  sympa-authors
+
+	* po/sv.po: Add missing Swedish PO file
+
+2005-10-24 11:45  sympa-authors
+
+	* soap/sympasoap.pm: [BugID 516] Fix: lists and which used domain
+	  in list address instead of host
+
+2005-10-24 11:41  sympa-authors
+
+	* soap/sympasoap.pm: [G.Bouteille] Change: which SOAP subroutine
+	  result now includes lists the user is admin of
+
+2005-10-21 15:52  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: Change: optimization : skip get_which()
+	  when either in a list context or while returning CSS
+
+2005-10-20 17:37  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: Fix: escape encoded SMTP header fields for
+	  RSS
+
+2005-10-20 12:23  sympa-authors
+
+	* wwsympa/archived.pl: Fix: archived.pl would die with a
+	  "Modification of non-creatable array value attempted" error while
+	  creating the index file
+
+2005-10-20 11:49  sympa-authors
+
+	* po/Makefile, src/Conf.pm, src/Language.pm,
+	  web_tt2/rss_request.tt2, wwsympa/wwsympa.fcgi: [D.Nylander] New
+	  feature: sympa translated to Swedish
+
+2005-10-20 11:49  sympa-authors
+
+	* po/sv.po: file sv.po was added on branch sympa-5_1-branch on
+	  2005-10-24 13:04:22 +0000
+
+2005-10-19 17:39  sympa-authors
+
+	* po/de.po: Fix
+
+2005-10-19 17:31  sympa-authors
+
+	* po/cs.po, po/de.po, po/el.po, po/en_US.po, po/es.po, po/fr.po,
+	  po/ja.po, po/oc.po, po/tr.po, web_tt2/list_menu.tt2: Renamed
+	  "review" to "review members"
+
+2005-10-19 17:24  sympa-authors
+
+	* po/: cs.po, de.po, el.po, en_US.po, es.po, et.po, fi.po, fr.po,
+	  hu.po, it.po, ja.po, nl.po, oc.po, pl.po, pt.po, pt_BR.po, ro.po,
+	  sympa.pot, tr.po, zh_CN.po, zh_TW.po: update
+
+2005-10-19 16:35  sympa-authors
+
+	* src/Commands.pm, web_tt2/skinsedit.tt2: [reported by A.Brugalle]
+	  Add a notification when a message is moved to the distribution
+	  spool
+
+2005-10-19 16:34  sympa-authors
+
+	* ChangeLog: update
+
+2005-10-19 16:32  sympa-authors
+
+	* po/: cs.po, de.po, el.po, en_US.po, es.po, et.po, fi.po, fr.po,
+	  hu.po, it.po, ja.po, nl.po, oc.po, pl.po, pt.po, pt_BR.po, ro.po,
+	  sympa.pot, tr.po, zh_CN.po, zh_TW.po: Update po files
+
+2005-10-19 15:46  sympa-authors
+
+	* src/Language.pm: Fix: try a setlocale() with locale.charset first
+
+2005-10-17 14:31  sympa-authors
+
+	* src/List.pm: Rename buggy archives/log. files
+
+2005-10-17 14:12  sympa-authors
+
+	* src/List.pm: Fix previous change
+
+2005-10-17 14:08  sympa-authors
+
+	* src/: Archive.pm, List.pm: [reported by V.Mathieu] Fix: mail
+	  archives files had an incorrect 'log.' filename
+
+2005-10-14 17:51  sympa-authors
+
+	* po/de.po: [M.Redinger] Updated de.po
+
+2005-10-14 17:49  sympa-authors
+
+	* po/: cs.po, de.po, el.po, en_US.po, es.po, et.po, fi.po, fr.po,
+	  hu.po, it.po, ja.po, nl.po, oc.po, pl.po, pt.po, pt_BR.po, ro.po,
+	  sympa.pot, tr.po, zh_CN.po, zh_TW.po: Updated POT file
+
+2005-10-07 14:41  sympa-authors
+
+	* src/Language.pm: [reported by O.Lacroix] Fix: failed to setlocale
+	  on HPUX ; now trying without dashes ('-').  Also fixed the
+	  setlocale(LC_TIME)
+
+2005-10-06 16:35  sympa-authors
+
+	* src/List.pm: [G.Bouteille] Fix: missing 'family_closed' parameter
+	  to close()
+
+2005-10-06 16:32  sympa-authors
+
+	* src/tt2.pl: [G.Bouteille] Fix: SetLang only if lang is available
+
+2005-10-06 15:58  sympa-authors
+
+	* po/ja.po: [K.Moriwaka] Updated Japanese translations
+
+2005-10-05 18:03  sympa-authors
+
+	* mail_tt2/info_report.tt2: Fix: prevents a parser failure if info
+	  file was not found
+
+2005-10-03 10:19  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: [BugId 510] Fix buggy return
+
+2005-09-30 16:57  sympa-authors
+
+	* web_tt2/review.tt2: [O.Lacroix] Fix: subscriber add form was
+	  shown regardless of owner privilege
+
+2005-09-30 16:46  sympa-authors
+
+	* po/fr.po: [O.Lacroix] [BugId 471] Fix
+
+2005-09-30 16:40  sympa-authors
+
+	* src/tools.pl: [BugId 509] Fix: remove duplicate remove_dir()
+	  subroutine
+
+2005-09-30 16:08  sympa-authors
+
+	* Makefile.am, Makefile.in: [BugId 504] Fix: LOCALDIR was hardcoded
+
+2005-09-30 10:35  sympa-authors
+
+	* doc/: sympa.pdf, sympa.ps, sympa.tex, sympa.tex.tpl,
+	  html/index.html, html/node1.html, html/node10.html,
+	  html/node11.html, html/node12.html, html/node13.html,
+	  html/node14.html, html/node15.html, html/node16.html,
+	  html/node17.html, html/node18.html, html/node19.html,
+	  html/node2.html, html/node20.html, html/node21.html,
+	  html/node22.html, html/node23.html, html/node24.html,
+	  html/node25.html, html/node26.html, html/node27.html,
+	  html/node3.html, html/node4.html, html/node5.html,
+	  html/node6.html, html/node7.html, html/node8.html,
+	  html/node9.html, html/sympa.html, html/sympa.ps: [reported by
+	  G.Crompton] complete vrobot documentation (expl subdirectory
+	  creation)
+
+2005-09-23 17:39  sympa-authors
+
+	* ChangeLog, src/Language.pm: [BugID 502] Fix for i18n on FreeBSD
+
+2005-09-22 16:03  sympa-authors
+
+	* src/List.pm: [BugID 501] Fix: if family_name was set to an
+	  unknown family, wwsympa would die with the following error msg
+	  "Can't call method "check_param_constraint" on an undefined value
+	  at /var/sympa/bin/List.pm line 1728."
+
+2005-09-14 14:39  sympa-authors
+
+	* src/List.pm: Fix usage of owners as default editors.
+
+2005-08-19 16:41  sympa-authors
+
+	* web_tt2/list_menu.tt2, wwsympa/wwsympa.fcgi: [BugID 465] Fix:
+	  "contact owners" failed if protection mode was not javascript
+
+2005-08-19 10:36  sympa-authors
+
+	* web_tt2/list_menu.tt2: Fix: removed duplicate ""
+
+2005-08-19 10:34  sympa-authors
+
+	* src/List.pm: [BugID 461] Fix: List::am_i() cache control had 2
+	  blocks which returned before updating the cache
+
+2005-08-18 10:45  sympa-authors
+
+	* Makefile.am, Makefile.in, important_changes.pl: Change: do not
+	  request user interaction in important_change if DESTDIR is set
+
+2005-08-18 10:10  sympa-authors
+
+	* src/Conf.pm: Added Estonian to supported languages
+
+2005-08-18 10:03  sympa-authors
+
+	* po/et.po: [T.Kindsigo] Updated Estonian PO file
+
+2005-08-17 12:10  sympa-authors
+
+	* Makefile.am, Makefile.in: [requested by S.Hornburg] Change: never
+	  wait for user input while building a package (DESTDIR is set)
+
+2005-08-16 13:22  sympa-authors
+
+	* web_tt2/list_admin_menu.tt2: Change: now show the "Moderate"
+	  button if though there is no object awaiting moderation
+
+2005-08-16 12:18  sympa-authors
+
+	* src/List.pm: Fix previous change
+
+2005-08-16 11:51  sympa-authors
+
+	* .version, ChangeLog, Makefile.in, NEWS: preparing 5.1 release
+
+2005-08-16 11:29  sympa-authors
+
+	* src/List.pm: Fix: keys were inverted in the hash exchanged
+	  between get_which_db() and get_which()
+
+2005-08-11 15:32  sympa-authors
+
+	* web_tt2/: create_list_request.tt2, editfile.tt2: [BugId 437] Fix:
+	  long list info text was displayed on one long line
+
+2005-08-11 14:57  sympa-authors
+
+	* po/hu.po: [G.Hargitai] Updates for  5.1 release
+
+2005-08-11 14:49  sympa-authors
+
+	* src/Language.pm: Change: If setlocale() failed, print an error
+
+2005-08-11 12:05  sympa-authors
+
+	* src/Language.pm: Fix: when 'web_recode_to' is set, also change
+	  the 'charset'
+
+2005-08-11 11:37  sympa-authors
+
+	* src/List.pm: Change: rename old-style templates because the HTML
+	  structure is not compliant with new ones.
+
+2005-08-11 10:03  sympa-authors
+
+	* doc/sympa.tex.tpl: Fix: remove unknown "rss_url" parameter
+
+2005-08-10 17:51  sympa-authors
+
+	* src/Language.pm: [M.Redinger] Fix: on Solaris, the LANGUAGE
+	  environment variable should be set
+
+2005-08-10 17:26  sympa-authors
+
+	* po/: de.po, fr.po: Update
+
+2005-08-10 17:25  sympa-authors
+
+	* po/ja.po: [K.Moriwaka] Update from Rosetta
+
+2005-08-10 14:30  sympa-authors
+
+	* src/sympa_wizard.pl: Complete list of languages
+
+2005-08-10 09:25  sympa-authors
+
+	* po/de.po: [M.Redinger] Update for next release
+
+2005-08-09 11:02  sympa-authors
+
+	* src/Language.pm, src/alias_manager.pl, web_tt2/css.tt2,
+	  web_tt2/reviewbouncing.tt2, web_tt2/skinsedit.tt2: Apply a set of
+	  changes from the main trunc
+
+2005-08-05 10:00  sympa-authors
+
+	* src/List.pm: [BugId 450] Fix: get_admin_user cache could mix
+	  editor and owner
+
