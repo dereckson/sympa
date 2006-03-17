@@ -1,0 +1,86 @@
+<!-- RCS Identication ; $Revision$ ; $Date$ -->
+
+<br />
+[% IF password_sent %]
+  [%|loc(init_email)%]Your password has been sent to your email address %1.<br />Please check your e-mail box to provide your password below.[%END%]
+  <br />
+[% END %]
+
+[% IF action == 'loginrequest' %]
+ [%|loc%]You need to login to access your custom WWSympa environment or to perform a privileged operation (one that requires your email address).[%END%]
+[% ELSE %]
+ [%|loc%]Most mailing list features require your email. Some mailing lists are hidden to  unidentified persons.<br />
+ In order to benefit from the full services provided by this server, you probably need to identify yourself first.[%END%] <br />
+[% IF use_sso %]
+[% IF use_passwd == '1' %]
+
+[%|loc%]To login, select your organization authentication server below.<br />
+If it is not listed or if you don't have any, login using your email and password on the right column.[%END%]
+
+[% END %]
+[% ELSE %]
+[% IF use_passwd == '1' %]
+[%|loc%]Login with you email address and password. You can request a password reminder.[%END%]
+[% END %]
+[% END %]
+
+[% END %]
+
+
+[% IF use_sso %]
+
+[% IF sso_number == 1 %]
+<P>
+    <form action="[% path_cgi %]" method="post"> 
+        <input type="hidden" name="previous_action" value="[% previous_action %]" />
+        <input type="hidden" name="previous_list" value="[% previous_list %]" />
+	<input type="hidden" name="referer" value="[% referer %]" />
+	<input type="hidden" name="action" value="sso_login" />
+	<input type="hidden" name="nomenu" value="[% nomenu %]" />
+	<input type="hidden" name="list" value="[% list %]" />
+     	<div id = "FormLabel">[%|loc%]Magic authentification[%END%]</div>
+        [% FOREACH server = sso %]
+           <input type="hidden" name="auth_service_name" value="[% server.key %]" />
+        [% END %]
+         <input class="MainMenuLinks" type="submit" name="action_sso_login" value="[%|loc%]Go[%END%]" />
+    </form> 
+[% ELSE %]
+    <form action="[% path_cgi %]" method="post"> 
+        <input type="hidden" name="previous_action" value="[% previous_action %]" />
+        <input type="hidden" name="previous_list" value="[% previous_list %]" />
+	<input type="hidden" name="referer" value="[% referer %]" />
+	<input type="hidden" name="action" value="sso_login" />
+	<input type="hidden" name="nomenu" value="[% nomenu %]" />
+     	<input type="hidden" name="list" value="[% list %]" />
+        <div id = "FormLabel">
+     	[%|loc%]Choose your authentication server[%END%]
+        <select name="auth_service_name" onchange="this.form.submit();">
+          [% FOREACH server = sso %]<option value="[% server.key %]">[% server.value %]</option>[% END %]
+        </select>
+        <input class="MainMenuLinks" type="submit" name="action_sso_login" value="[%|loc%]Go[%END%]" />
+        </div>
+    </form>
+[% END %] 
+
+[% END %]
+
+  <form action="[% path_cgi %]" method="post"> 
+     <input type="hidden" name="previous_action" value="[% previous_action %]" />
+     <input type="hidden" name="previous_list" value="[% previous_list %]" />
+     <input type="hidden" name="referer" value="[% referer %]" />
+     <input type="hidden" name="action" value="login" />
+     <input type="hidden" name="nomenu" value="[% nomenu %]" />
+     <input type="hidden" name="list" value="[% list %]" />
+     <div id = "FormLabel">
+       <label for="emailadresse">[%|loc%]email address[%END%] : <input type="text" name="email" id="email" size="20" value="[% init_email %]" /></label>&nbsp;&nbsp;&nbsp;
+       <label for="passwd2" >[%|loc%]password[%END%] : <input type="password" name="passwd" id="passwd" size="8" /> </label>&nbsp;&nbsp;
+       <input class="MainMenuLinks" type="submit" name="action_login" value="[%|loc%]Login[%END%]" />
+     </div>
+  </form> 
+</p>
+<p>
+[% PROCESS remindpasswd.tt2 %]
+</p>
+
+
+
