@@ -1,0 +1,15 @@
+From: [% fromlist %]
+Subject: [% FILTER qencode %][%|loc(list.name)%]Summary of list %1[%END%][%END%]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
+
+[% table_of_content %] :
+
+[% FOREACH m = msg_list -%]
+[% m.id %]. [% m.subject %]   [% m.from %]
+[% IF conf.wwsympa_url %]
+   [% conf.wwsympa_url %]/arcsearch_id/[% list.name %]/[% m.month %]/[% m.message_id %]
+[% END %]
+[% END %]
+
