@@ -1,0 +1,24 @@
+<!-- $Id$ -->
+[% IF homepage %]
+  [% TRY %]
+     [% INSERT 'homepage' %]
+  [% CATCH %]
+  [% END %]
+[% ELSE %]
+   <pre>
+   [% TRY %]
+     [% INSERT 'info' %]
+   [% CATCH %]
+   [% END %]
+   </pre>
+[% END %]
+
+
+
+
+
+
+
+
+
+
