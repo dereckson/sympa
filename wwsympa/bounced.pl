@@ -155,11 +155,6 @@ $< = $> = (getpwnam('--USER--'))[2];
 &POSIX::setuid((getpwnam('--USER--'))[2]);
 &POSIX::setgid((getgrnam('--GROUP--'))[2]);
 
-## Check if the UID has correctly been set (usefull on OS X)
-unless (($( == (getgrnam('--GROUP--'))[2]) && ($< == (getpwnam('--USER--'))[2])) {
-    &fatal_err("Failed to change process userID and groupID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via SUDO.");
-}
-
 ## Sets the UMASK
 umask(oct($Conf{'umask'}));
 
@@ -271,8 +266,10 @@ while (!$end) {
 			$list->save();
 			do_log ('notice',"$who has been removed from $listname because welcome message bounced");
 			
-			unless ($list->send_notify_to_owner('automatic_del',{'who' => $who, 
-									     'by' => 'listmaster'})) {
+			unless ($list->send_notify_to_owner('notice',{'who' => $who, 
+								      'gecos' => "", 
+								      'command' => 'automatic_del', 
+								      'by' => 'listmaster'})) {
 			    &do_log('notice',"Unable to send notify 'notice' to $list->{'name'} list owner");
 			}
 		    }
