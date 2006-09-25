@@ -1,0 +1,228 @@
+2006-09-20 10:35  sympa-authors
+
+	* src/sympa.pl: [reported by P.Maes, Université Louvain] Fix: Sympa
+	  would improperly detect a loop if the same message is sent to 2
+	  lists with same local part. Now added list robot to %msgid_table
+	  keys.
+
+2006-09-15 17:25  sympa-authors
+
+	* mail_tt2/message_report.tt2, src/Commands.pm: [reported by
+	  D.Lamballais, IRISA] Fix: moderator was no more notified after
+	  message rejection
+
+2006-09-15 11:04  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: Fix: attachement were not accessible though
+	  web archives Made the last arc_file parameter multiple (using the
+	  @ notation) and changed the associated regexp
+
+2006-09-14 17:51  sympa-authors
+
+	* ChangeLog: Update
+
+2006-09-14 17:51  sympa-authors
+
+	* src/List.pm: [S.Amrani, Gend. Nationale] Fix: incorrectly closed
+	  file handle
+
+2006-08-29 13:24  sympa-authors
+
+	* wwsympa/archived.pl: Fix: sort archives directories before
+	  expiring ; otherwise latest months might expire.
+
+2006-08-28 17:48  sympa-authors
+
+	* src/List.pm: [S.Amrani, Gendarmerie Nat.] Fix: typo
+
+2006-08-25 17:25  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: [reported by S.Amrani, Gendarmerie Nat.]
+	  Fix: After editing a subscriber email, the list owner might get a
+	  "not subscribed to list" error.  The bug happened because the
+	  do_set() is used by both list members and list owners. Wwsympa
+	  now used the previous_action information to bring the user back
+	  to the right page.
+
+2006-08-25 15:18  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: [reported by P.Von Der Hagen, Karlsruhe
+	  Univ.] [ID 876] Fix:	sympa sends message "topics have changed"
+	  when owner is changed
+
+2006-08-25 14:06  sympa-authors
+
+	* mail_tt2/message_report.tt2: [reported by P.Von Der Hagen,
+	  Karlsruhe Univ.] [ID 878] Fix: used incorrect variable in mail
+	  report
+
+2006-08-24 17:33  sympa-authors
+
+	* doc/sympa.tex.tpl: Fix typo
+
+2006-08-24 17:05  sympa-authors
+
+	* doc/sympa.tex.tpl, src/Conf.pm, src/List.pm, src/sympa_wizard.pl:
+	  ***** Change: config.bin files are no more used unless the new
+	  cache_list_config sympa.conf parameter ***** is set to
+	  'binary_file'. This mode is only usefull if you manage lots of
+	  lists (1000+) to ***** have a faster startup of processes.
+
+2006-08-10 10:32  sympa-authors
+
+	* src/sympa.pl: [reported by S.Amrani, Gendarmerie Nat.] Fix:
+	  sympa.pl would die when processing a message for
+	  unknownlist-request.	The error message was : "Can't modify
+	  non-lvalue subroutine call" Fixed a buggy call to chomp.
+
+2006-08-03 15:30  sympa-authors
+
+	* po/en_US.po: Fixed charset and other metadata
+
+2006-08-02 16:32  sympa-authors
+
+	* web_tt2/: edit_template.tt2, editfile.tt2: [proposed by P.van der
+	  Hagen] Fix: wrap is non HTML-standard ; setting it to "off"
+
+2006-08-02 16:01  sympa-authors
+
+	* src/etc/script/: create_db.Oracle, create_db.Pg,
+	  create_db.SQLite, create_db.Sybase, create_db.mysql: [reported by
+	  P.Bricourt, Mongueurs] Fix: still refering to idp_netimap DB
+	  field
+
+2006-07-31 15:10  sympa-authors
+
+	* po/en_US.po: Fix: use sympa.pot as the default en_US.po
+
+2006-06-08 14:53  sympa-authors
+
+	* check_perl_modules.pl, po/en_US.po, src/Language.pm,
+	  wwsympa/wwsympa.fcgi: Fix: language names were incorrectly
+	  encoded in drop-down web menu. The reason is that each language
+	  name is encoded with the associated charset.	We now use the
+	  Encode module (added to the list of required modules) to decode
+	  and encode the language name
+
+2006-06-06 15:50  sympa-authors
+
+	* src/Language.pm: [reported by P.Maes, Univ. Louvain] Fix:
+	  localization failed on Solaris. The native Solaris gettext
+	  libraries failed to use the appropriate .mo file.  We're now
+	  using the "Pure Perl" implementation of gettext
+
+2006-06-06 11:06  sympa-authors
+
+	* src/: Conf.pm, List.pm: [reported by P.Maes, Univ. Louvain] Don't
+	  use chown user.group that fails on Solaris. Run separate chown
+	  and chgrp commands instead
+
+2006-06-01 16:56  sympa-authors
+
+	* ChangeLog, NEWS: Preparing 5.2.1
+
+2006-06-01 15:14  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: Fix: report an error if a subscriber email
+	  is changed and the new address is already subscribed
+
+2006-05-23 16:30  sympa-authors
+
+	* .version, ChangeLog, Makefile.in, NEWS: Preparing 5.2.1
+
+2006-05-11 14:28  sympa-authors
+
+	* src/List.pm: Incorrect error message
+
+2006-05-05 11:46  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: [reported by JM.Bourdin, IUFM Dijon] Fix:
+	  visibility authorization scenario was not evaluated to compute
+	  the "your lists" box.
+
+2006-05-05 10:42  sympa-authors
+
+	* po/fr.po: updated
+
+2006-05-05 10:41  sympa-authors
+
+	* po/: it.po: [G.Donnini, Univ Milano] Updated Italian translations
+	  for Sympa 5.2
+
+2006-05-04 16:55  sympa-authors
+
+	* src/List.pm: [BugID 750]Fix: include_sql_query requests would
+	  fail with Oracle.  Apparently the ->rows() method does not return
+	  the number of rows.  We now use fetchrow_arrayref() to get rows,
+	  thus allowing to differenciate an empty field an the last row.
+
+2006-05-04 10:04  sympa-authors
+
+	* mail_tt2/listmaster_notification.tt2, src/List.pm: New feature:
+	  notify listmaster if upgrade procedure failed
+
+2006-05-02 16:12  sympa-authors
+
+	* wwsympa/bounce-lib.pl: Fix: analyze the 'Original-recipient'
+	  entries of message/delivery-status MIME parts
+
+2006-04-20 09:40  sympa-authors
+
+	* src/etc/mhonarc-ressources.tt2: [proposed by E.Hood] Fix: now
+	  using $FROMADDRNAME$@$FROMADDRDOMAIN$ instead of $FROMADDR$. See
+	  https://savannah.nongnu.org/bugs/index.php?func=detailitem&item_id=11759
+
+2006-04-19 16:45  sympa-authors
+
+	* important_changes.pl: [reported by C.Peck, Univ William and Mary]
+	  Fix: on Solaris, chown does not like the '.' separator
+
+2006-04-19 15:55  sympa-authors
+
+	* src/List.pm: Fix: ignore case where PRIMARY KEY cannot be dropped
+
+2006-04-19 15:36  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: Change: shortcut for css to keep css
+	  working when in maintenance mode
+
+2006-04-19 15:19  sympa-authors
+
+	* src/List.pm, src/task_manager.pl, web_tt2/maintenance.tt2,
+	  wwsympa/archived.pl, wwsympa/bounced.pl, wwsympa/wwsympa.fcgi:
+	  [BugID 709] Fix: prevent any process to run before data structure
+	  have been updated.  This prevents "duplicate entries error" in DB
+	  tables
+
+2006-04-19 15:19  sympa-authors
+
+	* web_tt2/maintenance.tt2: file maintenance.tt2 was added on branch
+	  sympa-5_2-branch on 2006-04-19 13:21:17 +0000
+
+2006-04-18 16:52  sympa-authors
+
+	* web_tt2/review.tt2: Fix: Don't show bouncing status to other
+	  members
+
+2006-04-13 16:27  sympa-authors
+
+	* src/List.pm: Change: hide closed lists, even to listmasters
+
+2006-04-13 15:19  sympa-authors
+
+	* wwsympa/wwsympa.fcgi: [reported by J.Beretta, France Telecom]
+	  Fix: a renamed list would keep its previous domain name
+
+2006-04-13 15:01  sympa-authors
+
+	* doc/sympa.tex.tpl: [BugID 710] Tell the quota unit
+
+2006-04-13 11:50  sympa-authors
+
+	* src/List.pm: Fixed incorrect log while dropping indexes
+
+2006-04-13 11:07  sympa-authors
+
+	* mail_tt2/listmaster_notification.tt2, src/List.pm: Fix: Sympa now
+	  check if the DBD is available ; otherwise processes would die
+
