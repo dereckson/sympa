@@ -46,7 +46,8 @@ my $opt_d;
 my $opt_F;
 my %options;
 
-&GetOptions(\%main::options, 'debug|d', 'log_level=s', 'foreground');
+&GetOptions(\%main::options, 'dump=s', 'debug|d', 'log_level=s', 'foreground', 'config|f=s', 
+	    'lang|l=s', 'mail|m', 'keepcopy|k=s', 'help', 'version', 'import=s', 'lowercase');
 
 # $main::options{'debug2'} = 1 if ($main::options{'debug'});
 
@@ -54,8 +55,12 @@ if ($main::options{'debug'}) {
     $main::options{'log_level'} = 2 unless ($main::options{'log_level'});
 }
 # Some option force foreground mode
-$main::options{'foreground'} = 1 if ($main::options{'debug'});
-$main::options{'log_to_stderr'} = 1 if ($main::options{'debug'} || $main::options{'foreground'});
+$main::options{'foreground'} = 1 if ($main::options{'debug'} ||
+                                     $main::options{'version'} || 
+				     $main::options{'import'} ||
+				     $main::options{'help'} ||
+				     $main::options{'lowercase'} || 
+				     $main::options{'dump'});
 
 my $Version = '0.1';
 
@@ -76,13 +81,8 @@ unless (Conf::load($sympa_conf_file)) {
 }
 
 ## Check databse connectivity
-unless ($List::use_db = &List::check_db_connect()) {
+unless ($List::use_db = &List::probe_db()) {
     &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
-}
-
-## Check that the data structure is uptodate
-unless (&Upgrade::data_structure_uptodate()) {
-    &fatal_err("error : data structure was not updated ; you should run sympa.pl to run the upgrade process.");
 }
 
 ## Check for several files.
@@ -132,16 +132,12 @@ $< = $> = (getpwnam('--USER--'))[2];
 &POSIX::setuid((getpwnam('--USER--'))[2]);
 &POSIX::setgid((getgrnam('--GROUP--'))[2]);
 
-## Check if the UID has correctly been set (usefull on OS X)
-unless (($( == (getgrnam('--GROUP--'))[2]) && ($< == (getpwnam('--USER--'))[2])) {
-    &fatal_err("Failed to change process userID and groupID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via SUDO.");
-}
-
 ## Sets the UMASK
 umask(oct($Conf{'umask'}));
 
 ## Change to list root
 unless (chdir($Conf{'home'})) {
+    &report::reject_report_web('intern','chdir_error',{},'','','', $Conf{'host'});
     &do_log('err',"error : unable to change to directory $Conf{'home'}");
     exit (-1);
 }
@@ -170,7 +166,6 @@ my %global_models = (#'crl_update_task' => 'crl_update',
 		     #'chk_cert_expiration_task' => 'chk_cert_expiration',
 		     'expire_bounce_task' => 'expire_bounce',
 		     'purge_user_table_task' => 'purge_user_table',
-		     'purge_logs_table_task' => 'purge_logs_table',
 		     'purge_orphan_bounces_task' => 'purge_orphan_bounces',
 		     'eval_bouncers_task' => 'eval_bouncers',
 		     'process_bouncers_task' =>'process_bouncers',
@@ -206,7 +201,6 @@ my %commands = ('next'                  => ['date', '\w*'],
 		                           #template  date
 		'sync_include'          => [],
 		'purge_user_table'      => [],
-		'purge_logs_table'      => [],
 		'purge_orphan_bounces'  => [],
 		'eval_bouncers'         => [],
 		'process_bouncers'      => []
@@ -285,11 +279,11 @@ while (!$end) {
 	    my %used_list_models; # stores which models already have a task 
 	    foreach (@list_models) { $used_list_models{$_} = undef; }
 	    
-	    foreach my $model (&Task::get_used_models($list->get_list_id())) {
+	    foreach my $model (&Task::get_used_models($list->{'name'}.'@'.$list->{'domain'})) {
 		$used_list_models{$model} = 1; 
 	    }
 	    
-	    foreach my $model (@list_models) {
+	    foreach my $model (keys %used_list_models) {
 		unless ($used_list_models{$model}) {
 		    my $model_task_parameter = "$model".'_task';
 		    
@@ -376,8 +370,9 @@ while (!$end) {
 }
 
 &do_log ('notice', 'task_manager exited normally due to signal'); 
-&tools::remove_pid($wwsconf->{'task_manager_pidfile'}, $$);
-
+unless (unlink $wwsconf->{'task_manager_pidfile'}) { 
+    fatal_err("Could not delete %s, exiting", $wwsconf->{'task_manager_pidfile'}); 
+} 
 exit(0);
 
 ####### SUBROUTINES #######
@@ -416,7 +411,7 @@ sub create {
 
      # for global model
     if ($object eq '_global') {
-	unless ($model_file = &tools::get_filename('etc',{},"global_task_models/$model_name", $Conf{'host'})) {
+	unless ($model_file = &tools::get_filename('etc', "global_task_models/$model_name", $Conf{'host'})) {
 	    &do_log ('err', "error : unable to find $model_name, creation aborted");
 	    return undef;
 	}
@@ -428,7 +423,8 @@ sub create {
 
 	$Rdata->{'list'}{'ttl'} = $list->{'admin'}{'ttl'};
 
-	unless ($model_file = &tools::get_filename('etc', {},"list_task_models/$model_name", $list->{'domain'}, $list)) {
+	unless ($model_file = &tools::get_filename('etc', "list_task_models/$model_name", 
+						   $list->{'domain'}, $list)) {
 	    &do_log ('err', "error : unable to find $model_name, for list $list_name creation aborted");
 	    return undef;
 	}
@@ -791,7 +787,6 @@ sub cmd_process {
     return update_crl ($task, $Rarguments, \%context) if ($command eq 'update_crl');
     return expire_bounce ($task, $Rarguments, \%context) if ($command eq 'expire_bounce');
     return purge_user_table ($task, \%context) if ($command eq 'purge_user_table');
-    return purge_logs_table ($task, \%context) if ($command eq 'purge_logs_table');
     return sync_include($task, \%context) if ($command eq 'sync_include');
     return purge_orphan_bounces ($task, \%context) if ($command eq 'purge_orphan_bounces');
     return eval_bouncers ($task, \%context) if ($command eq 'eval_bouncers');
@@ -1088,20 +1083,6 @@ sub exec_cmd {
     
     return 1;
 }
-sub purge_logs_table {
-    # If a log is older then $list->get_latest_distribution_date()-$delai expire the log
-    my ($task, $Rarguments, $context) = @_;
-    my $date;
-    my $execution_date = $task->{'date'};
-    
-    do_log('debug2','purge_logs_table()');
-    unless(&Log::db_log_del()) {
-	&do_log('err','purge_logs_table(): Failed to delete logs');
-	return undef;
-    }
-    &do_log('notice','purge_logs_table(): logs purged');
-    return 1;
-}
 
 sub purge_user_table {
     my ($task, $Rarguments, $context) = @_;
@@ -1191,16 +1172,14 @@ sub purge_orphan_bounces {
 	     $bounced_users{$listname}{$user_id} = 1;
 	 }
 
-	my $bounce_dir = $list->get_bounce_dir();
-
-	 unless (-d $bounce_dir) {
+	 unless (-d $wwsconf->{'bounce_path'}.'/'.$listname) {
 	     &do_log('notice', 'No bouncing subscribers in list %s', $listname);
 	     next;
 	 }
 
 	 ## then reading Bounce directory & compare with %bounced_users
-	 unless (opendir(BOUNCE,$bounce_dir)) {
-	     &do_log('err','Error while opening bounce directory %s',$bounce_dir);
+	 unless (opendir(BOUNCE,$wwsconf->{'bounce_path'}.'/'.$listname)) {
+	     &do_log('err','Error while opening bounce directory %s for list %s',$wwsconf->{'bounce_path'},$listname);
 	     return undef;
 	 }
 
@@ -1209,14 +1188,12 @@ sub purge_orphan_bounces {
 	     if ($bounce =~ /\@/){
 		 unless (defined($bounced_users{$listname}{$bounce})) {
 		     &do_log('info','removing orphan Bounce for user %s in list %s',$bounce,$listname);
-		     unless (unlink($bounce_dir.'/'.$bounce)) {
-			 &do_log('err','Error while removing file %s/%s', $bounce_dir, $bounce);
+		     unless (unlink($wwsconf->{'bounce_path'}.'/'.$listname.'/'.$bounce)) {
+			 &do_log('err','Error while removing file %s',$bounce);
 		     }
 		 }
 	     }	    
 	 }
-
-	closedir BOUNCE;
      }
  }
 
@@ -1260,17 +1237,14 @@ sub purge_orphan_bounces {
 		     next;
 		 }
 
-		 unless( $list->update_user($email, {'bounce' => 'NULL'},{'bounce_address' => 'NULL'})) {
+		 unless( $list->update_user($email, {'bounce' => 'NULL'})) {
 		     do_log('info','expire_bounce: failed update database for %s', $email);
 		     next;
 		 }
 		 my $escaped_email = &tools::escape_chars($email);
-
-		 my $bounce_dir = $list->get_bounce_dir();
-
-		 unless (unlink $bounce_dir.'/'.$escaped_email) {
-		     &do_log('info','expire_bounce: failed deleting %s', $bounce_dir.'/'.$escaped_email);
-		     next;
+		 unless (unlink "$wwsconf->{'bounce_path'}/$listname/$escaped_email") {
+		     do_log('info','expire_bounce: failed deleting %s', "$wwsconf->{'bounce_path'}/$listname/$escaped_email");
+		    next;
 		 }
 		 do_log('info','expire bounces for subscriber %s of list %s (last distribution %s, last bounce %s )',
 			$email,$listname,
@@ -1301,7 +1275,7 @@ sub purge_orphan_bounces {
 	 return undef;
      }
      my @certificates = grep !/^(\.\.?)|(.+expired)$/, readdir DIR;
-     closedir (DIR);
+     close (DIR);
 
      foreach (@certificates) {
 

@@ -29,9 +29,6 @@ use Carp;
 #use strict;
 use POSIX;
 use Mail::Internet;
-use MIME::Charset;
-use MIME::Tools;
-use Version;
 use Conf;
 use Log;
 use Language;
@@ -125,9 +122,6 @@ sub mail_file {
 	}
     }
 
-    ## Charset for encoding
-    $data->{'charset'} ||= &Language::GetCharset();
-
     ## TT2 file parsing 
     if ($filename =~ /\.tt2$/) {
 	my $output;
@@ -147,10 +141,8 @@ sub mail_file {
 	foreach my $line (split(/\n/,$message)) {
 	    last if ($line=~/^\s*$/);
        
-	    if ($line=~/^[\w-]+:\s*/) { ## A header field
+	    if ($line=~/^[\w-]+:\s+\S/) {
 		$existing_headers=1;
-	    }elsif ($existing_headers && ($line =~ /^\s/)) { ## Following of a header field
-		next;
 	    }else{
 		last;
 	    }
@@ -164,6 +156,9 @@ sub mail_file {
 	}
    }
    
+   ## Charset for encoding
+   my $charset = sprintf (gettext("_charset_"));
+
     ## ADD MISSING HEADERS
     my $headers="";
 
@@ -172,78 +167,48 @@ sub mail_file {
 	if (ref ($rcpt)) {
 	    if ($data->{'to'}) {
 		$to = $data->{'to'};
-	    }else {
+   }else {
 		$to = join(",\n   ", @{$rcpt});
 	    }
 	}else{
 	    $to = $rcpt;
 	}   
-	$headers .= "To: ".MIME::EncWords::encode_mimewords(
-	    Encode::decode('utf8', $to),
-	    'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'To'
-	    )."\n"; 
+	$headers .= "To: ".MIME::Words::encode_mimewords($to, ('Encode' => 'Q', 'Charset' => $charset))."\n"; 
     }     
     unless ($header_ok{'from'}) {
 	if ($data->{'from'} eq 'sympa') {
-	    $headers .= "From: ".MIME::EncWords::encode_mimewords(
-		sprintf("SYMPA <%s>",&Conf::get_robot_conf($robot, 'sympa')),
-		'Encoding' => 'A', 'Charset' => "US-ASCII", 'Field' => 'From'
-		)."\n";
+	    $headers .= "From: ".MIME::Words::encode_mimewords((sprintf ("SYMPA <%s>",&Conf::get_robot_conf($robot, 'sympa'))), ('Encode' => 'Q', 'Charset' => $charset))."\n";
 	} else {
-	    $headers .= "From: ".MIME::EncWords::encode_mimewords(
-		Encode::decode('utf8', $data->{'from'}),
-		'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'From'
-		)."\n"; 
+	    $headers .= "From: ".MIME::Words::encode_mimewords($data->{'from'},('Encode' => 'Q', 'Charset' => $charset))."\n"; 
 	}
    }
     unless ($header_ok{'subject'}) {
-	$headers .= "Subject: ".MIME::EncWords::encode_mimewords(
-	    Encode::decode('utf8', $data->{'subject'}),
-	    'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'Subject'
-	    )."\n";
+	$headers .= "Subject: ".MIME::Words::encode_mimewords($data->{'subject'},('Encode' => 'Q', 'Charset' => $charset))."\n";
    }
     unless ($header_ok{'reply-to'}) { 
-	$headers .= "Reply-to: ".MIME::EncWords::encode_mimewords(
-	    Encode::decode('utf8', $data->{'replyto'}),
-	    'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'Reply-to'
-	    )."\n" if ($data->{'replyto'})
+	$headers .= "Reply-to: ".MIME::Words::encode_mimewords($data->{'replyto'},('Encode' => 'Q', 'Charset' => $charset))."\n" if ($data->{'replyto'})
     }
     if ($data->{'headers'}) {
 	foreach my $field (keys %{$data->{'headers'}}) {
-	    $headers .= $field.': '.MIME::EncWords::encode_mimewords(
-		Encode::decode('utf8', $data->{'headers'}{$field}),
-		'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => $field
-		)."\n";
+	    $headers .= $field.': '.MIME::Words::encode_mimewords($data->{'headers'}{$field},('Encode' => 'Q', 'Charset' => $charset))."\n";
 	}
     }
     unless ($header_ok{'mime-version'}) {
 	$headers .= "MIME-Version: 1.0\n";
     }
     unless ($header_ok{'content-type'}) {
-	$headers .= "Content-Type: text/plain; charset=UTF-8\n";
+	$headers .= "Content-Type: text/plain; charset=$charset\n";
     }
     unless ($header_ok{'content-transfer-encoding'}) {
-	$headers .= "Content-Transfer-Encoding: 8bit\n"; 
+	$headers .= "Content-Transfer-Encoding:"; 
+        $headers .= gettext("_encoding_");
+	$headers .= "\n";
     }
     unless ($existing_headers) {
 	$headers .= "\n";
    }
    
-    ## All these data provide mail attachements in service messages
-    my @msgs = ();
-    if (ref($data->{'msg_list'}) eq 'ARRAY') {
-	@msgs = map {$_->{'msg'} || $_->{'full_msg'}} @{$data->{'msg_list'}};
-    } elsif ($data->{'spool'}) {
-	@msgs = @{$data->{'spool'}};
-    } elsif ($data->{'msg'}) {
-	push @msgs, $data->{'msg'};
-    } elsif ($data->{'msg_path'} and open IN, '<'.$data->{'msg_path'}) {
-	push @msgs, join('', <IN>);
-	close IN;
-    } elsif ($data->{'file'} and open IN, '<'.$data->{'file'}) {
-	push @msgs, join('', <IN>);
-	close IN;
-    }
+    $message = "$headers"."$message";
 
     my $listname = '';
     if (ref($data->{'list'}) eq "HASH") {
@@ -251,14 +216,7 @@ sub mail_file {
     } elsif ($data->{'list'}) {
 	$listname = $data->{'list'};
     }
-     
-    unless ($message = &reformat_message("$headers"."$message", \@msgs)) {
-	&do_log('err', "mail::mail_file: Failed to reformat message");
-    }
-
-    ## Set it in case it was not set
-    $data->{'return_path'} ||= &Conf::get_robot_conf($robot, 'request');
-  
+       
     ## SENDING
     if (ref($rcpt)) {
 	unless (defined &sending($message,$rcpt,$data->{'return_path'},$robot,$listname,$sign_mode)) {
@@ -281,121 +239,80 @@ sub mail_file {
 # IN : -$message(+) : ref(Message)
 #      -$from(+) : message from
 #      -$robot(+) : robot
-#      -{verp=>[on|off]} : a hash to introduce verp parameters, starting just on or off, later will probably introduce optionnal parameters 
 #      -@rcpt(+) : recepients
 # OUT : -$numsmtp : number of sendmail process | undef
 #       
 ####################################################
 sub mail_message {
-    my($message, $list, $verp, @rcpt) = @_;
+   my($message, $from, $robot, @rcpt) = @_;
+   do_log('debug2', 'mail::mail_message(from: %s, , file:%s, %s, %d rcpt)', $from, $message->{'filename'}, $message->{'smime_crypted'}, $#rcpt+1);
+
+   my($i, $j, $nrcpt, $size, @sendto);
+   my $numsmtp = 0;
    
+   ## If message contain a footer or header added by Sympa  use the object message else
+   ## Extract body from original file to preserve signature
+   my ($msg_body, $msg_header);
 
-    my $host = $list->{'admin'}{'host'};
-    my $robot = $list->{'domain'};
-    my $name = $list->{'name'};
+   $msg_header = $message->{'msg'}->head;
 
-    # normal return_path (ie used if verp is not enabled)
-    my $from = $list->{'name'}.&Conf::get_robot_conf($robot, 'return_path_suffix').'@'.$host;
+   if ($message->{'altered'}) {
+       $msg_body = $message->{'msg'}->body_as_string;
+       
+   }elsif ($message->{'smime_crypted'}) {
+       $msg_body = ${$message->{'msg_as_string'}};
+       
+   }else {
+       ## Get body from original file
+       unless (open MSG, $message->{'filename'}) {
+	   do_log ('notice',"mail::mail_message : Unable to open %s:%s",$message->{'filename'},$!);
+	   return undef;
+       }
+       my $in_header = 1 ;
+       while (<MSG>) {
+	   if ( !$in_header)  { 
+	       $msg_body .= $_;       
+	   }else {
+	       $in_header = 0 if (/^$/); 
+	   }
+       }
+       close (MSG);
+   }
+   
+   ## if the message must be crypted,  we need to send it using one smtp session for each rcpt
+   ## n.b. : sendto can send by setting in spool, however, $numsmtp is incremented (=> to change)
+   if ($message->{'smime_crypted'}){
+       $numsmtp = 0;
+       while (defined ($i = shift(@rcpt))) {
+	   $numsmtp++ if (&sendto($msg_header, $msg_body, $from, [$i], $robot, $message->{'smime_crypted'}));
+       }
+       
+       return ($numsmtp);
+   }
 
-    do_log('debug', 'mail::mail_message(from: %s, , file:%s, %s, verp->%s %d rcpt)', $from, $message->{'filename'}, $message->{'smime_crypted'}, $verp->{'enable'}, $#rcpt+1);
-    
-    
-    my($i, $j, $nrcpt, $size, @sendto);
-    my $numsmtp = 0;
-    
-    ## If message contain a footer or header added by Sympa  use the object message else
-    ## Extract body from original file to preserve signature
-    my ($msg_body, $msg_header);
-    
-    $msg_header = $message->{'msg'}->head;
-    
-    if ($message->{'altered'}) {
-	$msg_body = $message->{'msg'}->body_as_string;
-	
-    }elsif ($message->{'smime_crypted'}) {
-	$msg_body = ${$message->{'msg_as_string'}};
-	
-    }else {
-	## Get body from original file
-	unless (open MSG, $message->{'filename'}) {
-	    do_log ('notice',"mail::mail_message : Unable to open %s:%s",$message->{'filename'},$!);
-	    return undef;
-	}
-	my $in_header = 1 ;
-	while (<MSG>) {
-	    if ( !$in_header)  { 
-		$msg_body .= $_;       
-	    }else {
-		$in_header = 0 if (/^$/); 
-	    }
-	}
-	close (MSG);
-    }
-    
-    ## if the message must be crypted,  we need to send it using one smtp session for each rcpt
-    ## n.b. : sendto can send by setting in spool, however, $numsmtp is incremented (=> to change)
-    # ignore verp if crypted. It should be better to do the reverse : allway use verp if crypted (sa 03/01/2006)
-    
-    if (($message->{'smime_crypted'})||($verp->{'enable'} eq 'on')){
-	$numsmtp = 0;
-	while (defined ($i = shift(@rcpt))) {
-	    my $return_path = $from;
-	    if ($verp->{'enable'} eq 'on') {
-		$return_path = $i ;
-		$return_path =~ s/\@/\=\=a\=\=/; 
-		$return_path = "$Conf{'bounce_email_prefix'}+$return_path\=\=$name\@$robot";
-	    }
-	    $numsmtp++ if (&sendto($msg_header, $msg_body, $return_path, [$i], $robot, $message->{'smime_crypted'}));
-	}
-	
-	return ($numsmtp);
-    }
-    
-
-    my %rcpt_by_dom ;
-
-
-    while (defined ($i = shift(@rcpt))) {
-	my @k = reverse(split(/[\.@]/, $i));
-	my @l = reverse(split(/[\.@]/, $j));
-
-	my $dom;
-	if ($i =~ /\@(.*)$/) {
-	    $dom = $1;
-	    chomp $dom;
-	}
-	$rcpt_by_dom{$dom} += 1 ;
-	&do_log('debug2', "domain: $dom ; rcpt by dom: $rcpt_by_dom{$dom} ; limit for this domain: $Conf{'nrcpt_by_domain'}{$dom}");
-
-	if (defined ($Conf{'nrcpt_by_domain'}{$dom}) && ( $rcpt_by_dom{$dom} >= $Conf{'nrcpt_by_domain'}{$dom} )){
-	    undef %rcpt_by_dom ;
-	    $numsmtp++ if (&sendto($msg_header, $msg_body, $from, \@sendto, $robot));
-	    $nrcpt = $size = 0;
-	    @sendto = ();  
-	}
-	
-	if ($j && $#sendto >= &Conf::get_robot_conf($robot, 'avg') && lc("$k[0] $k[1]") ne lc("$l[0] $l[1]")) {
-	    undef %rcpt_by_dom ;
-	    $numsmtp++ if (&sendto($msg_header, $msg_body, $from, \@sendto, $robot));
-	    $nrcpt = $size = 0;
-	    @sendto = ();
-	}
-	if ($#sendto >= 0 && (($size + length($i)) > $max_arg || $nrcpt >= &Conf::get_robot_conf($robot, 'nrcpt'))) {
-	    undef %rcpt_by_dom ;
-	    $numsmtp++ if (&sendto($msg_header, $msg_body, $from, \@sendto, $robot));
-	    $nrcpt = $size = 0;
-	    @sendto = ();
-	}
-	$nrcpt++; $size += length($i) + 5;
-	push(@sendto, $i);
-	$j = $i;
-    }
-    if ($#sendto >= 0) {
-	$numsmtp++ if (&sendto($msg_header, $msg_body, $from, \@sendto, $robot));
-	
-    }
-    
-    return $numsmtp;
+   while (defined ($i = shift(@rcpt))) {
+       my @k = reverse(split(/[\.@]/, $i));
+       my @l = reverse(split(/[\.@]/, $j));
+       if ($j && $#sendto >= &Conf::get_robot_conf($robot, 'avg') && lc("$k[0] $k[1]") ne lc("$l[0] $l[1]")) {
+           $numsmtp++ if (&sendto($msg_header, $msg_body, $from, \@sendto, $robot));
+	   $nrcpt = $size = 0;
+           @sendto = ();
+       }
+       if ($#sendto >= 0 && (($size + length($i)) > $max_arg || $nrcpt >= &Conf::get_robot_conf($robot, 'nrcpt'))) {
+           $numsmtp++ if (&sendto($msg_header, $msg_body, $from, \@sendto, $robot));
+	   $nrcpt = $size = 0;
+           @sendto = ();
+       }
+       $nrcpt++; $size += length($i) + 5;
+       push(@sendto, $i);
+       $j = $i;
+   }
+   if ($#sendto >= 0) {
+       $numsmtp++ if (&sendto($msg_header, $msg_body, $from, \@sendto, $robot));
+       
+   }
+   
+   return $numsmtp;
 }
 
 
@@ -481,12 +398,12 @@ sub reaper {
 ####################################################
 sub sendto {
     my($msg_header, $msg_body, $from, $rcpt, $robot, $encrypt) = @_;
-    do_log('debug2', 'mail::sendto(%s, %s, %s', $from, $rcpt, $encrypt);
+    do_log('debug2', 'mail::sendto(%s, %s, %s)', $from, $rcpt, $encrypt);
 
     my $msg;
 
-    #XXX## Encode subject before sending
-    #XXX$msg_header->replace('Subject', MIME::Words::encode_mimewords($msg_header->get('Subject')));
+    ## Encode subject before sending
+    $msg_header->replace('Subject', MIME::Words::encode_mimewords($msg_header->get('Subject')));
 
     if ($encrypt eq 'smime_crypted') {
 	my $email ;
@@ -543,7 +460,7 @@ sub sending {
     my $sympa_file;
     my $fh;
     my $signed_msg; # if signing
-
+    
  
     ## FILE HANDLER
     ## Don't fork if used by a CGI (FastCGI problem)
@@ -561,11 +478,6 @@ sub sending {
 	    $all_rcpt = $$rcpt;
 	}
 	
-	unless ($all_rcpt && $from) {
-	    &do_log('err', 'mail::sending: missing required parameter, cannot send message');
-	    return undef;
-	}
-
 	unless (open TMP, ">$sympa_file") {
 	    &do_log('notice', 'mail::sending : Cannot create %s : %s', $sympa_file, $!);
 	    return undef;
@@ -788,129 +700,13 @@ sub send_in_spool {
 
 #####################################################################
 
-
-####################################################
-# reformat_message
-####################################################
-# Reformat bodies of text parts contained in the message using
-# recommended encoding schema and/or charsets defined by MIME::Charset.
-#
-# MIME-compliant headers are appended / modified.  And custom X-Mailer:
-# header is appended :).
-#
-# IN : $msg: ref(MIME::Entity) | string - message to reformat
-#      $attachments: ref(ARRAY) - messages to be attached as subparts.
-# OUT : string
-#
-####################################################
-
-sub reformat_message($;$) {
-    my $message = shift;
-    my $attachments = shift || [];
-    my $msg;
-
-    my $parser = new MIME::Parser;
-    unless (defined $parser) {
-	&do_log('err', "mail::reformat_message: Failed to create MIME parser");
-	return undef;
-    }
-    $parser->output_to_core(1);
-
-    if (ref($message) eq 'MIME::Entity') {
-	$msg = $message;
-    } else {
-	eval {
-	    $msg = $parser->parse_data($message);
-	};
-	if ($@) {
-	    &do_log('err', "mail::reformat_message: Failed to parse MIME data");
-	    return undef;
-	}
-    }
-
-    $msg->head->delete("X-Mailer");
-    $msg = &fix_part($msg, $parser, $attachments);
-    $msg->head->add("X-Mailer", sprintf "Sympa %s", $Version::Version);
-    return $msg->as_string;
-}
-
-sub fix_part($$$) {
-    my $part = shift;
-    my $parser = shift;
-    my $attachments = shift || [];
-    return $part unless $part;
-
-    my $enc = $part->head->mime_attr("Content-Transfer-Encoding");
-    # Parts with nonstandard encodings aren't modified.
-    return $part
-	if $enc and $enc !~ /^(?:base64|quoted-printable|[78]bit|binary)$/i;
-
-    my $eff_type = $part->effective_type;
-    return $part if $eff_type =~ m{^multipart/(signed|encrypted)$};
-
-    if ($part->head->get('X-Sympa-Attach')) { # Need re-attaching data.
-	my $data = shift @{$attachments};
-	if (ref($data) ne 'MIME::Entity') {
-	    eval {
-		$data = $parser->parse_data($data);
-	    };
-	    if ($@) {
-		&do_log('warn',
-			"mail::reformat_message: Failed to parse MIME data");
-		$data = $parser->parse_data('');
-	    }
-	}
-	$part->head->delete('X-Sympa-Attach');
-	$part->parts([$data]);
-    } elsif ($part->parts) {
-	my @newparts = ();
-	foreach ($part->parts) {
-	    push @newparts, &fix_part($_, $parser, $attachments);
-	}
-	$part->parts(\@newparts);
-    } elsif ($eff_type =~ m{^(?:multipart|message)(?:/|\Z)}i) {
-	# multipart or message types without subparts.
-	return $part;
-    } elsif (MIME::Tools::textual_type($eff_type)) {
-	my $bodyh = $part->bodyhandle;
-	# Encoded body or null body won't be modified.
-	return $part if !$bodyh or $bodyh->is_encoded;
-
-	my $head = $part->head;
-	my $body = $bodyh->as_string;
-	my $charset = $head->mime_attr("Content-Type.Charset");
-
-	my ($newbody, $newcharset, $newenc) = 
-	    MIME::Charset::body_encode(Encode::decode('utf8', $body), $charset,
-				       Replacement => 'FALLBACK');
-	if ($newenc eq $enc and $newcharset eq $charset and
-	    $newbody eq $body) {
-	    return $part;
-	}
-
-	# Fix headers and body.
-	$head->mime_attr("Content-Type", "TEXT/PLAIN")
-	    unless $head->mime_attr("Content-Type");
-	$head->mime_attr("Content-Type.Charset", $newcharset);
-	$head->mime_attr("Content-Transfer-Encoding", $newenc);
-	$head->add("MIME-Version", "1.0") unless $head->get("MIME-Version"); 
-	my $io = $bodyh->open("w");
-
-	unless (defined $io) {
-	    &do_log('err', "mail::reformat_message: Failed to save message : $!");
-	    return undef;
-	}
-
-	$io->print($newbody);
-	$io->close;
-	$part->sync_headers(Length => 'COMPUTE');
-    } else {
-	# Binary or text with long lines will be suggested to be BASE64.
-	$part->head->mime_attr("Content-Transfer-Encoding",
-			       $part->suggest_encoding);
-	$part->sync_headers(Length => 'COMPUTE');
-    }
-    return $part;
-}
-
 1;
+
+
+
+
+
+
+
+
+

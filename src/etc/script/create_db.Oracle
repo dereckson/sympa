@@ -35,7 +35,6 @@ CREATE TABLE subscriber_table (
 	topics_subscriber	varchar2(200),
  	bounce_subscriber       varchar2 (35),
 	bounce_score_subscriber number,
-	bounce_address_subscriber       varchar2 (100),
  	comment_subscriber      varchar2 (150),
 	subscribed_subscriber 	number NULL    constraint  cons_subscribed_subscriber CHECK (subscribed_subscriber in (0,1)),
 	included_subscriber 	number NULL    constraint  cons_included_subscriber CHECK (included_subscriber in (0,1)),
@@ -56,32 +55,7 @@ CREATE TABLE admin_table (
 	include_sources_admin  	varchar2(50),
 	info_admin   		varchar2(150),
 	profile_admin  		varchar2(20),
-       CONSTRAINT ind_admin PRIMARY KEY (list_admin,user_admin,robot_admin,role_admin)
-);
-
-CREATE TABLE netidmap_table (
-        netid_netidmap              varchar2 (100) NOT NULL,
-	serviceid_netidmap	    varchar2 (100) NOT NULL,
-	robot_netidmap	            varchar2 (80) NOT NULL,
-        email_netidmap              varchar2 (100),
-        CONSTRAINT ind_netidmap PRIMARY KEY (netid_netidmap, serviceid_netidmap, robot_netidmap)
-);
-
-CREATE TABLE logs_table (
-	id_logs			number NOT NULL,
-	date_logs		number NOT NULL,
-	robot_logs		varchar2 (80),
-	list_logs		varchar2 (50),
-	action_logs		varchar2 (50) NOT NULL,
-	parameters_logs		varchar2 (100),
-	target_email_logs	varchar2 (100),
-	user_email_logs		varchar2 (100),
-	msg_id_logs		varchar2 (255),
-	status_logs		varchar2 (10) NOT NULL,
-	error_type_logs		varchar2 (150),
-	client_logs		varchar2 (100),
-	daemon_logs		varchar2 (10) NOT NULL,
-	CONSTRAINT ind_admin PRIMARY KEY (id_logs)
+       CONSTRAINT ind_admin PRIMARY KEY (list_admin,user_admin,robot_admin,role_admin),
 );
 
 !
