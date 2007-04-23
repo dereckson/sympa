@@ -40,7 +40,7 @@ use Conf;
 		   'txt' => {'gettext_id' => 'text only mode'},
 		   'html'=> {'gettext_id' => 'html only mode'},
 		   'urlize' => {'gettext_id' => 'urlize mode'},
-		   'nomail' => {'gettext_id' => 'no mail (useful for vacations)'},
+		   'nomail' => {'gettext_id' => 'no mail (usefull for vacations)'},
 		   'not_me' => {'gettext_id' => 'you do not receive your own posts'}
 		   );
 
@@ -59,7 +59,7 @@ use Conf;
 
 ## Filenames with corresponding entry in NLS set 15
 %filenames = ('welcome.tt2'             => {'gettext_id' => "welcome message"},
-	      'bye.tt2'                 => {'gettext_id' => "unsubscribe message"},
+	      'bye.tt2'                 => {'gettext_id' => "unsubscription message"},
 	      'removed.tt2'             => {'gettext_id' => "deletion message"},
 	      'message.footer'          => {'gettext_id' => "message footer"},
 	      'message.header'          => {'gettext_id' => "message header"},
@@ -151,7 +151,6 @@ sub load_config {
 			icons_url => '/icons',
 			mhonarc => '/usr/bin/mhonarc',
 			review_page_size => 25,
-			viewlogs_page_size => 25,
 			task_manager_pidfile => '--PIDDIR--/task_manager.pid',
 			title => 'Mailing Lists Service',
 			use_fast_cgi => 1,
@@ -194,7 +193,7 @@ sub load_config {
     }
 
     if ($conf->{'bounce_path'} && (! -d $conf->{'bounce_path'})) {
-	&Log::do_log('err',"Missing directory '%s' (defined by 'bounce_path' parameter)", $conf->{'bounce_path'});
+	&Log::do_log('err',"No bounces directory: %s", $conf->{'bounce_path'});
     }
 
     if ($conf->{'mhonarc'} && (! -x $conf->{'mhonarc'})) {
@@ -217,7 +216,7 @@ sub load_mime_types {
     my $types = {};
 
     @localisation = ('/etc/mime.types', '/usr/local/apache/conf/mime.types',
-		     '/etc/httpd/conf/mime.types',$Conf{'etc'}.'/mime.types');
+		     '/etc/httpd/conf/mime.types','mime.types');
 
     foreach my $loc (@localisation) {
 	next unless (-r $loc);
@@ -255,26 +254,22 @@ sub load_mime_types {
 ## Returns user information extracted from the cookie
 sub get_email_from_cookie {
 #    &Log::do_log('debug', 'get_email_from_cookie');
-    my $cookie = shift;
     my $secret = shift;
-
     my ($email, $auth) ;
 
-    # &Log::do_log('info', "get_email_from_cookie($cookie,$secret)");
-    
-    unless (defined $secret) {
-	&report::reject_report_web('intern','cookie_error',{},'','','',$robot);
-	&Log::do_log('info', 'parameter cookie undefined, authentication failure');
+    unless ($secret) {
+	&main::message('error in sympa configuration');
+	&Log::do_log('info', 'parameter cookie undefine, authentication failure');
     }
 
-    unless ($cookie) {
-	&report::reject_report_web('intern','cookie_error',$cookie,'get_email_from_cookie','','',$robot);
-	&Log::do_log('info', ' cookie undefined, authentication failure');
+    unless ($ENV{'HTTP_COOKIE'}) {
+	&main::message('error in sympa missing cookie');
+	&Log::do_log('info', ' ENV{HTTP_COOKIE} undefined, authentication failure');
     }
 
-    ($email, $auth) = &cookielib::check_cookie ($cookie, $secret);
+    ($email, $auth) = &cookielib::check_cookie ($ENV{'HTTP_COOKIE'}, $secret);
     unless ( $email) {
-	&report::reject_report_web('user','auth_failed',{},'');
+	&main::message('auth failed');
 	&Log::do_log('info', 'get_email_from_cookie: auth failed for user %s', $email);
 	return undef;
     }    
@@ -300,6 +295,45 @@ sub valid_email {
     $email =~ /^([\w\-\_\.\/\+\=]+|\".*\")\@[\w\-]+(\.[\w\-]+)+$/;
 }
 
+# create a cipher
+sub ciphersaber_installed {
+    if (eval "require Crypt::CipherSaber") {
+	require Crypt::CipherSaber;
+	return &Crypt::CipherSaber->new($Conf{'cookie'});
+    }else{
+	return ('no_cipher');
+    }
+}
+
+## encrypt a password
+sub crypt_passwd {
+    my $inpasswd = shift ;
+
+    unless (define($cipher)){
+	$cipher = ciphersaber_installed();
+    }
+    return $inpasswd if ($cipher eq 'no_cipher') ;
+    return ("crypt.".$cipher->encrypt ($inpasswd)) ;
+}
+
+## decrypt a password
+sub decrypt_passwd {
+    my $inpasswd = shift ;
+
+    return $inpasswd unless ($inpasswd =~ /^crypt\.(.*)$/) ;
+    $inpasswd = $1;
+
+    unless (define($cipher)){
+	$cipher = ciphersaber_installed();
+    }
+    if ($cipher eq 'no_cipher') {
+	do_log('info','password seems crypted while CipherSaber is not installed !');
+	return $inpasswd ;
+    }
+    return $cipher->decrypt ($inpasswd);
+}
+
+
 sub init_passwd {
     my ($email, $data) = @_;
     
@@ -316,7 +350,7 @@ sub init_passwd {
 	    unless ( &List::update_user_db($email,
 					   {'password' => $passwd,
 					    'lang' => $user->{'lang'} || $data->{'lang'}} )) {
-		&report::reject_report_web('intern','update_user_db_failed',{'user'=>$email},'','',$email,$robot);
+		&main::message('update_failed');
 		&Log::do_log('info','init_passwd: update failed');
 		return undef;
 	    }
@@ -327,7 +361,7 @@ sub init_passwd {
 				     'password' => $passwd,
 				     'lang' => $data->{'lang'},
 				     'gecos' => $data->{'gecos'}})) {
-	    &report::reject_report_web('intern','add_user_db_failed',{'user'=>$email},'','',$email,$robot);
+	    &main::message('add_failed');
 	    &Log::do_log('info','init_passwd: add failed');
 	    return undef;
 	}

@@ -1,6 +1,3 @@
-From: [% fromlist %]
-Subject: [% FILTER qencode %][%|loc(list.name)%]Summary of list %1[%END%][%END%]
-
 [% table_of_content %] :
 
 [% FOREACH m = msg_list -%]
