@@ -26,8 +26,7 @@ use lib '--LIBDIR--';
 
 use strict vars;
 use POSIX;
-require 'tools.pl';
-require 'Conf.pm' unless ($ARGV[0] eq '-c');
+use Conf;
 
 ## Configuration
 
@@ -37,8 +36,8 @@ my $new_sympa_conf = '/tmp/sympa.conf';
 my $wwsconf = {};
 
 ## Change to your wwsympa.conf location
-my $wwsympa_conf = "$ENV{'DESTDIR'}--WWSCONFIG--";
-my $sympa_conf = "$ENV{'DESTDIR'}--CONFIG--";
+my $wwsympa_conf = '--WWSCONFIG--';
+my $sympa_conf = '--CONFIG--';
 my $somechange = 0;
 
 ## parameters that can be edited with this script
@@ -61,7 +60,7 @@ my @params = ({'title' => 'Directories and file location'},
                'advice' =>''},
 
 	      {'name' => 'etc',
-	       'default' => '--ETCDIR--',
+	       'default' => '--DIR--/etc',
 	       'query' => 'Directory for configuration files ; it also contains scenari/ and templates/ directories',
 	       'file' => 'sympa.conf'},
 
@@ -86,11 +85,6 @@ my @params = ({'title' => 'Directories and file location'},
 	       'file' => 'wwsympa.conf',
                'advice' =>''},
 	      
-	      {'name' => 'task_manager_pidfile',
-	       'query' => 'File containing task_manager PID while running.',
-	       'file' => 'wwsympa.conf',
-               'advice' =>''},
-
 	      {'name' => 'arc_path',
 	       'default' => '--DIR--/arc',
 	       'query' => 'Where to store HTML archives',
@@ -103,8 +97,8 @@ my @params = ({'title' => 'Directories and file location'},
 	       'file' => 'wwsympa.conf',
                'advice' =>'Better if not in a critical partition'},
 	      
-	      {'name' => 'localedir',
-	       'default' => '--LOCALEDIR--',
+	      {'name' => 'msgcat',
+	       'default' => '--DIR--/nls',
 	       'query' => 'Directory containing available NLS catalogues (Message internationalization)',
 	       'file' => 'sympa.conf',
 	       'advice' =>''},
@@ -126,19 +120,7 @@ my @params = ({'title' => 'Directories and file location'},
 	       'query' => 'Bounce incoming spool',
 	       'file' => 'sympa.conf',
 	       'advice' =>''},
-
-	      {'name' => 'static_content_path',
-	       'default' => '--DIR--/static_content',
-	       'query' => 'The directory where Sympa stores static contents (CSS, members pictures, documentation) directly delivered by Apache',
-	       'file' => 'sympa.conf',
-	       'advice' =>''},	      
 	      
-	      {'name' => 'static_content_url',
-	       'default' => '/static-sympa',
-	       'query' => 'The URL mapped with the static_content_path directory defined above',
-	       'file' => 'sympa.conf',
-	       'advice' =>''},	      
-
 	      {'title' => 'Syslog'},
 
 	      {'name' => 'syslog',
@@ -173,9 +155,9 @@ my @params = ({'title' => 'Directories and file location'},
 	      
 	      {'name' => 'listmaster',
 	       'default' => 'your_email_address@--HOST--',
-	       'query' => 'Listmasters email list comma separated',
+	       'query' => 'Listmasters email list colon separated',
 	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'Sympa will associate listmaster privileges to these email addresses (mail and web interfaces). Some error reports may also be sent to these addresses.'},
+	       'advice' =>''},
 	      
 	      {'name' => 'email',
 	       'default' => 'sympa',
@@ -183,21 +165,19 @@ my @params = ({'title' => 'Directories and file location'},
 	       'file' => 'sympa.conf',
 	       'advice' =>"Effective address will be \[EMAIL\]@\[HOST\]"},
 
+	      {'name' => 'lang',
+	       'default' => 'us',
+	       'query' => 'Default lang (fr | us | es | de | it | cn | tw | fi | pl | cz | hu | ro | et)',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+
 	      {'name' => 'create_list',
 	       'default' => 'public_listmaster',
 	       'query' => 'Who is able to create lists',
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>'This parameter is a scenario, check sympa documentation about scenarios if you want to define one'},
 
-	      {'title' => 'Tuning'},
-	      	      
-
-	      {'name' => 'cache_list_config',
-	       'default' => 'none',
-	       'query' => 'Use of binary version of the list config structure on disk: none | binary_file',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'Set this parameter to "binary_file" if you manage a big amount of lists (1000+) ; it should make the web interface startup faster'},
-
+	      
 	      {'name' => 'sympa_priority',
 	       'query' => 'Sympa commands priority',
 	       'file' => 'sympa.conf',
@@ -234,11 +214,7 @@ my @params = ({'title' => 'Directories and file location'},
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>''},
 
-	      {'name' => 'use_blacklist',
-	       'query' => 'comma separated list of operation for which blacklist filter is applyed', 
-               'default' => 'send,create_list',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'set this parameter to "none" hidde blacklist feature'},
+
 
 	      {'name'  => 'rfc2369_header_fields',
 	       'query' => 'Specify which rfc2369 mailing list headers to add',
@@ -250,20 +226,6 @@ my @params = ({'title' => 'Directories and file location'},
 	       'query' => 'Specify header fields to be removed before message distribution',
 	       'file' => 'sympa.conf',
 	       'advice' => '' },
-
-	      {'title' => 'Internationalization'},
-
-	      {'name' => 'lang',
-	       'default' => 'en_US',
-	       'query' => 'Default lang (cs | de | el | en_US | fr | hu | it | ja_JP | nl | oc | pt_BR | tr)',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'This is the default language used by Sympa'},
-
-	      {'name' => 'supported_lang',
-	       'default' => 'de,cs,el,es,et_EE,en_US,fr,hu,it,ja_JP,nl,oc,pt_BR,sv,tr',
-	       'query' => 'Supported languages',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'This is the set of language that will be proposed to your users for the Sympa GUI. Don\'t select a language if you don\'t have the proper locale packages installed.'},
 
 	      {'title' => 'Errors management'},
 
@@ -280,7 +242,7 @@ my @params = ({'title' => 'Directories and file location'},
 	       'advice' => 'Not yet used in current version, Default is 50' },
 
 
-	      {'name'  => 'expire_bounce_task',
+	      {'name'  => 'expire_bounce',
 	       'sample' => 'daily',
 	       'query' => 'Task name for expiration of old bounces',
 	       'file' => 'sympa.conf',
@@ -307,7 +269,7 @@ my @params = ({'title' => 'Directories and file location'},
 
 	      {'name' => 'nrcpt',
 	       'default' => '25',
-	       'query' => 'Maximum number of recipients per call to Sendmail. The nrcpt_by_domain.conf file allows a different tuning per destination domain.',
+	       'query' => 'Maximum number of recipients per call to Sendmail',
 	       'file' => 'sympa.conf',
 	       'advice' =>''},
 
@@ -323,6 +285,12 @@ my @params = ({'title' => 'Directories and file location'},
 	       'query' => 'Max. number of Sendmail processes (launched by Sympa) running simultaneously',
 	       'file' => 'sympa.conf',
 	       'advice' =>'Proposed value is quite low, you can rise it up to 100, 200 or even 300 with powerfull systems.'},
+
+	       {'name' => 'alias_manager',
+		'default' => '--SBINDIR--/alias_manager.pl',
+		'query' => 'Full path to program managing alias (alias_manager.pl | postfix_manager.pl) ',
+		'file' => 'wwsympa.conf','edit' => '1',
+		},
 
 	      {'title' => 'Pluggin'},
 
@@ -352,16 +320,12 @@ my @params = ({'title' => 'Directories and file location'},
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>'Sympa knowns S/MIME if openssl is installed'},
 
-	      {'name' => 'capath',
-	       'sample' => '--ETCDIR--/ssl.crt',
-	       'query' => 'The directory path use by OpenSSL for trusted CA certificates',
-	       'file' => 'sympa.conf','edit' => '1'},
-
-	      {'name' => 'cafile',
-	       'sample' => '/usr/local/apache/conf/ssl.crt/ca-bundle.crt',
-	       'query' => ' This parameter sets the all-in-one file where you can assemble the Certificates of Certification Authorities (CA)',
-	       'file' => 'sympa.conf','edit' => '1'},
-
+	      {'name' => 'trusted_ca_options',
+	       'sample' => '-CApath --DIR--/etc/ssl.crt -CAfile /usr/local/apache/conf/ssl.crt/ca-bundle.crt',
+	       'query' => 'The OpenSSL option string to qualify trusted CAs',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' => 'This parameter is used by sympa when sending some URL by mail'},
+	      
 	      {'name' => 'ssl_cert_dir',
 	       'default' => '--SSLCERTDIR--',
 	       'query' => 'User CERTs directory',
@@ -376,16 +340,16 @@ my @params = ({'title' => 'Directories and file location'},
 	      {'title' => 'Database'},
 	      
 	      {'name' => 'db_type',
-	       'default' => 'mysql',
-	       'query' => 'Database type (mysql | Pg | Oracle | Sybase | SQLite)',
+	       'sample' => 'mysql',
+	       'query' => 'Database type (mysql | Pg | Oracle | Sybase)',
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>'be carefull to the case'},
 
 	      {'name' => 'db_name',
-	       'default' => 'sympa',
+	       'sample' => 'sympa',
 	       'query' => 'Name of the database',
 	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'with SQLite, the name of the DB corresponds to the DB file'},
+	       'advice' =>''},
 
 	      {'name' => 'db_host',
 	       'sample' => 'localhost',
@@ -436,7 +400,7 @@ my @params = ({'title' => 'Directories and file location'},
 	       'advice' =>'This module provide much faster web interface'},
 
 	      {'name' => 'wwsympa_url',
-	       'default' => 'http://--HOST--/sympa',
+	       'default' => 'http://--HOST--/wws',
 	       'query' => "Sympa\'s main page URL",
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>''},
@@ -448,7 +412,7 @@ my @params = ({'title' => 'Directories and file location'},
 	       'advice' =>''},
 
 	      {'name' => 'icons_url',
-	       'default' => '/icons',
+	       'default' => '/icons/sympa',
 	       'query' => 'Icons directory (web) location for Sympa',
 	       'file' => 'wwsympa.conf'},
 
@@ -460,9 +424,39 @@ my @params = ({'title' => 'Directories and file location'},
 
 	       {'name' => 'default_shared_quota',
 	       'query' => 'Default disk quota for shared repository',
-	       'file' => 'sympa.conf','edit' => '1',
+	       'file' => 'wwsympa.conf','edit' => '1',
 	       'advice' =>''},
 
+	      {'name' => 'dark_color',
+	       'default' => '#006666',
+	       'query' => 'web interface color : dark',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+	      
+	      {'name' => 'selected_color',
+	       'default' => '#996666',
+	       'query' => 'web interface color : selected_color',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+	      
+	      {'name' => 'light_color',
+	       'default' => '#cccc66',
+	       'query' => 'web interface color : light',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+	      
+	      {'name' => 'shaded_color',
+	       'default' => '#66cccc',
+	       'query' => 'web_interface color : shaded',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+	      
+	      {'name' => 'bg_color',
+	       'default' => '#ffffcc',
+	       'query' => 'web_interface color : background',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+	      
 	      );
 
 
@@ -475,18 +469,14 @@ if ($ARGV[0] eq '-c') {
     }elsif ($file eq 'wwsympa.conf') {
 	$conf = $wwsympa_conf;
     }else {
-	print STDERR "$file is not a valid argument\n";
-	print STDERR "Usage: $0 -c sympa.conf | wwsympa.conf\n";
 	exit 1;
     }
     
-    if (-f $conf) {
-	print STDERR "$conf file already exists, exiting\n";
-	exit 1;
-    }
+    exit 1 if (-f $conf);
     
     unless (open (NEWF,"> $conf")){
-	die "Unable to open $conf : $!";
+	printf STDERR "Unable to open $conf, exiting";
+	exit;
     };
     
     if ($file eq 'sympa.conf') {
@@ -520,9 +510,6 @@ if ($ARGV[0] eq '-c') {
 	if (defined $params[$i]->{'sample'});
     }
 
-    close NEWF;
-    print STDERR "$conf file has been created\n";
-
     exit 0;
 }
 
@@ -536,10 +523,18 @@ unless ($wwsconf = &wwslib::load_config($wwsympa_conf)) {
 
 ## Load sympa config
 unless (&Conf::load( $sympa_conf )) {
-    die('Unable to load sympa config file $sympa_conf');
+    die('Unable to load sympa config file %s', $sympa_conf);
 }
 
-my (@new_wwsympa_conf, @new_sympa_conf);
+unless (open (WWSYMPA,"> $new_wwsympa_conf")){
+    printf STDERR "unable to open $new_wwsympa_conf, exiting";
+    exit;
+};
+
+unless (open (SYMPA,"> $new_sympa_conf")){
+    printf STDERR "unable to open $new_sympa_conf, exiting";
+    exit;
+};
 
 ## Edition mode
 foreach my $i (0..$#params) {
@@ -550,8 +545,10 @@ foreach my $i (0..$#params) {
 	printf "\n\n** $title **\n";
 
 	## write to conf file
-	push @new_wwsympa_conf, sprintf "###\\\\\\\\ %s ////###\n\n", $params[$i]->{'title'};
-	push @new_sympa_conf, sprintf "###\\\\\\\\ %s ////###\n\n", $params[$i]->{'title'};
+	$desc = \*WWSYMPA;
+	printf $desc "###\\\\\\\\ %s ////###\n\n", $params[$i]->{'title'};
+	$desc = \*SYMPA;
+	printf $desc "###\\\\\\\\ %s ////###\n\n", $params[$i]->{'title'};
 
 	next;
     }    
@@ -565,7 +562,7 @@ foreach my $i (0..$#params) {
     if ($file eq 'wwsympa.conf') {	
 	$current_value = $wwsconf->{$name} ;
     }elsif ($file eq 'sympa.conf') {
-	$current_value = $Conf::Conf{$name}; 
+	$current_value = $Conf{$name}; 
     }else {
 	printf STDERR "incorrect definition of $name\n";
     }
@@ -590,9 +587,9 @@ foreach my $i (0..$#params) {
     }
 
     if ($file eq 'wwsympa.conf') {
-	$desc = \@new_wwsympa_conf;
+	$desc = \*WWSYMPA;
     }elsif ($file eq 'sympa.conf') {
-	$desc = \@new_sympa_conf;
+	$desc = \*SYMPA;
     }else{
 	printf STDERR "incorrect parameter $name definition \n";
     }
@@ -600,55 +597,51 @@ foreach my $i (0..$#params) {
     if ($new_value eq '') {
 	next unless $sample;
 	
-	push @{$desc}, sprintf "## $query\n";
+	printf $desc "## $query\n";
 	
 	unless ($advice eq '') {
-	    push @{$desc}, sprintf "## $advice\n";
+	    printf $desc "## $advice\n";
 	}
 	
-	push @{$desc}, sprintf "# $name\t$sample\n\n";
+	printf $desc "# $name\t$sample\n\n";
     }else {
-	push @{$desc}, sprintf "## $query\n";
+	printf $desc "## $query\n";
 	unless ($advice eq '') {
-	    push @{$desc}, sprintf "## $advice\n";
+	    printf $desc "## $advice\n";
 	}
 	
 	if ($current_value ne $new_value) {
-	    push @{$desc}, sprintf "# was $name $current_value\n";
+	    printf $desc "# was $name $current_value\n";
 	    $somechange = 1;
 	}
     
-	push @{$desc}, sprintf "$name\t$new_value\n\n";
+	printf $desc "$name\t$new_value\n\n";
     }
 }
 
-if ($somechange) {
+close SYMPA;
+close WWSYMPA;
+
+if ($somechange ne '0') {
 
     my $date = &POSIX::strftime("%d.%b.%Y-%H.%M.%S", localtime(time));
 
-    ## Keep old config files
     unless (rename $wwsympa_conf, $wwsympa_conf.'.'.$date) {
-	warn "Unable to rename $wwsympa_conf : $!";
+	die "Unable to rename $wwsympa_conf\n";
     }
 
     unless (rename $sympa_conf, $sympa_conf.'.'.$date) {
-	warn "Unable to rename $sympa_conf : $!";
+	die "Unable to rename $sympa_conf\n";
     }
 
-    ## Write new config files
-    unless (open (WWSYMPA,"> $wwsympa_conf")){
-	die "unable to open $new_wwsympa_conf : $!";
-    };
+    unless (rename $new_wwsympa_conf, $wwsympa_conf) {
+	die "Unable to rename $new_wwsympa_conf\n";
+    }
+    
+    unless (rename $new_sympa_conf, $sympa_conf) {
+	die "Unable to rename $new_sympa_conf\n";
+    }
 
-    unless (open (SYMPA,"> $sympa_conf")){
-	die "unable to open $new_sympa_conf : $!";
-    };
-
-    print SYMPA @new_sympa_conf;
-    print WWSYMPA @new_wwsympa_conf;
-
-    close SYMPA;
-    close WWSYMPA;
 
     printf "$sympa_conf and $wwsympa_conf have been updated.\nPrevious versions have been saved as $sympa_conf.$date and $wwsympa_conf.$date\n";
 }

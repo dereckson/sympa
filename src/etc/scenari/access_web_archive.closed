@@ -1,5 +1,11 @@
-title.gettext closed
+title.fr fermé
+title.us closed
+title.et suletud 
+title.es cerrado
+title.de geschlossen
+title.cz uzavøen
+title.hu zárt
 
-true()   smime,md5 -> reject(reason='web_archive_closed')
+true()   smtp,smime,md5 -> reject
 
 
