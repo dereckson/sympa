@@ -1,6 +1,12 @@
-title.gettext add impossible
+title.fr ajout impossible
+title.us add impossible
+title.de add impossible
+title.es add imposible
 
-true()   smtp,md5,smime -> reject('add_closed')
+true()   smtp -> reject
+
+
+
 
 
 
