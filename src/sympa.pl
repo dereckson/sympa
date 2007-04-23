@@ -1,195 +1,85 @@
 #! --PERL--
-# sympa.pl - This script is the main one ; it runs as a daemon and does
-# the messages/commands processing
-# RCS Identication ; $Revision$ ; $Date$ 
-#
-# Sympa - SYsteme de Multi-Postage Automatique
-# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
-# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+##
+## Sympa - Main Program
 
+## Load the modules and whatever we need.
 use strict;
 
-use lib '--LIBDIR--';
+use lib '--DIR--/bin';
 #use Getopt::Std;
 use Getopt::Long;
 
 use Mail::Address;
+use Mail::Internet;
+use MIME::Parser;
+use MIME::Entity;
+use MIME::Words;
 use File::Path;
 
 use Commands;
 use Conf;
-use Auth;
 use Language;
 use Log;
 use Version;
-use mail;
+use smtp;
 use MIME::QuotedPrint;
 use List;
-use Message;
-use admin;
-use Config_XML;
-use Family;
-use report;
-use File::Copy;
 
+use mail;
 require 'tools.pl';
-require 'tt2.pl';
+require 'msg.pl';
 require 'parser.pl';
 
 # durty global variables
 my $is_signed = {}; 
 my $is_crypted ;
-# log_level is a global var, can be set by sympa.conf, robot.conf, list/config, --log_level or $PATHINFO  
-
 
 ## Internal tuning
+# delay between each read of the expirequeue
+my $expiresleep = 50 ; 
+
 # delay between each read of the digestqueue
 my $digestsleep = 5; 
 
-## Init random engine
-srand (time());
+## Options :  d		-> debug
+##            D         -> Debug with many logs
+##            f		-> name of configuration file
+##            m		-> log invocations to sendmail.
+##            l		-> language
+##            F		-> Foreground and log to stderr also.
+##            s         -> Dump subscribers list (listname or 'ALL' required)
 
-my $version_string = "Sympa version is $Version\n";
-
-my $daemon_name = &Log::set_daemon($0);
-my $ip;
-$ip = $ENV{'REMOTE_HOST'};
-$ip = $ENV{'REMOTE_ADDR'} unless ($ip);
-
-my $usage_string = "Usage:
-   $0 [OPTIONS]
-
-Options:
-   -d, --debug                           : sets Sympa in debug mode 
-   -f, --config=FILE                     : uses an alternative configuration file
-   --import=list\@dom                    : import subscribers (read from STDIN)
-   -k, --keepcopy=dir                    : keep a copy of incoming message
-   -l, --lang=LANG                       : use a language catalog for Sympa
-   -m, --mail                            : log calls to sendmail
-   --service=process_command|process_message|process_creation  : process dedicated to messages distribution, commands or to automatic lists creation (default three of them)
-   --dump=list\@dom|ALL                  : dumps subscribers 
-   --make_alias_file                     : create file in /tmp with all aliases (usefull when aliases.tpl is changed)
-   --lowercase                           : lowercase email addresses in database
-   --create_list --robot=robot_name --input_file=/path/to/file.xml 
-                                         : create a list with the xml file under robot_name
-   --instantiate_family=family_name  --robot=robot_name --input_file=/path/to/file.xml [--close_unknown] [--quiet]
-                                         : instantiate family_name lists described in the file.xml under robot_name,
-                                           the family directory must exist ;
-                                           automatically close undefined lists in a new instantation if --close_unknown specified,
-                                           do not print report if --quiet specified.
-  --add_list=family_name --robot=robot_name --input_file=/path/to/file.xml
-                                         : add the list described by the file.xml under robot_name, to the family
-                                           family_name.
-   --modify_list=family_name --robot=robot_name --input_file=/path/to/file.xml
-                                         : modify the existing list installed under the robot_name robot and that 
-                                           belongs to family_name family. The new description is in the file.xml
-   --close_family=family_name --robot=robot_name 
-                                         : close lists of family_name family under robot_name.      
-
-   --close_list=listname\@robot          : close a list
-   --purge_list=listname\@robot          : remove a list no backup is possible
-   --sync_include=listname\@robot        : trigger the list members update
-   --reload_list_config --list=mylist\@mydom  : recreates all config.bin files. You should run this command if you edit 
-                                                authorization scenarios. The list parameter is optional.
-   --upgrade [--from=X] [--to=Y]             : runs Sympa maintenance script to upgrade from version X to version Y
-   --log_level=LEVEL                     : sets Sympa log level
-   --md5_digest=password                 : output a MD5 digest of a password (usefull for SOAP client trusted application)
-   -h, --help                            : print this help
-   -v, --version                         : print version number
-
-Sympa is a mailinglists manager and comes with a complete (user and admin)
-web interface. Sympa  can be linked to an LDAP directory or an RDBMS to 
-create dynamic mailing lists. Sympa provides S/MIME and HTTPS based authentication and
-encryption.
-";
+#Getopt::Std::getopts('DdFf:ml:s:');
 
 ## Check --dump option
 my %options;
-unless (&GetOptions(\%main::options, 'dump=s', 'debug|d', ,'log_level=s','foreground', 'service=s','config|f=s', 
-		    'lang|l=s', 'mail|m', 'keepcopy|k=s', 'help', 'version', 'import=s','make_alias_file','lowercase',
-		    'close_list=s','purge_list=s','create_list','instantiate_family=s','robot=s','add_list=s','modify_list=s','close_family=s','md5_digest=s',
-		    'input_file=s','sync_include=s','upgrade','from=s','to=s','reload_list_config','list=s','quiet','close_unknown')) {
-    &fatal_err("Unknown options.");
-}
+&GetOptions(\%main::options, 'dump|s:s', 'debug|d', 'foreground|f', 'config|f=s', 'lang|l=s', 'messages|m');
 
-if ($main::options{'debug'}) {
-    $main::options{'log_level'} = 2 unless ($main::options{'log_level'});
-}
-## Batch mode, ie NOT daemon
-$main::options{'batch'} = 1 if ($main::options{'dump'} || 
-				$main::options{'help'} ||
-				$main::options{'version'} || 
-				$main::options{'import'} || 
-				$main::options{'make_alias_file'} ||
-				$main::options{'lowercase'} ||
-				$main::options{'close_list'} ||
-				$main::options{'purge_list'} ||
-				$main::options{'create_list'} ||
-				$main::options{'instantiate_family'} ||
-				$main::options{'add_list'} ||
-				$main::options{'modify_list'} ||
-				$main::options{'close_family'} ||
-				$main::options{'md5_digest'} || 
-				$main::options{'sync_include'} ||
-				$main::options{'upgrade'} ||
-				$main::options{'reload_list_config'}
-				 );
+## Trace options
+#foreach my $k (keys %main::options) {
+#    printf "%s = %s\n", $k, $main::options{$k};
+#}
 
-# Some option force foreground mode
-$main::options{'foreground'} = 1 if ($main::options{'debug'} || $main::options{'batch'});
-
-$main::options{'log_to_stderr'} = 1 unless ($main::options{'batch'});
-$main::options{'log_to_stderr'} = 1 if ($main::options{'upgrade'} || $main::options{'reload_list_config'});
-
-$log_level = $main::options{'log_level'} if ($main::options{'log_level'}); 
+$main::options{'debug2'} = 1 if ($main::options{'debug'});
 
 my @parser_param = ($*, $/);
 my %loop_info;
 my %msgid_table;
 
-# this loop is run foreach HUP signal received
-my $signal = 0;
-
-local $main::daemon_usage; 
-
-while ($signal ne 'term') { #as long as a SIGTERM is not received }
-
 my $config_file = $main::options{'config'} || '--CONFIG--';
 ## Load configuration file
 unless (Conf::load($config_file)) {
-   &fatal_err("Configuration file $config_file has errors.");
-   
+   print Msg(1, 1, "Configuration file $config_file has errors.\n");
+   exit(1);
 }
 
 ## Open the syslog and say we're read out stuff.
 do_openlog($Conf{'syslog'}, $Conf{'log_socket_type'}, 'sympa');
-
-# setting log_level using conf unless it is set by calling option
-if ($main::options{'log_level'}) {
-    do_log('info', "Configuration file read, log level set using options : $log_level"); 
-}else{
-    $log_level = $Conf{'log_level'};
-    do_log('info', "Configuration file read, default log level  $log_level"); 
-}
-
+do_log('info', 'Configuration file read'); 
 
 ## Probe Db if defined
 if ($Conf{'db_name'} and $Conf{'db_type'}) {
-    unless ($List::use_db = &Upgrade::probe_db()) {
+    unless ($List::use_db = &List::probe_db()) {
 	&fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
     }
 }
@@ -197,15 +87,15 @@ if ($Conf{'db_name'} and $Conf{'db_type'}) {
 ## Apply defaults to %List::pinfo
 &List::_apply_defaults();
 
-&tools::ciphersaber_installed();
-
-if (&tools::cookie_changed($Conf{'cookie'})) {
-     &fatal_err("sympa.conf/cookie parameter has changed. You may have severe inconsitencies into password storage. Restore previous cookie or write some tool to re-encrypt password in database and check spools contents (look at $Conf{'etc'}/cookies.history file)");
-}
-
 ## Set locale configuration
 $main::options{'lang'} =~ s/\.cat$//; ## Compatibility with version < 2.3.3
 $Language::default_lang = $main::options{'lang'} || $Conf{'lang'};
+&Language::LoadLang($Conf{'msgcat'});
+
+## Check locale version
+#if (Msg(1, 102, $Version) ne $Version){
+#    &do_log('info', 'NLS message file version %s different from src version %s', Msg(1, 102,""), $Version);
+#} 
 
 ## Main program
 if (!chdir($Conf{'home'})) {
@@ -213,667 +103,116 @@ if (!chdir($Conf{'home'})) {
    ## Function never returns.
 }
 
-if ($main::options{'service'} eq 'process_message') {
-    $main::daemon_usage = DAEMON_MESSAGE;
-}elsif ($main::options{'service'} eq 'process_command') {
-    $main::daemon_usage = DAEMON_COMMAND;
-}elsif ($main::options{'service'} eq 'process_creation') {
-    $main::daemon_usage = DAEMON_CREATION;
-}else{
-    $main::daemon_usage = DAEMON_ALL; # default is to run one sympa.pl server for commands, messages and automatic lists creation. 
-}
+## Sets the UMASK
+umask($Conf{'umask'});
+
+## Set the UserID & GroupID for the process
+$< = $> = (getpwnam('--USER--'))[2];
+$( = $) = (getpwnam('--GROUP--'))[2];
 
 ## Check for several files.
-unless (&Conf::checkfiles_as_root()) {
-   fatal_err("output checkfiles_as_root : Missing files. Aborting.");
+unless (&Conf::checkfiles()) {
+   fatal_err("Missing files. Aborting.");
    ## No return.
-}
-
-## Check that the data structure is uptodate
-unless ($main::options{'upgrade'} || $main::options{'help'}) {
-    unless (&Upgrade::data_structure_uptodate()) {
-	&fatal_err("error : data structure was not updated ; you should run sympa.pl --upgrade to run the upgrade process.");
-    }
-}
-
-if ($signal ne 'hup') {
-    ## Put ourselves in background if we're not in debug mode. That method
-    ## works on many systems, although, it seems that Unix conceptors have
-    ## decided that there won't be a single and easy way to detach a process
-    ## from its controlling tty.
-    unless ($main::options{'foreground'}) {
-	if (open(TTY, "/dev/tty")) {
-	    ioctl(TTY, 0x20007471, 0);         # XXX s/b &TIOCNOTTY
-	    #       ioctl(TTY, &TIOCNOTTY, 0);
-	    close(TTY);
-	}
-	open(STDIN, ">> /dev/null");
-	open(STDOUT, ">> /dev/null");
-	open(STDERR, ">> /dev/null");
-
-	setpgrp(0, 0);
-	# start the main sympa.pl daemon
-
-	## Fork a new process dedicated to automatic list creation, if required
-	if (($Conf{'automatic_list_feature'} eq 'on') || $main::daemon_usage == DAEMON_CREATION) {
-	    do_log('debug', "Starting server for automatic lists creation");
-	    if ((my $child_pid = fork) != 0) {
-		do_log('notice', "Server for automatic lists creation started, pid $child_pid");
-		do_log('debug', "Server for automatic lists creation started, pid $child_pid, exiting from initial process");
-	    }else {
-		## We're in the specialized child process
-		$main::daemon_usage = DAEMON_CREATION; # automatic lists creation	    
-	    }
-	}
-
-	unless ($main::daemon_usage == DAEMON_CREATION) {
-
-	    ## A single process that handles both messages and commands
-	    ## The distribute/ spool is not used
-	    if ($Conf{'distribution_mode'} eq 'single' && 
-		
-		$main::daemon_usage == DAEMON_ALL ) {
-		my $purpose = 'all';
-		&do_log('debug', "Starting server for $purpose purpose");
-		if ((my $child_pid = fork) != 0) {
-		    do_log('info', "Server started for $purpose, pid $child_pid");
-		    do_log('debug', "$purpose server started, pid $child_pid, exiting from initial process");
-		    exit(0);
-		}
-		
-		## Starting a dedicated process if sympa.pl is started with a --service argument
-	    }elsif ($main::daemon_usage == DAEMON_COMMAND ||
-		    $main::daemon_usage == DAEMON_COMMAND){
-		
-		my $purpose;
-		if ($main::daemon_usage == DAEMON_COMMAND) {$purpose = 'command';}
-		elsif ($main::daemon_usage == DAEMON_MESSAGE) {$purpose = 'message';}
-		do_log('debug', "Starting server for $purpose purpose");
-		if ((my $child_pid = fork) != 0) {
-		    do_log('info', "Server started for $purpose, pid $child_pid");
-		    do_log('debug', "$purpose server started, pid $child_pid, exiting from initial process");
-		    exit(0);
-		}
-		
-		## Sympa forks to have 2 dedicated processes for processing commands and messages
-	    }else{
-		$main::daemon_usage = DAEMON_COMMAND; # fork sympa.pl dedicated to commands
-		do_log('debug', "Starting server for commands");
-		if ((my $child_pid = fork) != 0) {
-		    do_log('info', "Server for commands started, pid $child_pid");
-		    $main::daemon_usage = DAEMON_MESSAGE; # main process continue in order to fork
-		    do_log('debug', "Starting server for messages");	    
-		    if ((my $child_pid = fork) != 0) {
-			do_log('notice', "Server for messages started, pid $child_pid");
-			do_log('debug', "Server for messages started, pid $child_pid, exiting from initial process");
-			exit(0);  # exit from main process
-		    }
-		}
-	    }
-	}
-    }
-
-    my $service = 'sympa';
-    $service .= '(message)' if ($main::daemon_usage == DAEMON_MESSAGE);
-    $service .= '(command)' if ($main::daemon_usage == DAEMON_COMMAND);
-    $service .= '(creation)' if ($main::daemon_usage == DAEMON_CREATION);
-    do_openlog($Conf{'syslog'}, $Conf{'log_socket_type'}, $service);
-
-    do_log('debug', "Running server $$ for $service purpose ");
-    unless ($main::options{'batch'} ) {
-
-	## Create and write the pidfile
-	my $file = $Conf{'pidfile'};
-	$file = $Conf{'pidfile_distribute'} if ($main::daemon_usage == DAEMON_MESSAGE) ;
-	$file = $Conf{'pidfile_creation'} if ($main::daemon_usage == DAEMON_CREATION) ;
-	&tools::write_pid($file, $$);
-    }	
-
-
-    # Set the UserID & GroupID for the process
-    $( = $) = (getgrnam('--GROUP--'))[2];
-    $< = $> = (getpwnam('--USER--'))[2];
-
-    ## Required on FreeBSD to change ALL IDs(effective UID + real UID + saved UID)
-    &POSIX::setuid((getpwnam('--USER--'))[2]);
-    &POSIX::setgid((getgrnam('--GROUP--'))[2]);
-
-    ## Check if the UID has correctly been set (usefull on OS X)
-    unless (($( == (getgrnam('--GROUP--'))[2]) && ($< == (getpwnam('--USER--'))[2])) {
-	&fatal_err("Failed to change process userID and groupID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via SUDO.");
-    }
-
-    # Sets the UMASK
-    umask(oct($Conf{'umask'}));
-
- ## Most initializations have now been done.
-    do_log('notice', "Sympa $Version started");
-}else{
-    do_log('notice', "Sympa $Version reload config");
-    $signal = '0';
-}
-
-## Check for several files.
-## Prevent that 2 processes perform checks at the same time...
-if ($main::daemon_usage == DAEMON_COMMAND ||
-    $main::daemon_usage == DAEMON_ALL) {
-    unless (&Conf::checkfiles()) {
-	fatal_err("Missing files. Aborting.");
-	## No return.
-    }
-}else {
-    sleep 1; ## wait until main process has created required directories
 }
 
 ## Daemon called for dumping subscribers list
 if ($main::options{'dump'}) {
     
-    my ($all_lists, $list);
+    my @listnames;
     if ($main::options{'dump'} eq 'ALL') {
-	$all_lists = &List::get_lists('*');
-    }else {	
-	
-	## The parameter can be a list address
-	unless ($main::options{'dump'} =~ /\@/) {
-	    &do_log('err','Incorrect list address %s', $main::options{'dump'});
-	    
-	    exit;
-	} 
-
-	my $list = new List ($main::options{'dump'});
-	unless (defined $list) {
-	    &do_log('err','Unknown list %s', $main::options{'dump'});
-	    
-	    exit;
-	}
-	push @$all_lists, $list;
-    }
-
-    foreach my $list (@$all_lists) {
-	unless ($list->dump()) {
-	    printf STDERR "Could not dump list(s)\n";
-	}
-    }
-
-    exit 0;
-}elsif ($main::options{'help'}) {
-    print $usage_string;
-    exit 0;
-}elsif ($main::options{'make_alias_file'}) {
-    my $all_lists = &List::get_lists('*');
-    unless (open TMP, ">/tmp/sympa_aliases.$$") {
-	printf STDERR "Unable to create tmp/sympa_aliases.$$, exiting\n";
-	exit;
-    }
-    printf TMP "#\n#\tAliases for all Sympa lists open (but not for robots)\n#\n";
-    close TMP;
-    foreach my $list (@$all_lists) {
-	system ("--SBINDIR--/alias_manager.pl add $list->{'name'} $list->{'domain'} /tmp/sympa_aliases.$$") if ($list->{'admin'}{'status'} eq 'open');
-    }
-    printf ("Sympa aliases file is /tmp/sympa_aliases.$$ file made, you probably need to installed it in your SMTP engine\n");
-    
-    exit 0;
-}elsif ($main::options{'version'}) {
-    print $version_string;
-    
-    exit 0;
-}elsif ($main::options{'md5_digest'}) {
-    my $md5 = &tools::md5_fingerprint($main::options{'md5_digest'});
-    printf "md5 digest : $md5 \n";
-    
-    exit 0;
-}elsif ($main::options{'import'}) {
-    my ($list, $total);
-
-    ## The parameter should be a list address
-    unless ($main::options{'import'} =~ /\@/) {
-	&do_log('err','Incorrect list address %s', $main::options{'import'});
-	exit;
-    } 
-
-
-    unless ($list = new List ($main::options{'import'})) {
-	fatal_err('Unknown list name %s', $main::options{'import'});
-    }
-
-    ## Read imported data from STDIN
-    while (<STDIN>) {
-	next if /^\s*$/;
-	next if /^\s*\#/;
-
-	unless (/^\s*((\S+|\".*\")@\S+)(\s*(\S.*))?\s*$/) {
-	    printf STDERR "Not an email address: %s\n", $_;
-	}
-
-	my $email = lc($1);
-	my $gecos = $4;
-	my $u;
-	my $defaults = $list->get_default_user_options();
-	%{$u} = %{$defaults};
-	$u->{'email'} = $email;
-	$u->{'gecos'} = $gecos;
-
-	unless ($list->add_user($u)) {
-	    printf STDERR "\nCould not add %s\n", $email;
-	    next;
-	}
-	print STDERR '+';
-	
-	$total++;	
-    }
-    
-    printf STDERR "Total imported subscribers: %d\n", $total;
-
-    exit 0;
-}elsif ($main::options{'lowercase'}) {
-    
-    unless ($List::use_db) {
-	&fatal_err("You don't have a database setup, can't lowercase email addresses");
-    }
-
-    print STDERR "Working on user_table...\n";
-    my $total = &List::lowercase_field('user_table', 'email_user');
-
-    print STDERR "Working on subscriber_table...\n";
-    $total += &List::lowercase_field('subscriber_table', 'user_subscriber');
-
-    unless (defined $total) {
-	&fatal_err("Could not work on dabatase");
-    }
-
-    printf STDERR "Total lowercased rows: %d\n", $total;
-
-    exit 0;
-}elsif ($main::options{'close_list'}) {
-
-    my ($listname, $robotname) = split /\@/, $main::options{'close_list'};
-    my $list = new List ($listname, $robotname);
-
-    unless (defined $list) {
-	print STDERR "Incorrect list name $main::options{'close_list'}\n";
-	exit 1;
-    }
-
-    if ($list->{'admin'}{'family_name'}) {
- 	unless($list->set_status_family_closed('close_list',$list->{'name'})) {
- 	    print STDERR "Could not close list $main::options{'close_list'}\n";
- 	    exit 1;	
- 	}
-    } else {
-	unless ($list->close()) {
-	    print STDERR "Could not close list $main::options{'close_list'}\n";
-	    exit 1;	
-	}
-    }
-
-    printf STDOUT "List %s has been closed, aliases have been removed\n", $list->{'name'};
-    
-    exit 0;
-}elsif ($main::options{'purge_list'}) {
-
-    my ($listname, $robotname) = split /\@/, $main::options{'purge_list'};
-    my $list = new List ($listname, $robotname);
-
-    unless (defined $list) {
-	print STDERR "Incorrect list name $main::options{'purge_list'}\n";
-	exit 1;
-    }
-
-    if ($list->{'admin'}{'family_name'}) {
- 	unless($list->set_status_family_closed('purge_list',$list->{'name'})) {
- 	    print STDERR "Could not purge list $main::options{'purge_list'}\n";
- 	    exit 1;	
- 	}
-    } else {
-	unless ($list->purge()) {
-	    print STDERR "Could not purge list $main::options{'close_list'}\n";
-	    exit 1;	
-	}
-    }
-
-    printf STDOUT "List %s has been closed, aliases have been removed\n", $list->{'name'};
-    
-    exit 0;
-}elsif ($main::options{'create_list'}) {
-    
-    my $robot = $main::options{'robot'} || $Conf{'host'};
-    
-    unless ($main::options{'input_file'}) {
- 	print STDERR "Error : missing 'input_file' parameter\n";
- 	exit 1;
-    }
-
-    unless (open INFILE, $main::options{'input_file'}) {
-	print STDERR "Unable to open $main::options{'input_file'}) file";
- 	exit 1;	
-    }
-    
-    my $config = new Config_XML(\*INFILE);
-    unless (defined $config->createHash()) {
- 	print STDERR "Error in representation data with these xml data\n";
- 	exit 1;
-    } 
-    
-    my $hash = $config->getHash();
-    
-    close INFILE;
-
-    my $resul = &admin::create_list_old($hash->{'config'},$hash->{'type'},$robot);
-    unless (defined $resul) {
- 	print STDERR "Could not create list with these xml data\n";
- 	exit 1;
-    }
-    
-    if (! defined($resul->{'aliases'}) || $resul->{'aliases'} == 1) {
- 	printf STDOUT "List has been created \n";
- 	exit 0;
+	@listnames = &List::get_lists();
     }else {
- 	printf STDOUT "List has been created, required aliases :\n $resul->{'aliases'} \n";
- 	exit 0;
-    }
-}elsif ($main::options{'instantiate_family'}) {
-    
-    my $robot = $main::options{'robot'} || $Conf{'host'};
-
-    my $family_name;
-    unless ($family_name = $main::options{'instantiate_family'}) {
- 	print STDERR "Error : missing family parameter\n";
- 	exit 1;
-    }
-    my $family;
-    unless ($family = new Family($family_name,$robot)) {
- 	print STDERR "The family $family_name does not exist, impossible instantiation\n";
- 	exit 1;
+	@listnames = ($main::options{'dump'});
     }
 
-    unless ($main::options{'input_file'}) {
- 	print STDERR "Error : missing input_file parameter\n";
- 	exit 1;
-    }
-
-    unless (-r $main::options{'input_file'}) {
-	print STDERR "Unable to read $main::options{'input_file'} file";
- 	exit 1;	
-    }
-
-    unless ($family->instantiate($main::options{'input_file'}, $main::options{'close_unknown'})) {
- 	print STDERR "\nImpossible family instantiation : action stopped \n";
- 	exit 1;
-    } 
-        
-    my %result;
-    my $err = $family->get_instantiation_results(\%result);
-    close INFILE;
-
-    unless ($main::options{'quiet'}) {
-        print STDOUT "@{$result{'info'}}";
-        print STDOUT "@{$result{'warn'}}";
-    }
-    if ($err) {
-        print STDERR "@{$result{'errors'}}";
-    }
-    
-    exit 0;
-}elsif ($main::options{'add_list'}) {
-     
-    my $robot = $main::options{'robot'} || $Conf{'host'};
-
-    my $family_name;
-    unless ($family_name = $main::options{'add_list'}) {
-	print STDERR "Error : missing family parameter\n";
- 	exit 1;
-    }
-    
-    print STDOUT "\n************************************************************\n";
-    
-    my $family;
-    unless ($family = new Family($family_name,$robot)) {
- 	print STDERR "The family $family_name does not exist, impossible to add a list\n";
- 	exit 1;
-    }
-    
-    unless ($main::options{'input_file'}) {
- 	print STDERR "Error : missing 'input_file' parameter\n";
- 	exit 1;
-    }
-
-    unless (open INFILE, $main::options{'input_file'}) {
-	print STDERR "\n Impossible to open input file  : $! \n";
- 	exit 1;	
-    }
-
-    my $result;
-    unless ($result = $family->add_list(\*INFILE)) {
- 	print STDERR "\nImpossible to add a list to the family : action stopped \n";
- 	exit 1;
-    } 
-    
-    print STDOUT "\n************************************************************\n";
-    
-    unless (defined $result->{'ok'}) {
- 	printf STDERR "\n%s\n", join ("\n", @{$result->{'string_info'}});
- 	print STDERR "\n The action has been stopped because of error :\n";
- 	printf STDERR "\n%s\n", join ("\n", @{$result->{'string_error'}});
- 	exit 1;
-    }
-    
-    close INFILE;
-
-    print STDOUT "\n%s\n", join ("\n", @{$result->{'string_info'}});
-    exit 0;
-}elsif ($main::options{'sync_include'}) {
-
-    my $list = new List ($main::options{'sync_include'});
-
-    unless (defined $list) {
-	print STDERR "Incorrect list name $main::options{'sync_include'}\n";
-	exit 1;
-    }
-
-    unless (defined $list->sync_include()) {
-	print STDERR "Failed to synchronize list members\n";
-	exit 1;
-    }
-
-    printf "Members of list %s have been successfully update.\n", $list->get_list_address();
-    exit 0;
-## Migration from one version to another
-}elsif ($main::options{'upgrade'}) {
-    
-    &do_log('notice', "Upgrade process...");
-
-    $main::options{'from'} ||= &Upgrade::get_previous_version();
-    $main::options{'to'} ||= $Version::Version;
-
-    if ($main::options{'from'} eq $main::options{'to'}) {
-	&do_log('err', "Current version : %s ; no upgrade is required.", $main::options{'to'});
-	exit 0;
-    }else {
-	&do_log('notice', "Upgrading from %s to %s...", $main::options{'from'}, $main::options{'to'});
-    }
-
-    unless (&Upgrade::upgrade($main::options{'from'}, $main::options{'to'})) {
-	&do_log('err',  "Migration from %s to %s failed", $main::options{'from'}, $main::options{'to'});
- 	exit 1;
-    }
-
-    &do_log('notice', "Upgrade process finished.");    
-    &Upgrade::update_version();
-
-    exit 0;
-
-## Reload binary list config files
-}elsif ($main::options{'reload_list_config'}) {
-
-    if ($main::options{'list'}) {
-
-	&do_log('notice', "Loading list $main::options{'list'}...");
-	my $list = new List ($main::options{'list'}, '', {'reload_config' => 1});
-	unless (defined $list) {
-	    print STDERR "Error : incorrect list name '$main::options{'list'}'\n";
-	    exit 1;
-	}
-    }else {
-	&do_log('notice', "Loading ALL lists...");
-	my $all_lists = &List::get_lists('*',{'reload_config' => 1});
-    }
+    &List::dump(@listnames);
 
     exit 0;
 }
 
-##########################################
-elsif ($main::options{'modify_list'}) {
-    
-    my $robot = $main::options{'robot'} || $Conf{'host'};
-
-    my $family_name;
-    unless ($family_name = $main::options{'modify_list'}) {
- 	print STDERR "Error : missing family parameter\n";
- 	exit 1;
-    }
-    
-    print STDOUT "\n************************************************************\n";
-    
-    my $family;
-    unless ($family = new Family($family_name,$robot)) {
- 	print STDERR "The family $family_name does not exist, impossible to modify the list.\n";
- 	exit 1;
-    }
-    
-    unless ($main::options{'input_file'}) {
- 	print STDERR "Error : missing input_file parameter\n";
- 	exit 1;
-    }
-
-    unless (open INFILE, $main::options{'input_file'}) {
-	print STDERR "Unable to open $main::options{'input_file'}) file";
- 	exit 1;	
-    }
-
-    my $result;
-    unless ($result = $family->modify_list(\*INFILE)) {
- 	print STDERR "\nImpossible to modify the family list : action stopped. \n";
- 	exit 1;
-    } 
-    
-    print STDOUT "\n************************************************************\n";
-    
-    unless (defined $result->{'ok'}) {
- 	printf STDERR "\n%s\n", join ("\n", @{$result->{'string_info'}});
- 	print STDERR "\nThe action has been stopped because of error :\n";
- 	printf STDERR "\n%s\n", join ("\n", @{$result->{'string_error'}});
- 	exit 1;
-    }
-
-    close INFILE;
-    
-    printf STDOUT "\n%s\n", join ("\n", @{$result->{'string_info'}});
-    exit 0;
+## Put ourselves in background if we're not in debug mode. That method
+## works on many systems, although, it seems that Unix conceptors have
+## decided that there won't be a single and easy way to detach a process
+## from its controlling tty.
+unless ($main::options{'debug'} || $main::options{'foreground'}) {
+   if (open(TTY, "/dev/tty")) {
+       ioctl(TTY, 0x20007471, 0);         # XXX s/b &TIOCNOTTY
+#       ioctl(TTY, &TIOCNOTTY, 0);
+       close(TTY);
+   }
+   open(STDERR, ">> /dev/null");
+   open(STDOUT, ">> /dev/null");
+   setpgrp(0, 0);
+   if (($_ = fork) != 0) {
+      do_log('debug', "Starting server, pid $_");
+      exit(0);
+   }
+   do_openlog($Conf{'syslog'}, $Conf{'log_socket_type'}, 'sympa');
 }
 
-##########################################
-elsif ($main::options{'close_family'}) {
-    
-    my $robot = $main::options{'robot'} || $Conf{'host'};
-
-    my $family_name;
-    unless ($family_name = $main::options{'close_family'}) {
- 	print STDERR $usage_string;
- 	exit 1;
-    }
-    my $family;
-    unless ($family = new Family($family_name,$robot)) {
- 	print STDERR "The family $family_name does not exist, impossible family closure\n";
- 	exit 1;
-    }
-    
-    my $string;
-    unless ($string = $family->close()) {
- 	print STDERR "\nImpossible family closure : action stopped \n";
- 	exit 1;
-    } 
-    
-    print STDOUT $string;
-    exit 0;
+## Create and write the pidfile
+unless (open(LOCK, "+>> $Conf{'pidfile'}")) {
+   fatal_err("Could not open %s, exiting", $Conf{'pidfile'});
+   ## No return.
 }
- 
-
-## Do we have right access in the directory
-if ($main::options{'keepcopy'}) {
-    if (! -d $main::options{'keepcopy'}) {
-	&do_log('notice', 'Cannot keep a copy of incoming messages : %s is not a directory', $main::options{'keepcopy'});
-	delete $main::options{'keepcopy'};
-    }elsif (! -w $main::options{'keepcopy'}) {
-	&do_log('notice','Cannot keep a copy of incoming messages : no write access to %s', $main::options{'keepcopy'});
-	delete $main::options{'keepcopy'};
-    }
+unless (flock(LOCK, 6)) {
+   fatal_err("Could not lock %s: Sympa is probably already running.", $Conf{'pidfile'});
+   ## No return.
 }
+
+unless (open(LCK, "> $Conf{'pidfile'}")) {
+   fatal_err("Could not open %s, exiting", $Conf{'pidfile'});
+   ## No return.
+}
+
+unless (truncate(LCK, 0)) {
+   fatal_err("Could not truncate %s, exiting.", $Conf{'pidfile'});
+   ## No return.
+}
+print LCK "$$\n";
+close(LCK);
+
+## Most initializations have now been done.
+do_log('notice', "Sympa $Version Started");
+printf "Sympa $Version Started\n";
 
 ## Catch SIGTERM, in order to exit cleanly, whenever possible.
 $SIG{'TERM'} = 'sigterm';
-$SIG{'HUP'} = 'sighup';
-$SIG{'PIPE'} = 'IGNORE'; ## Ignore SIGPIPE ; prevents sympa.pl from dying
 
+my $end = 0;
 my $index_queuedigest = 0; # verify the digest queue
-my $index_cleanqueue = 0; 
+my $index_queueexpire = 0; # verify the expire queue
 my @qfile;
 
-my $spool = $Conf{'queue'};
-# if daemon is dedicated to message or automatic lists creation, change the current spool
-if ($main::daemon_usage == DAEMON_MESSAGE) {
-    $spool = $Conf{'queuedistribute'};
-}elsif ($main::daemon_usage == DAEMON_CREATION) {
-    $spool = $Conf{'queueautomatic'};
-}
-
-## This is the main loop : look for files in the directory, handles
+## This is the main loop : look after files in the directory, handles
 ## them, sleeps a while and continues the good job.
-while (!$signal) {
-
-    # setting log_level using conf unless it is set by calling option
-    unless ($main::options{'log_level'}) {
-	$log_level = $Conf{'log_level'};
-	# do_log('notice', "Reset default log level  $log_level"); 
-    }
-    
+while (!$end) {
 
     &Language::SetLang($Language::default_lang);
 
     &List::init_list_cache();
 
-    if (!opendir(DIR, $spool)) {
-	fatal_err("Can't open dir %s: %m", $spool); ## No return.
+    if (!opendir(DIR, $Conf{'queue'})) {
+	fatal_err("Can't open dir %s: %m", $Conf{'queue'}); ## No return.
     }
-    @qfile = sort tools::by_date grep (!/^\./,readdir(DIR));
+    @qfile = sort grep (!/^\./,readdir(DIR));
     closedir(DIR);
-
-    unless ($main::daemon_usage == DAEMON_COMMAND)  { # process digest only in distribution mode
-	## Scan queuedigest
-	if ($index_queuedigest++ >=$digestsleep){
-	    $index_queuedigest=0;
-	    &SendDigest();
-	}
-    }
-    unless ($main::daemon_usage == DAEMON_MESSAGE) { # process expire and bads only in command mode 
     
-	## Clean queue (bad)
-	if ($index_cleanqueue++ >= 100){
-	    $index_cleanqueue=0;
-	    &CleanSpool("$spool/bad", $Conf{'clean_delay_queue'});
-	    &CleanSpool($Conf{'queuemod'}, $Conf{'clean_delay_queuemod'});
-	    &CleanSpool($Conf{'queueauth'}, $Conf{'clean_delay_queueauth'});
-	    &CleanSpool($Conf{'queuetopic'}, $Conf{'clean_delay_queuetopic'});
-	    &CleanSpool($Conf{'tmpdir'}, 7);
-	    &CleanSpool($Conf{'queuesubscribe'}, $Conf{'clean_delay_queuesubscribe'});
-	    &CleanSpool($Conf{'queueautomatic'}, $Conf{'clean_delay_queueautomatic'});
-	}
+    ## Scan queuedigest
+    if ($index_queuedigest++ >=$digestsleep){
+	$index_queuedigest=0;
+	&SendDigest();
     }
+    ## Scan the queueexpire
+    if ($index_queueexpire++ >=$expiresleep){
+	$index_queueexpire=0;
+	&ProcessExpire();
+    }
+
     my $filename;
     my $listname;
-    my $robot;
-
     my $highest_priority = 'z'; ## lowest priority
-    my $t_spool = $spool; ## in single mode we may have to supervise automatic spool
     
     ## Scans files in queue
     ## Search file with highest priority
@@ -881,16 +220,15 @@ while (!$signal) {
 	my $priority;
 	my $type;
 	my $list;
-	my ($t_listname, $t_robot);
-	
+
 	# trying to fix a bug (perl bug ??) of solaris version
 	($*, $/) = @parser_param;
 
 	## test ever if it is an old bad file
 	if ($t_filename =~ /^BAD\-/i){
- 	    if ((stat "$t_spool/$t_filename")[9] < (time - &Conf::get_robot_conf($robot, 'clean_delay_queue')*86400) ){
- 		unlink ("$t_spool/$t_filename") ;
-		&do_log('notice',"Deleting bad message %s because too old", $t_filename);
+	    if ((stat "$Conf{'queue'}/$t_filename")[9] < (time - $Conf{'clean_delay_queue'}*86400) ){
+		unlink ("$Conf{'queue'}/$t_filename") ;
+		do_log('notice', "Deleting bad message %s because too old", $t_filename);
 	    };
 	    next;
 	}
@@ -902,44 +240,33 @@ while (!$signal) {
 	## Don't process temporary files created by queue (T.xxx)
 	next if ($t_filename =~ /^T\./);
 
-	($t_listname, $t_robot) = split(/\@/,$1);
+	## Extract listname from filename
+	$listname = $1;
+	$listname =~ s/\@.*$//;
+	$listname =~ y/A-Z/a-z/;
+	if ($listname =~ /^(\S+)-(request|owner|editor|subscribe|unsubscribe)$/) {
+	    ($listname, $type) = ($1, $2);
+	}
+
+	unless ($listname =~ /^(sympa|listmaster|$Conf{'email'})(\@$Conf{'host'})?$/i) {
+	    unless ($list = new List ($listname)) {
+		rename("$Conf{'queue'}/$t_filename", "$Conf{'queue'}/BAD-$t_filename");
+		do_log('notice', "Renaming bad file %s to BAD-%s", $t_filename, $t_filename);
+	    }
+	    next unless $list;
+	}
 	
-	$t_listname = lc($t_listname);
-	if ($t_robot) {
-	    $t_robot=lc($t_robot);
-	}else{
-	    $t_robot = lc(&Conf::get_robot_conf($robot, 'host'));
-	}
-
-	my $list_check_regexp = &Conf::get_robot_conf($robot,'list_check_regexp');
-
-	if ($t_listname =~ /^(\S+)-($list_check_regexp)$/) {
-	    ($t_listname, $type) = ($1, $2);
-	}
-
-	# (sa) le terme "(\@$Conf{'host'})?" est inutile
-	#unless ($t_listname =~ /^(sympa|$Conf{'listmaster_email'}|$Conf{'email'})(\@$Conf{'host'})?$/i) {
-	#    $list = new List ($t_listname);
-	#}
-
-	my $email = &Conf::get_robot_conf($robot, 'email');	
-
-	if ($t_listname eq $Conf{'listmaster_email'}) {
+	if ($listname eq 'listmaster') {
 	    ## highest priority
 	    $priority = 0;
 	}elsif ($type eq 'request') {
-	    $priority = &Conf::get_robot_conf($robot, 'request_priority');
+	    $priority = $Conf{'request_priority'};
 	}elsif ($type eq 'owner') {
-	    $priority = &Conf::get_robot_conf($robot, 'owner_priority');
-	}elsif ($t_listname =~ /^(sympa|$email)(\@$Conf{'host'})?$/i) {	
-	    $priority = &Conf::get_robot_conf($robot,'sympa_priority');
+	    $priority = $Conf{'owner_priority'};
+	}elsif ($listname =~ /^(sympa|$Conf{'email'})(\@$Conf{'host'})?$/i) {	
+	    $priority = $Conf{'sympa_priority'};
 	}else {
-	    my $list =  new List ($t_listname, $t_robot, {'just_try' => 1});
-	    if ($list) {
-		$priority = $list->{'admin'}{'priority'};
-	    }else {
-		$priority = &Conf::get_robot_conf($robot, 'default_list_priority');
-	    }
+	    $priority = $list->{'admin'}{'priority'};
 	}
 	
 	if (ord($priority) < ord($highest_priority)) {
@@ -948,48 +275,24 @@ while (!$signal) {
 	}
     } ## END of spool lookup
 
-    &mail::reaper;
+    &smtp::reaper;
 
     unless ($filename) {
-	sleep(&Conf::get_robot_conf($robot, 'sleep'));
+	sleep($Conf{'sleep'});
 	next;
     }
 
-    &do_log('debug', "Processing %s/%s with priority %s", $t_spool,$filename, $highest_priority) ;
-    
-    if ($main::options{'mail'} != 1) {
-	$main::options{'mail'} = $robot if (&Conf::get_robot_conf($robot, 'log_smtp'));
-    }
+    do_log('debug', "Processing %s with priority %s", "$Conf{'queue'}/$filename", $highest_priority) 
+	if ($main::options{'debug'});
 
-    ## Set NLS default lang for current message
-    $Language::default_lang = $main::options{'lang'} || &Conf::get_robot_conf($robot, 'lang');
-
-    my $status = &DoFile("$t_spool/$filename");
+    my $status = &DoFile($listname, "$Conf{'queue'}/$filename");
     
     if (defined($status)) {
-	&do_log('debug', "Finished %s", "$t_spool/$filename") ;
-
-	if ($main::options{'keepcopy'}) {
-	    unless (&File::Copy::copy($t_spool.'/'.$filename, $main::options{'keepcopy'}.'/'.$filename) ) {
- 		&do_log('notice', 'Could not rename %s to %s: %s', "$t_spool/$filename", $main::options{'keepcopy'}."/$filename", $!);
-	    }
-	}
-	unlink("$t_spool/$filename");
+	do_log('debug', "Finished %s", "$Conf{'queue'}/$filename") if ($main::options{'debug'});
+	unlink("$Conf{'queue'}/$filename");
     }else {
-	my $bad_dir = "$t_spool/bad";
-	
-	if (-d $bad_dir) {
-	    unless (rename("$t_spool/$filename", "$bad_dir/$filename")){
-		&fatal_err("Exiting, unable to rename bad file $filename to $bad_dir/$filename (check directory permission)");
-	    }
-	    do_log('notice', "Moving bad file %s to bad/", $filename);
-	}else{
-	    do_log('notice', "Missing directory '%s'", $bad_dir);
-	    unless (rename("$t_spool/$filename", "$t_spool/BAD-$filename")) {
-		&fatal_err("Exiting, unable to rename bad file $filename to BAD-$filename");
-	    }
-	    do_log('notice', "Renaming bad file %s to BAD-%s", $filename, $filename);
-	}	
+	rename("$Conf{'queue'}/$filename", "$Conf{'queue'}/BAD-$filename");
+	do_log('notice', "Renaming bad file %s to BAD-%s", $filename, $filename);
     }
 
 } ## END of infinite loop
@@ -1000,255 +303,113 @@ while (!$signal) {
 ## Disconnect from Database
 List::db_disconnect if ($List::dbh);
 
-} #end of block while ($signal ne 'term'){
-
 do_log('notice', 'Sympa exited normally due to signal');
-my $file = $Conf{'pidfile'};
-$file = $Conf{'pidfile_distribute'} if ($main::daemon_usage == DAEMON_MESSAGE) ;
-$file = $Conf{'pidfile_creation'} if ($main::daemon_usage == DAEMON_CREATION) ;
-&tools::remove_pid($file, $$);
-
+unless (unlink $Conf{'pidfile'}) {
+    fatal_err("Could not delete %s, exiting", $Conf{'pidfile'});
+    ## No return.
+}
 exit(0);
 
-
-############################################################
-# sigterm
-############################################################
-#  When we catch SIGTERM, just changes the value of the $signal 
-#  loop variable.
-#  
-# IN : -
-#      
-# OUT : -
-#
-############################################################
+## When we catch SIGTERM, just change the value of the loop
+## variable.
 sub sigterm {
-    &do_log('notice', 'signal TERM received, still processing current task');
-    $signal = 'term';
+    do_log('notice', 'signal TERM received, still processing current task');
+
+    $end = 1;
 }
 
-
-############################################################
-# sighup
-############################################################
-#  When we catch SIGHUP, changes the value of the $signal 
-#  loop variable and puts the "-mail" logging option
-#  
-# IN : -
-#      
-# OUT : -
-#
-###########################################################
-sub sighup {
-    if ($main::options{'mail'}) {
-	&do_log('notice', 'signal HUP received, switch of the "-mail" logging option and continue current task');
-	undef $main::options{'mail'};
-    }else{
-	&do_log('notice', 'signal HUP received, switch on the "-mail" logging option and continue current task');
-	$main::options{'mail'} = 1;
-    }
-    $signal = 'hup';
-}
-
-
-############################################################
-#  DoFile
-############################################################
-#  Handles a file received and files in the queue directory. 
-#  This will read the file, separate the header and the body 
-#  of the message and call the adequate function wether we 
-#  have received a command or a message to be redistributed 
-#  to a list.
-#  
-# IN : -$file (+): the file to handle
-#      
-# OUT : $status
-#     | undef
-#
-##############################################################
+## Handles a file received and files in the queue directory. This will
+## read the file, separate the header and the body of the message and
+## call the adequate function wether we have received a command or a
+## message to be redistributed to a list.
 sub DoFile {
-    my ($file) = @_;
-    &do_log('debug', 'DoFile(%s)', $file);
-
+    my ($listname, $file) = @_;
+    &do_log('debug2', 'DoFile(%s)', $file);
     
-    my ($listname, $robot);
     my $status;
     
-    my $message = new Message($file);
-    unless (defined $message) {
-	&do_log('err', 'Unable to create Message object %s', $file);
-	&Log::db_log({'robot' => $robot,'list' => $listname,'action' => 'DoFile','parameters' => "$file",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'unable_create_message','user_email' => '','client' => $ip,'daemon' => $daemon_name});
+    ## Open and parse the file   
+    if (!open(IN, $file)) {
+	&do_log('info', 'Can\'t open %s: %m', $file);
 	return undef;
     }
     
-    my $msg = $message->{'msg'};
+    my $parser = new MIME::Parser;
+    $parser->output_to_core(1);
+#    $parser->output_under('/tmp', (DirName => "MIMEParser.$$",
+#				   Purge => 1)
+#			  );
+
+    my $msg;
+    unless ($msg = $parser->read(\*IN)) {
+	do_log('notice', 'Unable to parse message %s', $file);
+	return undef;
+    }
     my $hdr = $msg->head;
-    my $rcpt = $message->{'rcpt'};
     
-    &do_log('notice', 'Processing %s ; sender: %s ; message-id: %s', $file, $hdr->get('From'), $hdr->get('Message-ID'));
-
-    ## get listname & robot
-    ($listname, $robot) = split(/\@/,$rcpt);
-    
-    $robot = lc($robot);
-    $listname = lc($listname);
-    $robot ||= $Conf{'host'};
-    
-    my $type;
-    my $list_check_regexp = &Conf::get_robot_conf($robot,'list_check_regexp');
-    if ($listname =~ /^(\S+)-($list_check_regexp)$/) {
-	($listname, $type) = ($1, $2);
-    }
-
-    # message prepared by wwsympa and distributed by sympa # dual
+    # message prepared by wwsympa and distributed by sympa
     if ( $hdr->get('X-Sympa-Checksum')) {
-	return (&DoSendMessage ($msg,$robot)) ;
+	return (&DoSendMessage ($msg)) ;
     }
-    
-    # setting log_level using conf unless it is set by calling option
-    unless ($main::options{'log_level'}) {
-	$log_level =  &Conf::get_robot_conf($robot,'log_level');
-	&do_log('debug', "Setting log level with $robot configuration (or sympa.conf) : $log_level"); 
-    }
-    
-    ## Ignoring messages with no sender
-    my $sender = $message->{'sender'};
-    unless ($sender) {
-	&do_log('err', 'No From found in message, skipping.');
-	&Log::db_log({'robot' => $robot,'list' => $listname,'action' => 'DoFile','parameters' => "$file",'target_email' => "",'msg_id' => $hdr->get('Message-ID'),'status' => 'error','error_type' => 'no_sender','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
+
+    ## Ignoring messages without From: field
+    unless ($hdr->get('From')) {
+	do_log('notice', 'No From found in message, skipping.');
 	return undef;
+    }    
+
+    my @sender_hdr = Mail::Address->parse($hdr->get('From'));
+    
+    if ($#sender_hdr == -1) {
+	do_log('notice', 'No valid address in From: field, skipping');
 	return undef;
     }
 
+    my $sender = $sender_hdr[0]->address;
+
+    ## Loop prevention
+    if ($sender =~ /^(mailer-daemon|sympa|listserv|mailman|majordomo|smartlist|$Conf{'email'})/mio) {
+	do_log('notice','Ignoring message which would cause a loop, sent by %s', $sender);
+	return undef;
+    }
+
+    ## Initialize command report
+    undef @msg::report;  
+    
+    ## Q- and B-decode subject
+    my $subject_field = &MIME::Words::decode_mimewords($hdr->get('Subject'));
+    chomp $subject_field;
+#    $hdr->replace('Subject', $subject_field);
+    
+    my $bytes = -s $file;
+    
+    my ($list, $host, $name);   
+    if ($listname =~ /^(sympa|listmaster|$Conf{'email'})(\@$Conf{'host'})?$/i) {
+	$host = $Conf{'host'};
+	$name = $listname;
+    }else {
+	$list = new List ($listname);
+	$host = $list->{'admin'}{'host'};
+	$name = $list->{'name'};
+    }
+
+    ## Search the X-Sympa-To header.
+    my $rcpt = $hdr->get('X-Sympa-To');
+    unless ($rcpt) {
+	do_log('notice', 'no X-Sympa-To found, ignoring message file %s', $file);
+	return undef;
+    }
+    
     ## Strip of the initial X-Sympa-To field
     $hdr->delete('X-Sympa-To');
     
-    ## Initialize command report
-    &report::init_report_cmd();
-	
-    ## Maybe we are an automatic list
-    #_amr ici on ne doit prendre que la première ligne !
-    my ($dyn_list_family, $dyn_just_created);
-    # we care of fake headers. If we put it, it's the 1st one.
-    if ($hdr->as_string() =~ /^X-Sympa-Family/mo) {
-      $dyn_list_family = $hdr->get('X-Sympa-Family');
-      chomp $dyn_list_family;
-    }
-    if ($main::daemon_usage == DAEMON_CREATION && !$dyn_list_family) {
-        &do_log('err','internal server error : automatic lists creation daemon should never proceed messages without X-Sympa-Family header');
-        &report::global_report_cmd('intern','Automatic lists creation daemon with message without header',{},$sender,$robot,1);
-        return undef;
-    }
-    $hdr->delete('X-Sympa-Family');
-
-    my $list_address;
-    my $conf_email = &Conf::get_robot_conf($robot, 'email');
-    my $conf_host = &Conf::get_robot_conf($robot, 'host');
-
-    ## Unknown robot
-    unless (&Conf::valid_robot($robot)) {
-	&do_log('err', 'sympa::DoFile() : robot %s does not exist',$robot);
-	&report::reject_report_msg('user','list_unknown',$sender,{'listname' => $listname,'message' => $message},$robot,$message->{'msg_as_string'},'');
-	&Log::db_log({'robot' => $robot,'list' => $listname,'action' => 'DoFile','parameters' => "$file",'target_email' => "",'msg_id' => $hdr->get('Message-ID'),'status' => 'error','error_type' => 'unknown_robot','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	return undef;
-    }
-    
-    my ($list, $host, $name);   
-    if ($listname =~ /^(sympa|$Conf{'listmaster_email'}|$conf_email)(\@$conf_host)?$/i) {
-	$host = $conf_host;
-	$name = $listname;
-	$list_address = $name.'@'.$host;
-    }else {
-	$list = new List ($listname, $robot);
-	unless (defined $list) {
-	    unless ($dyn_list_family) {
-		&do_log('err', 'sympa::DoFile() : list %s does not exist',$listname);
-		&report::reject_report_msg('user','list_unknown',$sender,{'listname' => $listname,'message' => $message},$robot,$message->{'msg_as_string'},'');
-		&Log::db_log({'robot' => $robot,'list' => $listname,'action' => 'DoFile','parameters' => "$file",'target_email' => "",'msg_id' => $hdr->get('Message-ID'),'status' => 'error','error_type' => 'unknown_list','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-		return undef;
-	    }
-
-	    ## Automatic creation of a mailing list, based on a family
-            my $dyn_family;
-            unless ($dyn_family = new Family($dyn_list_family,$robot)) {
-                &do_log('err', "Failed to process $file : family $dyn_list_family does not exist, impossible to create the dynamic list.");
-		&List::send_notify_to_listmaster('automatic_list_creation_failed',$robot,["Failed to process $file : family $dyn_list_family does not exist, impossible to create the dynamic list."]);
-		&report::reject_report_msg('user','list_unknown',$sender,{'listname' => $listname,'message' => $message},$robot,$message->{'msg_as_string'},'');
-		return undef;
-            }
-            
-	    # check authorization
-	    my $result = &List::request_action('automatic_list_creation',
-	        ($message->{'smime_signed'} ? 'smime' : 'smtp'),$robot,
-		{'sender' => $sender, 'message' => $message, 'family'=>$dyn_list_family, 'automatic_listname'=>$listname });
-	    my $r_action;
-	    unless (defined $result) {
-		&do_log('err', 'sympa::DoFile(): message (%s) ignored because unable to evaluate scenario "automatic_list_creation" for list %s',  $hdr->get('Message-Id'),$listname);
-		&report::reject_report_msg('intern','Message ignored because scenario "automatic_list_creation" cannot be evaluated',$sender,
-					   {'msg_id' => $hdr->get('Message-Id'),'message' => $message}, $robot,$message->{'msg_as_string'});
-		&List::send_notify_to_listmaster('automatic_list_creation_failed',$robot,["Failed to process $file"]);
-		&Log::db_log({'robot' => $robot,'list' => $listname,'action' => 'DoFile',
-			      'parameters' => $hdr->get('Message-Id').",$robot",'target_email' => '','msg_id' => hdr->get('Message-Id'),'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-		return undef ;
-	    }
-	    
-	    if (ref($result) eq 'HASH') {
-		$r_action = $result->{'action'};
-	    }
-	    unless ($r_action =~ /do_it/) {
-		&Log::do_log('info', 'automatic_list_creation %s@%s from %s refused', $listname,$robot,$sender);
-		&report::reject_report_msg('auth',$result->{'reason'},$sender,{'listname' => $listname,
-			'list'=>{'name'=>$listname, 'host'=>$robot},'message' => $message},$robot,$message->{'msg_as_string'},'');
-		&List::send_notify_to_listmaster('automatic_list_creation_failed',$robot,["Failed to process $file"]);
-		return undef;
-	    }
-            
-            my $result = $dyn_family->add_list({listname=>$listname}, 1);
-            unless (defined $result->{'ok'}) {
-		my $details = $result->{'string_error'} || $result->{'string_info'} || [];
-                &do_log('err', "Failed to add a dynamic list to the family %s : ", $dyn_list_family, join(';', @{$details}));
-                &report::reject_report_msg('user','list_unknown',$sender,{'listname' => $listname, 'list'=>{'name'=>$listname},'message' => $message},$robot,$message->{'msg_as_string'},'');
-		&List::send_notify_to_listmaster('automatic_list_creation_failed',$robot,["Failed to process $file."]);
-		return undef;
-            }
-            $list = new List ($listname, $robot);
-            unless (defined $list) {
-                &do_log('err', 'sympa::DoFile() : dynamic list %s could not be created',$listname);
-                &report::reject_report_msg('user','list_unknown',$sender,{'listname' => $listname, 'list'=>{'name'=>$listname},'message' => $message},$robot,$message->{'msg_as_string'},'');
-		&List::send_notify_to_listmaster('automatic_list_creation_failed',$robot,["Failed to process $file."]);
-		return undef;
-            }
-	    $dyn_just_created = 1;
-        }
-	$host = $list->{'admin'}{'host'};
-	$name = $list->{'name'};
-	$list_address = $list->get_list_address();
-	# setting log_level using list config unless it is set by calling option
-	unless ($main::options{'log_level'}) {
-	    $log_level = $list->{'log_level'};
-	    &do_log('debug', "Setting log level with list configuration : $log_level"); 
-	}
-    }
-    
-    ## Loop prevention
-    my $conf_loop_prevention_regex;
-    $conf_loop_prevention_regex = $list->{'admin'}{'loop_prevention_regex'};
-    $conf_loop_prevention_regex ||= &Conf::get_robot_conf($robot, 'loop_prevention_regex');
-    if ($sender =~ /^($conf_loop_prevention_regex)(\@|$)/mio) {
-	&do_log('notice','Ignoring message which would cause a loop, sent by %s', $sender);
-	return undef;
-    }
-	
-    ## Q- and B-decode subject
-    my $subject_field = $message->{'decoded_subject'};
-
     ## Loop prevention
     my $loop;
     foreach $loop ($hdr->get('X-Loop')) {
 	chomp $loop;
-	&do_log('debug2','X-Loop: %s', $loop);
+	&do_log('debug','X-Loop: %s', $loop);
 	#foreach my $l (split(/[\s,]+/, lc($loop))) {
-	    if ($loop eq lc($list_address)) {
+	    if ($loop eq lc("$name\@$host")) {
 		do_log('notice', "Ignoring message which would cause a loop (X-Loop: $loop)");
 		return undef;
 	    }
@@ -1260,129 +421,67 @@ sub DoFile {
     if ($hdr->get('Content-Identifier') =~ /Auto-replied/i) {
 	do_log('notice', "Ignoring message which would cause a loop (Content-Identifier: Auto-replied)");
 	return undef;
-    }elsif ($hdr->get('X400-Content-Identifier') =~ /Auto Reply to/i) {
-	do_log('notice', "Ignoring message which would cause a loop (X400-Content-Identifier: Auto Reply to)");
-	return undef;
     }
 
     ## encrypted message
-    if ($message->{'smime_crypted'}) {
-	$is_crypted = 'smime_crypted';
-    }else {
-	$is_crypted = 'not_crypted';
+    $is_crypted = 'not_crypted';
+    if ($hdr->get('Content-Type') =~ /application\/x-pkcs7-mime/i) {
+	do_log('debug2', "message is crypted");
+
+	if ($Conf{'openssl'}) {
+	    $is_crypted = 'smime_crypted';
+	    unless ($msg = &tools::smime_decrypt ($msg,$name)) {
+		do_log('debug','unable to decrypt message');
+		## xxxxx traitement d'erreur ?
+		return undef;
+	    };
+	    $hdr = $msg->head;
+	    do_log('debug2', "message succefully decrypted");
+	    # do_log('debug2', "xxxx dumped in /tmp/decrypted");
+	    # open (XXDUMP, ">/tmp/decrypted");
+	    # $msg->print(\*XXDUMP);
+	    # close(XXDUMP);
+	}
+
     }
 
     ## S/MIME signed messages
-    if ($message->{'smime_signed'}) {
-	$is_signed = {'subject' => $message->{'smime_subject'},
-		      'body' => 'smime'};
-    }else {
-	undef $is_signed;
+    undef $is_signed;
+    if ($Conf{'openssl'} && $hdr->get('Content-Type') =~ /multipart\/signed/i) {
+	$is_signed = &tools::smime_sign_check ($msg,$sender);
+	do_log('debug2', "message is signed, signature is checked");
     }
+
+    if ($rcpt =~ /^listmaster(\@(\S+))?$/) {
 	
-    #  anti-virus
-    my $rc= &tools::virus_infected($message->{'msg'}, $message->{'filename'});
-    if ($rc) {
-	if ( &Conf::get_robot_conf($robot,'antivirus_notify') eq 'sender') {
-	    unless (&List::send_global_file('your_infected_msg', $sender, $robot, {'virus_name' => $rc,
-										   'recipient' => $list_address,
-										   'lang' => $Language::default_lang})) {
-		&do_log('notice',"Unable to send template 'your infected_msg' to $sender");
-	    }
-	}
-	&do_log('notice', "Message for %s from %s ignored, virus %s found", $list_address, $sender, $rc);
-	&Log::db_log({'robot' => $robot,'list' => $listname,'action' => 'DoFile','parameters' => "$file",'target_email' => "",'msg_id' => $hdr->get('Message-ID'),'status' => 'error','error_type' => 'virus','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	return undef;
-
-    }elsif (! defined($rc)) {
- 	unless (&List::send_notify_to_listmaster('antivirus_failed',$robot,["Could not scan $file; The message has been saved as BAD."])) {
- 	    &do_log('notice',"Unable to send notify 'antivirus_failed' to listmaster");
- 	}
-
-	return undef;
-    }
-  
-    if ($main::daemon_usage == DAEMON_MESSAGE) {
-	if (($rcpt =~ /^$Conf{'listmaster_email'}(\@(\S+))?$/) || ($rcpt =~ /^(sympa|$conf_email)(\@\S+)?$/i) || ($type =~ /^(subscribe|unsubscribe)$/o) || ($type =~ /^(request|owner|editor)$/o)) {
-	    &do_log('err','internal serveur error : distribution daemon should never proceed with command');
-	    &report::global_report_cmd('intern','Distribution daemon proceed with command',{},$sender,$robot,1);
-	    &Log::db_log({'robot' => $robot,'list' => $listname,'action' => 'DoFile','parameters' => "$file",'target_email' => "",'msg_id' => $hdr->get('Message-ID'),'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	    return undef;
-	} 
-    }
-
-    if ($main::daemon_usage == DAEMON_CREATION || (($Conf{'automatic_list_feature'} eq 'on') && $main::daemon_usage == DAEMON_ALL )) {
-        if ($dyn_list_family && $dyn_just_created) {
-            unless (defined $list->sync_include()) {
-		&do_log('err', 'sympa::DoFile() : Failed to synchronize list members of dynamic list %s from %s family',$listname, $dyn_list_family);
-		&report::reject_report_msg('user','dyn_cant_create',$sender,{'listname' => $listname,'message' => $message},$robot,$message->{'msg_as_string'},'');
-		&Log::db_log({'robot' => $robot,'list' => $listname,'action' => 'DoFile','parameters' => "$file",'target_email' => "",'msg_id' => $hdr->get('Message-ID'),'status' => 'error','error_type' => 'dyn_cant_sync','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-		# purge the unwanted empty automatic list
-		if ($Conf{'automatic_list_removal'} =~ /if_empty/i) {
-		    $list->close(); $list->purge(); # verifier pour tt ce bloc si supprime bien tout
-		    # but what about list_of_lists ?
-		    if (exists $List::list_of_lists{$list->{'domain'}}{$list->{'name'}}) { # test à virer si ok
-		      delete $List::list_of_lists{$list->{'domain'}}{$list->{'name'}};
-		      &do_log('err', 'la liste a été trouvée dans la list_of_lists',$listname, $dyn_list_family);
-		    }
-		}
-                return undef;
-            }
-            unless ($list->get_total() > 0) {
-		&do_log('err', 'sympa::DoFile() : Dynamic list %s from %s family has ZERO subscribers',$listname, $dyn_list_family);
-		&report::reject_report_msg('user','list_unknown',$sender,{'listname' => $listname, 'list'=>{'name'=>$listname, 'host'=>$robot},'message' => $message},$robot,$message->{'msg_as_string'},'');
-		&Log::db_log({'robot' => $robot,'list' => $listname,'action' => 'DoFile','parameters' => "$file",'target_email' => "",'msg_id' => $hdr->get('Message-ID'),'status' => 'error','error_type' => 'list_unknown','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-		# purge the unwanted empty automatic list
-		if ($Conf{'automatic_list_removal'} =~ /if_empty/i) {
-		    $list->close(); $list->purge(); # verifier pour tt ce bloc si supprime bien tout
-		    # but what about list_of_lists ?
-		    if (exists $List::list_of_lists{$list->{'domain'}}{$list->{'name'}}) { # test à virer si ok
-		      delete $List::list_of_lists{$list->{'domain'}}{$list->{'name'}};
-		      &do_log('err', 'la liste a été trouvée dans la list_of_lists',$listname, $dyn_list_family);
-		    }
-		}
-                return undef;
-            }
-            &do_log('info', 'Successfully create list %s with %s subscribers', $listname, $list->get_total());
-        }
-    }
-    if ($main::daemon_usage == DAEMON_CREATION) {
-        #do not process messages in list creation only mode, move them to main spool
-        unless ($list->move_message($message->{'filename'}, $Conf{'queue'})) {
-            &do_log('err','sympa::DoFile(): Unable to move in spool for processing message to list %s (daemon_usage = creation)', $listname);
-            &report::reject_report_msg('intern','',$sender,{'msg_id' => $hdr->get('Message-ID'),'message' => $message},$robot,$message->{'msg_as_string'},$list);
-            return undef;
-        }
-        &do_log('info', ($dyn_just_created ? 'After automatic list creation, ' : '') 
-           . 'Message for %s from %s moved in spool %s for processing message-id=%s', $listname, $sender, $Conf{'queue'},$hdr->get('Message-ID'));
-        $status = 1;
-
-    }elsif ($rcpt =~ /^listmaster(\@(\S+))?$/) {
-	$status = &DoForward('sympa', 'listmaster', $robot, $msg);
+	$status = &DoForward('sympa', 'listmaster', $msg);
 
 	## Mail adressed to the robot and mail 
 	## to <list>-subscribe or <list>-unsubscribe are commands
-    }elsif (($rcpt =~ /^(sympa|$conf_email)(\@\S+)?$/i) || ($type =~ /^(subscribe|unsubscribe)$/o)) {
-	$status = &DoCommand($rcpt, $robot, $message);
+    }elsif (($rcpt =~ /^(sympa|$Conf{'email'})(\@$Conf{'host'})?$/i) || ($rcpt =~ /^(\S+)-(subscribe|unsubscribe)(\@(\S+))?$/o)) {
+	$status = &DoCommand($rcpt, $msg);
 	
 	## forward mails to <list>-request <list>-owner etc
-    }elsif ($type =~ /^(request|owner|editor)$/o) {
+    }elsif ($rcpt =~ /^(\S+)-(request|owner|editor)(\@(\S+))?$/o) {
+	my ($name, $function) = ($1, $2);
 	
 	## Simulate Smartlist behaviour with command in subject
-	if (($type eq 'request') and ($subject_field =~ /^\s*(subscribe|unsubscribe)(\s*$listname)?\s*$/i) ) {
+        ## xxxxxxxxxxx  étendre le jeu de command reconnue sous cette forme ?
+        ## 
+	if (($function eq 'request') and ($subject_field =~ /^\s*(subscribe|unsubscribe)(\s*$name)?\s*$/i) ) {
 	    my $command = $1;
 	    
-	    $status = &DoCommand("$listname-$command", $robot, $message);
+	    $status = &DoCommand("$name-$command", $msg);
 	}else {
-	    $status = &DoForward($listname, $type, $robot, $msg);
-	}         
-    }else {	
-	$status =  &DoMessage($rcpt, $message, $robot);
+	    $status = &DoForward($name, $function, $msg);
+	}       
+    }else {
+	$status =  &DoMessage($rcpt, $msg, $bytes, $file, $is_crypted);
     }
     
 
     ## Mail back the result.
-    if (&report::is_there_any_report_cmd()) {
+    if (@msg::report) {
 
 	## Loop prevention
 
@@ -1390,19 +489,16 @@ sub DoFile {
 	$loop_info{$sender}{'count'}++;
 	
 	## Sampling delay 
-	if ((time - $loop_info{$sender}{'date_init'}) < &Conf::get_robot_conf($robot, 'loop_command_sampling_delay')) {
+	if ((time - $loop_info{$sender}{'date_init'}) < $Conf{'loop_command_sampling_delay'}) {
 
 	    ## Notify listmaster of first rejection
-	    if ($loop_info{$sender}{'count'} ==  &Conf::get_robot_conf($robot, 'loop_command_max')) {
+	    if ($loop_info{$sender}{'count'} == $Conf{'loop_command_max'}) {
 		## Notify listmaster
-		unless (&List::send_notify_to_listmaster('loop_command',  &Conf::get_robot_conf($robot, 'domain'),
-							 {'msg' => $file})) {
-		    &do_log('notice',"Unable to send notify 'loop_command' to listmaster");
-		}
+		&List::send_notify_to_listmaster('loop_command', $file);
 	    }
 	    
 	    ## Too many reports sent => message skipped !!
-	    if ($loop_info{$sender}{'count'} >=  &Conf::get_robot_conf($robot, 'loop_command_max')) {
+	    if ($loop_info{$sender}{'count'} >= $Conf{'loop_command_max'}) {
 		&do_log('notice', 'Ignoring message which would cause a loop, %d messages sent to %s', $loop_info{$sender}{'count'}, $sender);
 		
 		return undef;
@@ -1412,121 +508,86 @@ sub DoFile {
 	    $loop_info{$sender}{'date_init'} = time;
 
 	    ## We apply Decrease factor if a loop occured
-	    $loop_info{$sender}{'count'} *=  &Conf::get_robot_conf($robot,'loop_command_decrease_factor');
+	    $loop_info{$sender}{'count'} *= $Conf{'loop_command_decrease_factor'};
 	}
 
-	## Send the reply message
-	&report::send_report_cmd($sender,$robot);
-	&Log::db_log({'robot' => $robot,'list' => $listname,'action' => 'DoFile','parameters' => "$file",'target_email' => "",'msg_id' => $hdr->get('Message-ID'),'status' => 'success','error_type' => '','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
+	## Prepare the reply message
+	my $reply_hdr = new Mail::Header;
+	$reply_hdr->add('From', sprintf Msg(12, 4, 'SYMPA <%s>'), $Conf{'sympa'});
+	$reply_hdr->add('To', $sender);
+	$reply_hdr->add('Subject', Msg(4, 17, 'Output of your commands'));
+	$reply_hdr->add('X-Loop', $Conf{'sympa'});
+	$reply_hdr->add('MIME-Version', Msg(12, 1, '1.0'));
+	$reply_hdr->add('Content-type', sprintf 'text/plain; charset=%s', 
+			Msg(12, 2, 'us-ascii'));
+	$reply_hdr->add('Content-Transfer-Encoding', Msg(12, 3, '7bit'));
+	
+	## Open the SMTP process for the response to the command.
+	*FH = &smtp::smtpto($Conf{'request'}, \$sender);
+	$reply_hdr->print(\*FH);
+	
+	foreach (@msg::report) {
+	    print FH;
+	}
+	
+	print FH "\n";
 
+	close(FH);
     }
     
     return $status;
 }
 
-############################################################
-#  DoSendMessage
-############################################################
-#  Send a message pushed in spool by another process. 
-#  
-# IN : -$msg (+): ref(MIME::Entity)
-#      -$robot (+) :robot
-#      
-# OUT : 1 
-#     | undef
-#
-############################################################## 
+## send a message as prepared by wwsympa
 sub DoSendMessage {
     my $msg = shift;
-    my $robot = shift;
-    &do_log('debug', 'DoSendMessage()');
+    &do_log('debug2', 'DoSendMessage()');
 
     my $hdr = $msg->head;
     
-    my ($chksum, $rcpt, $from) = ($hdr->get('X-Sympa-Checksum'), $hdr->get('X-Sympa-To'), $hdr->get('X-Sympa-From'));
+    my ($chksum, $rcpt, $from) = ($hdr->get('X-Sympa-Checksum'), $hdr->get('X-Sympa-To'), $hdr->get('From'));
     chomp $rcpt; chomp $chksum; chomp $from;
 
     do_log('info', "Processing web message for %s", $rcpt);
-    
-    my $string = $msg->as_string;
-    my $msg_id = $hdr->get('Message-ID');
-    my $sender = $hdr->get('From');
 
     unless ($chksum eq &tools::sympa_checksum($rcpt)) {
-	&do_log('err', 'sympa::DoSendMessage(): message ignored because incorrect checksum');
-	&report::reject_report_msg('intern','Message ignored because incorrect checksum',$sender,
-			  {'msg_id' => $msg_id,'message' => $msg},
-			  $robot,$string,'');
-	&Log::db_log({'robot' => $robot,'list' => $rcpt,'action' => 'sendMessage','parameters' => "$msg_id,$rcpt",'target_email' => '','msg_id' => $msg_id,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
+	&do_log('notice', 'Message ignored because incorrect checksum');
 	return undef ;
     }
 
     $hdr->delete('X-Sympa-Checksum');
     $hdr->delete('X-Sympa-To');
-    $hdr->delete('X-Sympa-From');
-    $hdr->delete('X-Sympa-Family');
     
     ## Multiple recepients
     my @rcpts = split /,/,$rcpt;
-   
-    unless (&mail::mail_forward($msg,$from,\@rcpts,$robot)) {
-	&do_log('err',"sympa::DoSendMessage(): Impossible to forward mail from $from");
-	&report::reject_report_msg('intern','Impossible to forward a message pushed in spool by another process than sympa.pl.',$sender,
-			  {'msg_id' => $msg_id,'message' => $msg},$robot,$string,'');
-	&Log::db_log({'robot' => $robot,'list' => $rcpt,'action' => 'sendMessage','parameters' => "$msg_id,$rcpt",'target_email' => '','msg_id' => $msg_id,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	return undef;
-    }
+    
+    *MSG = &smtp::smtpto($from,\@rcpts); 
+    $msg->print(\*MSG);
+    close (MSG);
 
-    &do_log('info', "Message for %s sent", $rcpt);
-    &Log::db_log({'robot' => $robot,'list' => $rcpt,'action' => 'sendMessage','parameters' => "$msg_id,$rcpt",'target_email' => '','msg_id' => $msg_id,'status' => 'succes','error_type' => '','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
+    do_log('info', "Message for %s sent", $rcpt);
 
     return 1;
 }
 
-############################################################
-#  DoForward                             
-############################################################
-#  Handles a message sent to [list]-editor : the list editor, 
-#  [list]-request : the list owner or the listmaster. 
-#  Message is forwarded according to $function
-#  
-# IN : -$name : list name (+) if ($function <> 'listmaster')
-#      -$function (+): 'listmaster'|'request'|'editor'
-#      -$robot (+): robot
-#      -$msg (+): ref(MIME::Entity)
-#
-# OUT : 1 
-#     | undef
-#
-############################################################
+## Handles a message sent to [list]-editor, [list]-owner or [list]-request
 sub DoForward {
-    my($name, $function, $robot, $msg) = @_;
-    &do_log('debug', 'DoForward(%s, %s, %s, %s)', $name, $function);
+    my($name,$function,$msg) = @_;
+    &do_log('debug2', 'DoForward(%s, %s)', $name, $function);
 
     my $hdr = $msg->head;
     my $messageid = $hdr->get('Message-Id');
-    my $msg_string = $msg->as_string;
+
     ##  Search for the list
     my ($list, $admin, $host, $recepient, $priority);
 
     if ($function eq 'listmaster') {
-	$recepient=$Conf{'listmaster_email'};
-	$host = &Conf::get_robot_conf($robot, 'host');
+	$recepient="$function";
+	$host = $Conf{'host'};
 	$priority = 0;
     }else {
-	unless ($list = new List ($name, $robot)) {
-	    &do_log('notice', "Message for %s-%s ignored, unknown list %s",$name, $function, $name );
-	    my $sender = $hdr->get('From');
-	    chomp $sender;
-	    my $sympa_email = &Conf::get_robot_conf($robot, 'sympa');
-	    unless (&List::send_global_file('list_unknown', $sender, $robot,
-					    {'list' => $name,
-					     'date' => &POSIX::strftime("%d %b %Y  %H:%M", localtime(time)),
-					     'boundary' => $sympa_email.time,
-					     'header' => $hdr->as_string()
-					     })) {
-		&do_log('notice',"Unable to send template 'list_unknown' to $sender");
-	    }
+	unless ($list = new List ($name)) {
+	    do_log('notice', "Message for %s-%s ignored, unknown list %s",$name, $function, $name );
 	    return undef;
 	}
 	
@@ -1538,588 +599,455 @@ sub DoForward {
 
     my @rcpt;
     
-    &do_log('info', "Processing message for %s with priority %s, %s", $recepient, $priority, $messageid );
+    do_log('info', "Processing message for %s with priority %s, %s", $recepient, $priority, $messageid );
     
     $hdr->add('X-Loop', "$name-$function\@$host");
-    $hdr->delete('X-Sympa-To');
-    $hdr->delete('X-Sympa-Family');
+    $hdr->delete('X-Sympa-To:');
 
     if ($function eq "listmaster") {
-	my $listmasters = &Conf::get_robot_conf($robot, 'listmasters');
-	@rcpt = @{$listmasters};
-	&do_log('notice', 'Warning : no listmaster defined in sympa.conf') 
+	@rcpt = @{$Conf{'listmasters'}};
+	do_log('notice', 'Warning : no listmaster defined in sympa.conf') 
 	    unless (@rcpt);
 	
     }elsif ($function eq "request") {
-	@rcpt = $list->get_owners_email();
-
-	&do_log('notice', 'Warning : no owner defined or all of them use nomail option in list %s', $name ) 
+	foreach my $i (@{$admin->{'owner'}}) {
+	    next if ($i->{'reception'} eq 'nomail');
+	    push(@rcpt, $i->{'email'}) if ($i->{'email'});
+	}
+	do_log('notice', 'Warning : no owner defined or all of them use nomail option in list %s', $name ) 
 	    unless (@rcpt);
 
     }elsif ($function eq "editor") {
-	@rcpt = $list->get_editors_email();
-
-	&do_log('notice', 'Warning : no owner and editor defined or all of them use nomail option in list %s', $name ) 
-	    unless (@rcpt);
+	foreach my $i (@{$admin->{'editor'}}) {
+	    next if ($i->{'reception'} eq 'nomail');
+	    push(@rcpt, $i->{'email'}) if ($i->{'email'});
+	}
+	unless (@rcpt) {
+	    do_log('notice', 'No editor defined in list %s (unless they use NOMAIL), use owners', $name ) ;
+	    foreach my $i (@{$admin->{'owner'}}) {
+		next if ($i->{'reception'} eq 'nomail');
+		push(@rcpt, $i->{'email'}) if ($i->{'email'});
+	    }
+	}
     }
     
     if ($#rcpt < 0) {
-	&do_log('err', "sympa::DoForward(): Message for %s-%s ignored, %s undefined in list %s", $name, $function, $function, $name);
-	my $string = sprintf 'Impossible to forward a message to %s-%s : undefined in this list',$name,$function;
-	my $sender = $hdr->get('From');
-	&report::reject_report_msg('intern',$string,$sender,
-			  {'msg_id' => $messageid,
-			   'entry' => 'forward',
-			   'function' => $function,
-			   'message' => $msg }
-			  ,$robot,$msg_string,$list);
-	&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoForward','parameters' => "$name,$function",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	return undef;
-   }
-   
-    my $rc;
-    my $msg_copy = $msg->dup;
-
-unless (&mail::mail_forward($msg,&Conf::get_robot_conf($robot, 'request'),\@rcpt,$robot)) {
-	&do_log('err',"Impossible to forward mail for $name-$function  ");
-	my $string = sprintf 'Impossible to forward a message for %s-%s',$name,$function;
-	my $sender = $hdr->get('From');
-	&report::reject_report_msg('intern',$string,$sender,
-			  {'msg_id' => $messageid,
-			   'entry' => 'forward',
-			   'function' => $function,
-			   'message' => $msg}
-			  ,$robot,$msg_string,$list);
-	&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoForward','parameters' => "$name,$function",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
+	do_log('notice', "Message for %s-%s ignored, %s undefined in list %s", $name, $function, $function, $name);
 	return undef;
     }
-    &Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoForward','parameters' => "$name,$function",'target_email' => '','msg_id' => $messageid,'status' => 'success','error_type' => '','user_email' => $hdr->get('From'),'client' => $ip,'daemon' => $daemon_name});
+    *SIZ = smtp::smtpto($Conf{'request'}, \@rcpt);
+    $msg->print(\*SIZ);
+    close(SIZ);
+    
+    do_log('info',"Message for %s forwarded", $recepient);
     return 1;
 }
 
-####################################################
-#  DoMessage                             
-####################################################
-#  Handles a message sent to a list. (Those that can 
-#  make loop and those containing a command are 
-#  rejected)
-#  
-# IN : -$which (+): 'listname@hostname' - concerned list
-#      -$message (+): ref(Message) - sent message
-#      -$robot (+): robot
-#
-# OUT : 1 if ok (in order to remove the file from the queue)
-#     | undef
-#
-####################################################
+
+## Handles a message sent to a list.
 sub DoMessage{
-    my($which, $message, $robot) = @_;
-    &do_log('debug', 'DoMessage(%s, %s, %s, msg from %s, %s, %s,%s)', $which, $message->{'msg'}, $robot, $message->{'sender'}, $message->{'size'}, $message->{'msg_as_string'}, $message->{'smime_crypted'});
-    
+    my($which, $msg, $bytes, $file, $encrypt ) = @_;
+    &do_log('debug2', 'DoMessage(%s, %s, msg from %s, %s, %s)', $which, $msg, $msg->head->get('From'), $bytes, $file, $encrypt);
     
     ## List and host.
     my($listname, $host) = split(/[@\s]+/, $which);
-    
-    my $hdr = $message->{'msg'}->head;
-    
-    my $messageid = $hdr->get('Message-Id');
-    my $msg_string = $message->{'msg'}->as_string;
-    
-    my $sender = $message->{'sender'};
-    
+
     ## Search for the list
-    my $list = new List ($listname, $robot);
-    
-    ## List unknown
-    unless ($list) {
-	&do_log('notice', 'Unknown list %s', $listname);
-	my $sympa_email = &Conf::get_robot_conf($robot, 'sympa');
-	
-	unless (&List::send_global_file('list_unknown', $sender, $robot,
-					{'list' => $which,
-					 'date' => &POSIX::strftime("%d %b %Y  %H:%M", localtime(time)),
-					 'boundary' => $sympa_email.time,
-					 'header' => $hdr->as_string()
-					 })) {
-	    &do_log('notice',"Unable to send template 'list_unknown' to $sender");
-	}
-	return undef;
-    }
-    
-    ($listname, $host) = ($list->{'name'}, $list->{'admin'}{'host'});
-    
+    my $list = new List ($listname);
+    return undef unless $list;
+ 
+    my ($name, $host) = ($list->{'name'}, $list->{'admin'}{'host'});
+
     my $start_time = time;
     
-    &Language::SetLang($list->{'admin'}{'lang'});
-    
     ## Now check if the sender is an authorized address.
+    my $hdr = $msg->head;
     
-    &do_log('info', "Processing message for %s with priority %s, %s", $listname,$list->{'admin'}{'priority'}, $messageid );
+    my $from_field = $hdr->get('From');
+    my $messageid = $hdr->get('Message-Id');
+
+    do_log('info', "Processing message for %s with priority %s, %s", $name,$list->{'admin'}{'priority'}, $messageid );
     
-    my $conf_email = &Conf::get_robot_conf($robot, 'sympa');
-    my $conf_loop_prevention_regex = $list->{'admin'}{'loop_prevention_regex'};
-    if ($sender =~ /^($conf_loop_prevention_regex)(\@|$)/mio) {
+    my @sender_hdr = Mail::Address->parse($from_field);
+
+    my $sender = $sender_hdr[0]->address || '';
+    if ($sender =~ /^(mailer-daemon|sympa|listserv|majordomo|smartlist|mailman|$Conf{'email'})/mio) {
 	do_log('notice', 'Ignoring message which would cause a loop');
 	return undef;
     }
-	
-    if ($msgid_table{$list->get_list_id()}{$messageid}) {
-	&do_log('notice', 'Found known Message-ID, ignoring message which would cause a loop');
-	&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'known_message','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
+
+    if ($msgid_table{$listname}{$messageid}) {
+	do_log('notice', 'Found known Message-ID, ignoring message which would cause a loop');
 	return undef;
     }
-	
-    # Reject messages with commands
-    if ( &Conf::get_robot_conf($robot,'misaddressed_commands') =~ /reject/i) {
-	## Check the message for commands and catch them.
-	if (&tools::checkcommand($message->{'msg'}, $sender, $robot)) {
-	    &do_log('info', 'sympa::DoMessage(): Found command in message, ignoring message');
-	    &report::reject_report_msg('user','routing_error',$sender,{'message' => $message},$robot,$msg_string,$list);
-	    &Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'routing_error','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	    return undef;
-	}
-    }
-	
+    
+    
+    ## Check the message for commands and catch them.
+    return undef if (tools::checkcommand($msg, $sender));
+       
     my $admin = $list->{'admin'};
-    unless ($admin) {
-	&do_log('err', 'sympa::DoMessage(): list config is undefined');
-	&report::reject_report_msg('intern','',$sender,{'message' => $message},$robot,$msg_string,$list);
-	&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	return undef;
-  }
+    return undef unless $admin;
     
     my $customheader = $admin->{'custom_header'};
 #    $host = $admin->{'host'} if ($admin->{'host'});
 
     ## Check if the message is a return receipt
     if ($hdr->get('multipart/report')) {
-	&do_log('notice', 'Message for %s from %s ignored because it is a report', $listname, $sender);
-	&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'ignored_report','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
+	do_log('notice', 'Message for %s from %s ignored because it is a report', $name, $sender);
 	return undef;
     }
     
     ## Check if the message is too large
-    # my $max_size = $list->get_max_size() ||  &Conf::get_robot_conf($robot,'max_size');
-    my $max_size = $list->get_max_size();
-
-    if ($max_size && $message->{'size'} > $max_size) {
-	&do_log('info', 'sympa::DoMessage(): Message for %s from %s rejected because too large (%d > %d)', $listname, $sender, $message->{'size'}, $max_size);
-	&report::reject_report_msg('user','message_too_large',$sender,{'message' => $message},$robot,$msg_string,$list);
-	&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'message_too_large','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
+    my $max_size = $list->get_max_size() || $Conf{'max_size'};
+    if ($max_size && $bytes > $max_size) {
+	do_log('notice', 'Message for %s from %s too large (%d > %d)', $name, $sender, $bytes, $max_size);
+	*SIZ  = smtp::smtpto($Conf{'request'}, \$sender);
+	print SIZ "From: " . sprintf (Msg(12, 4, 'SYMPA <%s>'), $Conf{'request'}) . "\n";
+	printf SIZ "To: %s\n", $sender;
+	printf SIZ "Subject: " . Msg(4, 11, "Your message for list %s has been rejected") . "\n", $name;
+	printf SIZ "MIME-Version: %s\n", Msg(12, 1, '1.0');
+	printf SIZ "Content-Type: text/plain; charset=%s\n", Msg(12, 2, 'us-ascii');
+	printf SIZ "Content-Transfer-Encoding: %s\n\n", Msg(12, 3, '7bit');
+	print SIZ Msg(4, 12, $msg::msg_too_large);
+	$msg->print(\*SIZ);
+	close(SIZ);
 	return undef;
-   }
-    
-    my $rc;
-	
-    my $context =  {'sender' => $sender,
-		    'message' => $message };
-	
-    ## list msg topic	
-    if ($list->is_there_msg_topic()) {
-
-	my $info_msg_topic = $list->load_msg_topic_file($messageid,$robot);
-
-	# is msg already tagged ?	
-	if (ref($info_msg_topic) eq "HASH") { 
-	    if ($info_msg_topic->{'method'} eq "sender") {
-		$context->{'topic_sender'} =  $info_msg_topic->{'topic'};
-		
-	    }elsif ($info_msg_topic->{'method'} eq "editor") {
-		$context->{'topic_editor'} =  $info_msg_topic->{'topic'};
-	    
-	    }elsif ($info_msg_topic->{'method'} eq "auto") {
-		$context->{'topic_auto'} =  $info_msg_topic->{'topic'};
-	    }
-
-	# not already tagged   
-	} else {
-	    $context->{'topic_auto'} = $list->automatic_tag($message->{'msg'},$robot);
-	}
-
-	$context->{'topic'} = $context->{'topic_auto'} || $context->{'topic_sender'} || $context->{'topic_editor'};
-	$context->{'topic_needed'} = (!$context->{'topic'} && $list->is_msg_topic_tagging_required());
     }
-	
+    
     ## Call scenarii : auth_method MD5 do not have any sense in send
     ## scenarii because auth is perfom by distribute or reject command.
+ 
     
-    my $action;
-    my $result;	
+    my $action ;
     if ($is_signed->{'body'}) {
-	$result = $list->check_list_authz('send', 'smime',$context);
-	$action = $result->{'action'} if (ref($result) eq 'HASH');
+	$action = &List::get_action ('send',$name,$sender,'smime',$hdr);
     }else{
-	$result = $list->check_list_authz('send', 'smtp',$context);
-	$action = $result->{'action'} if (ref($result) eq 'HASH');
-    } 
-
-    unless (defined $action) {
-	&do_log('err', 'sympa::DoMessage(): message (%s) ignored because unable to evaluate scenario "send" for list %s',$messageid,$listname);
-	&report::reject_report_msg('intern','Message ignored because scenario "send" cannot be evaluated',$sender,
-			  {'msg_id' => $messageid,'message' => $message},
-			  $robot,$msg_string,$list);
-	&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	return undef ;
+	$action = &List::get_action ('send',$name,$sender,'smtp',$hdr);
     }
+
+    if ($action =~ /^do_it/) {
 	
+	my $numsmtp = $list->distribute_msg($msg, $bytes, $encrypt);
 
-    ## message topic context	
-    if (($action =~ /^do_it/) && ($context->{'topic_needed'})) {
-        $action = 'editorkey' if ($list->{'admin'}{'msg_topic_tagging'} eq 'required_moderator');
-	$action = 'request_auth' if ($list->{'admin'}{'msg_topic_tagging'} eq 'required_sender');
-    }
-
-    if (($action =~ /^do_it/) || ($main::daemon_usage == DAEMON_MESSAGE)) {
-
-
-	if (($main::daemon_usage == DAEMON_MESSAGE) || ($main::daemon_usage == DAEMON_ALL)) {
-	    my $numsmtp = $list->distribute_msg($message);
-	    
-	    ## Keep track of known message IDs...if any
-	    $msgid_table{$list->get_list_id()}{$messageid}++ if ($messageid);
-	    
-	    unless (defined($numsmtp)) {
-		&do_log('err','sympa::DoMessage(): Unable to send message to list %s', $listname);
-		&report::reject_report_msg('intern','',$sender,{'msg_id' => $messageid,'message' => $message},$robot,$msg_string,$list);
-		&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-		return undef;
-	    }
-	    &do_log('info', 'Message for %s from %s accepted (%d seconds, %d sessions, %d subscribers), message-id=%s, size=%d', $listname, $sender,  time - $start_time, $numsmtp, $list->get_total(),$messageid, $message->{'size'});
-	    &Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'success','error_type' => '','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	    return 1;
-
-	}else{   
-          # this message is to be distributed but this daemon is dedicated to commands or list creation -> move it to distribution spool
-          unless ($list->move_message($message->{'filename'}, $Conf{'queuedistribute'})) {
-		&do_log('err','sympa::DoMessage(): Unable to move in spool for distribution message to list %s (daemon_usage = command)', $listname);
-		&report::reject_report_msg('intern','',$sender,{'msg_id' => $messageid,'message' => $message},$robot,$msg_string,$list);
-		&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-		return undef;
-	    }
-	    &do_log('info', 'Message for %s from %s moved in spool %s for distribution message-id=%s', $listname, $sender, $Conf{'queuedistribute'},$messageid);
-	    &Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'success','error_type' => 'moved_in_spool','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	    return 1;
+	$msgid_table{$listname}{$messageid}++;
+	
+	unless (defined($numsmtp)) {
+	    do_log('info','Unable to send message to list %s', $name);
+	    return undef;
 	}
+
+	do_log('info', 'Message for %s from %s accepted (%d seconds, %d sessions), size=%d', $name, $sender, time - $start_time, $numsmtp, $bytes);
 	
+	## Everything went fine, return TRUE in order to remove the file from
+	## the queue.
+	return 1;
     }elsif($action =~ /^request_auth/){
-    	my $key = $list->send_auth($message);
-
-	unless (defined $key) {
-	    &do_log('err','sympa::DoMessage(): Calling to send_auth function failed for user %s in list %s', $sender, $list->{'name'});
-	    &report::reject_report_msg('intern','The request authentication sending failed',$sender,{'msg_id' => $messageid,'message' => $message},$robot,$msg_string,$list);
-	    &Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	    return undef
-	}
-	&do_log('notice', 'Message for %s from %s kept for authentication with key %s', $listname, $sender, $key);
-	&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'success','error_type' => 'kept_for_auth','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
+    	my $key = $list->send_auth($sender, $msg);
+	do_log('notice', 'Message for %s from %s kept for authentication with key %s', $name, $sender, $key);
 	return 1;
     }elsif($action =~ /^editorkey(\s?,\s?(quiet))?/){
-	my $key = $list->send_to_editor('md5',$message);
-
-	unless (defined $key) {
-	    &do_log('err','sympa::DoMessage(): Calling to send_to_editor() function failed for user %s in list %s', $sender, $list->{'name'});
-	    &report::reject_report_msg('intern','The request moderation sending to moderator failed.',$sender,{'msg_id' => $messageid,'message' => $message},$robot,$msg_string,$list);
-	    &Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	    return undef
-	}
-
-	&do_log('info', 'Key %s for list %s from %s sent to editors, %s', $key, $listname, $sender, $message->{'filename'});
-	
-	unless ($2 eq 'quiet') {
-	    unless (&report::notice_report_msg('moderating_message',$sender,{'message' => $message},$robot,$list)) {
-		&do_log('notice',"sympa::DoMessage(): Unable to send template 'message_report', entry 'moderating_message' to $sender");
-	    }
-	}
+	my $key = $list->send_to_editor('md5',$msg,$file,$encrypt);
+	do_log('info', 'Key %s for list %s from %s sent to editors, %s', $key, $name, $sender, $file, $encrypt);
+	$list->notify_sender($sender) unless ($2 eq 'quiet');
 	return 1;
     }elsif($action =~ /^editor(\s?,\s?(quiet))?/){
-	my $key = $list->send_to_editor('smtp', $message);
-
-	unless (defined $key) {
-	    &do_log('err','sympa::DoMessage(): Calling to send_to_editor() function failed for user %s in list %s', $sender, $list->{'name'});
-	    &report::reject_report_msg('intern','The request moderation sending to moderator failed.',$sender,{'msg_id' => $messageid,'message' => $message},$robot,$msg_string,$list);
-	    &Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	    return undef
-	}
-
-	&do_log('info', 'Message for %s from %s sent to editors', $listname, $sender);
-	
-	unless ($2 eq 'quiet') {
-	    unless (&report::notice_report_msg('moderating_message',$sender,{'message' => $message},$robot,$list)) {
-		&do_log('notice',"sympa::DoMessage(): Unable to send template 'message_report', type 'success', entry 'moderating_message' to $sender");
-	    }
-	}
+	my $key = $list->send_to_editor('smtp',$msg);
+	do_log('info', 'Message for %s from %s sent to editors', $name, $sender);
+	$list->notify_sender($sender) unless ($2 eq 'quiet');
 	return 1;
-    }elsif($action =~ /^reject(,(quiet))?/) {
-
-	&do_log('notice', 'Message for %s from %s rejected(%s) because sender not allowed', $listname, $sender, $result->{'tt2'});
+    }elsif($action =~ /^reject(\s?,\s?(quiet))?/) {
+    
+	do_log('notice', 'Message for %s from %s rejected because sender not allowed', $name, $sender);
 	unless ($2 eq 'quiet') {
-	    if (defined $result->{'tt2'}) {
-		unless ($list->send_file($result->{'tt2'}, $sender, $robot, {})) {
-		    &do_log('notice',"sympa::DoMessage(): Unable to send template '$result->{'tt2'}' to $sender");
-		}
-	    }else {
-		unless (&report::reject_report_msg('auth',$result->{'reason'},$sender,{'message' => $message},$robot,$msg_string,$list)) {
-		    &do_log('notice',"sympa::DoMessage(): Unable to send template 'message_report', type 'auth' to $sender");
-		}
-	    }
+	    *SIZ  = smtp::smtpto($Conf{'request'}, \$sender);
+	    print SIZ "From: " . sprintf (Msg(12, 4, 'SYMPA <%s>'), $Conf{'request'}) . "\n";
+	    printf SIZ "To: %s\n", $sender;
+	    printf SIZ "Subject: " . Msg(4, 11, "Your message for list %s has been rejected")."\n", $name ;
+	    printf SIZ "MIME-Version: %s\n", Msg(12, 1, '1.0');
+	    printf SIZ "Content-Type: text/plain; charset=%s\n", Msg(12, 2, 'us-ascii');
+	    printf SIZ "Content-Transfer-Encoding: %s\n\n", Msg(12, 3, '7bit');
+	    printf SIZ Msg(4, 15, $msg::list_is_private), $name;
+	    $msg->print(\*SIZ);
+	    close(SIZ);
 	}
-	&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'rejected_authorization','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	return undef;
-    }else {
-	&do_log('err','sympa::DoMessage(): unknown action %s returned by the scenario "send"', $action);
-	&report::reject_report_msg('intern','Unknown action returned by the scenario "send"',$sender,{'msg_id' => $messageid,'message' => $message},$robot,$msg_string,$list);
-	&Log::db_log({'robot' => $robot,'list' => $list->{'name'},'action' => 'DoMessage','parameters' => "$which,$messageid,$robot",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'internal','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
 	return undef;
     }
 }
 
-############################################################
-#  DoCommand
-############################################################
-#  Handles a command sent to the list manager.
-#  
-# IN : -$rcpt : recepient | <listname>-<subscribe|unsubscribe> 
-#      -$robot (+): robot
-#      -$message : ref(Message) with :
-#        ->msg (+): ref(MIME::Entity) : message containing command
-#        ->filename (+): file containing message
-#      
-# OUT : $success
-#     | undef
-#
-############################################################## 
+## Handles a message sent to a list.
+
+## Handles a command sent to the list manager.
 sub DoCommand {
-    my($rcpt, $robot, $message) = @_;
-    my $msg = $message->{'msg'};
-    my $file = $message->{'filename'};
-    &do_log('debug', 'DoCommand(%s %s %s %s) ', $rcpt, $robot, $msg, $file);
-    
-    ## boolean
-    my $cmd_found = 0;
-    
+    my($rcpt, $msg) = @_;
+    &do_log('debug2', 'DoCommand(%s)', $rcpt);
+
     ## Now check if the sender is an authorized address.
     my $hdr = $msg->head;
     
     ## Decode headers
-    #$hdr->decode();
+    $hdr->decode();
     
+    my $from_field = $hdr->get('From');
     my $messageid = $hdr->get('Message-Id');
     my ($success, $status);
     
-    &do_log('debug', "Processing command with priority %s, %s", $Conf{'sympa_priority'}, $messageid );
+    do_log('debug', "Processing command with priority %s, %s", $Conf{'sympa_priority'}, $messageid );
     
-    my $sender = $message->{'sender'};
-
-    ## Detect loops
-    if ($msgid_table{'sympa@'.$robot}{$messageid}) {
-	&do_log('notice', 'Found known Message-ID, ignoring command which would cause a loop');
-	&Log::db_log({'robot' => $robot,'list' => $rcpt,'action' => 'DoCommand','parameters' => "$rcpt,$robot,$message",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'known_message','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	return undef;
-    }## Clean old files from spool
-    
-    ## Keep track of known message IDs...if any
-    $msgid_table{'sympa@'.$robot}{$messageid}++
-	if ($messageid);
+    my @sender_hdr = Mail::Address->parse($from_field);
+    my $sender = $sender_hdr[0]->address;
 
     ## If X-Sympa-To = <listname>-<subscribe|unsubscribe> parse as a unique command
     if ($rcpt =~ /^(\S+)-(subscribe|unsubscribe)(\@(\S+))?$/o) {
-	&do_log('debug',"processing message for $1-$2");
-	&Commands::parse($sender,$robot,"$2 $1");
-	&Log::db_log({'robot' => $robot,'list' => $rcpt,'action' => 'DoCommand','parameters' => "$rcpt,$robot,$message",'target_email' => '','msg_id' => $messageid,'status' => 'success','error_type' => '','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
+	do_log('debug',"processing message for $1-$2");
+	&Commands::parse($sender,"$2 $1");
 	return 1; 
     }
     
     ## Process the Subject of the message
     ## Search and process a command in the Subject field
-    my $subject_field = $message->{'decoded_subject'};
+    my $subject_field = $hdr->get('Subject');
+    chomp $subject_field;
     $subject_field =~ s/\n//mg; ## multiline subjects
     $subject_field =~ s/^\s*(Re:)?\s*(.*)\s*$/$2/i;
 
-    $success ||= &Commands::parse($sender, $robot, $subject_field, $is_signed->{'subject'}) ;
-
-    unless ($success eq 'unknown_cmd') {
-	$cmd_found = 1;
-    }
+    $success ||= &Commands::parse($sender, $subject_field, $is_signed->{'subject'}) ;
 
     ## Make multipart singlepart
     if ($msg->is_multipart()) {
-	my $status = &tools::as_singlepart($msg, 'text/plain');
-
-	unless (defined $status) {
-	    &do_log('err', 'Could not change multipart to singlepart');
-	    &report::global_report_cmd('user','error_content_type',{});
-	    &Log::db_log({'robot' => $robot,'list' => $rcpt,'action' => 'DoCommand','parameters' => "$rcpt,$robot,$message",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'error_content_type','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	    return undef;
-	}
-
-	if ($status) {
-	    &do_log('notice', 'Multipart message changed to singlepart');
+	if (&tools::as_singlepart($msg, 'text/plain')) {
+	    do_log('notice', 'Multipart message changed to singlepart');
 	}
     }
 
-    my $i;
+    ## check Content-type
+    my $mime = $hdr->get('Mime-Version') ;
+    my $content_type = $hdr->get('Content-type');
+    my $transfert_encoding = $hdr->get('Content-transfer-encoding');
+    
+    unless (($content_type =~ /text/i and !$mime)
+	    or !($content_type) 
+	    or ($content_type =~ /text\/plain/i)) {
+	do_log('notice', "Ignoring message body not in text/plain, Content-type: %s", $content_type);
+	print Msg(4, 37, "Ignoring message body not in text/plain, please use text/plain only \n(or put your command in the subject).\n");
+	
+	return $success;
+    }
+        
+    my @msgexpire;
+    my ($expire, $i);
     my $size;
 
     ## Process the body of the message
-    ## unless subject contained commands or message has no body
-    if ( (!$cmd_found) && (defined $msg->bodyhandle)) { 
-
-	## check Content-type
-	my $mime = $hdr->get('Mime-Version') ;
-	my $content_type = $hdr->get('Content-type');
-	my $transfert_encoding = $hdr->get('Content-transfer-encoding');
-	unless (($content_type =~ /text/i and !$mime)
-		or !($content_type) 
-		or ($content_type =~ /text\/plain/i)) {
-	    &do_log('notice', "Ignoring message body not in text/plain, Content-type: %s", $content_type);
-	    &report::global_report_cmd('user','error_content_type',{});
-	    &Log::db_log({'robot' => $robot,'list' => $rcpt,'action' => 'DoCommand','parameters' => "$rcpt,$robot,$message",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'error_content_type','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	    return $success; 
-	}
-	
+    unless ($success == 1) { ## unless subject contained commands
+#	foreach $i (@{$msg->body}) {
 	my @body = $msg->bodyhandle->as_lines();
 	foreach $i (@body) {
 	    if ($transfert_encoding =~ /quoted-printable/i) {
 		$i = MIME::QuotedPrint::decode($i);
 	    }
-	    
+	    if ($expire){
+		if ($i =~ /^(quit|end|stop)/io){
+		    last;
+		}
+		# store the expire message in @msgexpire
+		push(@msgexpire, $i);
+		next;
+	    }
 	    $i =~ s/^\s*>?\s*(.*)\s*$/$1/g;
 	    next if ($i =~ /^$/); ## skip empty lines
-	    next if ($i =~ /^\s*\#/) ;
 	    
-	    &do_log('debug2',"is_signed->body $is_signed->{'body'}");
-	    
-	    $status = &Commands::parse($sender, $robot, $i, $is_signed->{'body'});
-	    $cmd_found = 1; # if problem no_cmd_understood is sent here
-	    if ($status eq 'unknown_cmd') {
-		&do_log('notice', "Unknown command found :%s", $i);
-		&report::reject_report_cmd('user','not_understood',{},$i);
-		&Log::db_log({'robot' => $robot,'list' => $rcpt,'action' => 'DoCommand','parameters' => "$rcpt,$robot,$message",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'not_understood','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-		last;
+	    # exception in the case of command expire
+	    if ($i =~ /^exp(ire)?\s/i){
+		$expire = $i;
+		print "> $i\n\n";
+		next;
 	    }
 	    
-#	    if ($i =~ /^(qui|quit|end|stop|-)/io) {
-#		last;
-#	    }
+	    push @msg::report, "> $i\n\n";
+	    $size = $#msg::report;
+	    
+
+	    if ($i =~ /^(quit|end|stop|--)/io) {
+		last;
+	    }
+	    &do_log('debug2',"is_signed->body $is_signed->{'body'}");
+
+	    unless ($status = Commands::parse($sender, $i,$is_signed->{'body'})) {
+		push @msg::report, sprintf Msg(4, 19, "Command not understood: ignoring end of message.\n");
+		last;
+	    }
+
+	    if ($#msg::report > $size) {
+		## There is a command report
+		push @msg::report, "\n";
+	    }else {
+		## No command report
+		pop @msg::report;
+	    }
 	    
 	    $success ||= $status;
 	}
+	pop @msg::report unless ($#msg::report > $size);
     }
 
     ## No command found
-    unless ($cmd_found == 1) {
-	&do_log('info', "No command found in message");
-	&report::global_report_cmd('user','no_cmd_found',{});
-	&Log::db_log({'robot' => $robot,'list' => $rcpt,'action' => 'DoCommand','parameters' => "$rcpt,$robot,$message",'target_email' => '','msg_id' => $messageid,'status' => 'error','error_type' => 'no_cmd_found','user_email' => $sender,'client' => $ip,'daemon' => $daemon_name});
-	return undef;
+    unless (defined($success)) {
+	do_log('info', "No command found in message");
+	push @msg::report, sprintf Msg(4, 39, "No command found in message");
     }
     
+    # processing the expire function
+    if ($expire){
+	print STDERR "expire\n";
+	unless (&Commands::parse($sender, $expire, @msgexpire)) {
+	    print Msg(4, 19, "Command not understood: ignoring end of message.\n");
+	}
+    }
+
     return $success;
 }
 
-############################################################
-#  SendDigest
-############################################################
-#  Read the queuedigest and send old digests to the subscribers 
-#  with the digest option.
-#  
-# IN : -
-#      
-# OUT : -
-#     | undef
-#
-############################################################## 
+## Read the queue and send old digests to the subscribers with the digest option.
 sub SendDigest{
-    &do_log('debug', 'SendDigest()');
+    &do_log('debug2', 'SendDigest()');
 
     if (!opendir(DIR, $Conf{'queuedigest'})) {
-	fatal_err(gettext("Unable to access directory %s : %m"), $Conf{'queuedigest'}); ## No return.
+	fatal_err(Msg(3, 1, "Can't open dir %s: %m"), $Conf{'queuedigest'}); ## No return.
     }
     my @dfile =( sort grep (!/^\./,readdir(DIR)));
     closedir(DIR);
 
 
-    foreach my $listaddress (@dfile){
+    foreach my $digest (@dfile){
 
- 	my $filename = $Conf{'queuedigest'}.'/'.$listaddress;
-	
- 	my ($listname, $listrobot) = split /\@/, $listaddress;
- 	my $list = new List ($listname, $listrobot);
+	my @timedigest= (stat "$Conf{'queuedigest'}/$digest")[9];
+        my $listname = $digest;
+
+	my $list = new List ($listname);
 	unless ($list) {
-	    &do_log('info', 'Unknown list, deleting digest file %s', $filename);
-	    &Log::db_log({'robot' => $listrobot,'list' => $list->{'name'},'action' => 'SendDigest','parameters' => "$filename",'target_email' => '','msg_id' => '','status' => 'error','error_type' => 'unknown_list','user_email' => '','client' => $ip,'daemon' => $daemon_name});
-	    unlink $filename;
+	    &do_log('info', 'Unknown list, deleting digest file %s', $digest);
+	    unlink "$Conf{'queuedigest'}/$digest";
 	    return undef;
 	}
 
-	&Language::SetLang($list->{'admin'}{'lang'});
-
 	if ($list->get_nextdigest()){
 	    ## Blindly send the message to all users.
-	    do_log('info', "Sending digest to list %s", $listaddress);
+	    do_log('info', "Sending digest to list %s", $digest);
 	    my $start_time = time;
-	    $list->send_msg_digest();
+	    $list->send_msg_digest($digest);
 
-	    unlink($filename);
-	    do_log('info', 'Digest of the list %s sent (%d seconds)', $listname,time - $start_time);
-	    &Log::db_log({'robot' => $listrobot,'list' => $list->{'name'},'action' => 'SendDigest','parameters' => "",'target_email' => '','msg_id' => '','status' => 'success','error_type' => '','user_email' => '','client' => $ip,'daemon' => $daemon_name});
+	    unlink("$Conf{'queuedigest'}/$digest");
+	    do_log('info', 'Digest of the list %s sent (%d seconds)', $digest,time - $start_time);
 	}
     }
 }
 
 
-############################################################
-#  CleanSpool
-############################################################
-#  Cleans files older than $clean_delay from spool $spool_dir
-#  
-# IN : -$spool_dir (+): the spool directory
-#      -$clean_delay (+): delay in days 
-#
-# OUT : 1
-#
-############################################################## 
-sub CleanSpool {
-    my ($spool_dir, $clean_delay) = @_;
-    &do_log('debug', 'CleanSpool(%s,%s)', $spool_dir, $clean_delay);
+## Read the EXPIRE queue and check if a process has ended
+sub ProcessExpire{
+    &do_log('debug2', 'ProcessExpire()');
 
-    unless (opendir(DIR, $spool_dir)) {
-	&do_log('err', "Unable to open '%s' spool : %s", $spool_dir, $!);
-	return undef;
+    my $edir = $Conf{'queueexpire'};
+    if (!opendir(DIR, $edir)) {
+	fatal_err("Can't open dir %s: %m", $edir); ## No return.
     }
+    my @dfile =( sort grep (!/^\./,readdir(DIR)));
+    closedir(DIR);
+    my ($d1, $d2, $proprio, $user);
 
-    my @qfile = sort grep (!/^\.+$/,readdir(DIR));
-    closedir DIR;
-    
-    my ($curlist,$moddelay);
-    foreach my $f (sort @qfile) {
+    foreach my $expire (@dfile) {
+#   while ($expire=<@dfile>){	
+	## Parse the expire configuration file
+	if (!open(IN, "$edir/$expire")) {
+	    next;
+	}
+	if (<IN> =~ /^(\d+)\s+(\d+)$/) {
+	    $d1=$1;
+	    $d2=$2;
+	}	
 
-	if ((stat "$spool_dir/$f")[9] < (time - $clean_delay * 60 * 60 * 24)) {
-	    if (-f "$spool_dir/$f") {
-		unlink ("$spool_dir/$f") ;
-		&do_log('notice', 'Deleting old file %s', "$spool_dir/$f");
-	    }elsif (-d "$spool_dir/$f") {
-		unless (&tools::remove_dir("$spool_dir/$f")) {
-		    &do_log('err', 'Cannot remove old directory %s : %s', "$spool_dir/$f", $!);
-		    next;
-		}
-		&do_log('notice', 'Deleting old directory %s', "$spool_dir/$f");
+	if (<IN>=~/^(.*)$/){
+	    $proprio=$1; 
+	}
+	close(IN);
+
+	## Is the EXPIRE process finished ?
+	if ($d2 <= time){
+	    my $list = new List ($expire);
+	    my $listname = $list->{'name'};
+	    unless ($list){
+		unlink("$edir/$expire");
+		next;
+	    };
+	
+	    ## Prepare the reply message
+	    my $reply_hdr = new Mail::Header;
+	    $reply_hdr->add('From', sprintf Msg(12, 4, 'SYMPA <%s>'), $Conf{'sympa'});
+	    $reply_hdr->add('To', $proprio);
+ 	    $reply_hdr->add('Subject',sprintf( Msg(4, 24, 'End of your command EXPIRE on list %s'),$expire));
+
+	    $reply_hdr->add('MIME-Version', Msg(12, 1, '1.0'));
+	    my $content_type = 'text/plain; charset='.Msg(12, 2, 'us-ascii');
+	    $reply_hdr->add('Content-type', $content_type);
+	    $reply_hdr->add('Content-Transfer-Encoding', Msg(12, 3, '7bit'));
+
+	    ## Open the SMTP process for the response to the command.
+	    *FH = &smtp::smtpto($Conf{'request'}, \$proprio);
+	    $reply_hdr->print(\*FH);
+	    my $fh = select(FH);
+	    my $limitday=$d1;
+	    #converting dates.....
+	    $d1= int((time-$d1)/86400);
+	    #$d2= int(($d2-time)/86400);
+	
+	    my $cpt_badboys;
+	    ## Amount of unconfirmed subscription
+
+	    unless ($user = $list->get_first_user()) {
+		return undef;
+}
+
+	    while ($user = $list->get_next_user()) {
+		$cpt_badboys++ if ($user->{'date'} < $limitday);
 	    }
+
+	    ## Message to the owner who launched the expire command
+	    printf Msg(4, 28, "Among the subscribers of list %s for %d days, %d did not confirm their subscription.\n"), $listname, $d1, $cpt_badboys;
+	    print "\n";
+	    printf Msg(4, 26, "Subscribers who do not have confirm their subscription:\n");	
+	    print "\n";
+	
+	    my $temp=0;
+
+	    unless ($user = $list->get_first_user()) {
+		return undef;
+	    }
+
+	    while ($user = $list->get_next_user()) {
+		next unless ($user->{'date'} < $limitday);
+		print "," if ($temp == 1);
+		print " $user->{'email'} ";
+		$temp=1 if ($temp == 0);
+	    }
+	    print "\n\n";
+	    printf Msg(4, 27, "You must delete these subscribers from this list with the following commands :\n");
+	    print "\n";
+
+	    unless ($user = $list->get_first_user()) {
+		return undef;
+	    }
+	    while ($user = $list->get_next_user()) {
+		next unless ($user->{'date'} < $limitday);
+		print "DEL   $listname   $user->{'email'}\n";
+	    }
+	    ## Mail back the result.
+	    select($fh);
+	    close(FH);
+	    unlink("$edir/$expire");
+	    next;
 	}
     }
-
-    return 1;
 }
-
-
-
-
-
-
-
-
-
-
 
 
 1;
