@@ -8,8 +8,7 @@ send private
 
 archive week
 
-reply_to_header
-value list
+reply_to list
 
 subscribe open
 

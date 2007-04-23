@@ -10,6 +10,8 @@ archive
 period week
 access private
 
+reply_to sender
+
 ## Authentification of subscription, owner is notified
 subscribe auth,notify
 
