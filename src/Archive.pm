@@ -158,13 +158,13 @@ sub scan_dir_archive {
 	my $msg = {};
 	$msg->{'id'} = $i;
 
-	$msg->{'subject'} = &MIME::EncWords::decode_mimewords($mail->{'msg'}->head->get('Subject'), Charset=>'utf8');
+	$msg->{'subject'}  = &MIME::Words::decode_mimewords($mail->{'msg'}->head->get('Subject'));
 	chomp $msg->{'subject'};
 
-	$msg->{'from'} = &MIME::EncWords::decode_mimewords($mail->{'msg'}->head->get('From'), Charset=>'utf8');
+	$msg->{'from'}= &MIME::Words::decode_mimewords($mail->{'msg'}->head->get('From'));
 	chomp $msg->{'from'};    	        	
         
-	$msg->{'date'} = &MIME::EncWords::decode_mimewords($mail->{'msg'}->head->get('Date'), Charset=>'utf8');
+	$msg->{'date'} = $mail->{'msg'}->head->get('Date');
 	chomp $msg->{'date'};
 	
 	$msg->{'full_msg'} = $mail->{'msg'}->as_string;

@@ -266,9 +266,6 @@ nextstep:
 	@echo "#########################################################"
 	@echo "# If you install Sympa for the first time on this server"
 	@echo "# you should check the INSTALL file."
-	@echo "#"
-	@echo "# If you are upgrading, you now need to run"
-	@echo "#    $(SBINDIR)/sympa.pl --upgrade"
 	@echo "#######################################################"
 
 importantchanges:

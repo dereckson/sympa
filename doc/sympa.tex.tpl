@@ -404,8 +404,6 @@ Our thanks to all contributors, including:
 
 \begin {itemize}
 
-  \item Virginie Paitrault,Universit\'e de Rennes 2, who wrote the excellent online user documentation.
-
   \item John-Paul Robinson, University of Alabama at Birmingham, who added to email verification procedure to the Shibboleth support.
 
   \item Gwenaelle Bouteille who joined the development team for a few months and produced a great job for various feature introduced in V5 (familly, RSS, shared document moderation, ...).
@@ -416,7 +414,7 @@ Our thanks to all contributors, including:
 
   \item David Lewis who corrected this documentation
 
-  \item Philippe Rivi\`ere for his persevering in tuning \Sympa for Postfix.
+  \item Philippe Rivière for his persevering in tuning \Sympa for Postfix.
 
   \item Rapha\"el Hertzog (debian), Jerome Marant (debian) and St\'ephane Poirey (redhat) for
       Linux packages.
@@ -719,6 +717,7 @@ a virtual host or for the whole site.
      oal.com 5
 \end{verbatim}
 \end {quote}
+
 \end {itemize}
 
 \section {Spools}
@@ -849,8 +848,6 @@ detail in later sections.
       most UNIX systems)
 
     \item installing a \textindex{RDBMS} (\textindex{Oracle}, \textindex{MySQL}, \textindex{SQLite}, \textindex{Sybase} or \textindex{PostgreSQL}) and creating \Sympa's Database. This is required for using the web interface for \Sympa. Please refers to \Sympa and its database section (\ref {sec-rdbms}, page~\pageref {sec-rdbms}).
-
-   \item installation of \htmladdnormallinkfoot {libxml 2}{http://xmlsoft.org/}, required by the \textindex {LibXML} perl module.
 
     \item installation of
 	\textindex{CPAN}
@@ -1108,7 +1105,7 @@ this should point to \dir {/etc/smrsh}.  This is probably the case if you are us
 \item \option {- - with-group=LOGIN}, set sympa group name (default sympa)\\
 \Sympa daemons are running under this UID.
 
-\item \option {- - with-sendmail\_aliases=ALIASFILE}, set aliases file to be used by Sympa (default /etc/mail/sympa\_aliases). Set to 'none' to disable alias management (You can overright this value at runtime giving its value in \file {sympa.conf})\\
+\item \option {- - with-sendmail\_aliases=ALIASFILE}, set aliases file to be used by Sympa (default /etc/mail/sympa\_aliases). (You can overright this value at runtime giving its value in \file {sympa.conf})\\
 
 \item \option {- - with-virtual\_aliases=ALIASFILE}, set postfix virtual file to be used by Sympa (default /etc/mail/sympa\_virtual)\\
 
@@ -1222,10 +1219,9 @@ messages distribution.
   information. Each function call is traced. Useful while reporting
   a bug.
 
-\item \option {\-\-service}  \textit {process\_command} | \textit {process\_message} | \textit {process\_creation}
+\item \option {\-\-service}  \textit {process\_command} | \textit {process\_message}
   
-  Sets \Sympa daemon in way it process only message distribution (process\_message) or in way it process only command (process\_command) or to process 
-  list creation requests (process\_creation)
+  Sets \Sympa daemon in way it process only message distribution (process\_message) or in way it process only command (process\_command).
   
 \item \option {- - config \textit {config\_file}} | \option {-f \textit {config\_file}}
   
@@ -1263,8 +1259,7 @@ page~\pageref{list-creation-sympa}.
 
 \item \option {- - close\_list \textit {listname@robot}}
 
-Close the list (changing its status to closed), remove aliases (if sendmail\_aliases
-parameter was set) and remove
+Close the list (changing its status to closed), remove aliases and remove
 subscribers from DB (a dump is created in the list directory to allow restoring
 the list). See \ref{family-close-list}, page~\pageref{family-close-list} when you
 are in a family context.
@@ -1512,7 +1507,7 @@ Field user_admin added to table admin_table
 \end {quote}
 
 You might need, for some reason, to make Sympa run the migration procedure from version \textit {X} to version \textit {Y}.
-This procedure is run automatically by \file {sympa.pl --upgrade} when it detects that \file {[ETCL_DIR]/data\_structure.version} is older 
+This procedure is run automatically by \file {sympa.pl} when it detects that \file {[ETCL_DIR]/data\_structure.version} is older 
 than the current version, but you can also run trigger this procedure yourself :
 \begin {quote}
 \begin{verbatim}
@@ -1589,7 +1584,7 @@ database and play with it. When you decide to move the existing service to the n
 \item stop all sympa processus on both servers, 
 \item transfert the database
 \item edit the \file {[ETCL_DIR]/data\_structure.version} on the new server ; change the version value to reflect the old number
-\item start \file {sympa.pl --upgrade}, it will upgrade the database structure according the hop you do. 
+\item start \file {sympa.pl}, it will upgrade the database structure according the hop you do. 
 \end {enumerate}
 
 
@@ -1637,7 +1632,6 @@ lines must therefore be added to the \unixcmd {sendmail} alias file
 sympa:             "| [MAILERPROGDIR]/queue sympa@\samplerobot"\\
 listmaster: 	   "| [MAILERPROGDIR]/queue listmaster@\samplerobot"\\
 bounce+*:          "| [MAILERPROGDIR]/bouncequeue sympa@\samplerobot"\\
-abuse-feedback-report:       "| [MAILERPROGDIR]/bouncequeue sympa@\samplerobot"\\
 sympa-request:     postmaster\\
 sympa-owner:       postmaster\\
 \end {quote}
@@ -1656,9 +1650,6 @@ messages.
 The alias bounce+* is dedicated to collect bounces where VERP (variable envelope return path) was actived. It is useful
 if \texttt { welcome\_return\_path unique } or \texttt { remind\_return\_path unique} or the
 \cfkeyword {verp\_rate} parameter is no null for at least one list.
-
-The alias abuse-feedback-report is used for processing automatically feedback that respect ARF format (Abuse Report Feedback) which is a draft to specify how end user can complain about spam. It is mainly used by AOL.
-
 
 Don't forget to run \unixcmd {newaliases} after any change to
 the \file {/etc/aliases} file!
@@ -1705,7 +1696,7 @@ aliases must be added:
             "|[MAILERPROGDIR]/bouncequeue \samplelist@\samplerobot
             \\
         \mailaddr {\samplelist-subscribe}:   &
-            "|[MAILERPROGDIR]/queue \samplelist-subscribe@\samplerobot"
+            "|[MAILERPROGDIR]/queue \samplelist-subscribe@\samplerobot@\samplerobot"
             \\
         \mailaddr {\samplelist-unsubscribe}: &
             "|[MAILERPROGDIR]/queue \samplelist-unsubscribe@\samplerobot"
@@ -1766,14 +1757,13 @@ The script expects the following arguments :
 Example : \file {[BINDIR]/alias\_manager.pl add \samplelist cru.fr}
 
 \file {[BINDIR]/alias\_manager.pl} works on the alias file as defined in \file {sympa.conf})
-by the \cfkeyword {sendmail\_aliases} variable (default is \file {/etc/mail/sympa\_aliases}). You must refer to this aliases file in your \file {sendmail.mc} (if using sendmail) :
+by the \textindex{SENDMAIL\_ALIASES} variable (default is \file {/etc/mail/sympa\_aliases}) in the main Makefile (see \ref {makefile},  page~\pageref {makefile}). You must refer to this aliases file in your \file {sendmail.mc} (if using sendmail) :
 \begin {quote}
 \begin{verbatim}
 define(`ALIAS_FILE', `/etc/aliases,/etc/mail/sympa_aliases')dnl
 \end{verbatim}
 \end {quote}
 
-Note that \unixcmd{sendmail} has requirements regarding the ownership and rights on both \file {sympa\_aliases} and \file {sympa\_aliases.db} files (the later being created by sendmail via the \unixcmd{newaliases} command). Anyhow these two files should be located in a directory, every path component of which being owned by and writable only by the root user.
 
 \file {[BINDIR]/alias\_manager.pl} runs a \unixcmd{newaliases} command (via \file {aliaswrapper}), after any changes to aliases file.
 
@@ -1781,11 +1771,6 @@ If you manage virtual domains with your mail server, then you might want to chan
 the form of aliases used by the alias\_manager. You can customize the \file {list\_aliases}
 template that is parsed to generate list aliases (see\ref {list-aliases-tpl},  
 page~\pageref {list-aliases-tpl}).
-
-\label {virtual-transport}
-
-Note that you don't need alias management if you use MTA functionalities such as Postfix' \file {virtual\_transport}. You can then disable alias management in \Sympa by positioning the
-\cfkeyword {sendmail\_aliases} parameter to \texttt{none}.
 
 \label {ldap-aliases}
 A L. Marcotte has written a version of \file {ldap\_alias\_manager.pl} that is LDAP enabled.
@@ -1936,7 +1921,7 @@ see a  nice mailto adresses where others have nothing.
 	  \default {cookie}
 
 	Idem \cfkeyword {spam\_protection} but restricted to web archive.
-        A additional value is available : cookie which mean that users
+        A additional value is availible : cookie which mean that users
         must submit a small form in order to receive a cookie before
         browsing archives. This block all robot, even google and co.
 
@@ -1948,11 +1933,11 @@ see a  nice mailto adresses where others have nothing.
  show every colors in use.
  
  
- \subsection {\cfkeyword {dark\_color}, \cfkeyword {light\_color}, \cfkeyword {text\_color}, \cfkeyword {bg\_color}, \cfkeyword {error\_color}, \cfkeyword {selected\_color}, \cfkeyword {shaded\_color}}
+ \subsection {\cfkeyword {dark\_color} \cfkeyword {light\_color} \cfkeyword {text\_color} \cfkeyword {bg\_color} \cfkeyword {error\_color} \cfkeyword {selected\_color} \cfkeyword {shaded\_color}}
  
  
  	Deprecated. They are the color definition for previous web interface. These parameters are unused in 5.1 and higher 
- version but still available.style.css, print.css, print-preview.css and fullPage.css
+ version but still availible.style.css, print.css, print-preview.css and fullPage.css
  
 \subsection {\cfkeyword {logo\_html\_definition}}
 This parameter allow you to insert in the left top page corner oa piece of html code, usually to insert la logo in the page. This is a very basic but easy customization.
@@ -1966,7 +1951,6 @@ robot.conf file and set the css\_path parameter. Then retart the server and use 
 to install preparsed CSS file. The in order to replace dynamic CSS by these static files 
 set the \cfkeyword {css\_url} parameter.
 
-\textbf {After an upgrade, \file {sympa.pl} automatically updates the static CSS files with the new installed css.tt2. Therefore it's not a good place to store customized CSS files.}
 
 \subsection {\cfkeyword {css\_url}}
 
@@ -1979,27 +1963,6 @@ only one page insteed of one page and four css page at each clic. This can be do
 directory where  style.css, print.css, print-preview.css and fullPage.css are installed. You can make your own a sophisticated new skin editing these 
 files. The server admin module include a CSS administration page that can help you to install static CSS.
 
-
-\subsection {\cfkeyword {static\_content\_path}}
-
-Some content may be delivred by http server (apache) without any need to be controled or parserd by Sympa. They are stored in directory choosen with parameter static\_content\_dir. Current Sympa version store in this directory subscribers pictures. Later update will add style sheet, icons, ... The directory is created by Sympa.pl when started. This parameter can be defined also in robot.conf
-
-\subsection {\cfkeyword {static\_content\_url}}
-
-Content stored in directory specified by parameter \cfkeyword {static\_content\_url} must be served by http server under the URL specified by {\cfkeyword {static\_content\_url}}. Check apache configuration in order to make this directory available. This parameter can be defined in robot.conf.
-
-\subsection {\cfkeyword {pictures\_feature}}
-
- \default {off}
- \example {pictures\_feature       on}
-
-Subscribers can upload their picture (from the subscriber option page) so reviewing subsribers shows a gallery. This parameter defines the default for corresponding list parameter but it does NOT allow to disable the feature globaly. If you want to disable the feature for your whole site, you need to customize the \file {edit-list.conf} file to disallow edition of the corresponding list parameter.
-
-Pictures are stored in a directory specified by {\cfkeyword {static\_content\_path}} parameter.
-
-\subsection {\cfkeyword {pictures\_max\_size}}
-
-The maximum size of the uploaded picture file (bytes)
 
 \subsection {\cfkeyword {cookie}} 
  
@@ -2031,34 +1994,6 @@ The maximum size of the uploaded picture file (bytes)
 	Sympa will use the corresponding authorization scenario.
 
         \example {create\_list intranet}
-
-\subsection {\cfkeyword {automatic\_list\_feature}}
-
- \default {off}
- \example {automatic\_list\_feature       on}
-
-        If set to \texttt {on}, Sympa will enable automatic list creation through family instantiation
-	(see \ref {automatic-list-creation}, page~\pageref {automatic-list-creation}.
-
-\subsection {\cfkeyword {automatic\_list\_creation}}  
-
-	\label{automatic-list-creation-param}
-
-	 \default {none}
-
-	\scenarized {automatic\_list\_creation}
-
-	If \cfkeyword {automatic\_list\_feature} is activated, this parameter (corresponding to an authorization scenario) 
-	defines who is allowed to use the automatic list creation feature.
-	
-\subsection {\cfkeyword {automatic\_list\_removal}}
-
- \default {}
- \example {automatic\_list\_feature       if\_empty}
-
-        If set to \texttt {if\_empty}, then Sympa will remove automatically created mailing lists just after their creartion, if they contain no list
-	membe (see \ref {automatic-list-creation}, page~\pageref {automatic-list-creation}.
-
 
 \subsection {\cfkeyword {global\_remind}}  
 
@@ -2134,17 +2069,6 @@ The maximum size of the uploaded picture file (bytes)
 
         \example {pidfile         /var/run/sympa.pid}
 
-\subsection {\cfkeyword {pidfile\_creation}} 
-
-	\default {\file {[PIDDIR]/sympa-creation.pid}}
-
-        The file where the automatic list creation dedicated \file {sympa.pl} daemon stores its
-        process number. Warning: the \texttt {sympa} user must be
-        able to write to this file, and to create it if it doesn't
-        exist.
-
-        \example {pidfile\_creation         /var/run/sympa-creation.pid}
-
 \subsection {\cfkeyword {umask}} 
 
 	\default {027}
@@ -2182,20 +2106,6 @@ The maximum size of the uploaded picture file (bytes)
 	Set logging of each MTA call. Can be overwritten by -m sympa option.
 
         \example {log\_smtp           on}
-
-
-\subsection {\cfkeyword {use\_blacklist}}
-
-	\default {send,create\_list}
-        \index{use\_blacklist}
-        \label{useblacklist}
-	Sympa provide a blacklist feature available for list editor and list owner. The \cfkeyword {use\_blacklist} parameter
-        define which operation use the blacklist. Search in black list is mainly usefull for the  \cfkeyword {send} service
-        (distribution of a message to the subscribers). You may use blacklist for more operation such as review,archive etc but
-        be aware that thoses web services needs fast response and blacklist may require some ressources.
-
-        If you don't want blacklist at all, define \cfkeyword {use\_blacklist none} so the user interface to manage blacklist
-        will disappear from the web interface.
 
 
 \subsection {\cfkeyword {max\_size}} 
@@ -2259,11 +2169,9 @@ The maximum size of the uploaded picture file (bytes)
 
 \subsection {\cfkeyword {sendmail\_aliases}} 
 
-	\default {defined by makefile, sendmail\_aliases | none}
+	\default {defined by makefile, sendmail\_aliases}
 
         Path of the alias file that contain all lists related aliases. It is recommended to create a specific alias file so Sympa never overright the standard alias file but only a dedicated file.You must refer to this aliases file in your \file {sendmail.mc} :
-
-        Set this parameter to 'none' if you want to disable alias management in sympa (e.g. if you use \file {virtual\_transport} with Postfix).
 
 \subsection {\cfkeyword {rfc2369\_header\_fields}} 
 
@@ -2327,11 +2235,11 @@ The maximum size of the uploaded picture file (bytes)
 
 \subsection {\cfkeyword {default\_shared\_quota}}
 
-	The default disk quota (the unit is Kbytes) for lists' document repository.
+	The default disk quota for lists' document repository.
  
 \subsection {\cfkeyword {default\_archive\_quota}}
 
-	The default disk quota (the unit is Kbytes) for lists' web archives.
+	The default disk quota for lists' web archives.
 
 \section {Spool related}
 \label {spool-related}
@@ -2409,17 +2317,6 @@ The maximum size of the uploaded picture file (bytes)
         Spool to store task files created by the task manager. This parameter is mandatory
         and must be an absolute path.
 
-\subsection {\cfkeyword {queueautomatic}} 
-    \label {kw-queueautomatic}
-
-	\default {none}
-
-        The absolute path of the directory which contains the queue for automatic list creation, used both by the
-        \file {familyqueue} program and the \file {sympa.pl} daemon. This
-        parameter is mandatory when enabling automatic\_list\_creation.
-
-	\example {\dir {[SPOOLDIR]/msg}}
-
 \subsection {\cfkeyword {tmpdir}}
 
         \default {\dir {[SPOOLDIR]/tmp}}
@@ -2482,18 +2379,6 @@ The maximum size of the uploaded picture file (bytes)
         queue.  Beyond this deadline, files are
         deleted.
 
-\subsection {\cfkeyword {clean\_delay\_queueautomatic}}  
-
-	\default {10}
-
-        Retention period (in days) for ``bad'' messages in
-        \textindex {automatic spool} (as specified by \cfkeyword {queueautomatic}).
-        \Sympa keeps messages rejected for various reasons (badly
-        formatted, looping, etc.) in
-        this directory, with a name prefixed by \texttt {BAD}.
-        This configuration variable controls the number of days
-        these messages are kept.
-
 \section {Internationalization related}    
 
 \subsection {\cfkeyword {localedir}}   
@@ -2516,9 +2401,18 @@ The maximum size of the uploaded picture file (bytes)
         This is the default language for \Sympa. The message catalog (.po, compiled as a .mo file) located 
 	in the corresponding \cfkeyword {locale} directory will be used.
 
-\subsection {\cfkeyword {web\_recode\_to}} (OBSOLETE)
+\subsection {\cfkeyword {web\_recode\_to}}   
 
-    All web pages are now encoded in utf-8.
+        If you set this parameter to a charset then web pages will be recoded to this specified charset. This is usefull to have web pages 
+	in UTF-8, allowing multi-lingual contents. You should check that customized web templates, topics.conf, list config files, info files are
+	all using the same charset.
+
+	Example :
+\begin {quote}
+\begin{verbatim}
+web_recode_to   utf-8
+\end{verbatim}
+\end {quote}
    
 Note : if you recode web pages to utf-8, you should also add the following tag to your \file {mhonarc-ressources.tt2} file :
 \begin {quote}
@@ -2529,17 +2423,6 @@ utf-8; MHonArc::UTF8::to_utf8; MHonArc/UTF8.pm
 \end{verbatim}
 \end {quote}
 
-\subsection {\cfkeyword {filesystem\_encoding}}   
-    \index{filesystem-encoding}
-
-	\default {utf-8}
-
-	\example {filesystem\_encoding  iso-8859-1}
-
-        Sympa (and Perl) use utf-8 as the its internal encoding and
-        also for the encoding of web pages. Because you might use a
-        different character encoding on your filesystem, you need to
-        declare it, so that Sympa is able to properly decode strings.
 
 
 \section {Bounce related}
@@ -2720,21 +2603,7 @@ bounce-test+*: 	"| /home/sympa/bin/queuebounce sympa@\samplerobot"
 	This parameter defines the default \lparam {remind\_task} list parameter.
 
 
-\section {Tuning}
-
-\subsection {\cfkeyword {cache\_list\_config}}
-\label{cache-list}
-	\texttt {Format: none | binary\_file}
-	\default {none}
-
-If this parameter is set to binary\_file, then Sympa processes will maintain a binary version of the
-list config structure on disk (\file {config.bin} file). This file is bypassed whenever the \file {config}
-file changes on disk. Thanks to this method, the startup of Sympa processes is much faster because it 
-saves the time for parse all config files. The drawback of this method is that the list config cache could 
-live for a long time (not recreated when Sympa process restart) ; Sympa processes could still use authorization 
-scenario rules that have changed on disk in the meanwhile.
-
-You should use list config cache if you are managing a big amount of lists (1000+).
+\section {Priority related}
 
 \subsection {\cfkeyword {sympa\_priority}}  
         \label {kw-sympa-priority}
@@ -2778,7 +2647,6 @@ You should use list config cache if you are managing a big amount of lists (1000
         Available since release 2.3.1.
 
 \section {Database related}
-	\label {database-related}
 
 The following parameters are needed when using an RDBMS, but are otherwise not required:
 
@@ -2838,12 +2706,10 @@ This feature is only available with \textindex{mysql}.
 Example for MySQL:
 \begin {quote}
 \begin{verbatim}
-db_options	mysql_read_default_file=/home/joe/my.cnf;mysql_socket=tmp/mysql.sock-test
+db_options	mysql_read_default_file=/home/joe/my.cnf
 \end{verbatim}
 \end {quote}
    
-Check the related DBD documentation to learn about the available options.
-
 \subsection {\cfkeyword {db\_env}}
 
 	Gives a list of environment variables to set before database connexion.
@@ -3409,17 +3275,6 @@ int main(int argn, char **argv, char **envp) {
 \end{itemize}
 
 \subsection {Installing wwsympa.fcgi in your Apache server}
-
-     You first need to set an alias to the directory where Sympa stores static contents (CSS, members pictures, documentation) directly delivered by Apache
-
-
-\begin {quote}
-\begin{verbatim}
-     Example :
-       	Alias /static-sympa [DIR]/static_content
-\end{verbatim}
-\end {quote}
-
      If you chose to run \file {wwsympa.fcgi} as a simple CGI, you simply need to
      script alias it. 
 
@@ -3626,7 +3481,7 @@ main archive.
 
      If web\_archive is defined for a list, every message distributed by this list is copied
      to \dir {[SPOOLDIR]/outgoing/}. (No need to create nonexistent subscribers to receive
-     copies of messages). In this example disk quota (expressed in Kbytes) for the archive is limited to 10 Mo.
+     copies of messages). In this example disk quota for the archive is limited to 10 Mo.
 
 \item start \file {archived.pl}.
 \Sympa and Apache
@@ -3664,7 +3519,7 @@ The database structure is documented in the \Sympa documentation ;
 scripts for creating it are also provided with the \Sympa distribution
 (in \dir {script}). 
 
-User information (password and preferences) are stored in the ``User'' table.
+User information (password and preferences) are stored in the «User» table.
 User passwords stored in the database are encrypted using reversible
 RC4 encryption controlled with the \cfkeyword {cookie} parameter,
 since \WWSympa might need to remind users of their passwords. 
@@ -3689,106 +3544,6 @@ the \textbf {Send me a password} button on the web interface. As for any user, t
 
 Note that you must start the \file {sympa.pl} process with the web interface ; it is in responsible for delivering 
 mail messages including password reminders.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Sympa Internationalization
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\cleardoublepage
-\chapter {Sympa Internationalization}
-\label{i18n}
-\index{i18n}
-
-\section {Catalogs and templates}
-
-Sympa is designed to allow easy internationalization of its user interface (service mail messages and web interface). 
-All translations for one language are gathered in a single PO file that can be manipulated by standard 
-\htmladdnormallinkfoot {GNU gettext tools} {http://www.gnu.org/software/gettext/\#TOCintroduction}.
-
-Documentation and ressources about software translations : \htmladdnormallinkfoot {http://translate.sourceforge.net/doc/} {http://translate.sourceforge.net/doc/} 
-
-Sympa previously (until Sympa 4.1.x) used XPG4 messages catalogue format. Web and mail templates were language specific. 
-The new organization both provide a unique file to work on for translators and a standard format supported by many software.
-Sympa templates refer to translatable strings using the \texttt {loc} TT2 filter.
-
-Examples :
-\begin {quote}
-\begin{verbatim}
-[%|loc%]User Email[%END%]
-
-[%|loc(list.name,user.email)%]You have subscribed to list %1 with email address %2[%END%]
-\end{verbatim}
-\end {quote}
-
-Sympa had previously been translated into 15 languages more or less completely. We have automatically extracted the 
-translatable strings from previous templates but this process is awkward and is only seen as a bootstrap for translators. 
-Therefore Sympa distribution will not include previous translations until a skilled translator has reviewed and updated 
-the corresponding PO file. 
-
-\section {Translating Sympa GUI in your language}
-
-Instructions for translating Sympa are maintained on Sympa web site :
-\htmladdnormallink {http://www.sympa.org/howtotranslate.html} {http://www.sympa.org/howtotranslate.html}
-
-\section {Defining language-specific templates}
-
-The default Sympa templates are language independant, refering to catalogue entries for translations. 
-When customizing either web or mail templates, you can define different templates for different languages. 
-The template should be located in a ll\_CC subdirectory of \dir {web\_tt2} or \dir {mail\_tt2} with the language code.
-
-Example :
-\begin {quote}
-\begin{verbatim}
-[ETC_DIR]/web_tt2/home.tt2
-[ETC_DIR]/web_tt2/de_DE/home.tt2
-[ETC_DIR]/web_tt2/fr_FR/home.tt2
-\end{verbatim}
-\end {quote}
-
-This mecanism also applies to \file {comment.tt2} files used by create list templates.
-
-
-Web templates can also make use of the \texttt {locale} variable to make templates multi-lingual :
-
-Example :
-\begin {quote}
-\begin{verbatim}
-[% IF locale == 'fr_FR' %]
-Personnalisation
-[% ELSE %]
-Customization
-[% END %]
-\end{verbatim}
-\end {quote}
-
-\section {Translating topics titles}
-
-Topics are defined in a \file {topics.conf} file. In this file, each entry can be given a title in different languages, see
-\ref{topics}, page~\pageref{topics}.
-
-
-\section {Handling of encodings}
-
-Until version 5.3, Sympa web pages were encoded in each language's
-encoding (iso-8859-1 for French, utf-8 for Japanese,...) whereas every
-web page is now encoded in utf-8. Thanks to
-the \perlmodule {Encode} Perl module, Sympa can now juggle with the
-filesystem encoding, each message catalog's encoding and its web
-encoding (utf-8).
-
-If your operating system uses a character encoding different from
-utf-8, then you should declare it using the \cfkeyword
-{filesystem\_encoding} sympa.conf parameter (see 
-\ref {filesystem-encoding}, page~\pageref {filesystem-encoding}). It is required to do so
-because Sympa has no way to find out what encoding is used for its
-configuration files. Once this encoding is known, every template or
-configuration parameter can be read properly for the web and also
-saved properly when edited from the web interface.
-
-Note that the shared documents (see\ref {shared}, page~\pageref {shared}) filenames are 
-Q-encoded to make their storage encoding neutral. This encoding is transparent 
-for the end-users.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3907,22 +3662,7 @@ procedure calls, input parameters and resulting data in an XML data structure. T
 API is published in a \textbf {WSDL } document, retreived via Sympa's web interface.
 
 The SOAP server provides a limited set of high level functions including \texttt{login}, \texttt{which},
-\texttt{lists}, \texttt{subscribe}, \texttt{signoff} and list creation. Other functions might be implemented in the future. One
-of the important implementation constraint is to provide services for proxy application with a correct authorization evaluation
-processus where authentication may differ from classic web method. The following cases can be used to access to the service :
-\begin{itemize}
-   \item The client first ask for a login and later service request provide the \texttt{sympa-user} cookie.
-   \item The client authenticate the end user providing the \texttt{sympa-user} http cookie. This can be used in order to share the an authenticated session betwing Sympa
-and some other application running on the same server as wwsympa. The soap method used is \texttt{getUserEmailByCookieRequest}.
-   \item The client provide user email and password and request a service in a single soap access using the \texttt{authenticateAndRun} soap service.
-   \item The client is a trusted by Sympa as a proxy application and is authorized to set some variables that will be used by 
-         Sympa during the authorization scenario evaluation. Trusted application have there own password and the variables they can set are listed in
-         a configuration file name  \file {trusted\_applications.conf}. See \ref{trustedapplications} page~\pageref{trustedapplications}.
-\end{itemize}
-
-In any case scenario authorization is used with same rules as mail interface or usual web interface.
-           
-
+\texttt{lists},\texttt{subscribe},\texttt{signoff}. Other functions might be implemented in the future.
 
 The SOAP server uses \htmladdnormallink {SOAP::Lite} {http://www.soaplite.com/} Perl library. The server 
 is running as a daemon (thanks to FastCGI), receiving the client SOAP requests via a web server (Apache 
@@ -3947,56 +3687,13 @@ Here is a sample piece of your Apache \file {httpd.conf} with a SOAP server conf
 
 \section {Sympa setup}
 
-The only mandatory parameter you need to set in \file {sympa.conf}/\file {robot.conf} files is
-the \cfkeyword {soap\_url} that defines the URL of the SOAP service corresponding
+The only parameters that you need to set in \file {sympa.conf}/\file {robot.conf} files is
+the \cfkeyword {soap\_url} parameter that defines the URL of the SOAP service corresponding
 to the ScriptAlias you've previously setup in Apache config. 
 
 This parameter is used to publish the SOAP service URL in the WSDL file (defining the API) but
 also for the SOAP server to deduce what Virtual Host is concerned by the current SOAP request 
 (a single SOAP server will serve all Sympa virtual hosts).
-
-\section {trust remote application}
-\label {trustedapplications}
-
-The SOAP service \cfkeyword {authenticateRemoteAppAndRun} is used in order to allow some remote application such as a web portal to request Sympa service as a proxy for the end user. In such case, Sympa will not authenticate the end user itself but instead it will trust a particular application to act as a proxy. 
-
-This configuration file \cfkeyword {trusted\_applications.conf} can be created in the robot \dir {etc/} subdirectory or in \dir {[ETCDIR]} directory depending on the scope you want for it (the source package include a sample of file \file {trusted\_applications.conf} in directory \dir {soap}). This file is constructed with paragraphs separated by empty line and stating with key word  \cfkeyword {trusted\_application}. A sample \file {trusted\_applications.conf} file is provided with Sympa sources. Each paragraph defines a remote trusted application with keyword/value pairs
-
-\begin{itemize}
-\item \cfkeyword {name} : the name of the application. Used with password for authentication ; the \cfkeyword {remote\_application\_name} variable is set for use in authorization scenarios.
-\item  \cfkeyword {md5password} : the MD5 digest of the application password. You can compute the digest as follows :  \unixcmd{sympa.pl -md5\_digest=<the password>}.
-\item  \cfkeyword {proxy\_for\_variables} : a comma separated list of variables that can be set by the remote application and that will be used by Sympa SOAP server when evaluating an authorization scenario. If you list \cfkeyword {USER\_EMAIL} in this parameter, then the remote application can act as a user. Any other variable such as  \cfkeyword {remote\_host} can be listed.
- 
-\end{itemize}
-
-
-You can test your SOAP service using the \file {sympa\_soap\_client.pl} sample script as follows :
-\begin {quote}
-\begin{verbatim}
-[BINDIR]/sympa_soap_client.pl --soap_url=http://my.server/sympasoap --service=createList --trusted_application=myTestApp --trusted_application_password=myTestAppPwd --proxy_vars="USER_EMAIL=userProxy@my.server" --service_parameters=listA,listSubject,discussion_list,description,myTopic
-
-[BINDIR]/sympa_soap_client.pl --soap_url=http://myserver/sympasoap --service=add --trusted_application=myTestApp --trusted_application_password=myTestAppPwd  --proxy_vars="USER_EMAIL=userProxy@my.server" --service_parameters=listA,someone@some;domain,name
-\end{verbatim}
-\end {quote}
-
-Availible services are :
-\begin{itemize}
-\item info <list>
-\item which
-\item lists
-\item review <list>
-\item amI <function>
-\item subscribe  <list> 
-\item signoff <list>
-\item add <list><email>
-\item del <list><email>
-\item createList <list>...
-\item closeList <list>
-\item login <email><password>
-\item casLogin <proxyTicket>
-\item checkCookie
-\end{itemize}
-
 
 \section {The WSDL service description}
 
@@ -4025,7 +3722,7 @@ Note : the \textbf {login()} function maintains a login session using HTTP cooki
 to maintain this session by analysing and sending appropriate cookies under SOAP, then you
 should use the \textbf {authenticateAndRun()} function that does not require cookies to authenticate.
 
-\subsection {Writing a Java client with Axis}
+\subsection {Writting a Java client with Axis}
 
 First, download jakarta-axis (http://ws.apache.org/axis/)\\
 
@@ -4141,17 +3838,6 @@ SSLVerifyDepth  10
 
  \end{verbatim}
 \end {quote}
-
-If you are using the SubjAltName, then you additionaly need to export the certificate data because of a \textindex {mod\_ssl} bug. You will also 
-need to install the textindex {Crypt-OpenSSL-X509} CPAN module. Add this option to the Apache configuration file :
-
-\begin {quote}
-\begin{verbatim}
-   SSLOptions +ExportCertData
- \end{verbatim}
-\end {quote}
-
-
 
 
 \section {Authentication with email address, uid or alternate email address}
@@ -4752,7 +4438,7 @@ You can easily trigger a Sympa login from within another web page. The login for
 \begin{verbatim}
 <FORM ACTION="http://listes.cru.fr/sympa" method="post">
       <input type="hidden" name="previous_action" value="arc" />
-      Access web archives of list
+      Accès web archives of list
       <select name="previous_list">
       <option value="sympa-users" >sympa-users</option>
       </select><br/>
@@ -4813,7 +4499,7 @@ Example
 del.auth
 \begin{verbatim}
 title.us deletion performed only by list owners, need authentication
-title.fr suppression r\'eserv\'ee au propri\'etaire avec authentification
+title.fr suppression réservée au propriétaire avec authentification
 title.es eliminacin reservada slo para el propietario, necesita autentificacin
 
 
@@ -4837,15 +4523,13 @@ Rules are defined as follows :
                 | all ()
                 | equal (<var>, <var>)
                 | match (<var>, /perl_regexp/)
-		| search (<named_filter_file>)
+		| search (<filter.ldap>,<var>)
                 | is_subscriber (<listname>, <var>)
                 | is_owner (<listname>, <var>)
                 | is_editor (<listname>, <var>)
                 | is_listmaster (<var>)
                 | older (<date>, <date>)    # true if first date is anterior to the second date
                 | newer (<date>, <date>)    # true if first date is posterior to the second date
-                | CustomCondition::<package_name> (<var>*)
-
 <var> ::= [email] | [sender] | [user-><user_key_word>] | [previous_email]
                   | [remote_host] | [remote_addr] | [user_attributes-><user_attributes_keyword>]
 	 	  | [subscriber-><subscriber_key_word>] | [list-><list_key_word>] | [env-><env_var>]
@@ -4872,9 +4556,6 @@ Rules are defined as follows :
 
 [topic-needed] ::= the message has not got any topic and message topic are required for the list
 
-/perl_regexp/ ::= a perl regular expression. Don't forget to escape special characters (^, $, \{, \(, ...) 
-Check http://perldoc.perl.org/perlre.html for regular expression syntax.
-
 <date> ::= '<date_element> [ +|- <date_element>]'
 
 <date_element> ::= <epoch_date> | <var> | <date_expr>
@@ -4891,8 +4572,8 @@ Check http://perldoc.perl.org/perlre.html for regular expression syntax.
 
 <action> ::=   do_it [,notify]
              | do_it [,quiet]
-	     | reject(reason=<reason_key>) [,quiet]
-	     | reject(tt2=<tpl_name>) [,quiet]
+	     | reject(reason=<reason_key>)
+	     | reject(tt2=<tpl_name>)
              | request_auth
              | owner
 	     | editor
@@ -4918,10 +4599,7 @@ Check http://perldoc.perl.org/perlre.html for regular expression syntax.
 
 <conf_key_word> ::= domain | email | listmaster | default_list_priority | 
 		      sympa_priority | request_priority | lang | max_size
-
-<named_filter_file> ::= filename ending with .ldap , .sql or .txt
-
-<package_name> ::= name of a perl package in /etc/custom_conditions/ (small letters)
+	 	      
 \end{verbatim}
 \end {quote}
 
@@ -4949,7 +4627,7 @@ directory. Default scenarios are named \texttt{<}command\texttt{>}.default.
 
 You may also define and name your own authorization scenarios. Store them in the
 \dir {[ETCDIR]/scenari} directory. They will not be overwritten by Sympa release.
-Scenarios can also be defined for a particular virtual host (using directory \dir {[ETCDIR]/\texttt{<}robot\texttt{>}/scenari}) or for a list ( \dir {[EXPL_DIR]/\texttt{<}robot\texttt{>}/\texttt{<}list\texttt{>}/scenari} ). \textbf {Sympa will not dynamically detect that a list config should be reloaded after a scenario has been changed on disk.}
+Scenarios can also be defined for a particular virtual host (using directory \dir {[ETCDIR]/\texttt{<}robot\texttt{>}/scenari}) or for a list ( \dir {[EXPL_DIR]/\texttt{<}robot\texttt{>}/\texttt{<}list\texttt{>}/scenari} ). \textbf {Sympa will not detect that you a used scenario has changed on disk. You should run the sympa.pl -reload\_list\_config command to update the \file {config.bin} files.}
 
 [STOPPARSE]
 
@@ -4973,21 +4651,19 @@ subscribe rennes1
 \end{verbatim}
 \end {quote}
 
-\section {Named Filters}
+\section {LDAP Named Filters}
 \label {named-filters}
 
 At the moment Named Filters are only used in authorization scenarios. They enable to select a category of people who will be authorized or not to realise some actions.
 	
-As a consequence, you can grant privileges in a list to people belonging to an \textindex {LDAP} directory, an \textindex {SQL} database or an flat text file, thanks to an authorization scenario.
+As a consequence, you can grant privileges in a list to people belonging to an \textindex {LDAP} directory thanks to an authorization scenario.
 	
-Note that the only a subset of variable available in the scenario context are available here (including [sender] and [listname]).
-
-\subsection {LDAP Named Filters Definition}
+\subsection {Definition}
 
 [STARTPARSE]
-       People are selected through an \textindex {LDAP filter} defined in a configuration file. This file must have the extension '.ldap'. It is stored in \dir {[ETCDIR]/search\_filters/}.
+	People are selected through an \textindex {LDAP filter} defined in a configuration file. This file must have the extension '.ldap'.It is stored in \dir {[ETCDIR]/search\_filters/}.
 	
-       You must give several informations in order to create a LDAP Named Filter:
+	You must give several informations in order to create a Named Filter:
 \begin{itemize}
 
 	\item{host}\\
@@ -5038,63 +4714,6 @@ example.ldap : we want to select the professors of mathematics in the university
 \end{verbatim}
 \end {quote}
 
-\subsection {SQL Named Filters Definition}
-
-[STARTPARSE]
-       People are selected through an \textindex {SQL filter} defined in a configuration file. This file must have the extension '.sql'. It is stored in \dir {[ETCDIR]/search\_filters/}.
-
-       To create an SQL Named Filter, you have to configure SQL host, database and options, the same way you did it for the main Sympa database in sympa.conf.
-       Of course you can use different database and options. Sympa will open a new Database connection to execute your statement.
-
-       Please refer to section  \ref {database-related}, page~\pageref {database-related} for a detailed explanation of each parameter.
-
-       Here, all database parameters have to be grouped in one \texttt {sql\_named\_filter\_query} paragraph.
-
-\begin{itemize}
-
-       \item{db\_type}\\
-       \texttt {Format: db\_type mysql | SQLite | Pg | Oracle | Sybase}
-       Database management system used. Mandatory and Case sensitive.
-
-       \item{db\_host}\\
-       Database host name. Mandatory.
-
-       \item{db\_name}\\
-       Name of database to query. Mandatory.
-
-       \item{statement}\\
-       Mandatory. The SQL statement to execute to verify authorization. This statement must returns 0 to refuse the action, or anything else to grant privileges.
-       The \texttt {SELECT COUNT(*)...} statement is the perfect query for this parameter.
-       The \texttt {[sender]} keyword in the SQL query will be replaced by the sender's email.
-
-       \item{Optional parameters}\\
-       Please refer to main sympa.conf section for description.
-       \begin{itemize}
-               \item{db\_user}
-               \item{db\_password}
-               \item{db\_options}
-               \item{db\_env}
-               \item{db\_port}
-               \item{db\_timeout}
-       \end{itemize}
-
-\end{itemize}
-
-
-example.sql : we want to select the professors of mathematics in the university of Rennes1 in France
-\begin {quote}
-\begin{verbatim}
-[STOPPARSE]
-       sql_named_filter_query
-       db_type         mysql
-       db_name         people
-       db_host         dbserver.rennes1.fr
-       db_user         sympa
-       db_passwd       pw_sympa_mysqluser
-       statement       SELECT count(*) as c FROM users WHERE mail=[sender] AND EmployeeType='PROFESSOR' AND department='mathematics'
-\end{verbatim}
-\end {quote}
-
 
 \subsection {Search Condition}
 	
@@ -5103,17 +4722,18 @@ The search condition is used in authorization scenarios which are defined and de
 The syntax of this rule is:
 \begin {quote}
 \begin{verbatim}
-	search(example.ldap)      smtp,smime,md5    -> do_it
-	search(blacklist.txt)     smtp,smime,md5    -> do_it
+	search(example.ldap,[sender])      smtp,smime,md5    -> do_it
 \end{verbatim}
 \end {quote}
 
-The variable used by 'search' is the name of the LDAP Configuration file or a txt matching enumeration
+The variables used by 'search' are :
+\begin{itemize}
+	\item{the name of the LDAP Configuration file}\\
+	\item{the [sender]}\\
+	That is to say the sender email address. 
+\end{itemize}
  
-+Note that \Sympa processes maintain a cache of processed search conditions to limit access to the LDAP directory or SQL server; each entry has a lifetime of 1 hour in the cache.
-
-When using .txt file extention, the file is read looking for a line that match the second parameter (usually the user email address). Each line is a string where the
-char * can be used once to mach any block. This feature is used by the blacklist implicit scenario rule.   (see~\ref {blacklist}) 
+Note that \Sympa processes maintain a cache of processed search conditions to limit access to the LDAP directory ; each entry has a lifetime of 1 hour in the cache.
 
 The method of authentication does not change.
 [STARTPARSE]
@@ -5138,72 +4758,7 @@ order to facilitate the administration of common rules.
 
 You can define a set of common scenario rules, used by all lists.
 include.\texttt{<}action\texttt{>}.header is automatically added to evaluated scenarios.
-Note that you will need to restart Sympa processes to force reloading of list config files.
 
-\section {blacklist implicit rule}
-
-For each service listed in parameter \cfkeyword {use\_blacklist} (see~\ref {useblacklist}), the following implicit scenario rule is added at the beginning of the scenario :
-\begin {quote}
-\begin{verbatim}
-search(blacklist.txt)  smtp,md5,pgp,smime -> reject,quiet
-\end{verbatim}
-\end {quote}
-	    
-The goal is to block message or other service request from unwanted users. The blacklist can be defined for the robot or for the list. The one at the list level is to
-managed by list owner or list editor  via the web interface.
-
-\section {Custom perl package conditions}
-
-You can use a perl package of your own to evaluate a custom condition. It could be usefull if you have very complex
-tasks to accomplish to evaluate your condition (web services queries...). You write a perl module, place it in the CustomCondition namespace, with one verify fonction that have to return 1 to grant access, undef to throw an error, or anything else to refuse the authorization.
-
-This perl module:
-\begin{itemize}
-	\item{must be placed in a subdirectoy \texttt {'custom\_conditions'} of the \texttt {'etc'} directory of your sympa installation, or of a robot }\\
-	\item{its filename must be lowercase}\\
-	\item{must be placed in the CustomCondition namespace}\\
-	\item{must contains one \texttt {'verify'} static fonction}\\
-	\item{will receive all condition arguments as parameters}\\
-\end{itemize}
-
-For example, lets write the smallest custom condition that always returns 1.
-
-\begin {quote}
-\begin{verbatim}
-  /home/sympa/etc/custom_conditions/yes.pm :
-
-      #!/usr/bin/perl
-
-      package CustomCondition::yes;
-
-      use strict;
-      use Log; # optional : we log parameters
-
-      sub verify {
-        my @args = @_;
-        foreach my $arg (@args) {
-          do_log ('debug3', 'arg: %s', $arg);
-        }
-        # I always say 'yes'
-        return 1;
-      }
-      ## Packages must return true.
-      1;
-\end{verbatim}
-\end {quote}
-
-We can use this custom condition that way :
-
-\begin {quote}
-\begin{verbatim}
-CustomCondition::yes([sender],[list->name],[list->total])      smtp,smime,md5    -> do_it
-true()                               smtp,smime -> reject
-\end{verbatim}
-\end {quote}
-
-Note that the \texttt {[sender],[list->name],[list->total]} are optionnal, but it's the way you can pass information to your package. Our yes.pm will print their values in the logs.
-
-Remember that the package name has to be small letters, but the 'CustomCondition' namespace is case sensitive. If your package return undef, the sender will receive an 'internal error' mail. If it returns anything else but '1', the sender will receive a 'forbidden' error.
 
 \section {Hidding scenario files}
 
@@ -5286,8 +4841,6 @@ FastCgiServer [CGIDIR]/wwsympa.fcgi -processes 3 -idle-timeout 120
 
   ScriptAlias /sympa [CGIDIR]/wwsympa.fcgi
 
-  Alias /static-sympa [DIR]/your.virtual.domain/static_content
-
 </VirtualHost>
 \end{verbatim}
 \end {quote}
@@ -5326,10 +4879,6 @@ Only the following parameters can be redefined for a particular robot :
 	\end{verbatim}
 	\end {quote}
 
-	\item \cfkeyword {host} \\
-	This is the equivalent of the \cfkeyword {host} sympa.conf parameter.
-	The default for this parameter is the name of the virtual host (ie the name of the subdirectory).
-
 	\item \cfkeyword {wwsympa\_url} \\
 	The base URL of WWSympa
 
@@ -5359,14 +4908,6 @@ Only the following parameters can be redefined for a particular robot :
         \item \cfkeyword {css\_path}
 
         \item \cfkeyword {css\_url}
-
-	\item \cfkeyword {static\_content\_path}
-
-	\item \cfkeyword {static\_content\_url}
-
-	\item \cfkeyword {pictures\_feature}
-
-	\item \cfkeyword {pictures\_max\_size}
 
         \item \cfkeyword {logo\_html\_definition}
 
@@ -5483,10 +5024,10 @@ Here are some aspects regarding templates that are specific to \Sympa :
    use the INCLUDE\_PATH provided by \Sympa to find the relevant file to insert/parse.
 
   \item The \textbf {qencode} filter should be used if a template includes SMTP header fields
-  that should be Q-encoded. \example {[\% FILTER qencode \%]Message \`a mod\'erer[\%END\%]}
+  that should be Q-encoded. \example {[\% FILTER qencode \%]Message à modérer[\%END\%]}
 
   \item You can write different versions of a template file in different language, each of them 
-  being located in a subdirectory of the \textbf {tt2} directory. \example {[ETC_DIR]/mail\_tt2/fr\_FR/helpfile.tt2}
+  being located in a subdirectory of the \textbf {tt2} directory. \example {[ETC_DIR]/web\_tt2/fr\_FR/helpfile.tt2}
 
 \end {itemize}
 
@@ -5986,8 +5527,7 @@ The configuration file for the \mailaddr {\samplelist} list is named
 \Sympa reloads it into memory whenever this file has changed on disk. The file can either be
 edited via the web interface or directly via your favourite text editor. 
 
-If you have set the \cfkeyword {cache\_list\_config} sympa.conf parameter (see \ref {cache-list},  
-page~\pageref {cache-list}), a binary version of the config (\file {[EXPL_DIR]/\samplerobot/\samplelist/config.bin} is maintained to allow 
+A binary version of the config (\file {[EXPL_DIR]/\samplerobot/\samplelist/config.bin} is maintained to allow 
 a faster restart of daemons (this is especialy usefull for sites managing lots of lists). 
 
 Be careful to provide read access for \Sympa user to this file !
@@ -6443,9 +5983,7 @@ The list creation can be done by two ways, according to listmaster
 needs : 
 \begin{itemize}
   \item instanciation family to create and manage large number of related lists. 
-    In this case, lists are linked to their family all along their life (Moreover
-    you can let sympa automatically create lists when needed.
-    See \ref {automatic-list-creation}, page~\pageref {automatic-list-creation}).    
+    In this case, lists are linked to their family all along their life.
   \item command line creation of individual list with \file {sympa.pl} or on the Web 
 interface according to privileges defined by listmasters. Here lists are free from 
 their model creation.
@@ -6998,15 +6536,6 @@ shared_doc.d_edit   editor
 	page~\pageref{web-tpl}). \textit{Sympa} looks for these files in the following 
 	level order: list, family, robot, server site or distribution. 
 
-\textit {Example of custom hierarchy :} 
-\begin {quote}
-\begin{verbatim}
-[ETCDIR]/families/myfamily/mail_tt2/
-[ETCDIR]/families/myfamily/mail_tt2/bye.tt2
-[ETCDIR]/families/myfamily/mail_tt2/welcome.tt2
-\end{verbatim}
-\end {quote}
-
 \subsection {Instantiation}
 \label{family-instantiation}
 
@@ -7215,160 +6744,7 @@ array\\
 
 Note : In order to preserve list customization for instantiation, every modified parameter (via the Web interface) is noted in the \file{config\_changes} file. 
 
- \section {Automatic list creation}
- \label{automatic-list-creation}
- 
- You can benefit from the family concept to let Sympa automatically create lists for you.
- Let us suppose that you want to open a list according to specified criteria (age, geographical site...) within your organization.
- Maybe that would result in too many lists, and many of them would never be used.
- 
- Automatic list creation allows you to define those potential lists through family parameters,
- but they won't be created yet. The mailing list creation is trigerred when Sympa receives a
- message addressed to this list.
- 
- To enable automatic list creation you'll have to : 
- \begin {itemize} 
 
-   \item Configure your MTA to queue messages for these lists in an appropriate spool
-
-   \item Define a family associated to such lists
-
-   \item Configure Sympa to enable the feature
-
- \end {itemize}
-
-\subsection {Configuring your MTA}
-
- To do so, we have to configure our MTA for it to add a custom header field to the message. The easiest way
- is to customize your aliases manager, so mails for automatic lists aren't delivered to the normal 
- \file {queue} program, but to the \file {familyqueue} dedicated one. For example, you can decide
- that the name of those lists will start with the \texttt {auto-} pattern, so you can process them separately
- from other lists you are hosting.
- 
- \file {familyqueue} expects 2 arguments : the list name and the family name (whereas the \file {queue} program
- only expects the list address).
- 
- Let's start with a use case : we need to communicate to groups of co-workers, depending on their age
- and their occupation. We decide that, for example, if I need to write to all CTOs who are fifty years old,
- I will use the auto-cto.50@lists.domain.com mailing list. The occupation and age informations are stored in our
- ldap directory (but of course we could use any Sympa data source : sql, files...). We will create the
- age-occupation family.
- 
- First of all we configure our MTA to deliver mail to  \texttt{'auto-*'} to  \file {familyqueue}
- for the \texttt{age-occupation} family.
- 
- \begin {quote}
- \begin{verbatim}
-/etc/postfix/main.cf
-    ...
-    transport_maps = regexp:/etc/postfix/transport_regexp
-
-/etc/postfix/transport_regexp
-    /^.*+owner\@lists\.domain\.com$/      sympabounce:
-    /^auto-.*\@lists\.domain\.com$/       sympafamily:
-    /^.*\@lists\.domain\.com$/            sympa:
-
-/etc/postfix/master.cf
-    sympa     unix  -       n       n       -       -       pipe
-      flags=R user=sympa argv=[MAILERPROGDIR]/queue ${recipient}
-    sympabounce  unix  -       n       n       -       -       pipe
-      flags=R user=sympa argv=[MAILERPROGDIR]/bouncequeue ${user}
-    sympafamily  unix  -       n       n       -       -       pipe
-      flags=R user=sympa argv=[MAILERPROGDIR]/familyqueue ${user} age-occupation
-\end{verbatim}
-\end {quote} 
-
-A mail addressed to \textit {auto-cto.50@lists.domain.com} will be queued to the \dir {[SPOOLDIR]/automatic} spool, 
-defined by the \cfkeyword {queueautomatic} \file {sympa.conf} parameter (see \ref {kw-queueautomatic}, page~\pageref {kw-queueautomatic}).
-The mail will first be processed by an instance of \file {sympa.pl} process dedicated to automatic list creation, then the mail
-will be sent to the newly created mailing list.
-
-\subsection {Defining the list family}
-
-We need to create the appropriate \file {etc/families/age-occupation/config.tt2}. All the magic comes
-from the TT2 language capabilities. We define on-the-fly the LDAP source, thanks to TT2 macros.
-
- \begin {quote}
- \begin{verbatim}
-/home/sympa/etc/families/age-occupation/config.tt2
-    ...
-    user_data_source include2
-    
-    [%
-    occupations = {
-        cto = { title=>"chief technical officer", abbr=>"CHIEF TECH OFF" },
-        coo = { title=>"chief operating officer", abbr=>"CHIEF OPER OFF" },
-        cio = { title=>"chief information officer", abbr=>"CHIEF INFO OFF" },
-    }
-    nemes = listname.split('-');
-    THROW autofamily "SYNTAX ERROR : listname must begin with 'auto-' " IF (nemes.size != 2 || nemes.0 != 'auto');
-    tokens = nemes.1.split('\.');
-    THROW autofamily "SYNTAX ERROR : wrong listname syntax" IF (tokens.size != 2 || ! occupations.${tokens.0} || tokens.1 < 20 || tokens.1 > 99 );
-    age = tokens.1 div 10;
-    %]
-
-    custom_subject [[% occupations.${tokens.0}.abbr %] OF [% tokens.1 %]]
-
-    subject Every [% tokens.1 %] years old [% occupations.${tokens.0}.title %]
-
-    include_ldap_query
-    attrs mail
-    filter (&(objectClass=inetOrgPerson)(employeeType=[% occupations.${tokens.0}.abbr %])(personAge=[% age %]*))
-    name ldap
-    port 389
-    host ldap.domain.com
-    passwd ldap_passwd
-    suffix dc=domain,dc=com
-    timeout 30
-    user cn=root,dc=domain,dc=com
-    scope sub
-    select all
-\end{verbatim}
-\end {quote} 
-
-The main variable you get is the name of the current mailing list via the \textbf {listname} variable as used in the example above.
-
-\subsection {Configuring Sympa}
-
-Now we need to enable automatic list creation in Sympa. To do so, we have to 
-\begin {itemize}
-
-  \item set the \cfkeyword {automatic\_list\_feature} parameter to \texttt {on} and define who can create automatic lists via
-  the \cfkeyword {automatic\_list\_creation} (points to an automatic\_list\_creation scenario).
-
-  \item set the \cfkeyword {queueautomatic} \file {sympa.conf} parameter to the spool location where we want these messages to
-  be stored (it has to be different from the \dir {[SPOOLDIR]/msg} spool).
-
-\end {itemize}
-
-You can make Sympa delete automatic lists that were created with zero list members ; to do so
-you shoukd set the \cfkeyword {automatic\_list\_removal} parameter to \texttt {if\_empty}.
-
- \begin {quote}
- \begin{verbatim}
-/home/sympa/etc/sympa.conf
-    ...
-    automatic_list_feature  on
-    automatic_list_creation public
-    queueautomatic          [SPOOLDIR]/automatic
-    automatic_list_removal    if_empty
-\end{verbatim}
-\end {quote} 
-
-While writing your own \textindex {automatic\_list\_creation} scenarios, be aware that :
-\begin {itemize}
-
-  \item when the scenario is evaluated, the list is not yet created ; therefore you can't use the list-related
-  variables.
-
-  \item You can only use 'smtp' and 'smime' authentication method in scenario rules (You cannot request the md5 challenge).
-  Moreover only \texttt {do\_it} and \texttt {reject} actions are available.
-
-\end {itemize}
-
-Now you can send message to auto-cio.40 or auto-cto.50, and the lists will be created on the fly.
-
-You will receive an 'unknown list' error if either the syntax is incorrect or the number of subscriber is zero.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % List configuration parameters
@@ -7578,9 +6954,9 @@ giving details regarding the owner(s) included characteristics:
 
     \item  \lparam {source myfile}
       
-        This is an mandatory field : it indicates the data inclusion file myfile.incl. This file can be a template. In this case, it will be interpreted
-	with values given by subparameter \lparam {source\_parameter}. 
-	Note that the \lparam {source} parameter should NOT include the \textit {.incl} file extension ; the myfile.incl file should be located in the \dir {data\_sources} directory.
+        This is an mandatory field : it indicates the data inclusion file 
+	myfile.incl (but declared myfile). This file can be a template. In this case, it will be interpreted
+	with values given by subparameter \lparam {source\_parameter}.
 
     \item \lparam {source\_parameters a,b,c}
 
@@ -7977,23 +7353,6 @@ Username with read access to the LDAP directory.
 
 Password for \lparam {user}.
 
-\item
-\lparam {use\_ssl} \textit {yes|no}
-
-If set to yes, LDAPS protocol is used.
-
-
-\item
-\lparam {ssl\_version} \textit {sslv2|sslv3|tls}
-\default {sslv3}
-
-If using SSL, this parameter define if SSL or TLS is used.
-
-\item
-\lparam {ssl\_version} \textit {ciphers used}
-\default {ALL}
-
-If using SSL, this parameter specifies which subset of cipher suites are permissible for this connection, using the standard OpenSSL string format. The default value of Net::LDAPS for ciphers is ALL, which permits all ciphers, even those that don't encrypt!
 
 \item
 \label {suffix}
@@ -8120,24 +7479,6 @@ Username with read access to the LDAP directory.
 
 Password for \lparam {user}.
 
-
-\item
-\lparam {use\_ssl} \textit {yes|no}
-
-If set to yes, LDAPS protocol is used.
-
-
-\item
-\lparam {ssl\_version} \textit {sslv2|sslv3|tls}
-\default {sslv3}
-
-If using SSL, this parameter define if SSL or TLS is used.
-
-\item
-\lparam {ssl\_version} \textit {ciphers used}
-\default {ALL}
-
-If using SSL, this parameter specifies which subset of cipher suites are permissible for this connection, using the standard OpenSSL string format. The default value of Net::LDAPS for ciphers is ALL, which permits all ciphers, even those that don't encrypt!
 
 \item
 \label {suffix1}
@@ -8617,7 +7958,7 @@ d_edit		private
 
 \lparam {quota} \textit {number-of-Kbytes}
 
-This parameter specifies the disk quota (the unit is Kbytes) for the document repository, in kilobytes.
+This parameter specifies the disk quota for the document repository, in kilobytes.
 If quota is exceeded, file uploads fail.
 
 \section {List tuning}
@@ -8805,9 +8146,11 @@ format (from 0 for Sunday to 6 for Saturday), separated by commas.
 
 In this example, \Sympa sends digests at 3:30 PM from Monday to Friday.
 
-\textbf {WARNING}: if the sending time is too late (ie around midnight), \Sympa may not
-be able to process it in time. Therefore do not setuse a digest time
-later than 23:00.
+\textbf {WARNING}: if the sending time is too late, \Sympa may not
+be able to process it. It is essential that \Sympa could scan the digest
+queue at least once between the time laid down for sending the
+digest and 12:00~AM (midnight). As a rule of thumb, do not use a digest time
+later than 11:00~PM.
 
 N.B.: In family context, \lparam{digest} can be constrainted only on days.
 
@@ -8942,16 +8285,30 @@ msg_topic_tagging optional
 \end {quote}  
 Its values can be : optional \(\mid\) required
 
-\subsection {pictures\_feature}
 
-    	\label {par-pictures}
-	\index{pictures}
 
-	\default {\cfkeyword {pictures\_feature} robot parameter}
 
-\lparam {pictures\_feature} \textit {on | off}
 
-This enables the feature that allows list members to upload a picture that will be shown on review page.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \subsection {cookie}
@@ -9153,18 +8510,6 @@ halt_rate	20
         messages. See \cfkeyword {remind\_return\_path} \file {sympa.conf}
 	parameter (\ref{kw-remind-return-path}, page~\pageref{kw-remind-return-path}).
 
-\subsection {verp\_rate} 
-\label {verp-rate}
-
-	\default {\cfkeyword {verp\_rate} host parameter}
-
-        See \ref {verp},page~\pageref {verp} for more information on VERP in Sympa.
-
-        When \cfkeyword {verp\_rate} is null VERP is not used ; if  \lparam {verp\_rate} is 100\% VERP is alway in use.
-
-	VERP requires plussed aliases to be supported and the bounce+* alias to be installed.
-
-
 \section {Archive related}
 
 \Sympa maintains 2 kinds of archives: mail archives and web archives.
@@ -9288,7 +8633,7 @@ archived, list owner is notified. When archives are 95\% full, the list owner is
 	\default {\cfkeyword {spam\_protection} robot parameter}
 
 	There is a need to protection Sympa web site against spambot which collect
-        email adresse in public web site. Various method are available into Sympa
+        email adresse in public web site. Various method are availible into Sympa
         and you can choose it with \cfkeyword {spam\_protection} and
         \cfkeyword {web\_archive\_spam\_protection} parameters.
         Possible value are :
@@ -9813,8 +9158,6 @@ With these informations, the automatic bounce management is possible:
 
 \end {itemize}
   
-Bouncing list members entries get expired after a given period of time. The default period is 10 days but it can 
-be customized if you write a new \textbf {expire\_bounce} task (see \ref {kw-expire-bounce-task} ,page~\pageref {kw-expire-bounce-task}).
 
 \item
   You can define the limit between each level via the \textbf {List configuration pannel}, 
@@ -9822,7 +9165,7 @@ be customized if you write a new \textbf {expire\_bounce} task (see \ref {kw-exp
   associating a score interval with a level.
 
 \item 
-  You can also define which action must be applied on each category of user.(see \ref {action})
+  You can also define wich action must be applied on each category of user.(see \ref {action})
   Each time an action will be done, a notification email will be send to the person of your choice.
   (see \ref {notification})
 
@@ -9853,31 +9196,6 @@ be customized if you write a new \textbf {expire\_bounce} task (see \ref {kw-exp
         all subscribers have received at least one message where VERP was enabled. Later distribution message enable
         VERP also for all users where some bounce wer collected and analysed by previous VERP mechanism. 
 
-
-	If VERP is enabled, the format of the messages return path are as follows :
-\begin {quote}
-\begin{verbatim}
-Return-Path: <bounce+user==a==userdomain==listname@listdomain>
-\end{verbatim}
-\end {quote}
-        Note that you need to set a mail alias for the generic bounce+* alias (see \ref {robot-aliases},
-page~\pageref {robot-aliases}).
-
-\section {ARF}
-\label {ARF}
-
- ARF (Abuse Feedback Reporting Format) is standard for reporting abuse. It is
-implemented mainly in AOL email user interface. Aol server propose to mass mailer to received automatically the users complain by formated messages. Because many subscribers don't want to remind
-how to unsubscribe tey use ARF when provided by user interface. It may usefull to configure the ARF managment in Sympa. It really simple : all what you have to do is to create a new alias for
-each virtual robot as the following :
-
-\begin {quote}
-\begin{verbatim}
-abuse-feedback-report:       "| [MAILERPROGDIR]/bouncequeue sympa@\samplerobot"\\
-\end{verbatim}
-\end {quote}
-
-Then register this address as your loop back email address with ISP (for exemple AOL). This way messages to that email adress are processed by bounced deamon and opt-out opt-out-list abuse and automatically processed. If bounce service can remove a user the message report feedback is forwarded to the list owner. Unrecognize message are forwarded to the listmaster.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -10015,23 +9333,6 @@ OpenSSL is used by \Sympa as an external plugin
 (like sendmail or postfix), so it must be installed with the appropriate access
 (x for sympa.sympa). 
 
-\subsection {managing user certificates}
-\label {smimeusercert}
-
-User certs are automatically catched by Sympa when receiving a signed s/mime messsage 
-so if Sympa needs to send encrypted message to this user it can perform encryption 
-using this certificate. This works fine but it's not conpliant with the PKI theory : 
-Sympa should be able to search for user certificates using PKI certificate directory (LDAP) .
-
-That's why Sympa tests the key usage certificate attribute to known if the certificate 
-allows both encryption and signature.
-
-Certificates are stored as PEM files in the \dir {[EXPL_DIR]/X509-user-certs/} directory. 
-Files are named user@some.domain@enc or user@some.domain@sign  (@enc and @sign suffix 
-are used according to certificates usage.  No other tool is provided by Sympa in order 
-to collect this certificate repository but you can easily imagine your own tool to create 
-those files. 
-
 \subsection {configuration in sympa.conf}
 \label {smimeconf}
 
@@ -10046,13 +9347,14 @@ This is done using the optional parameters \unixcmd {openSSL} and
 
 \begin{itemize}
 
-  \item \cfkeyword {openssl} : the path for the OpenSSL binary file,
+  \item \cfkeyword {openSSL} : the path for the OpenSSL binary file,
          usually \texttt {/usr/local/ssl/bin/openSSL}
-  \item \cfkeyword {cafile} (or \cfkeyword {capath}) : the path of a bundle (or path of the directory) of trusted CA certificates 
+  \item \cfkeyword {cafile} : the path of a bundle of trusted ca certificates. 
         The file \tildefile {[ETCBINDIR]/ca\-bundle.crt} included in Sympa distribution can be used.
 
-	The \cfkeyword  {cafile} file (or the \cfkeyword {capath} directory) should be shared with your Apache+mod\_ssl configuration. 
-	This is required because Sympa's web interface gets user certificates information from Apache mod\_ssl module.
+	Both the \cfkeyword  {cafile} file and the \cfkeyword {capath} directory
+        should be shared with your Apache+mod\_ssl configuration. This is useful
+	for the S/Sympa web interface.  Please refer to the OpenSSL documentation for details.
 
   \item \cfkeyword {key\_password} : the password used to protect all list private keys. xxxxxxx	
 \end{itemize}
@@ -10085,7 +9387,7 @@ named \texttt {send.private\_smime}, and restricts sends to subscribers using an
 \begin{verbatim}
 [STOPPARSE]
 title.us restricted to subscribers check smime signature
-title.fr limit\'e aux abonn\'es, v\'erif de la signature smime
+title.fr limité aux abonnés, vérif de la signature smime
 
 is_subscriber([listname],[sender])             smime  -> do_is_editor([listname],[sender])                 smime  -> do_it
 is_owner([listname],[sender])                  smime  -> do_it
@@ -10099,7 +9401,7 @@ example, \texttt {send.private\_key}, requires either an md5 return key or an S/
 \begin{verbatim}
 [STOPPARSE]
 title.us restricted to subscribers with previous md5 authentication
-title.fr r\'serv\'e aux abonn\'es avec authentification MD5 pr\'ealable
+title.fr réservé aux abonnés avec authentification MD5 préalable
 
 is_subscriber([listname],[sender]) smtp          -> request_auth
 true()                             md5,smime     -> do_it
@@ -10675,7 +9977,7 @@ For sending, a call to sendmail is done or the message is pushed in a spool acco
 \index{mail::set\_send\_spool()}
 
    Used by other processes than sympa.pl to indicate to send message by 
-   writing message in spool instead of calling mail::smtpto() function (see \ref {mail-smtpto}, page~\pageref {mail-smtpto}). 
+   writting message in spool instead of calling mail::smtpto() function (see \ref {mail-smtpto}, page~\pageref {mail-smtpto}). 
    The concerned spool is set in \lparam{\$send\_spool} global variable, used by mail::sending() function
   (see \ref {mail-sending}, page~\pageref {mail-sending}).
 
@@ -12728,3 +12030,4 @@ N.B.:
 \printindex
 
 \end {document}
+

@@ -46,7 +46,8 @@ my $opt_d;
 my $opt_F;
 my %options;
 
-&GetOptions(\%main::options, 'debug|d', 'log_level=s', 'foreground');
+&GetOptions(\%main::options, 'dump=s', 'debug|d', 'log_level=s', 'foreground', 'config|f=s', 
+	    'lang|l=s', 'mail|m', 'keepcopy|k=s', 'help', 'version', 'import=s', 'lowercase');
 
 # $main::options{'debug2'} = 1 if ($main::options{'debug'});
 
@@ -54,8 +55,12 @@ if ($main::options{'debug'}) {
     $main::options{'log_level'} = 2 unless ($main::options{'log_level'});
 }
 # Some option force foreground mode
-$main::options{'foreground'} = 1 if ($main::options{'debug'});
-$main::options{'log_to_stderr'} = 1 if ($main::options{'debug'} || $main::options{'foreground'});
+$main::options{'foreground'} = 1 if ($main::options{'debug'} ||
+                                     $main::options{'version'} || 
+				     $main::options{'import'} ||
+				     $main::options{'help'} ||
+				     $main::options{'lowercase'} || 
+				     $main::options{'dump'});
 
 my $Version = '0.1';
 
@@ -78,11 +83,6 @@ unless (Conf::load($sympa_conf_file)) {
 ## Check databse connectivity
 unless ($List::use_db = &List::check_db_connect()) {
     &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
-}
-
-## Check that the data structure is uptodate
-unless (&Upgrade::data_structure_uptodate()) {
-    &fatal_err("error : data structure was not updated ; you should run sympa.pl to run the upgrade process.");
 }
 
 ## Check for several files.
@@ -132,16 +132,12 @@ $< = $> = (getpwnam('--USER--'))[2];
 &POSIX::setuid((getpwnam('--USER--'))[2]);
 &POSIX::setgid((getgrnam('--GROUP--'))[2]);
 
-## Check if the UID has correctly been set (usefull on OS X)
-unless (($( == (getgrnam('--GROUP--'))[2]) && ($< == (getpwnam('--USER--'))[2])) {
-    &fatal_err("Failed to change process userID and groupID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via SUDO.");
-}
-
 ## Sets the UMASK
 umask(oct($Conf{'umask'}));
 
 ## Change to list root
 unless (chdir($Conf{'home'})) {
+    &report::reject_report_web('intern','chdir_error',{},'','','', $Conf{'host'});
     &do_log('err',"error : unable to change to directory $Conf{'home'}");
     exit (-1);
 }
@@ -170,7 +166,6 @@ my %global_models = (#'crl_update_task' => 'crl_update',
 		     #'chk_cert_expiration_task' => 'chk_cert_expiration',
 		     'expire_bounce_task' => 'expire_bounce',
 		     'purge_user_table_task' => 'purge_user_table',
-		     'purge_logs_table_task' => 'purge_logs_table',
 		     'purge_orphan_bounces_task' => 'purge_orphan_bounces',
 		     'eval_bouncers_task' => 'eval_bouncers',
 		     'process_bouncers_task' =>'process_bouncers',
@@ -206,7 +201,6 @@ my %commands = ('next'                  => ['date', '\w*'],
 		                           #template  date
 		'sync_include'          => [],
 		'purge_user_table'      => [],
-		'purge_logs_table'      => [],
 		'purge_orphan_bounces'  => [],
 		'eval_bouncers'         => [],
 		'process_bouncers'      => []
@@ -376,8 +370,9 @@ while (!$end) {
 }
 
 &do_log ('notice', 'task_manager exited normally due to signal'); 
-&tools::remove_pid($wwsconf->{'task_manager_pidfile'}, $$);
-
+unless (unlink $wwsconf->{'task_manager_pidfile'}) { 
+    fatal_err("Could not delete %s, exiting", $wwsconf->{'task_manager_pidfile'}); 
+} 
 exit(0);
 
 ####### SUBROUTINES #######
@@ -416,7 +411,7 @@ sub create {
 
      # for global model
     if ($object eq '_global') {
-	unless ($model_file = &tools::get_filename('etc',{},"global_task_models/$model_name", $Conf{'host'})) {
+	unless ($model_file = &tools::get_filename('etc', "global_task_models/$model_name", $Conf{'host'})) {
 	    &do_log ('err', "error : unable to find $model_name, creation aborted");
 	    return undef;
 	}
@@ -428,7 +423,8 @@ sub create {
 
 	$Rdata->{'list'}{'ttl'} = $list->{'admin'}{'ttl'};
 
-	unless ($model_file = &tools::get_filename('etc', {},"list_task_models/$model_name", $list->{'domain'}, $list)) {
+	unless ($model_file = &tools::get_filename('etc', "list_task_models/$model_name", 
+						   $list->{'domain'}, $list)) {
 	    &do_log ('err', "error : unable to find $model_name, for list $list_name creation aborted");
 	    return undef;
 	}
@@ -791,7 +787,6 @@ sub cmd_process {
     return update_crl ($task, $Rarguments, \%context) if ($command eq 'update_crl');
     return expire_bounce ($task, $Rarguments, \%context) if ($command eq 'expire_bounce');
     return purge_user_table ($task, \%context) if ($command eq 'purge_user_table');
-    return purge_logs_table ($task, \%context) if ($command eq 'purge_logs_table');
     return sync_include($task, \%context) if ($command eq 'sync_include');
     return purge_orphan_bounces ($task, \%context) if ($command eq 'purge_orphan_bounces');
     return eval_bouncers ($task, \%context) if ($command eq 'eval_bouncers');
@@ -1086,20 +1081,6 @@ sub exec_cmd {
     do_log ('notice', "line $context->{'line_number'} : exec ($file)");
     system ($file);
     
-    return 1;
-}
-sub purge_logs_table {
-    # If a log is older then $list->get_latest_distribution_date()-$delai expire the log
-    my ($task, $Rarguments, $context) = @_;
-    my $date;
-    my $execution_date = $task->{'date'};
-    
-    do_log('debug2','purge_logs_table()');
-    unless(&Log::db_log_del()) {
-	&do_log('err','purge_logs_table(): Failed to delete logs');
-	return undef;
-    }
-    &do_log('notice','purge_logs_table(): logs purged');
     return 1;
 }
 
