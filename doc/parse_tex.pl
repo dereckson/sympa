@@ -24,7 +24,6 @@ use lib "../wwsympa/";
 use Log;
 use Conf;
 use POSIX;
-require 'tools.pl';
 require "parser.pl";
 
 my $in_file = $ARGV[0];
@@ -39,6 +38,7 @@ my $version = <VERSION>;
 chomp $version;
 close VERSION;
 
+
 ## Init struct
 my %data = ('escaped_start' => '[STARTPARSE]',
 	    'escaped_stop' => '[STOPPARSE]',
@@ -46,17 +46,13 @@ my %data = ('escaped_start' => '[STARTPARSE]',
 	    'version' => $version
 	    );
 
-## All DIR variables
-foreach my $k (keys %ENV) {
-#    if ($k =~ /DIR$/) {
-	$data{$k} = $ENV{$k};
-#    }
+foreach my $key (%ENV) {
+    $data{$key} = $ENV{$key};
 }
 
 ## scenari
-my $scenario_regexp = &tools::get_regexp('scenario');
 foreach my $file (<../src/etc/scenari/*.*>) {
-    $file =~ /\/(\w+)\.($scenario_regexp)$/;
+    $file =~ /\/(\w+)\.(\w+)$/;
     my ($action, $name) = ($1, $2);
     my $title;
     open SCENARIO, $file;
