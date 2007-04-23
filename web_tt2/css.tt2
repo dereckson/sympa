@@ -12,9 +12,8 @@ font-size: 62.5%;
 background: [% color_4 %];
 }
 
-ul { margin: 0 0 0 4em }
-ol { margin: 0 0 0 4em }
-dl { margin: 0 0 0 1em }
+ul { margin: 0 0 0 1em }
+ol { margin: 0 0 0 1em }
 
 /* ########## Blocks, id and class ########## */
 
@@ -95,7 +94,7 @@ ul#MainMenuLinks li {list-style: none; display: inline;}
 
 
 td.adminmenu { 
-background: [% color_4 %]; 
+background: [% selected_color %]; 
 text-align: center;
 /*colspan="9";*/
 }
@@ -189,22 +188,22 @@ background-color: [% color_4 %];
 background-color: [% color_7 %];
 }
 .color_light { 
-background-color: [% color_9 %];
+background-color: [% light_color %];
 }
 .color_dark { 
-color: [% color_4 %];
+color: [% dark_color %];
 }
 .bg_color_dark { 
-background-color: [% color_4 %]; 
+background-color: [% dark_color %]; 
 }
 .color_bg { 
-color: [% color_13 %];
+color: [% bg_color %];
 }
 .bg_color_bg { 
-background-color: [% color_13 %];
+background-color: [% bg_color %];
 }
 .bg_color_error { 
-background-color: [% color_7 %];
+background-color: [% error_color %];
 }
 
 .list_menu_links { 
@@ -309,7 +308,6 @@ padding: 5px;
 border: 1px solid [% color_2 %];
 text-align: left;
 margin-bottom: 10px;
-overflow: hidden;
 }
 .list_panel span { 
 font-weight: bold;
@@ -471,8 +469,8 @@ a.dingbat {text-align: center;}
 .button { background:[% color_4 %] !important; border: 3px solid; padding: 0px  2px  0px 2px; margin:2px; border-top-color: [% color_6 %]; border-right-color: [% color_1 %];border-bottom-color: [% color_1 %]; border-left-color: [% color_6 %];}
 .button:hover {background: [% color_4 %]; border-top-color: [% color_1 %]; border-right-color: [% color_6 %]; border-bottom-color: [% color_6 %]; border-left-color: [% color_1 %];}
 
-.smalltext {font-size: 0.8em;}
-.smalltext a {font-size: 0.8em;}
+.smalltext {font-size: 1em;}
+.smalltext a {font-size: 1em;}
 .smallblacktext {color: [% color_12 %]; font-size: 1.2em;}
 .mediumtext {font-size: 1.2em;}
 .largetext {font-size: 1.6em;}
@@ -606,19 +604,12 @@ clear: both;
 code {font-weight: bold;}
 
 .retraitita {
-    background-color: [% color_13 %];
+	background-color: [% color_13 %];
         border: 1px dashed [% color_1 %];
         padding: 2px 2px 2px 2px;
         margin: 5px 5px 5px 5px;
 }
 
-span.retraitita {
-    background-color: [% color_13 %];
-        border: 1px dashed [% color_1 %];
-        padding: 5px 10px 5px 10px;
-        margin: 5px 5px 5px 5px;
-    display: block;
-}
 h1 {text-indent: 0px; margin-top: 10px; font-size: 1.8em;}
 h2 {color: [% color_11 %]; text-indent: 0px; margin-top: 10px; font-size: 1.4em;}
 h3 {color: [% color_11 %]; text-indent: 10px; margin-top: 10px; font-size: 1.2em;}
@@ -717,6 +708,7 @@ white-space: nowrap;
 }             
 #table_container { 
 overflow: auto;
+}
 }
 
 /* EOF */

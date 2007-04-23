@@ -125,9 +125,6 @@ sub mail_file {
 	}
     }
 
-    ## Charset for encoding
-    $data->{'charset'} ||= &Language::GetCharset();
-
     ## TT2 file parsing 
     if ($filename =~ /\.tt2$/) {
 	my $output;
@@ -147,7 +144,7 @@ sub mail_file {
 	foreach my $line (split(/\n/,$message)) {
 	    last if ($line=~/^\s*$/);
        
-	    if ($line=~/^[\w-]+:\s*/) { ## A header field
+	    if ($line=~/^[\w-]+:\s+\S/) { ## A header field
 		$existing_headers=1;
 	    }elsif ($existing_headers && ($line =~ /^\s/)) { ## Following of a header field
 		next;
@@ -164,6 +161,9 @@ sub mail_file {
 	}
    }
    
+   ## Charset for encoding
+   my $charset = $data->{'charset'} || sprintf (gettext("_charset_"));
+
     ## ADD MISSING HEADERS
     my $headers="";
 
@@ -172,15 +172,15 @@ sub mail_file {
 	if (ref ($rcpt)) {
 	    if ($data->{'to'}) {
 		$to = $data->{'to'};
-	    }else {
+   }else {
 		$to = join(",\n   ", @{$rcpt});
 	    }
 	}else{
 	    $to = $rcpt;
 	}   
 	$headers .= "To: ".MIME::EncWords::encode_mimewords(
-	    Encode::decode('utf8', $to),
-	    'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'To'
+	    $to,
+	    'Encoding' => 'A', 'Charset' => $charset, 'Field' => 'To'
 	    )."\n"; 
     }     
     unless ($header_ok{'from'}) {
@@ -191,28 +191,28 @@ sub mail_file {
 		)."\n";
 	} else {
 	    $headers .= "From: ".MIME::EncWords::encode_mimewords(
-		Encode::decode('utf8', $data->{'from'}),
-		'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'From'
+		$data->{'from'},
+		'Encoding' => 'A', 'Charset' => $charset, 'Field' => 'From'
 		)."\n"; 
 	}
    }
     unless ($header_ok{'subject'}) {
 	$headers .= "Subject: ".MIME::EncWords::encode_mimewords(
-	    Encode::decode('utf8', $data->{'subject'}),
-	    'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'Subject'
+	    $data->{'subject'},
+	    'Encoding' => 'A', 'Charset' => $charset, 'Field' => 'Subject'
 	    )."\n";
    }
     unless ($header_ok{'reply-to'}) { 
 	$headers .= "Reply-to: ".MIME::EncWords::encode_mimewords(
-	    Encode::decode('utf8', $data->{'replyto'}),
-	    'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'Reply-to'
+	    $data->{'replyto'},
+	    'Encoding' => 'A', 'Charset' => $charset, 'Field' => 'Reply-to'
 	    )."\n" if ($data->{'replyto'})
     }
     if ($data->{'headers'}) {
 	foreach my $field (keys %{$data->{'headers'}}) {
 	    $headers .= $field.': '.MIME::EncWords::encode_mimewords(
-		Encode::decode('utf8', $data->{'headers'}{$field}),
-		'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => $field
+		$data->{'headers'}{$field},
+		'Encoding' => 'A', 'Charset' => $charset, 'Field' => $field
 		)."\n";
 	}
     }
@@ -220,29 +220,19 @@ sub mail_file {
 	$headers .= "MIME-Version: 1.0\n";
     }
     unless ($header_ok{'content-type'}) {
-	$headers .= "Content-Type: text/plain; charset=UTF-8\n";
+	$headers .= "Content-Type: text/plain; charset=$charset\n";
     }
     unless ($header_ok{'content-transfer-encoding'}) {
-	$headers .= "Content-Transfer-Encoding: 8bit\n"; 
+	$headers .= "Content-Transfer-Encoding:"; 
+        $headers .= gettext("_encoding_");
+	$headers .= "\n";
     }
     unless ($existing_headers) {
 	$headers .= "\n";
    }
    
-    ## All these data provide mail attachements in service messages
-    my @msgs = ();
-    if (ref($data->{'msg_list'}) eq 'ARRAY') {
-	@msgs = map {$_->{'msg'} || $_->{'full_msg'}} @{$data->{'msg_list'}};
-    } elsif ($data->{'spool'}) {
-	@msgs = @{$data->{'spool'}};
-    } elsif ($data->{'msg'}) {
-	push @msgs, $data->{'msg'};
-    } elsif ($data->{'msg_path'} and open IN, '<'.$data->{'msg_path'}) {
-	push @msgs, join('', <IN>);
-	close IN;
-    } elsif ($data->{'file'} and open IN, '<'.$data->{'file'}) {
-	push @msgs, join('', <IN>);
-	close IN;
+    unless ($message = &reformat_message("$headers"."$message")) {
+	&do_log('err', "mail::mail_file: Failed to reformat message");
     }
 
     my $listname = '';
@@ -251,14 +241,7 @@ sub mail_file {
     } elsif ($data->{'list'}) {
 	$listname = $data->{'list'};
     }
-     
-    unless ($message = &reformat_message("$headers"."$message", \@msgs)) {
-	&do_log('err', "mail::mail_file: Failed to reformat message");
-    }
-
-    ## Set it in case it was not set
-    $data->{'return_path'} ||= &Conf::get_robot_conf($robot, 'request');
-  
+       
     ## SENDING
     if (ref($rcpt)) {
 	unless (defined &sending($message,$rcpt,$data->{'return_path'},$robot,$listname,$sign_mode)) {
@@ -543,7 +526,7 @@ sub sending {
     my $sympa_file;
     my $fh;
     my $signed_msg; # if signing
-
+    
  
     ## FILE HANDLER
     ## Don't fork if used by a CGI (FastCGI problem)
@@ -561,11 +544,6 @@ sub sending {
 	    $all_rcpt = $$rcpt;
 	}
 	
-	unless ($all_rcpt && $from) {
-	    &do_log('err', 'mail::sending: missing required parameter, cannot send message');
-	    return undef;
-	}
-
 	unless (open TMP, ">$sympa_file") {
 	    &do_log('notice', 'mail::sending : Cannot create %s : %s', $sympa_file, $!);
 	    return undef;
@@ -799,26 +777,26 @@ sub send_in_spool {
 # header is appended :).
 #
 # IN : $msg: ref(MIME::Entity) | string - message to reformat
-#      $attachments: ref(ARRAY) - messages to be attached as subparts.
 # OUT : string
 #
 ####################################################
 
-sub reformat_message($;$) {
+sub reformat_message($) {
     my $message = shift;
-    my $attachments = shift || [];
     my $msg;
-
-    my $parser = new MIME::Parser;
-    unless (defined $parser) {
-	&do_log('err', "mail::reformat_message: Failed to create MIME parser");
-	return undef;
-    }
-    $parser->output_to_core(1);
 
     if (ref($message) eq 'MIME::Entity') {
 	$msg = $message;
     } else {
+	my $parser = new MIME::Parser;
+
+	unless (defined $parser) {
+	    &do_log('err', "mail::reformat_message: Failed to create MIME parser");
+	    return undef;
+	}
+
+	$parser->output_to_core(1);
+	$parser->ignore_errors(1);
 	eval {
 	    $msg = $parser->parse_data($message);
 	};
@@ -829,15 +807,14 @@ sub reformat_message($;$) {
     }
 
     $msg->head->delete("X-Mailer");
-    $msg = &fix_part($msg, $parser, $attachments);
+    $msg = &fix_part($msg);
     $msg->head->add("X-Mailer", sprintf "Sympa %s", $Version::Version);
+    $msg->sync_headers(Length => 'COMPUTE');
     return $msg->as_string;
 }
 
-sub fix_part($$$) {
+sub fix_part($) {
     my $part = shift;
-    my $parser = shift;
-    my $attachments = shift || [];
     return $part unless $part;
 
     my $enc = $part->head->mime_attr("Content-Transfer-Encoding");
@@ -846,26 +823,11 @@ sub fix_part($$$) {
 	if $enc and $enc !~ /^(?:base64|quoted-printable|[78]bit|binary)$/i;
 
     my $eff_type = $part->effective_type;
-    return $part if $eff_type =~ m{^multipart/(signed|encrypted)$};
 
-    if ($part->head->get('X-Sympa-Attach')) { # Need re-attaching data.
-	my $data = shift @{$attachments};
-	if (ref($data) ne 'MIME::Entity') {
-	    eval {
-		$data = $parser->parse_data($data);
-	    };
-	    if ($@) {
-		&do_log('warn',
-			"mail::reformat_message: Failed to parse MIME data");
-		$data = $parser->parse_data('');
-	    }
-	}
-	$part->head->delete('X-Sympa-Attach');
-	$part->parts([$data]);
-    } elsif ($part->parts) {
+    if ($part->parts) {
 	my @newparts = ();
 	foreach ($part->parts) {
-	    push @newparts, &fix_part($_, $parser, $attachments);
+	    push @newparts, &fix_part($_);
 	}
 	$part->parts(\@newparts);
     } elsif ($eff_type =~ m{^(?:multipart|message)(?:/|\Z)}i) {
@@ -881,8 +843,7 @@ sub fix_part($$$) {
 	my $charset = $head->mime_attr("Content-Type.Charset");
 
 	my ($newbody, $newcharset, $newenc) = 
-	    MIME::Charset::body_encode(Encode::decode('utf8', $body), $charset,
-				       Replacement => 'FALLBACK');
+	    MIME::Charset::body_encode($body, $charset);
 	if ($newenc eq $enc and $newcharset eq $charset and
 	    $newbody eq $body) {
 	    return $part;
@@ -903,12 +864,10 @@ sub fix_part($$$) {
 
 	$io->print($newbody);
 	$io->close;
-	$part->sync_headers(Length => 'COMPUTE');
     } else {
 	# Binary or text with long lines will be suggested to be BASE64.
 	$part->head->mime_attr("Content-Transfer-Encoding",
 			       $part->suggest_encoding);
-	$part->sync_headers(Length => 'COMPUTE');
     }
     return $part;
 }

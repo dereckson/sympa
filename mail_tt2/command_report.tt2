@@ -2,6 +2,9 @@ From: SYMPA <[% conf.email %]@[% conf.host %]>
 To: [% to %]
 Subject: [% FILTER qencode %][%|loc%]Results of your commands[%END%][%END%]
 X-Loop: [% conf.sympa %]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 [%############################-%]
 [%########## SUCCESS #########-%]

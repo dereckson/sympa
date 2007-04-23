@@ -916,7 +916,7 @@ sub info {
 	}
 
 	foreach my $p ('subscribe','unsubscribe','send','review') {
-	    $data->{$p} = gettext($list->{'admin'}{$p}{'title'}{'gettext'}); 
+	    $data->{$p} = $list->{'admin'}{$p}{'title'}{'gettext'}; 
 	}
 
 	## Digest
@@ -1170,9 +1170,7 @@ sub add {
 
     do_log('debug', 'Commands::add(%s,%s)', $what,$sign_mod );
 
-    my $email_regexp = &tools::get_regexp('email');    
-
-    $what =~ /^(\S+)\s+($email_regexp)(\s+(.+))?\s*$/;
+    $what =~ /^(\S+)\s+($tools::regexp{'email'})(\s+(.+))?\s*$/;
     my($which, $email, $comment) = ($1, $2, $6);
     my $auth_method ;
 
@@ -1695,9 +1693,7 @@ sub del {
 
     &do_log('debug', 'Commands::del(%s,%s)', $what,$sign_mod);
 
-    my $email_regexp = &tools::get_regexp('email');    
-
-    $what =~ /^(\S+)\s+($email_regexp)\s*/;
+    $what =~ /^(\S+)\s+($tools::regexp{'email'})\s*/;
     my($which, $who) = ($1, $2);
     my $auth_method;
     
@@ -2328,7 +2324,7 @@ sub reject {
     unless  ($#sender_hdr == -1) {
 	my $rejected_sender = $sender_hdr[0]->address;
 	my %context;
-	$context{'subject'} = &MIME::EncWords::decode_mimewords($message->head->get('subject'), Charset=>'utf8');
+	$context{'subject'} = &MIME::Words::decode_mimewords($message->head->get('subject'));
 	chomp($context{'subject'});
 	$context{'rejected_by'} = $sender;
 	&do_log('debug2', 'message %s by %s rejected sender %s',$context{'subject'},$context{'rejected_by'},$rejected_sender);

@@ -1,4 +1,4 @@
-# SQLSource.pm - This module includes SQL DB related functions
+# Message.pm - This module includes SQL DB related functions
 #<!-- RCS Identication ; $Revision$ --> 
 
 #
@@ -184,16 +184,6 @@ sub connect {
 
     if ($param->{'db_type'} eq 'Pg') { # Configure Postgres to use ISO format dates
        $dbh->do ("SET DATESTYLE TO 'ISO';");
-    }
-
-    ## Set client encoding to UTF8
-    if ($param->{'db_type'} eq 'mysql' ||
-	$param->{'db_type'} eq 'Pg') {
-	$dbh->do("SET NAMES 'utf8'");
-    }elsif ($param->{'db_type'} eq 'oracle') { 
-	$ENV{'NLS_LANG'} = 'UTF8';
-    }elsif ($param->{'db_type'} eq 'Sybase') { 
-	$ENV{'SYBASE_CHARSET'} = 'utf8';
     }
 
     ## added sybase support

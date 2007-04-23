@@ -55,7 +55,7 @@
 <form action="[% path_cgi %]" method="post">
 <fieldset>
 <label for="list">[%|loc%]listname : [%END%]</label><input id="list" type="text" name="list" size="20" /> <input class="MainMenuLinks" type="submit" name="action_rebuildarc" value="[%|loc%]Rebuild archive[%END%]" />
- <input class="MainMenuLinks" type="submit" name="action_rebuildallarc" value="[%|loc%]Rebuild all[%END%]" />([%|loc%]  May take a lot of CPU time,  be careful ![%END%])<br />
+[%|loc%]or [%END%] <input class="MainMenuLinks" type="submit" name="action_rebuildallarc" value="[%|loc%]Rebuild all[%END%]" />([%|loc%]  May take a lot of CPU time,  be careful ![%END%])<br />
 </fieldset>
 </form>
 
@@ -88,7 +88,7 @@
 -->
 <br />
 	
-<a class="actionMenuLinks" href="http://pootle.sympa.org/">[%|loc%]view translations[%END%]</a>
+<a class="actionMenuLinks" href="[% path_cgi %]/view_translations">[%|loc%]view translations[%END%]</a>
 <a class="actionMenuLinks" href="[% path_cgi %]/ls_templates">[%|loc%]Customize templates[%END%]</a>
 
 </p>

@@ -20,7 +20,6 @@
   [% ELSIF i_err.msg == 'db_error' %][%|loc%]Database error.[%END%]
   [% ELSIF i_err.msg == 'db_update_failed' %][%|loc(i_err.key)%]Failed to update database.[%END%]
   [% ELSIF i_err.msg == 'file_update_failed' %][%|loc(i_err.key)%]Failed to update a file.[%END%]
-  [% ELSIF i_err.msg == 'create_list' %][%|loc(i_err.listname)%]Failed creating list '%1'. The list might already exist or listname might include forbidden characters.[%END%]
 
 [% END %]
 <br />		
@@ -46,7 +45,6 @@
   [% ELSIF u_err.msg == 'unknown_robot' %][%|loc(u_err.new_robot)%]%1 : unknown robot[%END%]
   [% ELSIF u_err.msg == 'unknown_family' %][%|loc(u_err.family)%]%1 : unknown family[%END%]
   [% ELSIF u_err.msg == 'already_login' %][%|loc(u_err.email)%]You are already logged in as %1[%END%]
-  [% ELSIF u_err.msg == 'passwd_reminder_not_allowed' %][%|loc%]You can not get a password reminder ; probably because your password is managed outside Sympa (Single Sign-On system or LDAP directory).[%END%]
   [% ELSIF u_err.msg == 'no_email' %][%|loc%]Please provide email address[%END%]
   [% ELSIF u_err.msg == 'missing_arg' %][%|loc(u_err.argument)%]Missing argument %1[%END%]
   [% ELSIF u_err.msg == 'wrong_value' %][%|loc(u_err.argument)%]Wrong value for parameter %1[%END%]

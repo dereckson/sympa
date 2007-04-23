@@ -589,7 +589,6 @@ sub createList {
     $parameters->{'listname'} = $listname;
     $parameters->{'subject'} = $subject;
     $parameters->{'description'} = $description;
-    $parameters->{'topics'} = $topics;
     
     if ($r_action =~ /listmaster/i) {
 	$param->{'status'} = 'pending' ;
@@ -1395,7 +1394,7 @@ sub struct_to_soap {
 	    ## Decode from the current charset to perl internal charset
 	    ## Then encode strings to UTF-8
 	    if (require "Encode.pm") {
-		# $one_data = &Encode::decode(&Language::GetCharset(), $one_data);
+		# $one_data = &Encode::decode(gettext("_charset_"), $one_data);
 		$one_data = &Encode::encode('utf-8', $one_data);
 	    }
 
