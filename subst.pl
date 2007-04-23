@@ -30,18 +30,7 @@ foreach $src (@ARGV) {
        die "Missing INSTALLDIR variable";
    }
 
-   my $dest;
-   if (defined $ENV{'INSTALLNAME'}) {
-       $dest = "$ENV{'DESTDIR'}$ENV{'INSTALLDIR'}/$ENV{'INSTALLNAME'}";
-   }else {
-       $dest = "$ENV{'DESTDIR'}$ENV{'INSTALLDIR'}/$src";
-   }
-
-   ## If destination file is a symbolic link, remove it first
-   if (-l $dest) {
-       print STDERR "Removing symbolic link $dest\n";
-       unlink $dest;
-   }
+   my $dest = "$ENV{'DESTDIR'}$ENV{'INSTALLDIR'}/$src";
 
    if (-f $dest) {
       print STDERR "Overwriting $dest\n";
