@@ -24,7 +24,7 @@ package Language;
 require Exporter;
 use Carp;
 @ISA = qw(Exporter);
-@EXPORT = qw(&gettext gettext_strftime);
+@EXPORT = qw(&gettext);
 
 use strict;
 use Log;
@@ -60,7 +60,6 @@ my %lang2locale = ('cz' => 'cs_CZ',
 		   'el' => 'el_GR',
 		   'es' => 'es_ES',
 		   'et' => 'et_EE',
-		   'eu' => 'eu_ES',
 		   'fi' => 'fi_FI',
 		   'fr' => 'fr_FR',
 		   'hu' => 'hu_HU',
@@ -78,50 +77,30 @@ my %lang2locale = ('cz' => 'cs_CZ',
 		   'tr' => 'tr_TR',
 		   'tw' => 'zh_TW');
 
-## Used to define encoding for service messages sent by Sympa
-## Also used to perform setlocale on FreeBSD / Solaris
-my %locale2charset = ('bg_BG' => 'utf-8',
-		      'cs_CZ' => 'utf-8',
-		      'de_DE' => 'iso-8859-1',
+## Used to perform setlocale on FreeBSD / Solaris
+my %locale2charset = ('cs_CZ' => 'utf-8',
+		      'de_DE' => 'iso8859-1',
 		      'el_GR' => 'utf-8',
 		      'en_US' => 'utf-8',
-		      'es_ES' => 'iso-8859-1',
-		      'et_EE' => 'iso-8859-4',
-		      'fi_FI' => 'iso-8859-1',
-		      'fr_FR' => 'iso-8859-1',
-		      'hu_HU' => 'iso-8859-2',
-		      'it_IT' => 'iso-8859-1',
-		      'ja_JP' => 'eucJP', # Case sensitive.
+		      'es_ES' => 'iso8859-1',
+		      'et_EE' => 'iso8859-4',
+		      'fi_FI' => 'iso8859-1',
+		      'fr_FR' => 'iso8859-1',
+		      'hu_HU' => 'iso8859-2',
+		      'it_IT' => 'iso8859-1',
+		      'ja_JP' => 'utf-8',
 		      'nb_NO' => 'utf-8',
-		      'nl_NL' => 'iso-8859-1',
-		      'oc_FR' => 'iso-8859-1',		      
-		      'pl_PL' => 'iso-8859-2',
+		      'nl_NL' => 'iso8859-1',
+		      'oc_FR' => 'iso8859-1',		      
+		      'pl_PL' => 'iso8859-2',
 		      'pt_BR' => 'utf-8',
-		      'pt_PT' => 'iso-8859-1',
-		      'ro_RO' => 'iso-8859-2',
-		      'ru_RU' => 'utf-8',
+		      'pt_PT' => 'iso8859-1',
+		      'ro_RO' => 'iso8859-2',
 		      'sv_SE' => 'utf-8',
 		      'tr_TR' => 'utf-8',
 		      'zh_CN' => 'utf-8',
 		      'zh_TW' => 'big5',
 		      );
-
-## We use different catalog/textdomains depending on the template that requests translations
-my %template2textdomain = ('help_admin.tt2' => 'web_help',
-			   'help_arc.tt2' => 'web_help',
-			   'help_editfile.tt2' => 'web_help',
-			   'help_editlist.tt2' => 'web_help',
-			   'help_faqadmin.tt2' => 'web_help',
-			   'help_faquser.tt2' => 'web_help',
-			   'help_introduction.tt2' => 'web_help',
-			   'help_listconfig.tt2' => 'web_help',
-			   'help_mail_commands.tt2' => 'web_help',
-			   'help_sendmsg.tt2' => 'web_help',
-			   'help_shared.tt2' => 'web_help',
-			   'help.tt2' => 'web_help',
-			   'help_user_options.tt2' => 'web_help',
-			   'help_user.tt2' => 'web_help',
-			   );			   
 
 sub GetSupportedLanguages {
     my $robot = shift;
@@ -199,34 +178,17 @@ sub SetLang {
 	}
     }
     
-#    &Locale::Messages::bindtextdomain('web_help','--LOCALEDIR--');
-#    bind_textdomain_codeset web_help => 'utf-8';
-
     ## Define what catalog is used
     &Locale::Messages::textdomain("sympa");
     &Locale::Messages::bindtextdomain('sympa','--LOCALEDIR--');
-    # Get translations by internal encoding.
-    bind_textdomain_codeset sympa => 'utf-8';
+    #bind_textdomain_codeset sympa => 'iso-8859-1';
 
     $current_lang = $lang;
     $current_locale = $locale;
-    $current_charset = $locale2charset{$locale};
+    $current_charset = gettext("_charset_");
 
     return $locale;
 }#SetLang
-
-
-## Get the name of the language, ie the one defined in the catalog
-sub GetLangName {
-    my $lang = shift;
-
-    my $saved_lang = $current_lang;
-    &SetLang($lang);
-    my $name = gettext('_language_');
-    &SetLang($saved_lang);
-    
-    return $name;
-}
 
 sub GetLang {
 ############
@@ -261,20 +223,11 @@ sub Lang2Locale {
 }
 
 sub maketext {
-    my $template_file = shift;
     my $msg = shift;
 
 #    &do_log('notice','Maketext: %s', $msg);
 
-    my $translation;
-    my $textdomain = $template2textdomain{$template_file};
-    
-#    if ($textdomain) {
-#	$translation = &sympa_dgettext ($textdomain, $msg);
-#    }else {
-#	$translation = &gettext ($msg);
-#    }
-    $translation = &gettext ($msg);
+    my $translation = &gettext ($msg);
 
     ## replace parameters in string
     $translation =~ s/\%\%/'_ESCAPED_'.'%_'/eg; ## First escape '%%'
@@ -284,63 +237,21 @@ sub maketext {
     return $translation;
 }
 
-
-sub sympa_dgettext {
-    my $textdomain = shift;
-    my @param = @_;
-
-    &do_log('debug3', 'Language::gettext(%s)', $param[0]);
-
-    ## This prevents meta information to be returned if the string to translate is empty
-    if ($param[0] eq '') {
-	return '';
-	
-	## return meta information on the catalogue (language, charset, encoding,...)
-    }elsif ($param[0] =~ '^_(\w+)_$') {
-	my $var = $1;
-	foreach (split /\n/,&Locale::Messages::gettext('')) {
-	    if ($var eq 'language') {
-		if (/^Language-Team:\s*(.+)$/i) {
-		    my $language = $1;
-		    $language =~ s/\<\S+\>//;
-
-		    return $language;
-		}
-	    }elsif ($var eq 'charset') {
-		if (/^Content-Type:\s*.*charset=(\S+)$/i) {
-		    return $1;
-		}
-	    }elsif ($var eq 'encoding') {
-		if (/^Content-Transfer-Encoding:\s*(.+)$/i) {
-		    return $1;
-		}
-	    }
-	}
-	return '';
-    }
-
-    return &Locale::Messages::dgettext($textdomain, @param);
-
-}
-
 sub gettext {
-    my @param = @_;
-
-    &do_log('debug3', 'Language::gettext(%s)', $param[0]);
+    &do_log('debug3', 'Language::gettext(%s)', $_[0]);
 
     ## This prevents meta information to be returned if the string to translate is empty
-    if ($param[0] eq '') {
+    if ($_[0] eq '') {
 	return '';
 	
 	## return meta information on the catalogue (language, charset, encoding,...)
-    }elsif ($param[0] =~ '^_(\w+)_$') {
+    }elsif ($_[0] =~ '^_(\w+)_$') {
 	my $var = $1;
 	foreach (split /\n/,&Locale::Messages::gettext('')) {
 	    if ($var eq 'language') {
 		if (/^Language-Team:\s*(.+)$/i) {
 		    my $language = $1;
 		    $language =~ s/\<\S+\>//;
-
 		    return $language;
 		}
 	    }elsif ($var eq 'charset') {
@@ -356,19 +267,11 @@ sub gettext {
 	return '';
     }
 
-    return &Locale::Messages::gettext(@param);
+    ## Decode from catalog encoding
+    my $translation = &Encode::decode($current_charset, &Locale::Messages::gettext(@_));
 
-}
+    return $translation;
 
-sub gettext_strftime {
-    my $format = shift;
-    return &POSIX::strftime($format, @_) unless $current_charset;
-
-    $format = gettext($format);
-    Encode::from_to($format, 'utf8', $current_charset);
-    my $datestr = &POSIX::strftime($format, @_);
-    Encode::from_to($datestr, $current_charset, 'utf8');
-    return $datestr;
 }
 
 1;

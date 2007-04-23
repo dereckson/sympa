@@ -104,10 +104,8 @@ sub _translate {
 package tt2;
 
 use strict;
-
 use Template;
 use CGI::Util;
-use MIME::EncWords; 
 use Log;
 use Language;
 
@@ -116,27 +114,18 @@ my $last_error;
 
 sub qencode {
     my $string = shift;
-    # We are not able to determine the name of header field, so assume
-    # longest (maybe) one.    
-    return MIME::EncWords::encode_mimewords(Encode::decode('utf8', $string),
-					    Encoding=>'A',
-					    Charset=>&Language::GetCharset(),
-					    Field=>"message-id");
+    
+    my $encoded_string = MIME::Words::encode_mimewords($string, ('Encode' => 'Q', 'Charset' => gettext("_charset_")));
+    $encoded_string =~ s/\?=\s+=\?/_\?= =?/g; ## Fix bug 5462 of MIME::Words
+
+    return $encoded_string;
 }
 
 sub escape_url {
 
     my $string = shift;
     
-    $string =~ s/[\s+]/sprintf('%%%02x', ord($&))/eg;
-    # Some MUAs aren't able to decode ``%40'' (escaped ``@'') in e-mail 
-    # address of mailto: URL, or take ``@'' in query component for a 
-    # delimiter to separate URL from the rest.
-    my ($body, $query) = split(/\?/, $string, 2);
-    if (defined $query) {
-	$query =~ s/\@/sprintf('%%%02x', ord($&))/eg;
-	$string = $body.'?'.$query;
-    }
+    $string =~ s/ /%20/g;
     
     return $string;
 }
@@ -179,12 +168,7 @@ sub decode_utf8 {
 
     ## Skip if already internally tagged utf8
     unless (&Encode::is_utf8($string)) {
-	## Wrapped with eval to prevent Sympa process from dying
-	## FB_CROAK is used instead of FB_WARN to pass $string intact to succeeding processes it operation fails
-	eval {
-	    $string = &Encode::decode('utf8', $string, Encode::FB_CROAK);
-	};
-	$@ = '';
+	return &Encode::decode_utf8($string);
     }
 
     return $string;
@@ -194,38 +178,9 @@ sub decode_utf8 {
 sub maketext {
     my ($context, @arg) = @_;
 
-    my $stash = $context->stash();
-    my $component = $stash->get('component');
-    my $template_name = $component->{'name'};
-    my ($provider) = grep { $_->{HEAD}[2] eq $component } @{ $context->{LOAD_TEMPLATES} };
-    my $path = $provider->{HEAD}[1] if $provider;
-
-    ## Strangely the path is sometimes empty...
-    ## TODO : investigate
-#    &do_log('notice', "PATH: $path ; $template_name");
-
-    ## Sample code to dump the STASH
-    # my $s = $stash->_dump();    
-
     return sub {
-	&Language::maketext($template_name, $_[0],  @arg);
+	&Language::maketext($_[0], @arg);
     }	
-}
-
-# IN:
-#    $fmt: strftime() style format string.
-#    $arg: a string representing date/time:
-#          "YYYY/MM", "YYYY/MM/DD", "YYYY/MM/DD/HH/MM", "YYYY/MM/DD/HH/MM/SS"
-# OUT:
-#    Subref to generate formatted (i18n'ized) date/time.
-sub locdatetime {
-    my ($fmt, $arg) = @_;
-    if ($arg !~ /^(\d{4})\D(\d\d?)(?:\D(\d\d?)(?:\D(\d\d?)\D(\d\d?)(?:\D(\d\d?))?)?)?/) {
-	return sub { gettext("(unknown date)"); };
-    } else {
-	my @arg = ($6+0, $5+0, $4+0, $3+0 || 1, $2-1, $1-1900, 0,0,0);
-        return sub { gettext_strftime($_[0], @arg); };
-    }
 }
 
 ## To add a directory to the TT2 include_path
@@ -284,13 +239,11 @@ sub parse_tt2 {
 	# ABSOLUTE => 1,
 	INCLUDE_PATH => $include_path,
 #	PRE_CHOMP  => 1,
-	UNICODE => 0, # Prevent BOM auto-detection
 	
 	FILTERS => {
 	    unescape => \&CGI::Util::unescape,
 	    l => [\&tt2::maketext, 1],
 	    loc => [\&tt2::maketext, 1],
-	    locdt => [\&tt2::locdatetime, 1],
 	    qencode => [\&qencode, 0],
  	    escape_xml => [\&escape_xml, 0],
 	    escape_url => [\&escape_url, 0],

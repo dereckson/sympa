@@ -25,18 +25,6 @@
 ##         :  d		-> debug -d is equiv to -dF
 ## Now, it is impossible to use -dF but you have to write it -d -F
 
-=pod 
-
-=head1 NAME 
-
-I<archived.pl> - Daemon running the web archive building.
-
-=head1 DESCRIPTION 
-
-This script must be run along with sympa. It regularly checks the 'outgoing' spool and picks the messages it finds in it. It then calls MHonArc to build the HTML version of archives and add an SMTP text version (i.e. an ASCII file including headers and body) to the appropriate directory.
-
-=cut 
-
 ## Change this to point to your Sympa bin directory
 use lib '--LIBDIR--';
 
@@ -70,7 +58,6 @@ if ($main::options{'debug'}) {
 }
 
 $main::options{'foreground'} = 1 if ($main::options{'debug'});
-$main::options{'log_to_stderr'} = 1 if ($main::options{'debug'} || $main::options{'foreground'});
 
 $wwsympa_conf = "--WWSCONFIG--";
 $sympa_conf_file = '--CONFIG--';
@@ -156,6 +143,7 @@ unless ((-r $wwsconf->{'arc_path'}) && (-w $wwsconf->{'arc_path'})) {
 
 ## Change to list root
 unless (chdir($Conf{'home'})) {
+    &report::reject_report_web('intern','chdir_error',{},'','','',$robot);
     &do_log('err','unable to change directory');
     exit (-1);
 }
@@ -220,11 +208,8 @@ while (!$end) {
 	        do_log ('err',"Ignoring file $queue/$file because couldn't read it, archived.pl must use the same uid as sympa");
 		   next;
 	       }
-
-	   my $email_regexp = &tools::get_regexp('email');
-
 	   foreach my $removeorder (<REMOVE>) { 
-	       unless($removeorder =~ /(.*)\|\|($email_regexp)/){
+	       unless($removeorder =~ /(.*)\|\|($tools::regexp{'email'})/){
 		   do_log ('err',"Ignoring remove_order $removeorder not recognized format");   
 		   next;
 	       }
@@ -350,92 +335,16 @@ while (!$end) {
    }
 }
 do_log('notice', 'archived exited normally due to signal');
-&tools::remove_pid($wwsconf->{'archived_pidfile'}, $$);
+unlink("$wwsconf->{'archived_pidfile'}");
 
 exit(0);
 
-
-=pod 
-
-=head1 SUBFUNCTIONS 
-
-This is the description of the subfunctions contained by archived.pl.
-
-=cut 
-
-=pod 
-
-=head2 sub sigterm()
-
-Switches the loop control variable $end value to 1 when SIGTERM signal is caught.
-
-=head3 Arguments 
-
-=over 
-
-=item * I<none> 
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<none> 
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * none
-
-=back 
-
-=cut 
 
 ## When we catch SIGTERM, just change the value of the loop
 ## variable.
 sub sigterm {
     $end = 1;
 }
-
-=pod 
-
-=head2 sub remove(STRING $adrlist, STRING $msgid)
-
-Removes the message having the identifier $msgid from the list named $adrlist.
-
-=head3 Arguments 
-
-=over 
-
-=item * I<$adrlist>, a character string containing the list name.
-
-=item * I<$msgid> , a character string containing the message identifier.
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<none> 
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * Log::db_log
-
-=item * Log::do_log
-
-=back 
-
-=cut 
 
 sub remove {
     my $adrlist = shift;
@@ -461,50 +370,6 @@ sub remove {
     $msgid =~ s/\$/\\\$/g;
     system "$wwsconf->{'mhonarc'}  -outdir $wwsconf->{'arc_path'}/$adrlist/$yyyy-$mm -rmm $msgid";
 }
-
-=pod 
-
-=head2 sub rebuild(STRING $adrlist)
-
-Rebuilds archives for the list the name of which is given in the argument $adrlist.
-
-=head3 Arguments 
-
-=over 
-
-=item * I<$adrlist>, a character string containing the name of the list the archives of which we want to rebuild.
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<undef> if something goes wrong.
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * get_tag
-
-=item * set_hidden_mode
-
-=item * unset_hidden_mode
-
-=item * List::new
-
-=item * Log::do_log
-
-=item * tools::get_filename
-
-=item * tools::remove_dir
-
-=back 
-
-=cut 
 
 sub rebuild {
 
@@ -639,74 +504,6 @@ sub rebuild {
 }
 
 
-=pod 
-
-=head2 sub mail2arc(STRING $file,STRING $listname,STRING $hostname,STRING $yyyy,STRING $mm,STRING $dd,STRING $hh,STRING $min,STRING $ss)
-
-Archives one message into one list archives directory.
-
-=head3 Arguments 
-
-=over 
-
-=item * I<$file>: a character string containing the message filename.
-
-=item * I<$listname>: a character string containing the name of the list in which to archive the message
-
-=item * I<$hostname>: a character string containing the name of the virtual robot hosting the list.
-
-=item * I<$yyyy>: a character string containing the year of the date when the message is archived (i.e. now)
-
-=item * I<$mm>: a character string containing the month of the date when the message is archived (i.e. now)
-
-=item * I<$dd>: a character string containing the day of the date when the message is archived (i.e. now)
-
-=item * I<$hh>: a character string containing the hour of the date when the message is archived (i.e. now)
-
-=item * I<$min>: a character string containing the minute of the date when the message is archived (i.e. now)
-
-=item * I<$ss>: a character string containing the second of the date when the message is archived (i.e. now)
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<undef> if something goes wrong.
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * get_tag
-
-=item * save_idx
-
-=item * set_hidden_mode
-
-=item * unset_hidden_mode
-
-=item * List::get_arc_size
-
-=item * List::get_list_id
-
-=item * List::new
-
-=item * List::send_notify_to_owner
-
-=item * Log::do_log
-
-=item * tools::get_filename
-
-=item * tools::remove_dir
-
-=back 
-
-=cut 
-
 sub mail2arc {
 
     my ($file, $listname, $hostname, $yyyy, $mm, $dd, $hh, $min, $ss) = @_;
@@ -714,11 +511,6 @@ sub mail2arc {
     my $newfile;
 
     my $list = new List($listname, $hostname);
-
-    unless (defined $list) {
-	&do_log('err', 'Unknown list %s@%s', $listname, $hostname);
-	return undef;
-    }
 
     my $tag = &get_tag($listname);
 
@@ -773,7 +565,7 @@ sub mail2arc {
 
 	if ($list->{'admin'}{'web_archive'}{'max_month'}){ # maybe need to remove some old archive
 	    if (opendir DIR,$arcpath.'/'.$list->get_list_id()) {
-		my @archives = (sort {$a cmp $b} grep (/^\d{4}-\d{2}/, readdir(DIR)));	
+		my @archives = (grep (/^\d{4}-\d{2}/, readdir(DIR)));	
 		closedir DIR;
 		my $nb_month = $#archives + 1 ;
 		my $i = 0 ;
@@ -849,38 +641,6 @@ sub mail2arc {
     &save_idx("$monthdir/index",$newfile);
 }
 
-=pod 
-
-=head2 sub set_hidden_mode(STRING $tag)
-
-Sets the value of $ENV{'M2H_ADDRESSMODIFYCODE'} and $ENV{'M2H_MODIFYBODYADDRESSES'}
-
-=head3 Arguments 
-
-=over 
-
-=item * I<$tag> a character string (containing the result of get_tag($listname))
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<none> 
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * none
-
-=back 
-
-=cut 
-
 sub set_hidden_mode {
     my $tag = shift; ## tag is used as variable elements in tags to prevent message contents to be parsed
 
@@ -889,77 +649,11 @@ sub set_hidden_mode {
     $ENV{'M2H_MODIFYBODYADDRESSES'} = 1;
 }
 
-=pod 
-
-=head2 sub unset_hidden_mode()
-
-Empties $ENV{'M2H_ADDRESSMODIFYCODE'}.
-
-=head3 Arguments 
-
-=over 
-
-=item * I<none> 
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<none> 
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * none
-
-=back 
-
-=cut 
-
 sub unset_hidden_mode {
     
     ## Be carefull, the .mhonarc.db file keeps track of previous M2H_ADDRESSMODIFYCODE setup
     $ENV{'M2H_ADDRESSMODIFYCODE'} = '';
 }
-
-=pod 
-
-=head2 sub save_idx(STRING $index,STRING $lst)
-
-Saves the archives index file
-
-=head3 Arguments 
-
-=over 
-
-=item * I<$index>, a string corresponding to the file name to which save an index.
-
-=item * I<$lst>, a character string
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<none> 
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * none
-
-=back 
-
-=cut 
 
 sub save_idx {
     my ($index,$lst) = @_;
@@ -970,62 +664,8 @@ sub save_idx {
     #   do_log('debug',"last arc entry for $index is $lst");
 }
 
-=pod 
-
-=head2 sub get_tag(STRING $listname)
-
-Returns a tag derived from the listname.
-
-=head3 Arguments 
-
-=over 
-
-=item * I<$listname>, a character string correspondiong to the list name.
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<a character string>, corresponding to the 10 last characters of a 32 bytes string containing the MD5 digest of the concatenation of the following strings (in this order):
-
-=over 4
-
-=item - the cookie config parameter
-
-=item - a slash: "/"
-
-=item - the I<$listname> argument
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * Digest::MD5::md5_hex
-
-=back 
-
-=cut 
-
 sub get_tag {
     my $listname = shift;
     
     return (substr(Digest::MD5::md5_hex(join('/', $Conf{'cookie'}, $listname)), -10)) ;
 }
-
-=pod 
-
-=head1 AUTHORS 
-
-=over 
-
-=item * Serge Aumont <sa AT cru.fr> 
-
-=item * Olivier Salaun <os AT cru.fr> 
-
-=back 
-
-=cut 

@@ -32,27 +32,19 @@ require Exporter;
 use Carp;
 
 @ISA = qw(Exporter);
-@EXPORT = qw(%Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
-
-require 'tools.pl';
-
-sub DAEMON_MESSAGE {1};
-sub DAEMON_COMMAND {2};
-sub DAEMON_CREATION {4};
-sub DAEMON_ALL {7};
+@EXPORT = qw(%Conf);
 
 my @valid_options = qw(
 		       avg bounce_warn_rate bounce_halt_rate bounce_email_prefix chk_cert_expiration_task expire_bounce_task
-		       cache_list_config
-		       clean_delay_queue clean_delay_queueauth clean_delay_queuemod clean_delay_queuesubscribe clean_delay_queueautomatic clean_delay_queuetopic default_remind_task
-		       cookie cookie_cas_expire create_list automatic_list_feature automatic_list_creation automatic_list_removal crl_dir crl_update_task db_host db_env db_name db_timeout
+		       clean_delay_queue clean_delay_queueauth clean_delay_queuemod clean_delay_queuesubscribe clean_delay_queuetopic default_remind_task
+		       cookie cookie_cas_expire create_list crl_dir crl_update_task db_host db_env db_name db_timeout
 		       db_options db_passwd db_type db_user db_port db_additional_subscriber_fields db_additional_user_fields
 		       default_shared_quota default_archive_quota default_list_priority distribution_mode edit_list email etc
 		       global_remind home host domain lang listmaster listmaster_email localedir log_socket_type log_level 
 		       logo_html_definition misaddressed_commands misaddressed_commands_regexp max_size maxsmtp nrcpt 
-		       owner_priority pidfile pidfile_distribute pidfile_creation
-		       spool queue queuedistribute queueauth queuetask queuebounce queuedigest queueautomatic
-		       queuemod queuetopic queuesubscribe queueoutgoing tmpdir lock_method
+		       owner_priority pidfile pidfile_distribute
+		       spool queue queuedistribute queueauth queuetask queuebounce queuedigest 
+		       queuemod queuetopic queuesubscribe queueoutgoing tmpdir
 		       loop_command_max loop_command_sampling_delay loop_command_decrease_factor loop_prevention_regex
 		       purge_user_table_task purge_logs_table_task purge_orphan_bounces_task eval_bouncers_task process_bouncers_task
 		       minimum_bouncing_count minimum_bouncing_period bounce_delay 
@@ -73,12 +65,7 @@ my @valid_options = qw(
 my %old_options = ('trusted_ca_options' => 'capath,cafile',
 		   'msgcat' => 'localedir',
 		   'queueexpire' => '',
-		   'web_recode_to' => 'filesystem_encoding',
-		   );
-## These parameters now have a hard-coded value
-## Customized value can be accessed though as %Ignored_Conf
-%Ignored_Conf;
-my %hardcoded_options = ('filesystem_encoding' => 'utf8');
+		   'web_recode_to' => 'filesystem_encoding');
 
 my %valid_options = ();
 map { $valid_options{$_}++; } @valid_options;
@@ -104,13 +91,11 @@ my %Default_Conf =
      'email'   => 'sympa',
      'pidfile' => '--PIDDIR--/sympa.pid',
      'pidfile_distribute' => '--PIDDIR--/sympa-distribute.pid',
-     'pidfile_creation' => '--PIDDIR--/sympa-creation.pid',
      'localedir'  => '--LOCALEDIR--',
      'sort'    => 'fr,ca,be,ch,uk,edu,*,com',
      'spool'   => '--SPOOLDIR--',
      'queue'   => undef,
      'queuedistribute' => undef,
-     'queueautomatic' => undef,
      'queuedigest'=> undef,
      'queuemod'   => undef,
      'queuetopic' => undef,
@@ -125,7 +110,6 @@ my %Default_Conf =
      'clean_delay_queuemod' => 10,
      'clean_delay_queuetopic' => 7,
      'clean_delay_queuesubscribe' => 10,
-     'clean_delay_queueautomatic' => 10,
      'clean_delay_queueauth' => 3,
      'log_socket_type'      => 'unix',
      'log_smtp'      => '',
@@ -155,9 +139,6 @@ my %Default_Conf =
      'max_size' => 5242880,
      'edit_list' => 'owner',
      'create_list' => 'public_listmaster',
-     'automatic_list_feature' => 'off',
-     'automatic_list_creation' => 'public',
-     'automatic_list_removal' => '', ## Can be 'if_empty'
      'global_remind' => 'listmaster',
      'wwsympa_url' => undef,
      'bounce_warn_rate' => '30',
@@ -241,9 +222,7 @@ my %Default_Conf =
      'use_blacklist' => 'send,subscribe',
      'static_content_url' => '/static-sympa',
      'static_content_path' => '--DIR--/static_content',
-     'filesystem_encoding' => 'utf-8',
-     'cache_list_config' => 'none', ## none | binary_file
-     'lock_method' => 'flock' ## flock | nfs
+     'filesystem_encoding' => 'utf-8'
      );
    
 
@@ -303,12 +282,6 @@ sub load {
     }
     close(IN);
 
-    ## Hardcoded values
-    foreach my $p (keys %hardcoded_options) {
-	$Ignored_Conf{$p} = $o{$p}[0] if (defined $o{$p});
-	$o{$p}[0] = $hardcoded_options{$p};
-    }
-
     ## Defaults
     unless (defined $o{'wwsympa_url'}) {
 	$o{'wwsympa_url'}[0] = "http://$o{'host'}[0]/wws";
@@ -325,10 +298,6 @@ sub load {
     }   
 
     my $spool = $o{'spool'}[0] || $Default_Conf{'spool'};
-
-    unless (defined $o{'queueautomatic'}) {
-      $o{'queueautomatic'}[0] = "$spool/automatic";
-    }
 
     unless (defined $o{'queuedigest'}) {
 	$o{'queuedigest'}[0] = "$spool/digest";
@@ -390,16 +359,6 @@ sub load {
     
     unless ($Conf{'css_path'}) {
 	$Conf{'css_path'} = $Conf{'static_content_path'}.'/css';
-    }
-
-    ## Some parameters require CPAN modules
-    if ($Conf{'lock_method'} eq 'nfs') {
-	if (eval "require File::NFSLock") {
-	    require File::NFSLock;
-	}else {
-	    &do_log('err', "Failed to load File::NFSLock perl module ; setting 'lock_method' to 'flock'");
-	    $Conf{'lock_method'} = 'flock';
-	}
     }
 
     ## Load robot.conf files
@@ -535,9 +494,6 @@ sub load_robots {
 				  log_smtp        => 1,
 				  log_level       => 1,
 				  create_list     => 1,
-				  automatic_list_feature     => 1,
-				  automatic_list_creation     => 1,
-				  automatic_list_removal     => 1,
 				  dark_color      => 1,
 				  light_color     => 1,
 				  text_color      => 1, 
@@ -565,7 +521,6 @@ sub load_robots {
 				  default_shared_quota => 1,
 				  verp_rate => 1,
 				  loop_prevention_regex => 1,
-				  max_size => 1,
 				  );
 
     ## Load wwsympa.conf
@@ -585,14 +540,7 @@ sub load_robots {
 
     foreach $robot (readdir(DIR)) {
 	next unless (-d "$Conf{'etc'}/$robot");
-	next unless (-f "$Conf{'etc'}/$robot/robot.conf");
-
-	unless (-r "$Conf{'etc'}/$robot/robot.conf") {
-	    printf STDERR "No read access on %s\n", "$Conf{'etc'}/$robot/robot.conf";
-	    &List::send_notify_to_listmaster('cannot_access_robot_conf',$Conf{'domain'}, ["No read access on $Conf{'etc'}/$robot/robot.conf. you should change privileges on this file to activate this virtual host. "]);
-	    next;
-	}
-
+	next unless (-r "$Conf{'etc'}/$robot/robot.conf");
 	unless (open (ROBOT_CONF,"$Conf{'etc'}/$robot/robot.conf")) {
 	    printf STDERR "load robots config: Unable to open $Conf{'etc'}/$robot/robot.conf\n"; 
 	    next ;
@@ -683,7 +631,6 @@ sub load_robots {
 	$url =~ s/^http(s)?:\/\/(.+)$/$2/;
 	$Conf{'robot_by_soap_url'}{$url} = $Conf{'domain'};
     }
-
     return ($robot_conf);
 }
 
@@ -709,9 +656,8 @@ sub checkfiles_as_root {
 	
     }
 
+    # create static content directory
     foreach my $robot (keys %{$Conf{'robots'}}) {
-
-	# create static content directory
 	my $dir = &get_robot_conf($robot, 'static_content_path');
 	if ($dir ne '' && ! -d $dir){
 	    unless ( mkdir ($dir, 0775)) {
@@ -732,9 +678,6 @@ sub checkfiles_as_root {
 ## return 1 if the parameter is a known robot
 sub valid_robot {
     my $robot = shift;
-
-    ## Main host
-    return 1 if ($robot eq $Conf{'domain'});
 
     ## Missing etc directory
     unless (-d $Conf{'etc'}.'/'.$robot) {
@@ -770,7 +713,7 @@ sub checkfiles {
 	}
     }
     
-    foreach my $qdir ('spool','queue','queueautomatic','queuedigest','queuemod','queuetopic','queueauth','queueoutgoing','queuebounce','queuesubscribe','queuetask','queuedistribute','tmpdir')
+    foreach my $qdir ('spool','queue','queuedigest','queuemod','queuetopic','queueauth','queueoutgoing','queuebounce','queuesubscribe','queuetask','queuedistribute','tmpdir')
     {
 	unless (-d $Conf{$qdir}) {
 	    do_log('info', "creating spool $Conf{$qdir}");
@@ -781,17 +724,22 @@ sub checkfiles {
 	}
     }
 
-    ## Also create associated bad/ spools
-    foreach my $qdir ('queue','queuedistribute','queueautomatic')
-    {
-	unless (-d $Conf{$qdir}.'/bad') {
-	    do_log('info', "creating spool $Conf{$qdir}/bad");
-	    unless ( mkdir ($Conf{$qdir}.'/bad', 0775)) {
-		do_log('err', 'Unable to create spool %s', $Conf{$qdir}.'/bad');
+    ## Also create msg/bad/
+    unless (-d $Conf{'queue'}.'/bad') {
+	    do_log('info', "creating spool $Conf{'queue'}/bad");
+	    unless ( mkdir ($Conf{'queue'}.'/bad', 0775)) {
+		do_log('err', 'Unable to create spool %s', $Conf{'queue'}.'/bad');
 		$config_err++;
 	    }
 	}
-    }
+    ## Also create distribute/bad/
+    unless (-d $Conf{'queuedistribute'}.'/bad') {
+	    do_log('info', "creating spool $Conf{'queuedistribute'}/bad");
+	    unless ( mkdir ($Conf{'queuedistribute'}.'/bad', 0775)) {
+		do_log('err', 'Unable to create spool %s', $Conf{'queuedistribute'}.'/bad');
+		$config_err++;
+	    }
+	}
 
     ## Check cafile and capath access
     if (defined $Conf{'cafile'} && $Conf{'cafile'}) {
@@ -821,15 +769,6 @@ sub checkfiles {
 	    &do_log('err', 'Unable to send notify "queuebounce_and_bounce_path_are_the_same" to listmaster');	
 	}
 	$config_err++;
-    }
-
-    ## automatic_list_creation enabled but queueautomatic pointing to queue
-    if (($Conf{automatic_list_feature} eq 'on') && $Conf{'queue'} eq $Conf{'queueautomatic'}) {
-        &do_log('err', 'Error in config : queue and queueautomatic parameters pointing to the same directory (%s)', $Conf{'queue'});
-        unless (&List::send_notify_to_listmaster('queue_and_queueautomatic_are_the_same', $Conf{'domain'}, [$Conf{'queue'}])) {
-            &do_log('err', 'Unable to send notify "queue_and_queueautomatic_are_the_same" to listmaster');
-        }
-        $config_err++;
     }
 
     #  create pictures dir if usefull for each robot
@@ -939,7 +878,7 @@ sub _load_auth {
     
     my $robot = shift;
     my $config = shift;
-    &do_log('debug', 'Conf::_load_auth(%s)', $config);
+    &do_log('notice', 'Conf::_load_auth(%s)', $config);
 
     my $line_num = 0;
     my $config_err = 0;
@@ -1125,31 +1064,6 @@ sub get_robot_conf {
 
 
 
-## load .sql named filter conf file
-sub load_sql_filter {
-	
-    my $file = shift;
-    my %sql_named_filter_params = (
-	'sql_named_filter_query' => {'occurrence' => '1',
-	'format' => { 
-		'db_type' => {'format' => 'mysql|SQLite|Pg|Oracle|Sybase', },
-		'db_name' => {'format' => '.*', 'occurrence' => '1', },
-		'db_host' => {'format' => '.*', 'occurrence' => '1', },
-		'statement' => {'format' => '.*', 'occurrence' => '1', },
-		'db_user' => {'format' => '.*', 'occurrence' => '0-1',  },
-		'db_passwd' => {'format' => '.*', 'occurrence' => '0-1',},
-		'db_options' => {'format' => '.*', 'occurrence' => '0-1',},
-		'db_env' => {'format' => '.*', 'occurrence' => '0-1',},
-		'db_port' => {'format' => '\d+', 'occurrence' => '0-1',},
-		'db_timeout' => {'format' => '\d+', 'occurrence' => '0-1',},
-	}
-	});
-
-    return undef unless  (-r $file);
-
-    return (&load_generic_conf_file($file,\%sql_named_filter_params, 'abort'));
-}
-
 ## load trusted_application.conf configuration file
 sub load_trusted_application {
     my $robot = shift;
@@ -1170,23 +1084,12 @@ sub load_trusted_application {
 
 }
 
-############################################################
-#  load_generic_conf_file
-############################################################
-#  load a generic config organized by paragraph syntax
-#  
-# IN : -$config_file (+): full path of config file
-#      -$structure_ref (+) : ref(HASH) describing expected syntax
-#      -$on_error : optional. sub returns undef if set to 'abort'
-#          and an error is found in conf file
-# OUT : ref(HASH) of parsed parameters
-#     | undef
+## load a generic config organized by paragraph syntax
 #
-############################################################## 
+# 
 sub load_generic_conf_file {
     my $config_file = shift;
     my $structure_ref = shift;
-    my $on_error = shift;
     my %structure = %$structure_ref;
 
     # printf STDERR "load_generic_file  $config_file \n";
@@ -1253,7 +1156,6 @@ sub load_generic_conf_file {
 	## Look for first valid line
 	unless ($paragraph[0] =~ /^\s*([\w-]+)(\s+.*)?$/) {
 	    printf STDERR 'Bad paragraph "%s" in %s, ignored', @paragraph, $config_file;
-	    return undef if $on_error eq 'abort';
 	    next;
 	}
 	    
@@ -1261,7 +1163,6 @@ sub load_generic_conf_file {
 	# printf STDERR "xxxxxxxxxxxx parametre pname $pname\n";
 	unless (defined $structure{$pname}) {
 	    printf STDERR 'Unknown parameter "%s" in %s, ignored', $pname, $config_file;
-	    return undef if $on_error eq 'abort';
 	    next;
 	}
 	## Uniqueness
@@ -1269,7 +1170,6 @@ sub load_generic_conf_file {
 	    unless (($structure{$pname}{'occurrence'} eq '0-n') or
 		    ($structure{$pname}{'occurrence'} eq '1-n')) {
 		printf STDERR 'Multiple parameter "%s" in %s', $pname, $config_file;
-		return undef if $on_error eq 'abort';
 	    }
 	}
 	
@@ -1278,7 +1178,6 @@ sub load_generic_conf_file {
 	    ## This should be a paragraph
 	    unless ($#paragraph > 0) {
 		printf STDERR 'Expecting a paragraph for "%s" parameter in %s, ignore it\n', $pname, $config_file;
-		return undef if $on_error eq 'abort';
 		next;
 	    }
 	    
@@ -1290,19 +1189,16 @@ sub load_generic_conf_file {
 		next if ($paragraph[$i] =~ /^\s*\#/);		
 		unless ($paragraph[$i] =~ /^\s*(\w+)\s*/) {
 		    printf STDERR 'Bad line "%s" in %s\n',$paragraph[$i], $config_file;
-		    return undef if $on_error eq 'abort';
 		}		
 		my $key = $1;
 			
 		unless (defined $structure{$pname}{'format'}{$key}) {
 		    printf STDERR 'Unknown key "%s" in paragraph "%s" in %s\n', $key, $pname, $config_file;
-		    return undef if $on_error eq 'abort';
 		    next;
 		}
 		
 		unless ($paragraph[$i] =~ /^\s*$key\s+($structure{$pname}{'format'}{$key}{'format'})\s*$/i) {
 		    printf STDERR 'Bad entry "%s" in paragraph "%s" in %s\n', $paragraph[$i], $key, $pname, $config_file;
-		    return undef if $on_error eq 'abort';
 		    next;
 		}
 
@@ -1325,7 +1221,6 @@ sub load_generic_conf_file {
 		if ($structure{$pname}{'format'}{$k}{'occurrence'} eq '1') {
 		    unless (defined $hash{$k}) {
 			printf STDERR 'Missing key %s in param %s in %s\n', $k, $pname, $config_file;
-			return undef if $on_error eq 'abort';
 			$missing_required_field++;
 		    }
 		}
@@ -1346,12 +1241,10 @@ sub load_generic_conf_file {
 	    my $xxxmachin =  $structure{$pname}{'format'};
 	    unless ($#paragraph == 0) {
 		printf STDERR 'Expecting a single line for %s parameter in %sxxxxxx %s\n', $pname, $config_file, $xxxmachin ;
-		return undef if $on_error eq 'abort';
 	    }
 
 	    unless ($paragraph[0] =~ /^\s*$pname\s+($structure{$pname}{'format'})\s*$/i) {
 		printf STDERR 'Bad entry "%s" in %s\n', $paragraph[0], $config_file ;
-		return undef if $on_error eq 'abort';
 		next;
 	    }
 
@@ -1369,7 +1262,7 @@ sub load_generic_conf_file {
     }
     
     close CONFIG;
-#open TMP2, ">>/tmp/sss"; printf TMP2 "xxxxxxxxxxxxxxxxxxx--------structure admin\n"; &tools::dump_var(\%admin, 0, \*TMP2);printf TMP2 "xxxxxxxxxxxxxxxxxxx--------\n"; close TMP2;
+open TMP2, ">>/tmp/sss"; printf TMP2 "xxxxxxxxxxxxxxxxxxx--------structure admin\n"; &tools::dump_var(\%admin, 0, \*TMP2);printf TMP2 "xxxxxxxxxxxxxxxxxxx--------\n"; close TMP2;
     return \%admin;
 }
 
