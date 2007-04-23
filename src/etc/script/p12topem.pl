@@ -37,17 +37,6 @@ use List;
 unless (&Conf::load($sympa_conf_file)) {
     die 'config_error';
 }
-
-## Probe Db if defined
-if ($Conf{'db_name'} and $Conf{'db_type'}) {
-    unless ($List::use_db = &Upgrade::probe_db()) {
-	&die('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
-    }
-}
-
-## Apply defaults to %List::pinfo
-&List::_apply_defaults();
-
 my $openssl = $Conf{'openssl'};
 my $home_sympa = $Conf{'home'};
 my $outpass = $Conf{'key_passwd'};
@@ -57,7 +46,6 @@ my $etc_dir = $Conf{'etc'};
 my %options;
 &GetOptions(\%main::options, 'pkcs12=s','listname=s', 'robot=s', 'help|h');
 
-$main::options{'foreground'} = 1;
 my $listname = $main::options{'listname'};
 my $robot = $main::options{'robot'};
 my $p12input = $main::options{'pkcs12'};
@@ -73,7 +61,7 @@ if (($main::options{'help'} ne '') ||
 }else{
 
     if ($listname) {
-	my $self = new List($listname, $robot);
+	my $self = new List($listname);
 	$cert = $self->{'dir'}.'/cert.pem';
 	$privatekey = $self->{'dir'}.'/private_key';
 	unless (-d $self->{'dir'}) {
@@ -91,11 +79,11 @@ if (($main::options{'help'} ne '') ||
     }
 
     if (-r "$cert") {
-	printf "$cert certificat already exist\n";
+	printf "$cert certificat allready exist\n";
 	die;
     }
     if (-r "$privatekey") {
-	printf "$privatekey already exist\n";
+	printf "$privatekey allready exist\n";
 	die;
     }
     
