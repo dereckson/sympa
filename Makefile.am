@@ -164,23 +164,9 @@ main_SRC	=	AUTHORS COPYING ChangeLog INSTALL KNOWNBUGS NEWS README
 LOG_SOCKET_TYPE	=	unix
 #endif
 
-all:	warning checkperl checkcpan sources man locale
+all:	checkperl checkcpan sources checkmhonarc man locale
 
 rpm: build_rh_rpm build_mdk_rpm
-
-warning:
-	@echo "######################## W A R N I N G ######################"; \
-	echo "## If it is the first time you install Sympa on this server :"; \
-	echo "##        It may take a while...."; \
-	echo "## The reason is that Sympa requires many Perl modules that"; \
-	echo "## are not distributed with the standard Perl distribution."; \
-	echo "## We'll try to install these modules automatically..."; \
-	echo "## If some modules cannot be installed automatically, (probably" ; \
-	echo "## because of the 'make test'), try downloading them from the"; \
-	echo "## CPAN website (http://search.cpan.org) and install them manually."; \
-	echo "#############################################################"; \
-	echo -n "Please hit <Enter> to proceed"; \
-	if [ "$(DESTDIR)" = "" ]; then read rep; fi
 
 checkperl:
 	@if [ $(PERL_VERSION) = '5.006' ]; then \
@@ -192,31 +178,29 @@ checkperl:
 	echo "## If your Perl version is 5.6.0 AND if your system is Solaris :"; \
 	echo "## See also http://bugs.perl.org/perlbug.cgi?req=bidmids&bidmids=20000522.003"; \
 	echo "#############################################################################"; \
-	if [ "$(DESTDIR)" = "" ]; then read rep; fi \
 	fi
 	@if [ ! -f $(SUIDPERL) ]; then \
-		echo "#################################################################################"; \
-		echo "## wwsympa.fcgi that provides Sympa's web interface needs to run as user $(USER)"; \
-		echo "## There are many options to do so : "; \
-		echo "##  1/ Installing 'suidperl' to run wwsympa.fcgi with SetUID. This is the default method,"; \
-		echo "##     but it might be insecure."; \
-		echo "##  2/ Use 'sudo' to run wwsympa.fcgi as user $(USER). Your Apache configuration should use wwsympa_sudo_wrapper.pl"; \
-		echo "##     You should edit your /etc/sudoers file (with visudo command) as follows :"; \
-		echo "##     apache ALL = ($(USER))  NOPASSWD: $(CGIDIR)/wwsympa.fcgi"; \
-		echo "##  3/ Use Apache's suExec mode."; \
-		echo "## For (2) and (3) you should run Sympa's 'configure' with the '--enable-secure' option"; \
-		echo "#######################################################################################"; \
-		echo -n "Please hit <Enter> to continue"; \
-		if [ "$(DESTDIR)" = "" ]; then read rep; fi \
+		echo "##################################"; \
+		echo "## You don't have suidperl installed."; \
+		echo "## Suidperl is required to run WWSympa with SetUID."; \
+		echo "#####################################################"; \
 	fi
 	@if [ ! -f $(MSGFMT) ]; then \
 		echo "##################################"; \
 		echo "## You don't have msgfmt installed. It is required to build message catalogues"; \
-		echo "## msgfmt is provided with a 'gettext' package on most systems..."; \
+		echo "## msgfmt is provided with a 'gettest' package on most systems..."; \
 		echo "#####################################################"; \
-		if [ "$(DESTDIR)" = "" ]; then read rep; fi \
 	fi
 
+
+checkmhonarc:
+	@if [ ! -f $(MHONARC) ]; then \
+		echo "##################################"; \
+		echo "## You don't have mhonarc installed."; \
+		echo "## Mhonarc is required to manage web archives."; \
+		echo "## Mhonarc web site : http://www.mhonarc.org"; \
+		echo "#####################################################"; \
+	fi
 
 sources: src/Makefile src/queue.c src/bouncequeue.c src/aliaswrapper.c
 	@echo "Making src"
@@ -235,7 +219,7 @@ sources: src/Makefile src/queue.c src/bouncequeue.c src/aliaswrapper.c
 documentation: doc/sympa.tex.tpl doc/Makefile 
 	@echo "Making documentation"
 	@(cd doc && echo "making in doc/..." && \
-	$(MAKE) SH='${SH}' CC='${CC}' CFLAGS='${CFLAGS}' PERL='${PERL}' CGIDIR='${CGIDIR}' \
+	$(MAKE) SH='${SH}' CC='${CC}' CFLAGS='${CFLAGS}' PERL='${PERL}' \
 	DIR='${DIR}' BINDIR='${BINDIR}' SBINDIR='${SBINDIR}' LIBDIR='${LIBDIR}' WWSBINDIR='${WWSBINDIR}' \
 	MAILERPROGDIR='${MAILERPROGDIR}' ETCBINDIR='${ETCBINDIR}' ETCDIR='${ETCDIR}' PIDDIR='${PIDDIR}' \
 	CONFIG='${CONFIG}' WWSCONFIG='${WWSCONFIG}' EXPL_DIR='${EXPL_DIR}' LOCALEDIR='${LOCALEDIR}' SPOOLDIR='${SPOOLDIR}' \
@@ -259,28 +243,14 @@ clean:
 	$(MAKE) PERL='${PERL}' clean) || exit 1; \
 	done;
 
-install: importantchanges installdir installsrc installwws installwebtt2 installmailtt2 installlocale installman installscript installsample installconfig installdoc installsoap nextstep
-
-nextstep: 
-	@echo ""
-	@echo "#########################################################"
-	@echo "# If you install Sympa for the first time on this server"
-	@echo "# you should check the INSTALL file."
-	@echo "#"
-	@echo "# If you are upgrading, you now need to run"
-	@echo "#    $(SBINDIR)/sympa.pl --upgrade"
-	@echo "#######################################################"
+install: importantchanges installsrc installwws installwebtt2 installmailtt2 installlocale installman installscript installsample installdir installconfig installdoc installsoap
 
 importantchanges:
 	@( 	PERL=$(PERL); export PERL; \
 		UMASK=0600; export UMASK; \
-		DESTDIR=$(DESTDIR); export DESTDIR; \
 		BINDIR=$(SBINDIR); export BINDIR; \
 		SBINDIR=$(SBINDIR); export SBINDIR; \
 		LIBDIR=$(LIBDIR); export LIBDIR; \
-		ETCDIR=$(ETCDIR); export ETCDIR;\
-		USER=$(USER); export USER;\
-		GROUP=$(GROUP); export GROUP;\
 		SYMPA_VERSION=$(SYMPA_VERSION); export SYMPA_VERSION; \
 		$(PERL) ./important_changes.pl \
 	) ;
@@ -290,7 +260,7 @@ locale:
 	$(MAKE) SH='${SH}' CC='${CC}' CFLAGS='${CFLAGS}' PERL='${PERL}' \
 	DIR='${DIR}' LOCALEDIR='${LOCALEDIR}' ETCBINDIR='${ETCBINDIR}' \
 	DESTDIR='${DESTDIR}' CONFIG='${CONFIG}' WWSCONFIG='${WWSCONFIG}' \
-	SCRIPTDIR='${SCRIPTDIR}' \
+	LOCALEDIR='${prefix}/locale' SCRIPTDIR='${SCRIPTDIR}' \
 	USER='${USER}' GROUP='${GROUP}') || exit 1;
 
 installlocale:
@@ -298,6 +268,7 @@ installlocale:
 	$(MAKE) SH='${SH}' CC='${CC}' CFLAGS='${CFLAGS}' PERL='${PERL}' \
 	DIR='${DIR}' LOCALEDIR='${LOCALEDIR}' ETCBINDIR='${ETCBINDIR}' \
 	DESTDIR='${DESTDIR}' CONFIG='${CONFIG}' WWSCONFIG='${WWSCONFIG}' \
+	LOCALEDIR='${prefix}/locale' \
 	USER='${USER}' GROUP='${GROUP}' install) || exit 1;
 
 updatelocale:
@@ -305,7 +276,7 @@ updatelocale:
 	$(MAKE) SH='${SH}' CC='${CC}' CFLAGS='${CFLAGS}' PERL='${PERL}' \
 	DIR='${DIR}' LOCALEDIR='${LOCALEDIR}' ETCBINDIR='${ETCBINDIR}' \
 	DESTDIR='${DESTDIR}' CONFIG='${CONFIG}' WWSCONFIG='${WWSCONFIG}' \
-	SCRIPTDIR='${SCRIPTDIR}' \
+	LOCALEDIR='${prefix}/locale' SCRIPTDIR='${SCRIPTDIR}' \
 	USER='${USER}' GROUP='${GROUP}' update-po) || exit 1;
 
 installsrc:
@@ -334,7 +305,7 @@ installwws:
 	@(cd wwsympa && echo "making in wwsympa..." && \
 	$(MAKE) SH='${SH}' CC='${CC}' CFLAGS='${CFLAGS}' PERL='${PERL}' \
 	DIR='${DIR}' BINDIR='${BINDIR}' SBINDIR='${SBINDIR}' LIBDIR='${LIBDIR}' \
-	USER='${USER}' GROUP='${GROUP}' SUDO='${SUDO}' enable_secure='${enable_secure}' \
+	USER='${USER}' GROUP='${GROUP}' \
 	CGIDIR='${CGIDIR}' WWSBINDIR='${WWSBINDIR}' MAILERPROGDIR='${MAILERPROGDIR}' \
 	PIDDIR='${PIDDIR}' CONFIG='${CONFIG}' WWSCONFIG='${WWSCONFIG}' ETCBINDIR='${ETCBINDIR}' \
 	DESTDIR='${DESTDIR}' USER='${USER}' GROUP='${GROUP}' ICONSDIR='${ICONSDIR}' newinstall) || exit 1;
@@ -378,12 +349,31 @@ installsample:
 
 
 installman:
-	@(cd doc/man8 && \
-	$(MAKE) PERL='${PERL}' DIR='${DIR}' DESTDIR='${DESTDIR}' SYMPA_VERSION='${SYMPA_VERSION}' MANDIR='${MANDIR}' \
-	USER='${USER}' GROUP='${GROUP}' \
-	CONFDIR='${CONFDIR}' SENDMAIL_ALIASES='${SENDMAIL_ALIASES}' VIRTUAL_ALIASES='${VIRTUAL_ALIASES}' UMASK='${UMASK}'  \
-	MAILERPROGDIR='${MAILERPROGDIR}' PIDDIR='${PIDDIR}' SPOOLDIR='${SPOOLDIR}' PIDDIR='${PIDDIR}' ETCBINDIR='${ETCBINDIR}' \
-	newinstall) || exit 1;
+	mkdir -p $(DESTDIR)$(MANDIR)
+	mkdir -p $(DESTDIR)$(MANDIR)/man8
+	@for manfile in sympa.8 archived.8 bounced.8 alias_manager.8; do \
+	echo "Installing man file man8/$$manfile..."; \
+	( \
+		cd doc/man8 ; \
+		PERL=$(PERL); export PERL; \
+		UMASK=0600; export UMASK; \
+		DIR=$(DIR); export DIR; \
+		INSTALLDIR=$(MANDIR)/man8; export INSTALLDIR; \
+		DESTDIR=$(DESTDIR); export DESTDIR; \
+		SYMPA_VERSION=$(SYMPA_VERSION); export SYMPA_VERSION; \
+		CONFDIR=$(CONFDIR); export CONFDIR; \
+		SENDMAIL_ALIASES=$(SENDMAIL_ALIASES); export SENDMAIL_ALIASES; \
+		VIRTUAL_ALIASES=$(VIRTUAL_ALIASES); export VIRTUAL_ALIASES; \
+		MAILERPROGDIR=$(MAILERPROGDIR); export MAILERPROGDIR; \
+		PIDDIR=$(PIDDIR); export PIDDIR; \
+		SPOOLDIR=$(SPOOLDIR); export SPOOLDIR; \
+		PIDDIR=$(PIDDIR); export PIDDIR; \
+		$(PERL) ../../subst.pl $$manfile \
+	) ;\
+	chown $(USER) $(DESTDIR)$(MANDIR)/man8/$$manfile; \
+	chgrp $(GROUP) $(DESTDIR)$(MANDIR)/man8/$$manfile; \
+	done
+
 
 installscript:
 	@(cd src/etc/script && echo "making in src/etc/script..." && \
@@ -400,7 +390,7 @@ installscript:
 
 installdir:
 	@echo "Creating required directories"
-	@for dir in $(DIR) $(EXPL_DIR) $(CONFDIR) $(SAMPLEDIR) $(ETCDIR) $(BINDIR) $(LOCALEDIR) $(DOCDIR) ; do \
+	@for dir in $(DIR) $(EXPL_DIR) $(CONFDIR) $(SAMPLEDIR) ; do \
 		if [ ! -d $(DESTDIR)$$dir ] ; then \
 			echo "Creating $(DESTDIR)$$dir"; \
 			mkdir -p $(DESTDIR)$$dir; \
@@ -411,7 +401,7 @@ installdir:
 	done
 	@if [ ! -f $(DESTDIR)$(CONFDIR)/sympa.conf ] ; then \
 	echo "First installation : installing conf directories..."; \
-	for dir in create_list_templates mail_tt2 web_tt2 scenari \
+	for dir in create_list_templates templates wws_templates scenari \
 	task_models general_task_models; do \
 		if [ ! -d $(DESTDIR)$(ETCDIR)/$$dir ] ; then \
 			echo "Creating $(DESTDIR)$(ETCDIR)/$$dir"; \
@@ -419,18 +409,7 @@ installdir:
 			chown $(USER) $(DESTDIR)$(ETCDIR)/$$dir; \
 			chgrp $(GROUP) $(DESTDIR)$(ETCDIR)/$$dir; \
 		fi \
-	done; \
-	( \
-		PERL=$(PERL); export PERL; \
-		UMASK=0600; export UMASK; \
-		INSTALLDIR=$(ETCDIR); export INSTALLDIR; \
-		USER=$(USER); export USER;\
-		GROUP=$(GROUP); export GROUP;\
-		INSTALLNAME='README'; export INSTALLNAME; \
-                ETCDIR=$(ETCDIR); export ETCDIR; \
-                ETCBINDIR=$(ETCBINDIR); export ETCBINDIR; \
-		$(PERL) ./subst.pl src/etc/README_etc \
-	) \
+	done \
 	fi
 	@if [ ! -f $(DESTDIR)$(CONFDIR)/sympa.conf ] ; then \
 	echo "First installation : installing spool directories..."; \
@@ -446,18 +425,6 @@ installdir:
 		fi \
 	done \
 	fi
-	@if [ ! -f $(DESTDIR)$(CONFDIR)/sympa.conf ] ; then \
-	echo "First installation : creating archives and bounce directories..."; \
-	for dir in bounce arc ; do \
-		if [ ! -d $(DESTDIR)$(DIR)/$$dir ] ; then \
-			echo "Creating $(DESTDIR)$(DIR)/$$dir"; \
-			mkdir -p $(DESTDIR)$(DIR)/$$dir; \
-			chown $(USER) $(DESTDIR)$(DIR)/$$dir; \
-			chgrp $(GROUP) $(DESTDIR)$(DIR)/$$dir; \
-		fi \
-	done \
-	fi
-
 
 installconfig:
 	mkdir -p $(DESTDIR)$(CONFDIR)

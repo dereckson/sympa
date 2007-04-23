@@ -126,19 +126,7 @@ my @params = ({'title' => 'Directories and file location'},
 	       'query' => 'Bounce incoming spool',
 	       'file' => 'sympa.conf',
 	       'advice' =>''},
-
-	      {'name' => 'static_content_path',
-	       'default' => '--DIR--/static_content',
-	       'query' => 'The directory where Sympa stores static contents (CSS, members pictures, documentation) directly delivered by Apache',
-	       'file' => 'sympa.conf',
-	       'advice' =>''},	      
 	      
-	      {'name' => 'static_content_url',
-	       'default' => '/static-sympa',
-	       'query' => 'The URL mapped with the static_content_path directory defined above',
-	       'file' => 'sympa.conf',
-	       'advice' =>''},	      
-
 	      {'title' => 'Syslog'},
 
 	      {'name' => 'syslog',
@@ -173,9 +161,9 @@ my @params = ({'title' => 'Directories and file location'},
 	      
 	      {'name' => 'listmaster',
 	       'default' => 'your_email_address@--HOST--',
-	       'query' => 'Listmasters email list comma separated',
+	       'query' => 'Listmasters email list colon separated',
 	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'Sympa will associate listmaster privileges to these email addresses (mail and web interfaces). Some error reports may also be sent to these addresses.'},
+	       'advice' =>''},
 	      
 	      {'name' => 'email',
 	       'default' => 'sympa',
@@ -183,21 +171,19 @@ my @params = ({'title' => 'Directories and file location'},
 	       'file' => 'sympa.conf',
 	       'advice' =>"Effective address will be \[EMAIL\]@\[HOST\]"},
 
+	      {'name' => 'lang',
+	       'default' => 'us',
+	       'query' => 'Default lang (fr | en_US | hu | it)',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+
 	      {'name' => 'create_list',
 	       'default' => 'public_listmaster',
 	       'query' => 'Who is able to create lists',
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>'This parameter is a scenario, check sympa documentation about scenarios if you want to define one'},
 
-	      {'title' => 'Tuning'},
-	      	      
-
-	      {'name' => 'cache_list_config',
-	       'default' => 'none',
-	       'query' => 'Use of binary version of the list config structure on disk: none | binary_file',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'Set this parameter to "binary_file" if you manage a big amount of lists (1000+) ; it should make the web interface startup faster'},
-
+	      
 	      {'name' => 'sympa_priority',
 	       'query' => 'Sympa commands priority',
 	       'file' => 'sympa.conf',
@@ -234,11 +220,7 @@ my @params = ({'title' => 'Directories and file location'},
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>''},
 
-	      {'name' => 'use_blacklist',
-	       'query' => 'comma separated list of operation for which blacklist filter is applyed', 
-               'default' => 'send,create_list',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'set this parameter to "none" hidde blacklist feature'},
+
 
 	      {'name'  => 'rfc2369_header_fields',
 	       'query' => 'Specify which rfc2369 mailing list headers to add',
@@ -250,20 +232,6 @@ my @params = ({'title' => 'Directories and file location'},
 	       'query' => 'Specify header fields to be removed before message distribution',
 	       'file' => 'sympa.conf',
 	       'advice' => '' },
-
-	      {'title' => 'Internationalization'},
-
-	      {'name' => 'lang',
-	       'default' => 'en_US',
-	       'query' => 'Default lang (cs | de | el | en_US | fr | hu | it | ja_JP | nl | oc | pt_BR | tr)',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'This is the default language used by Sympa'},
-
-	      {'name' => 'supported_lang',
-	       'default' => 'de,cs,el,es,et_EE,en_US,fr,hu,it,ja_JP,nl,oc,pt_BR,sv,tr',
-	       'query' => 'Supported languages',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'This is the set of language that will be proposed to your users for the Sympa GUI. Don\'t select a language if you don\'t have the proper locale packages installed.'},
 
 	      {'title' => 'Errors management'},
 
@@ -307,7 +275,7 @@ my @params = ({'title' => 'Directories and file location'},
 
 	      {'name' => 'nrcpt',
 	       'default' => '25',
-	       'query' => 'Maximum number of recipients per call to Sendmail. The nrcpt_by_domain.conf file allows a different tuning per destination domain.',
+	       'query' => 'Maximum number of recipients per call to Sendmail',
 	       'file' => 'sympa.conf',
 	       'advice' =>''},
 
@@ -376,16 +344,16 @@ my @params = ({'title' => 'Directories and file location'},
 	      {'title' => 'Database'},
 	      
 	      {'name' => 'db_type',
-	       'default' => 'mysql',
-	       'query' => 'Database type (mysql | Pg | Oracle | Sybase | SQLite)',
+	       'sample' => 'mysql',
+	       'query' => 'Database type (mysql | Pg | Oracle | Sybase)',
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>'be carefull to the case'},
 
 	      {'name' => 'db_name',
-	       'default' => 'sympa',
+	       'sample' => 'sympa',
 	       'query' => 'Name of the database',
 	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'with SQLite, the name of the DB corresponds to the DB file'},
+	       'advice' =>''},
 
 	      {'name' => 'db_host',
 	       'sample' => 'localhost',
@@ -448,7 +416,7 @@ my @params = ({'title' => 'Directories and file location'},
 	       'advice' =>''},
 
 	      {'name' => 'icons_url',
-	       'default' => '/icons',
+	       'default' => '/icons/sympa',
 	       'query' => 'Icons directory (web) location for Sympa',
 	       'file' => 'wwsympa.conf'},
 
@@ -463,6 +431,36 @@ my @params = ({'title' => 'Directories and file location'},
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>''},
 
+	      {'name' => 'dark_color',
+	       'default' => '#006666',
+	       'query' => 'web interface color : dark',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+	      
+	      {'name' => 'selected_color',
+	       'default' => '#996666',
+	       'query' => 'web interface color : selected_color',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+	      
+	      {'name' => 'light_color',
+	       'default' => '#cccc66',
+	       'query' => 'web interface color : light',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+	      
+	      {'name' => 'shaded_color',
+	       'default' => '#66cccc',
+	       'query' => 'web_interface color : shaded',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+	      
+	      {'name' => 'bg_color',
+	       'default' => '#ffffcc',
+	       'query' => 'web_interface color : background',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+	      
 	      );
 
 
