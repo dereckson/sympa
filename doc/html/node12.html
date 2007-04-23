@@ -1,20 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002 (1.62) JA patch-1.4
+patched version by:  Kenshi Muto, Debian Project.
+LaTeX2HTML 2002 (1.62),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>11. Sympa RSS channel</TITLE>
-<META NAME="description" CONTENT="11. Sympa RSS channel">
+<TITLE>11. Authorization scenarios</TITLE>
+<META NAME="description" CONTENT="11. Authorization scenarios">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002 JA patch-1.4">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,32 +29,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html1172"
+<A NAME="tex2html1015"
   HREF="node13.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1166"
+<A NAME="tex2html1009"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1160"
+<A NAME="tex2html1003"
   HREF="node11.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1168"
+<A NAME="tex2html1011"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1170"
-  HREF="node31.html">
+<A NAME="tex2html1013"
+  HREF="node25.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1173"
-  HREF="node13.html">12. Sympa SOAP server</A>
-<B> Up:</B> <A NAME="tex2html1167"
+<B> Next:</B> <A NAME="tex2html1016"
+  HREF="node13.html">12. Virtual robot</A>
+<B> Up:</B> <A NAME="tex2html1010"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1161"
-  HREF="node11.html">10. Sympa Internationalization</A>
- &nbsp; <B>  <A NAME="tex2html1169"
+<B> Previous:</B> <A NAME="tex2html1004"
+  HREF="node11.html">10. Authentication</A>
+ &nbsp <B>  <A NAME="tex2html1012"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1171"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html1014"
+  HREF="node25.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,210 +62,429 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html1174"
-  HREF="node12.html#SECTION001210000000000000000">11.1 <TT>latest_lists</TT></A>
-<LI><A NAME="tex2html1175"
-  HREF="node12.html#SECTION001220000000000000000">11.2 <TT>active_lists</TT></A>
-<LI><A NAME="tex2html1176"
-  HREF="node12.html#SECTION001230000000000000000">11.3 <TT>latest_arc</TT></A>
-<LI><A NAME="tex2html1177"
-  HREF="node12.html#SECTION001240000000000000000">11.4 <TT>latest_d_read</TT></A>
+<LI><A NAME="tex2html1017"
+  HREF="node12.html#SECTION001210000000000000000">11.1 rules specifications</A>
+<LI><A NAME="tex2html1018"
+  HREF="node12.html#SECTION001220000000000000000">11.2 LDAP Named Filters</A>
+<UL>
+<LI><A NAME="tex2html1019"
+  HREF="node12.html#SECTION001221000000000000000">11.2.1 Definition</A>
+<LI><A NAME="tex2html1020"
+  HREF="node12.html#SECTION001222000000000000000">11.2.2 Search Condition</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1021"
+  HREF="node12.html#SECTION001230000000000000000">11.3 scenario inclusion</A>
+<LI><A NAME="tex2html1022"
+  HREF="node12.html#SECTION001240000000000000000">11.4 Hidding scenario files</A>
 </UL>
 <!--End of Table of Child-Links-->
 <HR>
 
 <H1><A NAME="SECTION001200000000000000000"></A>
-<A NAME="rss"></A><A NAME="1690"></A>
+<A NAME="scenarios"></A><A NAME="1725"></A>
 <BR>
-11. Sympa RSS channel
+11. Authorization scenarios
 </H1>
 
 <P>
-This service is provided by <A NAME="9378"></A><I>WWSympa</I> (<I>Sympa</I>'s web interface). 
-Here is the root of <A NAME="9382"></A><I>WWSympa</I>'s rss channel :
-<BR>
-<P>
-(Default value: <TT>http://<TT>&lt;</TT>host<TT>&gt;</TT>/wws/rss</TT>)
-<BR>
-Example: <TT>https://my.server/wws/rss</TT>
+List parameters controlling the behavior of commands are linked to different authorization scenarios.
+For example : the <A NAME="6985"></A><TT>send private</TT> parameter is related to the send.private scenario.
+There are four possible locations for a authorization scenario. When <I>Sympa</I> seeks to apply an authorization scenario, it
+looks first in the related list directory <A NAME="7001"></A><TT>/home/sympa/expl/<TT>&lt;</TT>list<TT>&gt;</TT>/scenari</TT>. If it
+does not find the file there, it scans the current robot configuration directory <A NAME="7010"></A><TT>/home/sympa/etc/my.domain.org/scenari</TT>, then the site's configuration directory <A NAME="7013"></A><TT>/home/sympa/etc/scenari</TT>,
+and finally <A NAME="7016"></A><TT>/home/sympa/bin/etc/scenari</TT>, which is the directory installed by the Makefile.
 
 <P>
-The access control of RSS queries proceed on the same way as <A NAME="9389"></A><I>WWSympa</I> actions referred to.
-<I>Sympa</I> provides the following RSS features :
+An authorization scenario is a small configuration language to describe who
+can perform an operation and which authentication method is requested for it.
+An authorization scenario is an ordered set of rules. The goal is to provide a simple and
+flexible way to configure authorization and required authentication method for each operation.
+
+<P>
+Each authorization scenario rule contains :
 
 <UL>
-<LI>the latest created lists on a robot (<A NAME="9393"></A><TT>latest_lists</TT>) ;
+<LI>a condition : the condition is evaluated by <I>Sympa</I>. It can use
+  variables such as <IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1.png"
+ ALT="$[$">sender<IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2.png"
+ ALT="$]$"> for the sender e-mail, <IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1.png"
+ ALT="$[$">list<IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2.png"
+ ALT="$]$"> for the listname etc.
 </LI>
-<LI>the most active lists on a robot(<A NAME="9396"></A><TT>active_lists</TT>) ;  
+<LI>an authentication method. The authentication method can be <A NAME="7020"></A><TT>smtp</TT>,
+<A NAME="7023"></A><TT>md5</TT> or <A NAME="7026"></A><TT>smime</TT>. The rule is applied by <I>Sympa</I> if both condition
+and authentication method match the runtime context. <A NAME="7030"></A><TT>smtp</TT> is used if
+<I>Sympa</I> use the SMTP <A NAME="7034"></A><TT>from:</TT> header , <A NAME="7037"></A><TT>md5</TT> is used if a unique
+md5 key as been returned by the requestor to validate her message, <A NAME="7040"></A><TT>smime</TT>
+is used for signed messages (see <A HREF="node23.html#smimeforsign">22.4.3</A>, page&nbsp;<A HREF="node23.html#smimeforsign"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
 </LI>
-<LI>the latest messages of a list (<A NAME="9399"></A><TT>active_arc</TT>) ;   
-</LI>
-<LI>the latest shared documents of a list (<A NAME="9402"></A><TT>latest_d_read</TT>) ; 
+<LI>a returned atomic action that will be executed by <I>Sympa</I> if the rule matches
+
+<P>
 </LI>
 </UL>
 
 <P>
+Example
 
-<H1><A NAME="SECTION001210000000000000000"></A><A NAME="9405"></A>
+<P>
+<BLOCKQUOTE>
+del.auth
+</BLOCKQUOTE><PRE>
+title.us deletion performed only by list owners, need authentication
+title.fr suppression réservée au propriétaire avec authentification
+title.es eliminacin reservada slo para el propietario, necesita autentificacin
+
+
+  is_owner([listname],[sender])  smtp       -&gt; request_auth
+  is_listmaster([sender])        smtp       -&gt; request_auth
+  true()                         md5,smime  -&gt; do_it
+</PRE>
+
+<P>
+
+<H1><A NAME="SECTION001210000000000000000"></A>
+<A NAME="rules"></A>
 <BR>
-11.1 <TT>latest_lists</TT>
+11.1 rules specifications
 </H1>
 
 <P>
-This provides the latest created lists.  
+An authorization scenario consists of rules, evaluated in order beginning with the first. 
+Rules are defined as follows :<PRE>
+&lt;rule&gt; ::= &lt;condition&gt; &lt;auth_list&gt; -&gt; &lt;action&gt;
+
+&lt;condition&gt; ::= [!] &lt;condition
+                | true ()
+                | all ()
+                | equal (&lt;var&gt;, &lt;var&gt;)
+                | match (&lt;var&gt;, /perl_regexp/)
+		| search (&lt;filter.ldap&gt;,&lt;var&gt;)
+                | is_subscriber (&lt;listname&gt;, &lt;var&gt;)
+                | is_owner (&lt;listname&gt;, &lt;var&gt;)
+                | is_editor (&lt;listname&gt;, &lt;var&gt;)
+                | is_listmaster (&lt;var&gt;)
+                | older (&lt;date&gt;, &lt;date&gt;)    # true if first date is anterior to the second date
+                | newer (&lt;date&gt;, &lt;date&gt;)    # true if first date is posterior to the second date
+&lt;var&gt; ::= [email] | [sender] | [user-&gt;&lt;user_key_word&gt;] | [previous_email]
+                  | [remote_host] | [remote_addr] | [user_attributes-&gt;&lt;user_attributes_keyword&gt;]
+	 	  | [subscriber-&gt;&lt;subscriber_key_word&gt;] | [list-&gt;&lt;list_key_word&gt;] | [env-&gt;&lt;env_var&gt;]
+		  | [conf-&gt;&lt;conf_key_word&gt;] | [msg_header-&gt;&lt;smtp_key_word&gt;] | [msg_body] 
+	 	  | [msg_part-&gt;type] | [msg_part-&gt;body] | [msg_encrypted] | [is_bcc] | [current_date] | &lt;string&gt;
+
+[is_bcc] ::= set to 1 if the list is neither in To: nor Cc:
+
+[sender] ::= email address of the current user (used on web or mail interface). Default value is 'nobody'
+
+[previous_email] ::= old email when changing subscription email in preference page. 
+
+[msg_encrypted] ::= set to 'smime' if the message was S/MIME encrypted
+
+&lt;date&gt; ::= '&lt;date_element&gt; [ +|- &lt;date_element&gt;]'
+
+&lt;date_element&gt; ::= &lt;epoch_date&gt; | &lt;var&gt; | &lt;date_expr&gt;
+
+&lt;epoch_date&gt; ::= &lt;integer&gt;
+
+&lt;date_expr&gt; ::= &lt;integer&gt;y&lt;integer&gt;m&lt;integer&gt;d&lt;integer&gt;h&lt;integer&gt;min&lt;integer&gt;sec
+
+&lt;listname&gt; ::= [listname] | &lt;listname_string&gt;
+
+&lt;auth_list&gt; ::= &lt;auth&gt;,&lt;auth_list&gt; | &lt;auth&gt;
+
+&lt;auth&gt; ::= smtp|md5|smime
+
+&lt;action&gt; ::=   do_it [,notify]
+             | do_it [,quiet]
+             | reject(&lt;tpl_name&gt;)
+             | request_auth
+             | owner
+	     | editor
+	     | editorkey
+	     | listmaster
+
+&lt;tpl_name&gt; ::= corresponding template (&lt;tpl_name&gt;.tt2) is send to the sender
+
+&lt;user_key_word&gt; ::= email | gecos | lang | password | cookie_delay_user
+	            | &lt;additional_user_fields&gt;
+
+&lt;user_attributes_key_word&gt; ::= one of the user attributes provided by the SSO system via environment variables. The [user_attributes] structure is available only if user authenticated with a generic_sso.
+
+&lt;subscriber_key_word&gt; ::= email | gecos | bounce | reception 
+	                  | visibility | date | update_date
+			  | &lt;additional_subscriber_fields&gt;
+
+&lt;list_key_word&gt; ::= name | host | lang | max_size | priority | reply_to | 
+		    status | subject | account | total
+
+&lt;conf_key_word&gt; ::= domain | email | listmaster | default_list_priority | 
+		      sympa_priority | request_priority | lang | max_size
+</PRE>
 
 <P>
-Example: <TT>http://my.server/wws/rss/latest_lists?for=3&amp;count=6</TT>
-<BR>
-This provides the 6 latest created lists for the last 3 days.
-<BR>
+(Refer to  <A HREF="node14.html#tasks">13.10</A>, page&nbsp;<A HREF="node14.html#tasks"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A> for date format definition)
+
 <P>
-Example: <TT>http://my.server/wws/rss/latest_lists/computing?count=6</TT>
-<BR>
-This provides the 6 latest created lists with topic ``computing''.
-<BR>
+perl_regexp can contain the string [host] (interpreted at run time as the list or robot domain).
+The variable notation [msg_header-<TT>&gt;&lt;</TT>smtp_key_word<TT>&gt;</TT>] is interpreted as the 
+SMTP header value only when evaluating the authorization scenario for sending messages. 
+It can be used, for example, to require editor validation for multipart messages.
+[msg_part-<TT>&gt;</TT>type] and [msg_part-<TT>&gt;</TT>body] are the MIME parts content-types and bodies ; the body is available
+for MIME parts in text/xxx format only.
+
 <P>
-Parameters : 
+The difference between <A NAME="7044"></A>editor and <A NAME="7045"></A>editorkey is, that with <A NAME="7046"></A>editor the message is simply forwarded to the moderaotr. He then can forward it to the list, if he wishes. <A NAME="7047"></A>editorkey assigns a key to the message and sends it to the moderator together with the message. So the moderator can just send back the key to distribute the message. Please note, that moderation from the webinterface is only possible when using <A NAME="7048"></A>editorkey, because otherwise there is no copy of the message saved on the server. 
+
+<P>
+A bunch of authorization scenarios is provided with the <I>Sympa</I> distribution ; they provide
+a large set of configuration that allow to create lists for most usage. But you will
+probably create authorization scenarios for your own need. In this case, don't forget to restart <I>Sympa</I> 
+and wwsympa because authorization scenarios are not reloaded dynamicaly.
+
+<P>
+These standard authorization scenarios are located in the <A NAME="7051"></A><TT>/home/sympa/bin/etc/scenari/</TT>
+directory. Default scenarios are named <TT>&lt;</TT>command<TT>&gt;</TT>.default.
+
+<P>
+You may also define and name your own authorization scenarios. Store them in the
+<A NAME="7054"></A><TT>/home/sympa/etc/scenari</TT> directory. They will not be overwritten by Sympa release.
+Scenarios can also be defined for a particular virtual robot (using directory <A NAME="7069"></A><TT>/home/sympa/etc/<TT>&lt;</TT>robot<TT>&gt;</TT>/scenari</TT>) or for a list ( <A NAME="7096"></A><TT>/home/sympa/expl/<TT>&lt;</TT>robot<TT>&gt;</TT>/<TT>&lt;</TT>list<TT>&gt;</TT>/scenari</TT> ).
+
+<P>
+Example:
+
+<P>
+Copy the previous scenario to <A NAME="7111"></A><TT>scenari/subscribe.rennes1</TT> :
+
+<P><PRE>
+equal([sender], 'userxxx@univ-rennes1.fr') smtp,smime -&gt; reject
+match([sender], /univ-rennes1\.fr\$/) smtp,smime -&gt; do_it
+true()                               smtp,smime -&gt; owner
+</PRE>
+
+<P>
+You may now refer to this authorization scenario in any list configuration file, for example :
+
+<P><PRE>
+subscribe rennes1
+</PRE>
+
+<P>
+
+<H1><A NAME="SECTION001220000000000000000"></A>
+<A NAME="named-filters"></A>
+<BR>
+11.2 LDAP Named Filters
+</H1>
+
+<P>
+At the moment Named Filters are only used in authorization scenarios. They enable to select a category of people who will be authorized or not to realise some actions.
+
+<P>
+As a consequence, you can grant privileges in a list to people belonging to an <A NAME="7114"></A>LDAP directory thanks to an authorization scenario.
+
+<P>
+
+<H2><A NAME="SECTION001221000000000000000">
+11.2.1 Definition</A>
+</H2>
+
+<P>
+People are selected through an <A NAME="7115"></A>LDAP filter defined in a configuration file. This file must have the extension '.ldap'.It is stored in <A NAME="7116"></A><TT>/home/sympa/etc/search_filters/</TT>.
+
+<P>
+You must give several informations in order to create a Named Filter:
 
 <UL>
-<LI><A NAME="9410"></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
+<LI>host
+<BR>
+A list of host:port LDAP directories (replicates) entries.
+
+<P>
 </LI>
-<LI><A NAME="9413"></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
+<LI>suffix
+<BR>
+Defines the naming space covered by the search (optional, depending on the LDAP server).
+
+<P>
 </LI>
-<LI>topic : the topic is indicated in the path info (see example below with topic computing). 
-    This parameter is optional.
+<LI>filter
+<BR>
+Defines the LDAP search filter (RFC 2254 compliant). 
+	But you must absolutely take into account the first part of the filter which is:
+	('mail_attribute' = [sender]) as shown in the example. you will have to replce 'mail_attribute' by the name 
+	of the attribute for the email.
+	<I>Sympa</I> verifies if the user belongs to the category of people defined in the filter. 
+
+<P>
+</LI>
+<LI>scope
+<BR>
+By default the search is performed on the whole tree below the specified base object. This may be changed by specifying a scope :
+
+<P>
+
+<UL>
+<LI>base : Search only the base object.
+</LI>
+<LI>one
+<BR>
+Search the entries immediately below the base object. 
+</LI>
+<LI>sub
+<BR>
+Search the whole tree below the base object. This is the default. 
+	
 </LI>
 </UL>
 
 <P>
-
-<H1><A NAME="SECTION001220000000000000000"></A><A NAME="9416"></A>
-<BR>
-11.2 <TT>active_lists</TT>
-</H1>
-
-<P>
-This provides the most active lists, based on the number of distributed messages (number of received messages).  
-
-<P>
-Example: <TT>http://my.server/wws/rss/active_lists?for=3&amp;count=6</TT>
-<BR>
-This provides the 6 most active lists for the last 3 days.
-<BR>
-<P>
-Example: <TT>http://my.server/wws/rss/active_lists/computing?count=6</TT>
-<BR>
-This provides the 6 most active lists with topic ``computing''.
-<BR>
-<P>
-Parameters : 
-
-<UL>
-<LI><A NAME="9421"></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
 </LI>
-<LI><A NAME="9424"></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
+<LI>bind_dn
+<BR>
+If anonymous bind is not allowed on the LDAP server, a DN and password can be used.
+
+<P>
 </LI>
-<LI>topic : the topic is indicated in the path info (see example below with topic computing). 
-    This parameter is optional.
+<LI>bind_password
+<BR>
+This password is used, combined with the bind_dn above.
+
+<P>
 </LI>
 </UL>
 
 <P>
-
-<H1><A NAME="SECTION001230000000000000000"></A><A NAME="9427"></A>
-<BR>
-11.3 <TT>latest_arc</TT>
-</H1>
+example.ldap : we want to select the professors of mathematics in the university of Rennes1 in France<PRE>
+	
+	host		ldap.univ-rennes1.fr:389,ldap2.univ-rennes1.fr:390
+	suffix		dc=univ-rennes1.fr,dc=fr
+	filter		(&amp;(canonic_mail = [sender])(EmployeeType = prof)(subject = math))
+	scope		sub
+</PRE>
 
 <P>
-This provides the latest messages of a list.  
+
+<H2><A NAME="SECTION001222000000000000000">
+11.2.2 Search Condition</A>
+</H2>
 
 <P>
-Example: <TT>http://my.server/wws/rss/latest_arc/mylist?for=3&amp;count=6</TT>
-<BR>
-This provides the 6 latest messages received on the mylistlist for the last 3 days.
-<BR>
+The search condition is used in authorization scenarios which are defined and described in (see&nbsp;<A HREF="node12.html#scenarios">11</A>) 
+
 <P>
-Parameters : 
+The syntax of this rule is:<PRE>
+	search(example.ldap,[sender])      smtp,smime,md5    -&gt; do_it
+</PRE>
+
+<P>
+The variables used by 'search' are :
 
 <UL>
-<LI>list : the list is indicated in the path info. This parameter is mandatory.
-</LI>
-<LI><A NAME="9431"></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
-</LI>
-<LI><A NAME="9434"></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
+<LI>the name of the LDAP Configuration file
+<BR></LI>
+<LI>the [sender]
+<BR>
+That is to say the sender email address. 
 </LI>
 </UL>
 
 <P>
+Note that <I>Sympa</I> processes maintain a cache of processed search conditions to limit access to the LDAP directory ; each entry has a lifetime of 1 hour in the cache.
 
-<H1><A NAME="SECTION001240000000000000000"></A><A NAME="9437"></A>
-<BR>
-11.4 <TT>latest_d_read</TT>
+<P>
+The method of authentication does not change.
+
+<P>
+
+<H1><A NAME="SECTION001230000000000000000">
+11.3 scenario inclusion</A>
 </H1>
 
 <P>
-This provides the latest updated and uploaded shared documents of a list.  
+Scenarios can also contain includes :
+
+<P><PRE>
+    subscribe
+        include commonreject
+        match(, /cru\.fr\$/)          smtp,smime -&gt; do_it
+	true()                               smtp,smime -&gt; owner
+</PRE>
 
 <P>
-Example: <TT>http://my.server/wws/rss/latest_d_read/mylist?for=3&amp;count=6</TT>
-<BR>
-This provides the 6 latest documents uploaded or updated on the mylistlist for the last 3 days.
-<BR>
-<P>
-Parameters : 
+In this case sympa applies recursively the scenario named <TT>include.commonreject</TT>
+before introducing the other rules. This possibility was introduced in
+order to facilitate the administration of common rules.
 
-<UL>
-<LI>list : the list is indicated in the path info. This parameter is mandatory.
-</LI>
-<LI><A NAME="9441"></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
-</LI>
-<LI><A NAME="9444"></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
-</LI>
-</UL>
+<P>
+You can define a set of common scenario rules, used by all lists.
+include.<TT>&lt;</TT>action<TT>&gt;</TT>.header is automatically added to evaluated scenarios.
 
 <P>
 
+<H1><A NAME="SECTION001240000000000000000">
+11.4 Hidding scenario files</A>
+</H1>
+
+<P>
+Because <I>Sympa</I> is distributed with many default scenario files, you may want to hidde some of them 
+to list owners (to make list admin menus shorter and readable). To hidde a scenario file you should 
+create an empty file with the <TT>:ignore</TT> suffix. Depending on where this file has been created
+will make it ignored at either a global, robot or list level.
+
+<P>
+<I>Example :</I> 
+<BLOCKQUOTE>
+/home/sympa/etc/my.domain.org/scenari/send.intranetorprivate:ignore
+
+</BLOCKQUOTE>
+
+<P>
+The <TT>intranetorprivate</TT> <TT>send</TT> scenario will be hidden (on the web admin interface),
+at the my.domain.orgrobot level only.
+
+<P>
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html1172"
+<A NAME="tex2html1015"
   HREF="node13.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1166"
+<A NAME="tex2html1009"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1160"
+<A NAME="tex2html1003"
   HREF="node11.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1168"
+<A NAME="tex2html1011"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1170"
-  HREF="node31.html">
+<A NAME="tex2html1013"
+  HREF="node25.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1173"
-  HREF="node13.html">12. Sympa SOAP server</A>
-<B> Up:</B> <A NAME="tex2html1167"
+<B> Next:</B> <A NAME="tex2html1016"
+  HREF="node13.html">12. Virtual robot</A>
+<B> Up:</B> <A NAME="tex2html1010"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1161"
-  HREF="node11.html">10. Sympa Internationalization</A>
- &nbsp; <B>  <A NAME="tex2html1169"
+<B> Previous:</B> <A NAME="tex2html1004"
+  HREF="node11.html">10. Authentication</A>
+ &nbsp <B>  <A NAME="tex2html1012"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1171"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html1014"
+  HREF="node25.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2005-01-05
 </ADDRESS>
 </BODY>
 </HTML>

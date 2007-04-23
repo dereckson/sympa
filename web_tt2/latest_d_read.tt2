@@ -1,51 +1,51 @@
 <!-- $Id$ -->
 
 
-<h2>
+<h2> <strong>
  [% IF count %]
-   [%|loc(count)%] The %1 most recent shared documents [%END%] 
+   [%|loc(count)%] The %1 latest shared documents [%END%] 
  [% ELSE %]
-   [%|loc%] Most recent shared documents [%END%] 
+   [%|loc%] The latest shared documents [%END%] 
  [% END %]
 
  [% IF for %]
    [%|loc(for)%] for %1 days [%END%] 	
  [% END %]
-</h2> 	
-<br /> 
+</strong> </h2> 	
+<BR> 
  
-<table class="table_style" summary="[%|loc%]Most recent documents for this list [%END%] ">
- <tr class="color_light">
-   <th><strong>[%|loc%]Last update[%END%]</strong></th>
+<TABLE STYLE="WIDTH: 100%;">
+ <tr style="background: [% light_color %]">
+   <th width=10% ><strong>[%|loc%]Last update[%END%]</strong></th>
    <th><strong>[%|loc%]Name[%END%]</strong></th>
    <th><strong>[%|loc%]Author[%END%]</strong></th>
    <th><strong>[%|loc%]Directory[%END%]</strong></th>
  </tr>
 
  [% FOREACH d = documents %]
- <tr>
-   <td> [% d.last_update %] </td>
-   <td>
+ <TR>
+   <TD> [% d.last_update %] </TD>
+   <TD>
     [% IF d.html %]
-      <a href="[% path_cgi %]/d_read/[% list %][% d.escaped_content_dir %]/[% d.escaped_name %]" title="[%|loc%]Open in a new window[%END%]" target="html_window">
-      <img src="[% d.icon %]" alt="[% d.escaped_title %]" /> [% d.name %] </a>
+      <a href="[% path_cgi %]/d_read/[% list %][% d.escaped_content_dir %]/[% d.escaped_name %]" target="html_window">
+      <img style="vertical-align: bottom; border: 0px;" src="[% d.icon %]" alt="[% d.escaped_title %]" /> [% d.name %] </a>
     [% ELSIF d.url %]
-      <a href="[% d.url %]" title="[%|loc%]Open in a new window[%END%]" target="html_window">
-      <img src="[% d.icon %]" alt="[% d.escaped_title %]" /> [% d.anchor %] </a>
+      <a href="[% d.url %]" target="html_window">
+      <img style="vertical-align: bottom; border: 0px;" src="[% d.icon %]" alt="[% d.escaped_title %]" /> [% d.anchor %] </a>
     [% ELSE %]
       <a href="[% path_cgi %]/d_read/[% list %][% d.escaped_content_dir %]/[% d.escaped_name %]">
-	  <img src="[% d.icon %]" alt="[% d.escaped_title %]" /> [% d.name %] </a>
+	  <img style="text-align: bottom; border: 0px;" src="[% d.icon %]" alt="[% d.escaped_title %]" /> [% d.name %] </a>
     [% END %] 
 
-   <td> [% IF d.author %] 
+   <TD> [% IF d.author %] 
            [% d.author %] 
 	[% ELSE %]
 	   [%|loc%]Unknown[%END%] 
 	[% END %] 
-   </td>
-   <td> <a href="[% path_cgi %]/d_read/[% list %][% d.escaped_content_dir %]"/> [% d.content_dir %] </td>
- </tr>
+   </TD>
+   <TD> <a href="[% path_cgi %]/d_read/[% list %][% d.escaped_content_dir %]"/> [% d.content_dir %] </TD>
+ </TR>
  
  [% END %]  
 
-</table>
+</TABLE>
