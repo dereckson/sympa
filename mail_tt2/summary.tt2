@@ -1,5 +1,8 @@
 From: [% fromlist %]
 Subject: [% FILTER qencode %][%|loc(list.name)%]Summary of list %1[%END%][%END%]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 [% table_of_content %] :
 

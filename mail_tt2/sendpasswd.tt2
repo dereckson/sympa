@@ -1,4 +1,5 @@
 From: SYMPA <[% conf.email %]@[% conf.host %]>
+Reply-to: [% conf.request %]
 To: [% newuser.email %]
 [% IF action == 'subrequest' -%]
 Subject: [% FILTER qencode %][%|loc(conf.title,list)%]%1 / subscribing to %2[%END%][%END%]
@@ -7,16 +8,19 @@ Subject: [% FILTER qencode %][%|loc(conf.title,list)%]%1 / unsubscribing from %2
 [% ELSE -%]
 Subject: [% FILTER qencode %][%|loc(conf.title)%]%1 / your environment[%END%][%END%]
 [% END -%]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 [% IF action == 'subrequest' -%]
-[%|loc(list)%]You asked to be subscribed to %1 mailing list.[%END%]
+[%|loc(list)%]You requested a subscription to %1 mailing list.[%END%]
 
 [%|loc%]To confirm your subscription, you need to provide the following password[%END%]
 
 	[%|loc(newuser.password)%]password: %1[%END%]
 
 [% ELSIF action == 'sigrequest' -%]
-[%|loc(list)%]You asked to be unsubscribed from %1 mailing list.[%END%]
+[%|loc(list)%]You requested unsubscription from %1 mailing list.[%END%]
 
 [%|loc%]To unsubscribe from the list, you need to provide the following password[%END%]
 
