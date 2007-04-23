@@ -1,4 +1,5 @@
-title.gettext conceal unless for listmaster
+title.us conceal unless for listmaster
+title.fr liste cachée sauf aux listmaster
+title.nl verbergen behalve voor listmaster
 
 is_listmaster([sender])             smtp,smime,md5    -> do_it
-true()                         smtp,md5,smime -> reject(reason='topic_listmaster')	
