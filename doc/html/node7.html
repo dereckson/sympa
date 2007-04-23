@@ -1,20 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002 (1.62) JA patch-1.4
+patched version by:  Kenshi Muto, Debian Project.
+LaTeX2HTML 2002 (1.62),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>6. Mail aliases</TITLE>
-<META NAME="description" CONTENT="6. Mail aliases">
+<TITLE>6. WWSympa</TITLE>
+<META NAME="description" CONTENT="6. WWSympa">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002 JA patch-1.4">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,32 +29,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html920"
+<A NAME="tex2html753"
   HREF="node8.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html914"
+<A NAME="tex2html747"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html908"
+<A NAME="tex2html741"
   HREF="node6.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html916"
+<A NAME="tex2html749"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html918"
-  HREF="node31.html">
+<A NAME="tex2html751"
+  HREF="node20.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html921"
-  HREF="node8.html">7. sympa.conf parameters</A>
-<B> Up:</B> <A NAME="tex2html915"
+<B> Next:</B> <A NAME="tex2html754"
+  HREF="node8.html">7. Sympa and its database</A>
+<B> Up:</B> <A NAME="tex2html748"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html909"
-  HREF="node6.html">5. Upgrading Sympa</A>
- &nbsp; <B>  <A NAME="tex2html917"
+<B> Previous:</B> <A NAME="tex2html742"
+  HREF="node6.html">5. sympa.conf parameters</A>
+ &nbsp <B>  <A NAME="tex2html750"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html919"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html752"
+  HREF="node20.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,341 +62,588 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html922"
-  HREF="node7.html#SECTION00710000000000000000">6.1 Robot aliases</A>
-<LI><A NAME="tex2html923"
-  HREF="node7.html#SECTION00720000000000000000">6.2 List aliases</A>
-<LI><A NAME="tex2html924"
-  HREF="node7.html#SECTION00730000000000000000">6.3 Alias manager</A>
-<LI><A NAME="tex2html925"
-  HREF="node7.html#SECTION00740000000000000000">6.4 Virtual domains</A>
+<LI><A NAME="tex2html755"
+  HREF="node7.html#SECTION00710000000000000000">6.1 Organization</A>
+<LI><A NAME="tex2html756"
+  HREF="node7.html#SECTION00720000000000000000">6.2 HTTPD setup</A>
+<UL>
+<LI><A NAME="tex2html757"
+  HREF="node7.html#SECTION00721000000000000000">6.2.1 wwsympa.fcgi access permissions</A>
+<LI><A NAME="tex2html758"
+  HREF="node7.html#SECTION00722000000000000000">6.2.2 Installing wwsympa.fcgi in your Apache server</A>
+<LI><A NAME="tex2html759"
+  HREF="node7.html#SECTION00723000000000000000">6.2.3 Using FastCGI</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html760"
+  HREF="node7.html#SECTION00730000000000000000">6.3 wwsympa.conf parameters</A>
+<UL>
+<LI><A NAME="tex2html761"
+  HREF="node7.html#SECTION00731000000000000000">6.3.1 arc_path</A>
+<LI><A NAME="tex2html762"
+  HREF="node7.html#SECTION00732000000000000000">6.3.2 archive_default_index thrd | mail</A>
+<LI><A NAME="tex2html763"
+  HREF="node7.html#SECTION00733000000000000000">6.3.3 archived_pidfile</A>
+<LI><A NAME="tex2html764"
+  HREF="node7.html#SECTION00734000000000000000">6.3.4 bounce_path</A>
+<LI><A NAME="tex2html765"
+  HREF="node7.html#SECTION00735000000000000000">6.3.5 bounced_pidfile</A>
+<LI><A NAME="tex2html766"
+  HREF="node7.html#SECTION00736000000000000000">6.3.6 cookie_expire</A>
+<LI><A NAME="tex2html767"
+  HREF="node7.html#SECTION00737000000000000000">6.3.7 cookie_domain</A>
+<LI><A NAME="tex2html768"
+  HREF="node7.html#SECTION00738000000000000000">6.3.8 default_home</A>
+<LI><A NAME="tex2html769"
+  HREF="node7.html#SECTION00739000000000000000">6.3.9 icons_url</A>
+<LI><A NAME="tex2html770"
+  HREF="node7.html#SECTION007310000000000000000">6.3.10 log_facility</A>
+<LI><A NAME="tex2html771"
+  HREF="node7.html#SECTION007311000000000000000">6.3.11 mhonarc</A>
+<LI><A NAME="tex2html772"
+  HREF="node7.html#SECTION007312000000000000000">6.3.12 password_case sensitive | insensitive</A>
+<LI><A NAME="tex2html773"
+  HREF="node7.html#SECTION007313000000000000000">6.3.13 title</A>
+<LI><A NAME="tex2html774"
+  HREF="node7.html#SECTION007314000000000000000">6.3.14 use_fast_cgi   0 | 1</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html775"
+  HREF="node7.html#SECTION00740000000000000000">6.4 MhOnArc</A>
+<LI><A NAME="tex2html776"
+  HREF="node7.html#SECTION00750000000000000000">6.5 Archiving daemon</A>
+<LI><A NAME="tex2html777"
+  HREF="node7.html#SECTION00760000000000000000">6.6 Database configuration</A>
 </UL>
 <!--End of Table of Child-Links-->
 <HR>
 
-<H1><A NAME="SECTION00700000000000000000"></A>
-    <A NAME="aliases"></A>    <A NAME="742"></A>
-<BR>
-6. Mail aliases
+<H1><A NAME="SECTION00700000000000000000">
+6. WWSympa</A>
 </H1>
 
 <P>
-Mail aliases are required in Sympa for <A NAME="8071"></A><TT>sympa.pl</TT> to receive mail commands and 
-list messages. Management of these aliases management will depend on the MTA (<A NAME="8074"></A><TT>sendmail</TT>, <A NAME="8077"></A><TT>qmail</TT>,
-<A NAME="8080"></A><TT>postfix</TT>, <A NAME="8083"></A><TT>exim</TT>) you're using, where you store aliases and whether
-you are managing virtual domains or not.
+WWSympa is <I>Sympa</I>'s web interface.
 
 <P>
 
 <H1><A NAME="SECTION00710000000000000000"></A>
-   <A NAME="robot-aliases"></A>    <A NAME="750"></A>
+<A NAME="WWSympa"></A>
 <BR>
-6.1 Robot aliases
+6.1 Organization
 </H1>
 
 <P>
-An electronic list manager such as <I>Sympa</I> is built around two processing steps:
+<A NAME="5317"></A><I>WWSympa</I> is fully integrated with <I>Sympa</I>. It uses <A NAME="5321"></A><TT>sympa.conf</TT>
+and <I>Sympa</I>'s libraries. The default <I>Sympa</I> installation will also
+install WWSympa.
 
 <P>
+Every single piece of HTML in <A NAME="5326"></A><I>WWSympa</I> is generated by the CGI code
+using template files (See <A HREF="node12.html#tpl-format">11.1</A>, page&nbsp;<A HREF="node12.html#tpl-format"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+This facilitates internationalization of pages, as well as per-site
+customization. 
 
-<UL>
-<LI>a message sent to a list or to <I>Sympa</I> itself
-        (commands such as subscribe or unsubscribe) is received
-        by the SMTP server. The SMTP server, on reception of this message, runs the
-        <A NAME="8088"></A><TT>queue</TT> program (supplied in this package) to store
-        the message in a spool.
+<P>
+The code consists of one single PERL CGI script, <A NAME="5329"></A><TT>WWSympa.fcgi</TT>.
+To enhance performance you can configure <A NAME="5332"></A><I>WWSympa</I> to use
+FastCGI ; the CGI will be persistent in memory.
+<BR>
+All data will be accessed through the CGI, including web archives.
+This is required to allow the authentication scheme to be applied
+systematically.
+
+<P>
+Authentication is based on passwords stored in the database table
+user_table ; if the appropriate <A NAME="5335"></A><TT>Crypt::CipherSaber</TT> is
+installed, password are encrypted in the database using reversible
+encryption based on RC4. Otherwise they are stored in clear text.
+In both cases reminding of passwords is possible.
+ To keep track of authentication information <A NAME="5338"></A><I>WWSympa</I> 
+uses HTTP cookies stored on the client side. The HTTP cookie only 
+indicates that a specified e-mail address has been authenticated ;
+permissions are evaluated when an action is requested.
+
+<P>
+The same web interface is used by the listmaster, list owners, subscribers and
+others. Depending on permissions, the same URL may generate a different view.
+
+<P>
+<A NAME="5341"></A><I>WWSympa</I>'s main loop algorithm is roughly the following : 
+
+<OL>
+<LI>Check authentication information returned by 
+	the HTTP cookie
 
 <P>
 </LI>
-<LI>the <A NAME="8091"></A><TT>sympa.pl</TT> daemon, set in motion at
-        system startup, scans this spool. As soon as it
-        detects a new message, it processes it and performs the
-        requested action (distribution or processing of a command).
+<LI>Evaluate user's permissions for the
+        requested action 
+
+<P>
+</LI>
+<LI>Process the requested action 
+
+<P>
+</LI>
+<LI>Set up variables resulting from the action 
+
+<P>
+</LI>
+<LI>Parse the HTML template files
+</LI>
+</OL>
+
+<P>
+
+<H1><A NAME="SECTION00720000000000000000">
+6.2 HTTPD setup</A>
+</H1>
+
+<P>
+
+<H2><A NAME="SECTION00721000000000000000">
+6.2.1 wwsympa.fcgi access permissions</A>
+</H2>
+
+<P>
+Because Sympa and WWSympa share a lot of files, <A NAME="5344"></A><TT>wwsympa.fcgi</TT>,
+     must run with the same 
+     uid/gid as <A NAME="5347"></A><TT>archived.pl</TT>, <A NAME="5350"></A><TT>bounced.pl</TT> and <A NAME="5353"></A><TT>sympa.pl</TT>.
+     There are different ways to organize this :
+
+<UL>
+<LI>With some operating systems no special setup is required because
+      wwsympa.fcgi is installed with suid and sgid bits, but this will not work
+      if suid scripts are refused by your system.
+
+<P>
+</LI>
+<LI>Run a dedicated Apache server with sympa.sympa as uid.gid (The Apache default
+      is nobody.nobody)
+
+<P>
+</LI>
+<LI>Use a Apache virtual host with sympa.sympa as uid.gid ; Apache
+      needs to be compiled with suexec. Be aware that the Apache suexec usually define a lowest
+      UID/GID allowed to be a target user for suEXEC. For most systems including binaries
+      distribution of Apache, the default value 100 is common.
+      So Sympa UID (and Sympa GID) must be higher then 100 or suexec must be tuned in order to allow
+      lower UID/GID. Check http://httpd.apache.org/docs/suexec.html#install for details
+
+<P>
+The User and Group directive have to be set before the FastCgiServer directive
+      is encountered.
+
+<P>
+</LI>
+<LI>Otherwise, you can overcome restrictions on the execution of suid scripts
+      by using a short C program, owned by sympa and with the suid bit set, to start
+      <A NAME="5356"></A><TT>wwsympa.fcgi</TT>. Here is an example (with no guarantee attached) :<PRE>
+#include &lt;unistd.h&gt;
+
+#define WWSYMPA "/home/sympa/bin/wwsympa.fcgi"
+
+int main(int argn, char **argv, char **envp) {
+    argv[0] = WWSYMPA;
+    execve(WWSYMPA,argv,envp);
+}
+</PRE>
+</LI>
+</UL>
+
+<P>
+
+<H2><A NAME="SECTION00722000000000000000">
+6.2.2 Installing wwsympa.fcgi in your Apache server</A>
+</H2>
+     If you chose to run <A NAME="5359"></A><TT>wwsympa.fcgi</TT> as a simple CGI, you simply need to
+     script alias it. 
+
+<P><PRE>
+     Example :
+       	ScriptAlias /wws /home/sympa/bin/wwsympa.fcgi
+</PRE>
+
+<P>
+Running  FastCGI will provide much faster responses from your server and 
+     reduce load (to understand why, read 
+     <A NAME="tex2html18"
+  HREF="http://www.fastcgi.com/fcgi-devkit-2.1/doc/fcgi-perf.htm">http://www.fastcgi.com/fcgi-devkit-2.1/doc/fcgi-perf.htm</A>)
+
+<P><PRE>
+     Example :
+	FastCgiServer /home/sympa/bin/wwsympa.fcgi -processes 2
+	&lt;Location /wws&gt;
+   	  SetHandler fastcgi-script
+	&lt;/Location&gt;
+
+	ScriptAlias /wws /home/sympa/bin/wwsympa.fcgi
+</PRE>
+
+<P>
+If you run Virtual robots, then the FastCgiServer(s) can serve multiple robots. 
+Therefore you need to define it in the common section of your Apache configuration
+file.
+
+<P>
+
+<H2><A NAME="SECTION00723000000000000000">
+6.2.3 Using FastCGI</A>
+</H2>
+
+<P>
+<A NAME="tex2html19"
+  HREF="http://www.fastcgi.com/">FastCGI</A>
+is an extention to CGI that provides persistency for CGI programs. It is extemely useful
+with <A NAME="5362"></A><I>WWSympa</I> since source code interpretation and all initialisation tasks are performed only once, at server startup ; then
+file wwsympa.fcgi instances are waiting for clients requests. 
+
+<P>
+<A NAME="5365"></A><I>WWSympa</I> can also work without FastCGI, depending on the <B>use_fast_cgi</B> parameter 
+(see <A HREF="node7.html#use-fastcgi">6.3.14</A>, page&nbsp;<A HREF="node7.html#use-fastcgi"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+
+<P>
+To run <A NAME="5368"></A><I>WWSympa</I> with FastCGI, you need to install :
+
+<UL>
+<LI><A NAME="1049"></A> : the Apache module that provides <A NAME="1050"></A> features
+
+<P>
+</LI>
+<LI><A NAME="5371"></A><TT>FCGI</TT> : the Perl module used by <A NAME="5374"></A><I>WWSympa</I> 
 
 <P>
 </LI>
 </UL>
 
 <P>
-To separate the processing of commands (subscription,
-unsubscription, help requests, etc.) from the processing of messages destined for mailing
-lists, a special mail alias is reserved for administrative requests, so
-that <I>Sympa</I> can be permanently accessible to users. The following
-lines must therefore be added to the <A NAME="8095"></A><TT>sendmail</TT> alias file
-(often <A NAME="8098"></A><TT>/etc/aliases</TT>):
 
-<P>
-<BLOCKQUOTE>
-sympa:             "| /usr/local/sympa-os/bin/queue sympa@my.domain.org"
-<BR>
-listmaster: 	   "| /usr/local/sympa-os/bin/queue listmaster@my.domain.org"
-<BR>
-bounce+*:          "| /usr/local/sympa-os/bin/bouncequeue sympa@my.domain.org"
-<BR>
-abuse-feedback-report:       "| /usr/local/sympa-os/bin/bouncequeue sympa@my.domain.org"
-<BR>
-sympa-request:     postmaster
-<BR>
-sympa-owner:       postmaster
-<BR>
-</BLOCKQUOTE>
-
-<P>
-Note: if you run <I>Sympa</I> virtual hosts, you will need one <TT>sympa</TT>
-alias entry per virtual host (see virtual hosts section, <A HREF="node16.html#virtual-robot">15</A>,
-page&nbsp;<A HREF="node16.html#virtual-robot"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
-
-<P>
-<TT>sympa-request</TT> should be the address of the robot
-<A NAME="8104"></A>administrator, i.e. a person who looks after
-<I>Sympa</I> (here <TT>postmastercru.fr</TT>).
-
-<P>
-<TT>sympa-owner</TT> is the return address for <I>Sympa</I> error
-messages.
-
-<P>
-The alias bounce+* is dedicated to collect bounces where VERP (variable envelope return path) was actived. It is useful
-if <TT> welcome_return_path unique </TT> or <TT> remind_return_path unique</TT> or the
-<A NAME="8110"></A><TT>verp_rate</TT> parameter is no null for at least one list.
-
-<P>
-The alias abuse-feedback-report is used for processing automatically feedback that respect ARF format (Abuse Report Feedback) which is a draft to specify how end user can complain about spam. It is mainly used by AOL.
-
-<P>
-Don't forget to run <A NAME="8113"></A><TT>newaliases</TT> after any change to
-the <A NAME="8116"></A><TT>/etc/aliases</TT> file!
-
-<P>
-Note: aliases based on <TT>listserv</TT> (in addition to those
-based on <TT>sympa</TT>) can be added for the benefit of users
-accustomed to the <TT>listserv</TT> and <TT>majordomo</TT> names.
-For example:
-
-<P><PRE>
-listserv:          sympa
-listserv-request:  sympa-request
-majordomo:         sympa
-listserv-owner:    sympa-owner
-</PRE>
-
-<P>
-
-<H1><A NAME="SECTION00720000000000000000"></A>
-<A NAME="list-aliases"></A>    <A NAME="781"></A>
-    <A NAME="782"></A>
-<BR>
-6.2 List aliases
+<H1><A NAME="SECTION00730000000000000000">
+6.3 wwsympa.conf parameters</A>
 </H1>
 
 <P>
-For each new list, it is necessary to create up to six mail aliases (at least three).
-If you managed to setup the alias manager (see next section) then <I>Sympa</I> will
-install automatically the following aliases for you.
+
+<H2><A NAME="SECTION00731000000000000000">
+6.3.1 arc_path</A>
+</H2>
 
 <P>
-For example, to create the <TT>mylist</TT> list, the following
-aliases must be added:
-
-<P>
-<BLOCKQUOTE><TABLE CELLPADDING=3>
-<TR><TD ALIGN="LEFT"><TT>
-        <TT>mylist</TT>:         </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/queue mylist@my.domain.org"
-            </TT></TD>
-</TR>
-<TR><TD ALIGN="LEFT"><TT> 
-        <TT>mylist-request</TT>: </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/queue mylist-request@my.domain.org"
-            </TT></TD>
-</TR>
-<TR><TD ALIGN="LEFT"><TT> 
-        <TT>mylist-editor</TT>:  </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/queue mylist-editor@my.domain.org"
-            </TT></TD>
-</TR>
-<TR><TD ALIGN="LEFT"><TT> 
-        <TT>mylist-owner</TT>:   </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/bouncequeue mylist@my.domain.org
-            </TT></TD>
-</TR>
-<TR><TD ALIGN="LEFT"><TT> 
-        <TT>mylist-subscribe</TT>:   </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/queue mylist-subscribe@my.domain.org"
-            </TT></TD>
-</TR>
-<TR><TD ALIGN="LEFT"><TT> 
-        <TT>mylist-unsubscribe</TT>: </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/queue mylist-unsubscribe@my.domain.org"
-            </TT></TD>
-</TR>
-<TR><TD></TD>
-<TD></TD>
-</TR>
-</TABLE></BLOCKQUOTE>
-
-<P>
-The address <TT>mylist-request</TT> should correspond
-to the person responsible for managing <TT>mylist</TT>
-(the <A NAME="8133"></A>owner).  <I>Sympa</I> will forward messages for
-<TT>mylist-request</TT> to the owner of <TT>mylist</TT>,
-as defined in the <A NAME="8137"></A><TT>/usr/local/sympa-os/expl/mylist/config</TT>
-file.  Using this feature means you would not need to modify the
-alias file if the owner of the list were to change.
-
-<P>
-Similarly, the address <TT>mylist-editor</TT> can be used
-to contact the list editors if any are defined in
-<A NAME="8141"></A><TT>/usr/local/sympa-os/expl/mylist/config</TT>.  This address definition
-is not compulsory.
-
-<P>
-The address <TT>mylist-owner</TT> is the address receiving
-non-delivery reports (note that the -owner suffix can be customized, 
-see&nbsp;<A HREF="node8.html#kw-return-path-suffix">7.8.4</A>, page&nbsp;<A HREF="node8.html#kw-return-path-suffix"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>). 
-The <A NAME="8145"></A><TT>bouncequeue</TT> program stores these messages 
-in the <A NAME="8148"></A><TT>queuebounce</TT> directory. <A NAME="8151"></A><I>WWSympa</I> ((see&nbsp;<A HREF="node2.html#wwsympa">1.2</A>, page&nbsp;<A HREF="node2.html#wwsympa"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
-may then analyze them and provide a web access to them.
-
-<P>
-The address <TT>mylist-subscribe</TT> is an address enabling
-users to subscribe in a manner which can easily be explained to them.
-Beware: subscribing this way is so straightforward that you may find spammers
-subscribing to your list by accident.
-
-<P>
-The address <TT>mylist-unsubscribe</TT> is the equivalent for
-unsubscribing. By the way, the easier it is for users to unsubscribe, the easier it will
-be for you to manage your list!
-
-<P>
-
-<H1><A NAME="SECTION00730000000000000000"></A>
-<A NAME="alias-manager"></A>
+(Default value: <TT>/home/httpd/html/arc</TT>) 
 <BR>
-6.3 Alias manager
-</H1>	
+Where to store html archives. This parameter is used
+        by the <A NAME="5378"></A><TT>archived.pl</TT> daemon. It is a good idea to install the archive
+        outside the web hierarchy to prevent possible back doors in the access control
+        powered by WWSympa. However, if Apache is configured with a chroot, you may
+	have to install the archive in the Apache directory tree.
 
 <P>
-The <A NAME="8156"></A><TT>alias_manager.pl</TT> script does aliases management. It is run by <A NAME="8159"></A><I>WWSympa</I> and
- will install aliases for a new list and delete aliases for closed lists. 
+
+<H2><A NAME="SECTION00732000000000000000">
+6.3.2 archive_default_index thrd | mail</A>
+</H2>
 
 <P>
-The script expects the following arguments :
+(Default value: <TT>thrd</TT>) 
+<BR>
+The default index organization when entering web archives : either threaded or	
+	chronological order.
 
+<P>
+
+<H2><A NAME="SECTION00733000000000000000">
+6.3.3 archived_pidfile</A>
+</H2>
+	(Default value: <TT>archived.pid</TT>) 
+<BR>
+The file containing the PID of <A NAME="5383"></A><TT>archived.pl</TT>.
+
+<P>
+
+<H2><A NAME="SECTION00734000000000000000">
+6.3.4 bounce_path</A>
+</H2>
+	(Default value: <TT>/var/bounce</TT>) 
+<BR>
+Root directory for storing bounces (non-delivery reports). This parameter
+	is used mainly by the <A NAME="5387"></A><TT>bounced.pl</TT> daemon.
+
+<P>
+
+<H2><A NAME="SECTION00735000000000000000">
+6.3.5 bounced_pidfile</A>
+</H2>
+	(Default value: <TT>bounced.pid</TT>) 
+<BR>
+The file containing the PID of <A NAME="5391"></A><TT>bounced.pl</TT>.
+
+<P>
+
+<H2><A NAME="SECTION00736000000000000000">
+6.3.6 cookie_expire</A>
+</H2>
+	(Default value: <TT>0</TT>)
+	Lifetime (in minutes) of HTTP cookies. This is the default value
+	when not set explicitly by users.
+
+<P>
+
+<H2><A NAME="SECTION00737000000000000000">
+6.3.7 cookie_domain</A>
+</H2>
+	(Default value: <TT>localhost</TT>) 
+<BR>
+Domain for the HTTP cookies. If beginning with a dot ('.'),
+	the cookie is available within the specified internet domain.
+	Otherwise, for the specified host. Example : 
+		<PRE>
+		   cookie_domain cru.fr
+		   cookie is available for host 'cru.fr'
+
+		   cookie_domain .cru.fr
+		   cookie is available for any host within 'cru.fr' domain
+</PRE>
+	The only reason for replacing the default value would be where
+	<A NAME="5396"></A><I>WWSympa</I>'s authentication process is shared with an application
+	running on another host.
+
+<P>
+
+<H2><A NAME="SECTION00738000000000000000">
+6.3.8 default_home</A>
+</H2>
+	(Default value: <TT>home</TT>) 
+<BR>
+Organization of the WWSympa home page. If you have only a few lists,
+	the default value `home' (presenting a list of lists organized by topic)
+	should be replaced by `lists' (a simple alphabetical list of lists).
+
+<P>
+
+<H2><A NAME="SECTION00739000000000000000">
+6.3.9 icons_url</A>
+</H2>
+	(Default value: <TT>/icons</TT>) 
+<BR>
+URL of WWSympa's icons directory.
+
+<P>
+
+<H2><A NAME="SECTION007310000000000000000">
+6.3.10 log_facility</A>
+</H2>
+
+<P>
+WWSympa will log using this facility. Defaults to <I>Sympa</I>'s syslog
+        facility.
+	Configure your syslog according to this parameter.
+
+<P>
+
+<H2><A NAME="SECTION007311000000000000000">
+6.3.11 mhonarc</A>
+</H2>
+	(Default value: <TT>/usr/bin/mhonarc</TT>) 
+<BR>
+Path to the (superb) MhOnArc program. Required for html archives
+	http://www.oac.uci.edu/indiv/ehood/mhonarc.html
+
+<P>
+
+<H2><A NAME="SECTION007312000000000000000">
+6.3.12 password_case sensitive | insensitive</A>
+</H2>
+	(Default value: <TT>insensitive</TT>) 
+<BR>
+If set to <B>insensitive</B>, WWSympa's password check will be insensitive.
+	This only concerns passwords stored in Sympa database, not the ones in <A NAME="1086"></A>.
+
+<P>
+<B>Be careful :</B> in previous 3.xx versions of Sympa, passwords were 
+	lowercased before database insertion. Therefore changing to case-sensitive 
+	password checking could bring you some password checking problems.
+
+<P>
+
+<H2><A NAME="SECTION007313000000000000000">
+6.3.13 title</A>
+</H2>
+	(Default value: <TT>Mailing List Service</TT>) 
+<BR>
+The name of your mailing list service. It will appear in
+	the Title section of WWSympa.
+
+<P>
+
+<H2><A NAME="SECTION007314000000000000000"></A>
+	<A NAME="use-fastcgi"></A>
+<BR>
+6.3.14 use_fast_cgi   0 | 1
+</H2>
+	(Default value: <TT>1</TT>) 
+<BR>
+Choice of whether or not to use FastCGI. On listes.cru.fr, using FastCGI 
+        increases WWSympa performance by as much as a factor of 10. Refer to 
+       	<A NAME="tex2html20"
+  HREF="http://www.fastcgi.com/">http://www.fastcgi.com/</A>
+and the Apache config section of this document for details about 
+	FastCGI.
+
+<P>
+
+<H1><A NAME="SECTION00740000000000000000">
+6.4 MhOnArc</A>
+</H1>
+
+<P>
+MhOnArc is a neat little converter from mime messages to html. Refer to
+<A NAME="tex2html21"
+  HREF="http://www.oac.uci.edu/indiv/ehood/mhonarc.html">http://www.oac.uci.edu/indiv/ehood/mhonarc.html</A>.
+
+<P>
+The long mhonarc resource file is used by <A NAME="5406"></A><I>WWSympa</I> in a particular way.
+MhOnArc is called to produce not a complete html document, but only a part of it
+to be included in a complete document (starting with <TT>&lt;</TT>HTML<TT>&gt;</TT> and terminating
+with <TT>&lt;</TT>/HTML<TT>&gt;</TT> ;-) ).
+The best way is to use the MhOnArc resource file 
+provided in the <A NAME="5409"></A><I>WWSympa</I> distribution and to modify it for your needs.
+
+<P>
+The mhonarc resource file is named <A NAME="5412"></A><TT>mhonarc-ressources</TT>. 
+You may locate this file either in 
 <OL>
-<LI>add | del
+<LI><A NAME="5415"></A><TT>/home/sympa/expl/mylist/mhonarc-ressources</TT>
+	in order to create a specific archive look for a particular list
+
+<P>
 </LI>
-<LI><TT>&lt;</TT>list name<TT>&gt;</TT>
-</LI>
-<LI><TT>&lt;</TT>list domain<TT>&gt;</TT>
+<LI>or <A NAME="5418"></A><TT>/home/sympa/etc/mhonarc-ressources</TT>
+
+<P>
 </LI>
 </OL>
-Example : <A NAME="8162"></A><TT>/usr/local/sympa-os/bin/alias_manager.pl add mylistcru.fr</TT>
 
 <P>
-<A NAME="8165"></A><TT>/usr/local/sympa-os/bin/alias_manager.pl</TT> works on the alias file as defined in <A NAME="8168"></A><TT>sympa.conf</TT>)
-by the <A NAME="8171"></A><TT>sendmail_aliases</TT> variable (default is <A NAME="8174"></A><TT>/etc/mail/sympa_aliases</TT>). You must refer to this aliases file in your <A NAME="8177"></A><TT>sendmail.mc</TT> (if using sendmail) :<PRE>
-define(`ALIAS_FILE', `/etc/aliases,/etc/mail/sympa_aliases')dnl
+
+<H1><A NAME="SECTION00750000000000000000">
+6.5 Archiving daemon</A>
+</H1>
+<A NAME="5421"></A><TT>archived.pl</TT> converts messages from <I>Sympa</I>'s spools 
+and calls <A NAME="5425"></A><TT>mhonarc</TT> to create html versions (whose location is defined by the 
+"arc_path" WWSympa parameter). You should probably install these archives 
+outside the <I>Sympa</I> home_dir (<I>Sympa</I>'s initial choice for storing mail archives : 
+<A NAME="5430"></A><TT>/home/sympa/expl/mylist</TT>). Note that the html archive 
+contains a text version of each message and is totally separate from <I>Sympa</I>'s
+main archive.
+
+<OL>
+<LI>create a directory according to the WWSympa "arc_path" parameter
+    (must be owned by sympa, does not have to be in Apache space unless
+    your server uses chroot)
+
+<P>
+</LI>
+<LI>for each list, if you need a web archive, create a new web archive paragraph
+    in the list configuration. Example :<PRE>
+     web_archive
+     access public|private|owner|listmaster|closed
 </PRE>
 
 <P>
-Note that <A NAME="8180"></A><TT>sendmail</TT> has requirements regarding the ownership and rights on both <A NAME="8183"></A><TT>sympa_aliases</TT> and <A NAME="8186"></A><TT>sympa_aliases.db</TT> files (the later being created by sendmail via the <A NAME="8189"></A><TT>newaliases</TT> command). Anyhow these two files should be located in a directory, every path component of which being owned by and writable only by the root user.
+If web_archive is defined for a list, every message distributed by this list is copied
+     to <A NAME="5434"></A><TT>/home/sympa/spool/outgoing/</TT>. (No need to create nonexistent subscribers to receive
+     copies of messages)
 
 <P>
-<A NAME="8192"></A><TT>/usr/local/sympa-os/bin/alias_manager.pl</TT> runs a <A NAME="8195"></A><TT>newaliases</TT> command (via <A NAME="8198"></A><TT>aliaswrapper</TT>), after any changes to aliases file.
+</LI>
+<LI>start <A NAME="5437"></A><TT>archived.pl</TT>.
+<I>Sympa</I> and Apache
 
 <P>
-If you manage virtual domains with your mail server, then you might want to change
-the form of aliases used by the alias_manager. You can customize the <A NAME="8201"></A><TT>list_aliases</TT>
-template that is parsed to generate list aliases (see<A HREF="node19.html#list-aliases-tpl">18.8.8</A>,  
-page&nbsp;<A HREF="node19.html#list-aliases-tpl"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+</LI>
+<LI>check <A NAME="5441"></A><I>WWSympa</I> logs, or alternatively, start <A NAME="5444"></A><TT>archived.pl</TT> in debug mode (-d). 
 
 <P>
-<A NAME="virtual-transport"></A>
-<P>
-Note that you don't need alias management if you use MTA functionalities such as Postfix' <A NAME="8204"></A><TT>virtual_transport</TT>. You can then disable alias management in <I>Sympa</I> by positioning the
-<A NAME="8208"></A><TT>sendmail_aliases</TT> parameter to <TT>none</TT>.
+</LI>
+<LI>If you change mhonarc resources and wish to rebuild the entire archive 
+using the new look defined for mhonarc, simply create an empty file named
+".rebuild.mylist@myhost" in <A NAME="5447"></A><TT>/home/sympa/spool/outgoing</TT>, and make sure that
+the owner of this file is <I>Sympa</I>. 
+
+<P><PRE>
+     example : su sympa -c "touch /home/sympa/spool/outgoing/.rebuild.sympa-fr@cru.fr"
+</PRE>
+You can also rebuild web archives from within the admin page of the list.
 
 <P>
-<A NAME="ldap-aliases"></A>A L. Marcotte has written a version of <A NAME="8211"></A><TT>ldap_alias_manager.pl</TT> that is LDAP enabled.
-This script is distributed with Sympa distribution ; it needs to be customized with your LDAP parameters.
+Furthermore, if you want to get list's archives, you can do it via the <A NAME="5451"></A><TT> List-admin menu-&gt; Archive Management</TT>
+</LI>
+</OL>
 
 <P>
 
-<H1><A NAME="SECTION00740000000000000000"></A>
-<A NAME="virtual-domains"></A>
-<BR>
-6.4 Virtual domains
-</H1>	
+<H1><A NAME="SECTION00760000000000000000">
+6.6 Database configuration</A>
+</H1>
 
 <P>
-When using virtual domains with <A NAME="8214"></A><TT>sendmail</TT> or <A NAME="8217"></A><TT>postfix</TT>, you can't
-refer to  <TT>mylist@my.domain.org</TT> on the right-hand side of an 
-<A NAME="8221"></A><TT>/etc/aliases</TT> entry. You need to define an additional entry in a virtual table.
-You can also add a unique entry, with a regular expression, for your domain. 
+<A NAME="5454"></A><I>WWSympa</I> needs an RDBMS (Relational Database Management System) in order to
+run. All database access is performed via the <I>Sympa</I> API. <I>Sympa</I> 
+currently interfaces with <A NAME="tex2html22"
+  HREF="http://www.mysql.net/">MySQL</A>, <A NAME="tex2html23"
+  HREF="http://www.postgresql.pyrenet.fr/">PostgreSQL</A>, <A NAME="tex2html24"
+  HREF="http://www.oracle.com/database/">Oracle</A>
+and <A NAME="tex2html25"
+  HREF="http://www.sybase.com/index_sybase.html">Sybase</A>.
 
 <P>
-With Postfix, you should edit the <A NAME="8224"></A><TT>/etc/postfix/virtual.regexp</TT> file as follows :
-<BLOCKQUOTE>
-/<code>^</code>(.*)@my.domain.org$/	 my.domain.org-$1
-
-</BLOCKQUOTE>
- Entries in the 'aliases' file will look like this :
-<BLOCKQUOTE>
-my.domain.org-sympa:   "|/usr/local/sympa-os/bin/queue sympa@my.domain.org"
-    .....
-    my.domain.org-listA:   "|/usr/local/sympa-os/bin/queue listA@my.domain.org"
-
-</BLOCKQUOTE>
+A database is needed to store user passwords and preferences.
+The database structure is documented in the <I>Sympa</I> documentation ;
+scripts for creating it are also provided with the <I>Sympa</I> distribution
+(in <A NAME="5461"></A><TT>script</TT>). 
 
 <P>
-With Sendmail, add the following entry to <A NAME="8227"></A><TT>/etc/mail/virtusertable</TT> file :
-<BLOCKQUOTE>
-@my.domain.org       my.domain.org-%1%3
-
-</BLOCKQUOTE>
+User information (password and preferences) are stored in the &#171;User&#187; table.
+User passwords stored in the database are encrypted using reversible
+RC4 encryption controlled with the <A NAME="5464"></A><TT>cookie</TT> parameter,
+since <A NAME="5467"></A><I>WWSympa</I> might need to remind users of their passwords. 
+The security of <A NAME="5470"></A><I>WWSympa</I> rests on the security of your database. 
 
 <P>
 
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html920"
+<A NAME="tex2html753"
   HREF="node8.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html914"
+<A NAME="tex2html747"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html908"
+<A NAME="tex2html741"
   HREF="node6.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html916"
+<A NAME="tex2html749"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html918"
-  HREF="node31.html">
+<A NAME="tex2html751"
+  HREF="node20.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html921"
-  HREF="node8.html">7. sympa.conf parameters</A>
-<B> Up:</B> <A NAME="tex2html915"
+<B> Next:</B> <A NAME="tex2html754"
+  HREF="node8.html">7. Sympa and its database</A>
+<B> Up:</B> <A NAME="tex2html748"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html909"
-  HREF="node6.html">5. Upgrading Sympa</A>
- &nbsp; <B>  <A NAME="tex2html917"
+<B> Previous:</B> <A NAME="tex2html742"
+  HREF="node6.html">5. sympa.conf parameters</A>
+ &nbsp <B>  <A NAME="tex2html750"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html919"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html752"
+  HREF="node20.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2003-06-02
 </ADDRESS>
 </BODY>
 </HTML>
