@@ -1,0 +1,685 @@
+<!-- =============== Mhonarc ressources, you must check mhonarc documentation              -->
+
+<DECODEHEADS>
+<CharsetConverters>
+plain;          mhonarc::htmlize;
+us-ascii;       mhonarc::htmlize;
+iso-8859-1;     -decode-
+iso-8859-2;	-decode-
+windows-1250;   win1250::cnv;		win1250.pl
+iso-8859-3;     iso_8859::str2sgml;     iso8859.pl
+iso-8859-4;     iso_8859::str2sgml;     iso8859.pl
+iso-8859-5;     iso_8859::str2sgml;     iso8859.pl
+iso-8859-6;     iso_8859::str2sgml;     iso8859.pl
+iso-8859-7;     iso_8859::str2sgml;     iso8859.pl
+iso-8859-8;     iso_8859::str2sgml;     iso8859.pl
+iso-8859-9;     iso_8859::str2sgml;     iso8859.pl
+iso-8859-10;    iso_8859::str2sgml;     iso8859.pl
+default;        -ignore-
+</CharsetConverters>
+
+<MIMEARGS>
+text/plain; asis=us-ascii:iso-8859-1:iso-8859-2 nonfixed quote htmlcheck maxwidth=78
+text/html; asis=us-ascii:iso-8859-1:iso-8859-2
+</MIMEARGS>
+
+
+<NOMAILTO>
+<MULTIPG>
+
+<IDXSIZE>
+30
+</IDXSIZE>
+
+<NODOC>
+<Sort>
+
+<!-- should not be changed -->
+<IDXFNAME>
+mail1.html
+</IDXFNAME>
+
+<!-- should not be changed -->
+<TIDXFNAME>
+thrd1.html
+</TIDXFNAME>
+
+<!-- =============== Index page description -->
+
+<!--  mail1.html -->
+<IDXPGBEGIN>
+
+<CENTER>
+<P>
+<FONT COLOR="[dark_color]" SIZE=+1><B>$mois$ $yyyy$</B></FONT>
+<HR WIDTH=30%>
+
+<TABLE CELLPADDING="2" CELLSPACING="2" WIDTH="100%" BORDER="0"><TR ALIGN=center BGCOLOR="[dark_color]"><TD>
+  <TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="2">
+<TR ALIGN=CENTER VALIGN=MIDDLE>
+
+$PREVPGLINK$
+<TD  NOWRAP BGCOLOR="[light_color]" ALIGN="CENTER"><b>$NUMOFMSG$ 
+[IF lang=fr]
+ messages, page n&#176;
+[ELSIF lang=cz]
+ zpráv, strana 
+[ELSIF lang=hu]
+ levelek, oldalak
+[ELSE]
+ mails, page # 
+[ENDIF]
+  $PAGENUM$/$NUMOFPAGES$</B></TD>
+$NEXTPGLINK$
+
+</TD>
+
+<TD NOWRAP BGCOLOR="[light_color]" ALIGN=CENTER>
+
+<FONT COLOR="[bg_color]" SIZE="-1"><b>
+[IF lang=fr]
+Suivi chronologique
+[ELSIF lang=cz]
+Chronologicky
+[ELSIF lang=hu]
+Idõrendben
+[ELSE]
+Chronological
+[ENDIF]
+</b></FONT>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF="thrd$PAGENUM$.html" STYLE="TEXT-DECORATION: NONE"><FONT size=-1>
+[IF lang=fr]
+<b>Suivi de conversation</b> <i>thread</i>
+[ELSIF lang=cz]
+<b>Téma</b> (<i>thread</i>)
+[ELSIF lang=hu]
+<b>Témák szerint</b>
+[ELSE]
+<B>Thread</B>
+[ENDIF]
+</FONT></A>
+</TD></TR></TABLE>
+</TD></TR></TABLE>
+
+</CENTER>
+
+</IDXPGBEGIN>
+
+<!--  maillist.html bottom -->
+<IDXPGEND>
+<HR>
+<P>
+<font size=-1 color="[dark_color]">
+[IF lang=fr]
+Archives basées sur
+[ELSIF lang=cz]
+Archív zalo¾en na
+[ELSIF lang=hu]
+Archívumot kezeli: 
+[ELSE]
+Archive powered by
+[ENDIF]
+ <A HREF="$DOCURL$">MhonArc $VERSION$ </A>.
+
+</IDXPGEND>
+
+<!-- top of message list -->
+<ListBegin>
+<ul>
+</LISTBEGIN>
+
+<!-- bottom of message list -->
+<LISTEND>
+</ul>
+</LISTEND>  
+
+
+<!-- item of maillist.html -->
+<LITEMPLATE> 
+<LI><b> $SUBJECT$ </b> <code>$FROMADDR$</code>
+</LITEMPLATE> 
+
+
+<!--threads index -->
+
+
+<!-- top of thread index -->
+<TIDXPGBEGIN>
+
+</TIDXPGBEGIN>
+
+<!-- bottom of threads index -->
+
+<TIDXPGEND>
+
+<font size=-1 color="[dark_color]">
+[IF lang=fr]
+ Les archives de wwsympa sont basées sur
+[ELSIF lang=cz]
+Archív zalo¾en na
+[ELSIF lang=hu]
+Archívumot kezeli: 
+[ELSE]
+Archive powered by
+[ENDIF]
+ <A HREF="$DOCURL$">MhonArc $VERSION$ </A>.
+
+</TIDXPGEND>
+
+<THEAD>
+<center>
+
+<font color="[dark_color]" size=+1><b>$mois$ $yyyy$</b></font>
+<HR width=30%>
+
+<TABLE CELLPADDING="2" CELLSPACING="2" WIDTH="100%" BORDER="0"><TR ALIGN=center BGCOLOR="[dark_color]"><TD>
+  <TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="2">
+<TR ALIGN=CENTER VALIGN=MIDDLE>
+
+$TPREVPGLINK$
+<TD  NOWRAP BGCOLOR="[light_color]" ALIGN="CENTER">page n&#176; $PAGENUM$ / $NUMOFPAGES$</TD>
+$TNEXTPGLINK$
+
+<td NOWRAP BGCOLOR="[light_color]" align="center">
+<A HREF="mail$PAGENUM$.html" STYLE="TEXT-DECORATION: NONE">
+<font size=-1><b>
+[IF lang=fr]
+Suivi chronologique
+[ELSIF lang=cz]
+Chronologicky
+[ELSIF lang=hu]
+Idõrendben
+[ELSE]
+Chronological
+[ENDIF]
+</B></FONT></A>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+<FONT COLOR="[bg_color]" SIZE="-1">
+[IF lang=fr]
+<b>Suivi de conversation</b> <i>thread</i> 
+[ELSIF lang=cz]
+<b>Téma</b> (<i>thread</i>)
+[ELSIF lang=hu]
+<b>Témák szerint</b>
+[ELSE]
+<b>Thread</b>
+[ENDIF]
+</b></FONT>
+
+</TD></TR></TABLE>
+</TD></TR></TABLE>
+</CENTER>
+
+<UL>
+</THEAD>
+
+<TFOOT>
+</UL>
+<HR>
+
+</TFOOT>
+
+<TTOPBEGIN>
+<LI><b> $SUBJECT$ </b> <code>$FROMADDR$</code><BR>
+</TTOPBEGIN>
+
+<TTOPEND>
+</LI>
+</TTOPEND>
+
+
+<TCONTBEGIN>
+<LI><STRONG>$SUBJECTNA$</STRONG>, <EM>
+[IF lang=fr]
+suite
+[ELSIF lang=cz]
+dal¹í
+[ELSIF lang=hu]
+következõ
+[ELSE]
+next
+[ENDIF]
+</em>
+</TCONTBEGIN>
+
+<TCONTEND>
+</LI>
+</TCONTEND>
+
+<TSUBLISTBEG>
+<UL>
+</TSUBLISTBEG>
+
+<TSUBLISTEND>
+</UL>
+</TSUBLISTEND>
+
+<TSUBJECTBEG>
+<!-- suite possible evaluee sur la base du sujet -->
+</TSUBJECTBEG>
+
+<TSINGLETXT>
+<LI><b> $SUBJECT$ </b><code>$FROMADDR$</code>
+</LI>
+</TSINGLETXT>
+
+<TLITXT>
+<LI><b> $SUBJECT$ </b><code>$FROMADDR$</code>
+</TLITXT>
+
+<TLIEND>
+</LI>
+</TLIEND>
+
+<TLiNone>
+<LI><EM>
+[IF lang=fr]
+Message non disponible
+[ELSIF lang=cz]
+Zpráva není dostupná
+[ELSIF lang=hu]
+A levél nem érhetõ el.
+[ELSE]
+Message not available
+[ENDIF]
+</EM>
+</TLiNone>
+<TLINoneEnd>
+</LI>
+</TLINoneEnd>
+
+<!-- links definition -->
+<PrevPgLink chop>
+<td NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp;<A HREF="$PREVPG$" ><FONT FACE=Arial,Helvetica COLOR="[dark_color]"><IMG SRC="/icons/left.gif" ALT="previous" height=20 border=0 align=middle></font></A>&nbsp;&nbsp;</td>
+</PrevPgLink>
+
+<PrevPgLinkIA chop>
+<td NOWRAP BGCOLOR="[light_color]">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+</PrevPgLinkIA>
+
+<NextPgLink chop>
+<td NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp;<A HREF="$NEXTPG$"><FONT FACE=Arial,Helvetica COLOR="[dark_color]"><IMG SRC="/icons/right.gif" ALT="next" height=20 border=0 align=center></font></A>&nbsp;&nbsp;</td>
+</NextPgLink>
+
+<NextPgLinkIA chop>
+<td NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+</NextPgLinkIA>
+
+<TPrevPgLink chop>
+<td NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp;<A HREF="$TPREVPG$"><FONT FACE=Arial,Helvetica COLOR="[dark_color]"><IMG SRC="/icons/left.gif" ALT="previous" height=20 border=0 align=middle></font></A>&nbsp;&nbsp;</td>
+</TPrevPgLink>
+
+<TPrevPgLinkIA chop>
+<td NOWRAP BGCOLOR="[light_color]">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+</TPrevPgLinkIA>
+
+<TNextPgLink chop>
+<td NOWRAP BGCOLOR="[light_color]" ALIGN="center" >&nbsp;&nbsp;<A HREF="$TNEXTPG$"><FONT FACE=Arial,Helvetica COLOR="[dark_color]"><IMG SRC="/icons/right.gif" ALT="next" height=20 border=0 align=center></font></A>&nbsp;&nbsp;</td>
+</TNextPgLink>
+
+<TNextPgLinkIA chop>
+<td NOWRAP BGCOLOR="[light_color]" ALIGN="center" >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+</TNextPgLinkIA>
+
+<PREVBUTTON>
+<TD  NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp;<A HREF="$PREVMSG$"><IMG SRC="/icons/left.gif" HEIGHT=20 BORDER=0 ALIGN=MIDDLE ALT="previous"></A>&nbsp;&nbsp;</TD>
+</PREVBUTTON>
+
+<PREVBUTTONIA>
+<TD NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+</PREVBUTTONIA>
+
+<!-- next message button -->
+
+<NEXTBUTTON>
+<TD NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp<A HREF="$NEXTMSG$"><IMG SRC="/icons/right.gif" height=20 border=0 align=middle ALT="next"></A>&nbsp;&nbsp</td>
+</NEXTBUTTON>
+
+<NEXTBUTTONIA>
+<TD NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+</NEXTBUTTONIA>
+
+
+<TPREVBUTTON>
+<TD NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp;<A HREF="$TPREVMSG$"><IMG SRC="/icons/left.gif" height=20 border=0 align=middle ALT="previous"></A>&nbsp;&nbsp;</TD>
+</TPREVBUTTON>
+
+<TPREVBUTTONIA>
+<TD NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+</TPREVBUTTONIA>
+
+<!-- prev message button in thread page -->
+
+<TNEXTBUTTON>
+<TD NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp<A HREF="$TNEXTMSG$"><IMG SRC="/icons/right.gif" height=20 border=0 align=middle ALT="next"></A>&nbsp;&nbsp</td>
+</TNEXTBUTTON>
+
+<TNEXTBUTTONIA>
+<TD NOWRAP BGCOLOR="[light_color]" ALIGN="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+</TNEXTBUTTONIA>
+
+
+<!-- ==================================  Les messages -->
+
+<MSGPGBEGIN>
+
+</MSGPGBEGIN>
+
+<TOPLINKS>
+<center>
+<TABLE CELLPADDING="2" CELLSPACING="2" WIDTH="100%" BORDER="0"><TR ALIGN=center BGCOLOR="[dark_color]"><TD>
+  <TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="2">
+<TR ALIGN=CENTER VALIGN=MIDDLE>
+ $PREVBUTTON$
+ <TD NOWRAP BGCOLOR="[light_color]" ALIGN="CENTER"><A HREF="$IDXFNAME$#$MSGNUM$" STYLE="TEXT-DECORATION: NONE"><FONT size=-1><B>
+[IF lang=fr]
+Chronologie
+[ELSIF lang=cz]
+Chronologicky
+[ELSIF lang=hu]
+Idõrendben
+[ELSE]
+Chronological
+[ENDIF]
+</B></FONT></A></TD>
+$NEXTBUTTON$ 
+<TD WIDTH=40% BGCOLOR="[light_color]">&nbsp;</TD>
+$TPREVBUTTON$ 
+<TD  NOWRAP BGCOLOR="[light_color]" ALIGN="CENTER"><A HREF="$TIDXFNAME$#$MSGNUM$" STYLE="TEXT-DECORATION: NONE"><FONT size=-1><B>
+[IF lang=fr]
+Conversation
+[ELSIF lang=cz]
+Téma
+[ELSIF lang=hu]
+Téma
+[ELSE]
+Thread
+[ENDIF]
+</B></FONT></A></TD>
+
+$TNEXTBUTTON$ 
+
+</TR></TABLE>
+</TD></TR></TABLE>
+
+</center>
+<HR>
+
+</TOPLINKS>
+
+<BOTLINKS>
+<UL>
+</BOTLINKS>
+
+<SubjectHeader>
+<TABLE border=0 width=100%>
+<TR bgcolor="[bg_color]">
+ <TD Valign=top>
+  <FONT size=+1 COLOR="[dark_color]"><B> $SUBJECTNA$</B></FONT><FONT size=+1> $FROMNAME$ </FONT>
+ </TD>
+
+<TD ALIGN=RIGHT NOWRAP>
+[IF user->email]
+<!-- reply to button -->
+<FORM ACTION="[path_cgi]" METHOD=POST>
+  <INPUT TYPE="hidden" NAME="in_reply_to" VALUE="$MSGID$">
+  <INPUT TYPE="hidden" NAME="subject" VALUE="Re: $SUBJECTNA$">
+  <INPUT TYPE="hidden" NAME="action" VALUE="compose_mail">
+  <INPUT TYPE="hidden" NAME="list" VALUE="[list]">
+[IF lang=fr]
+   répondre à l'auteur <INPUT TYPE="radio" NAME="to" VALUE="$FROMADDR$" CHECKED>
+  à la liste <INPUT TYPE="radio" NAME="to" VALUE="[list]@[list_conf->host]">
+ <INPUT TYPE="submit" NAME="action_compose_mail" VALUE="Répondre">
+[ELSIF lang=hu]
+  Válasz a feladónak <INPUT TYPE="radio" NAME="to" VALUE="$FROMADDR$" CHECKED>
+  a listának <INPUT TYPE="radio" NAME="to" VALUE="[list]@[list_conf->host]">
+  <INPUT TYPE="submit" NAME="action_compose_mail" VALUE="Válasz">
+[ELSE] 
+  Reply to sender <INPUT TYPE="radio" NAME="to" VALUE="$FROMADDR$" CHECKED>
+  to list <INPUT TYPE="radio" NAME="to" VALUE="[list]@[list_conf->host]">
+  <INPUT TYPE="submit" NAME="action_compose_mail" VALUE="Reply">
+
+[ENDIF]
+</FORM>
+[ENDIF]
+
+[IF action<>viewmod]
+[IF user->email=$FROMADDR$]
+  <FORM ACTION="[path_cgi]" METHOD=POST>
+  <INPUT TYPE="hidden" NAME="list" VALUE="[list]">
+  <INPUT TYPE="hidden" NAME="yyyy" VALUE="$yyyy$">
+  <INPUT TYPE="hidden" NAME="month" VALUE="$mois$">
+  <INPUT TYPE="hidden" NAME="msgid" VALUE="$MSGID$">
+[IF lang=fr]
+  <INPUT TYPE="submit" NAME="action_remove_arc" VALUE="marquer ce message pour suppression">
+[ELSIF lang=cz]
+  <INPUT TYPE="submit" NAME="action_remove_arc" VALUE="Oznaèit tuto zprávu ke smazání">
+[ELSIF lang=hu]
+  <INPUT TYPE="submit" NAME="action_remove_arc" VALUE="A levél megjelõlése törlésre">
+[ELSE]
+  <INPUT TYPE="submit" NAME="action_remove_arc" VALUE="tag this mail for deletion">
+[ENDIF]
+  </FORM>
+[ELSIF is_owner]
+  <FORM ACTION="[path_cgi]" METHOD=POST>
+  <INPUT TYPE="hidden" NAME="list" VALUE="[list]">
+  <INPUT TYPE="hidden" NAME="yyyy" VALUE="$yyyy$">
+  <INPUT TYPE="hidden" NAME="month" VALUE="$mois$">
+  <INPUT TYPE="hidden" NAME="msgid" VALUE="$MSGID$">
+  <INPUT TYPE="hidden" NAME="action" VALUE="remove_arc">
+
+[IF lang=fr]
+  <INPUT TYPE="button" NAME="action_remove_arc" VALUE="marquer ce message pour suppression" onClick="request_confirm(this.form,'Voulez-vous vraiment supprimer ce message ?')">
+[ELSIF lang=cz]
+  <INPUT TYPE="submit" NAME="action_remove_arc" VALUE="oznaèit tuto zprávu ke smazání">
+[ELSIF lang=hu]
+  <INPUT TYPE="button" NAME="action_remove_arc" VALUE="A levél megjelõlése törlésre" onClick="request_confirm(this.form,'Tényleg törölni szeretnéd ezt a levelet?')">
+[ELSE]
+  <INPUT TYPE="button" NAME="action_remove_arc" VALUE="tag this mail for deletion" onClick="request_confirm(this.form,'Do you really want to delete this message ?')">
+[ENDIF]
+  </FORM>
+[ENDIF]
+
+[ENDIF]
+ </TD>
+ </TR>
+</TABLE>
+
+</SubjectHeader>
+
+<!-- Le message lui-même -->
+<!-- éléments d'entête qu'il ne faut pas afficher -->
+<EXCS>
+content-
+errors-to
+forward
+lines
+mime-
+message-id
+nntp-
+originator
+path
+precedence
+received
+replied
+return-path
+status
+sender
+via
+list-archive
+list-help
+list-owner
+list-post
+list-subscribe
+list-unsubscribe
+in-reply-to
+delivered-to
+</EXCS>
+
+<!-- ordre d'affichage des éléments de l'entête -->
+<FIELDORDER>
+from
+to
+cc
+subject
+date
+-extra-
+</FIELDORDER>
+
+<LABELSTYLES>
+From:strong
+To:strong
+Subject:strong
+-default-:em
+</LABELSTYLES>
+
+<!-- ====================================== DIVERS -->
+<DAYBEGIN>
+<LI><strong>$DDMMYY$</strong><ul>
+</DAYBEGIN>
+
+<DayEnd>
+</li></ul>
+</DayEnd>
+
+<WEEKDAYS>
+[IF lang=fr]
+Dimanche
+[ELSIF lang=cz]
+Nedìle
+[ELSIF lang=hu]
+Vasárnap
+[ELSE]
+Sunday
+[ENDIF]
+:
+[IF lang=fr]
+Lundi
+[ELSIF lang=cz]
+Pondìlí
+[ELSIF lang=hu]
+Hétfõ
+[ELSE]
+Monday
+[ENDIF]
+:
+[IF lang=fr]
+Mardi
+[ELSIF lang=cz]
+Úterý
+[ELSIF lang=hu]
+Kedd
+[ELSE]
+Tuesday
+[ENDIF]
+:
+[IF lang=fr]
+Mercredi
+[ELSIF lang=cz]
+Støeda
+[ELSIF lang=hu]
+Szerda
+[ELSE]
+Wednesday
+[ENDIF]
+:
+[IF lang=fr]
+Jeudi
+[ELSIF lang=cz]
+Ètvrtek
+[ELSIF lang=hu]
+Csütörtök
+[ELSE]
+Thursday
+[ENDIF]
+:
+[IF lang=fr]
+Vendredi
+[ELSIF lang=cz]
+Pátek
+[ELSIF lang=hu]
+Péntek
+[ELSE]
+Friday
+[ENDIF]
+:
+[IF lang=fr]
+Samedi
+[ELSIF lang=cz]
+Sobota
+[ELSIF lang=hu]
+Szombat
+[ELSE]
+Saturday
+[ENDIF]
+</WEEKDAYS>
+
+[IF lang=cz]
+<WEEKDAYSABR>
+Ne:Po:Út:St:Èt:Pá:So
+</WEEKDAYSABR>
+[ELSIF lang=hu]
+<WEEKDAYSABR>
+V:H:K:Sz:Cs:P:Szo
+</WEEKDAYSABR>
+[ENDIF]
+
+<MONTHS>
+[IF lang=fr]
+Janvier:Fevrier:Mars:Avril:Mai:Juin:Juillet:Aout:Septembre:Octobre:Novembre:Decembre
+[ELSIF lang=cz]
+Leden:Únor:Bøezen:Duben:Kvìten:Èerven:Èervenec:Srpen:Záøí:Øíjen:Listopad:Prosinec
+[ELSIF lang=hu]
+Január:Február:Március:Április:Május:Június:Július:Augusztus:Szeptember:Október:November:December
+[ELSE]
+January:February:March:April:May:June:July:August:September:October:November:December
+[ENDIF]
+</MONTHS>
+
+[IF lang=cz]
+<MONTHSABR>
+Led:Úno:Bøe:Dub:Kvì:Èern:Èerv:Srp:Záø:Øíj:List:Pro
+</MONTHSABR>
+[ELSIF lang=hu]
+<MONTHSABR>
+Jan:Feb:Már:Ápr:Máj:Jún:Júl:Aug:Szep:Okt:Nov:Dec
+</MONTHSABR>
+[ENDIF]
+
+[IF lang=cz]
+<UseLocalTime>
+
+<MSGLOCALDATEFMT>
+%d. %B. %Y %H:%M
+</MSGLOCALDATEFMT>
+
+<LOCALDATEFMT>
+%d. %B. %Y %H:%M
+</LOCALDATEFMT>
+[ELSIF lang=hu]
+<UseLocalTime>
+ 
+<MSGLOCALDATEFMT>
+%Y. %B %d., %A %H:%M
+</MSGLOCALDATEFMT>
+
+<LOCALDATEFMT>
+%Y. %B %d., %A %H:%M
+</LOCALDATEFMT>
+ 
+[ELSE]
+<MsgLocalDateFmt>
+%A %d %B %Y
+</MsgLocalDateFmt>
+[ENDIF]
+
+<HEADBODYSEP>
+[STOPPARSE]
+</HEADBODYSEP>
+
+<MSGBODYEND>
+[STARTPARSE]
+</MSGBODYEND>
+
