@@ -87,7 +87,6 @@ if ($main::options{'debug'}) {
 }
 
 $main::options{'foreground'} = 1 if ($main::options{'debug'});
-$main::options{'log_to_stderr'} = 1 if ($main::options{'debug'} || $main::options{'foreground'});
 
 
 my $wwsympa_conf = "--WWSCONFIG--";
@@ -156,17 +155,13 @@ $< = $> = (getpwnam('--USER--'))[2];
 &POSIX::setuid((getpwnam('--USER--'))[2]);
 &POSIX::setgid((getgrnam('--GROUP--'))[2]);
 
-## Check if the UID has correctly been set (usefull on OS X)
-unless (($( == (getgrnam('--GROUP--'))[2]) && ($< == (getpwnam('--USER--'))[2])) {
-    &fatal_err("Failed to change process userID and groupID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via SUDO.");
-}
-
 ## Sets the UMASK
 umask(oct($Conf{'umask'}));
 
 ## Change to list root
 unless (chdir($Conf{'home'})) {
-     &do_log('info','Unable to change directory');
+    &report::reject_report_web('intern','chdir_error',{},'','','',$Conf{'host'});
+    &do_log('info','Unable to change directory');
     exit (-1);
 }
 
@@ -182,7 +177,6 @@ my $end = 0;
 
 my $queue = $Conf{'queuebounce'};
 
-do_log('debug','starting infinite loop');
 ## infinite loop scanning the queue (unless a sig TERM is received
 while (!$end) {
     ## this sleep is important to be raisonably sure that sympa is not currently
@@ -271,17 +265,12 @@ while (!$end) {
 			my $u = $list->delete_user($who);
 			$list->save();
 			do_log ('notice',"$who has been removed from $listname because welcome message bounced");
-			&Log::db_log({'robot' => $list->{'domain'},'list' => $list->{'name'},'action' => 'del',
-				      'target_email' => $who,'status' => 'error','error_type' => 'welcome_bounced',
-				      'daemon' => 'bounced'});
-
-			if ($action =~ /notify/) {
-			    unless ($list->send_notify_to_owner('automatic_del',
-								{'who' => $who,
-								 'by' => 'bounce manager',
-								 'reason' => 'welcome'})) {
-				&wwslog('err',"Unable to send notify 'automatic_del' to $list->{'name'} list owner");
-			    } 
+			
+			unless ($list->send_notify_to_owner('notice',{'who' => $who, 
+								      'gecos' => "", 
+								      'command' => 'automatic_del', 
+								      'by' => 'listmaster'})) {
+			    &do_log('notice',"Unable to send notify 'notice' to $list->{'name'} list owner");
 			}
 		    }
 		}else {
@@ -291,100 +280,8 @@ while (!$end) {
 		next;
 	    }
 	}
-	if(($head->get('Content-type') =~ /multipart\/report/) && ($head->get('Content-type') =~ /report\-type\=feedback-report/)) {
-	    # this case a report Email Feedback Reports http://www.shaftek.org/publications/drafts/abuse-report/draft-shafranovich-feedback-report-01.txt mainly use by AOL
-	    do_log ('notice',"processing  Email Feedback Report");
-	    my @parts = $entity->parts();
-	    my $original_rcpt;
-	    my $feedback_type = '';
-	    my $listname, $robot;
-	    foreach my $p (@parts) {
-		my $h = $p->head();
-		my $content = $h->get('Content-type');
-		next if ($content =~ /text\/plain/i);		 
-		if ($content =~ /message\/feedback-report/) {
-		    my @report = split(/\n/, $p->bodyhandle->as_string());
-		    foreach my $line (@report) {
-			$feedback_type = 'abuse' if ($line =~ /Feedback\-Type\:\s*abuse/i);
-			if ($line =~ /Feedback\-Type\:\s*(abuse|opt-out|opt-out-list)/i) {
-			    $feedback_type = $1;
-			}
 
-			my $email_regexp = &tools::get_regexp('email');
-			if ($line =~ /Original\-Rcpt\-To\:\s*($email_regexp)\s*$/i) {
-			    $original_rcpt = $1;
-			    chomp $original_rcpt;
-			}
-		    }
-		}elsif ($content =~ /message\/rfc822/) {
-		    # do_log ('notice',"xxx processing  Email Feedback Report : message/rfc822 part");
-		    my @subparts = $p->parts();
-		    foreach my $subp (@subparts) {
-			# do_log ('notice',"xxx subparts : subps");
-			my $subph =  $subp->head;
-			$listname = $subph->get('X-Loop');
-		    }
-		    # do_log ('notice',"xxx processing  Email Feedback Report : extract listname $listname");
-		}
-	    }
-	    my $forward ;
-	    if (($feedback_type =~ /(abuse|opt-out|opt-out-list)/i) && (defined $original_rcpt )) {
-		
-		do_log ('debug',"Email Feedback Report recognized user : $original_rcpt list : $listname feedback-type: $feedback_type");		
-		my @lists;
-	    
-		if (( $feedback_type =~ /(opt-out-list|abuse)/i ) && (defined $listname)) {
-		    $listname = lc($listname);
-		    chomp $listname ;
-		    $listname =~ /(.*)\@(.*)/;
-		    $listname = $1;
-		    $robot = $2;
-		    my $list = new List ($listname, $robot);
-		    unless($list) {
-			do_log('err','Skipping Feedback Report for unknown list %s@%s',$file,$listname,$robot);
-			unlink("$queue/$file");
-			next;
-		    }
-		    push @lists, $list;
-		}elsif( $feedback_type =~ /opt-out/){
-		    @lists = &List::get_which($original_rcpt,$robot,'member');
-		}
-		foreach my $list (@lists){
-		    my $result =$list->check_list_authz('unsubscribe','smtp',{'sender' => $original_rcpt});
-		    my $action;
-		    $action = $result->{'action'} if (ref($result) eq 'HASH');		    
-		    if ($action =~ /do_it/i) {
-			if ($list->is_user($original_rcpt)) {
-			    my $u = $list->delete_user($original_rcpt);
-			    $list->save();
-			    do_log ('notice',"$original_rcpt has been removed from %s because abuse feedback report",$list->name);	
-			    unless ($list->send_notify_to_owner('automatic_del',{'who' => $original_rcpt, 'by' => 'listmaster'})) {
-				&do_log('notice',"Unable to send notify 'notice' to $list->{'name'} list owner");
-			    }
-			}else{
-			    do_log('err','Ignore Feedback Report %s for list %s@%s : user %s not subscribed',$file,$list->name,$robot,$original_rcpt);
-			    unless ($list->send_notify_to_owner('warn-signoff',{'who' => $original_rcpt})) {
-				&do_log('notice',"Unable to send notify 'notice' to $list->{'name'} list owner");
-			    }
-			}
-		    }else{
-			$forward = 'request';
-			do_log('err','Ignore Feedback Report %s for list %s@%s : user %s is not allowed to unsubscribe',$file,$list->name,$robot,$original_rcpt);
-		    }
-		}
-	    
-	    }else{
-		$forward = 'listmaster';
-		do_log ('err','ignoring Feedback Report %s : unknown format (feedback_type:%s, original_rcpt:%s, listname:%s)',$file, $feedback_type, $original_rcpt, $listname );		
-	    }
-	    $listname ||= 'sympa';
-	    &DoForward($listname, $forward, $robot, $entity) if (defined $forward);
-
-	    unlink("$queue/$file");
-	    next;		
-	}
-
-	# else (not welcome or remind) 
+	# else (not a welcome or remind) 
 	my $list = new List ($listname, $robot);
 	if (! $list) {
  	    &do_log('err','Skipping bouncefile %s for unknown list %s@%s',$file,$listname,$robot);
@@ -491,7 +388,7 @@ while (!$end) {
 
 }
 do_log('notice', 'bounced exited normally due to signal');
-&tools::remove_pid($wwsconf->{'bounced_pidfile'}, $$);
+unlink("$wwsconf->{'bounced_pidfile'}");
 
 exit(0);
 
@@ -584,7 +481,6 @@ sub update_subscriber_bounce_history {
 		      'daemon' => 'bounced'});
     }else{
 	$list->update_user($bouncefor,{'bounce' => "$first $last $count $status"});
-	&do_log('notice','Received bounce for email address %s, list %s', $bouncefor, $list->{'name'});
 	&Log::db_log({'robot' => $list->{'domain'},'list' => $list->{'name'},'action' => 'get_bounce',
 		      'target_email' => $bouncefor,'msg_id' => '','status' => 'error','error_type' => $status,
 		      'daemon' => 'bounced'});
