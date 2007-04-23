@@ -50,11 +50,9 @@ sub new {
     ## Extract filename from path
     my @path = split /\//, $file;
     $task->{'filename'} = $path[$#path];
-    my $listname_regexp = &tools::get_regexp('listname');
-    my $host_regexp = &tools::get_regexp('host');
 
     ## File including the list domain
-    if ($task->{'filename'} =~ /^(\d+)\.(\w*)\.(\w+)\.($listname_regexp|_global)\@($host_regexp)$/) {
+    if ($task->{'filename'} =~ /^(\d+)\.(\w*)\.(\w+)\.($tools::regexp{'listname'}|_global)\@($tools::regexp{'host'})$/) {
 	$task->{'date'} = $1;
 	$task->{'label'} = $2;
 	$task->{'model'} = $3;
@@ -63,10 +61,9 @@ sub new {
 	
 	if ($task->{'object'} ne '_global') { # list task
 	    $task->{'list_object'} = new List ($task->{'object'},$task->{'domain'});
-	    $task->{'domain'} = $task->{'list_object'}{'domain'};
 	}
 
-    }elsif ($task->{'filename'} =~ /^(\d+)\.(\w*)\.(\w+)\.($listname_regexp|_global)$/) {
+    }elsif ($task->{'filename'} =~ /^(\d+)\.(\w*)\.(\w+)\.($tools::regexp{'listname'}|_global)$/) {
 	$task->{'date'} = $1;
 	$task->{'label'} = $2;
 	$task->{'model'} = $3;
@@ -74,7 +71,6 @@ sub new {
 
 	if ($task->{'object'} ne '_global') { # list task
 	    $task->{'list_object'} = new List ($task->{'object'});
-	    $task->{'domain'} = $task->{'list_object'}{'domain'};
 	}
     }else {
 	&do_log('err', "Unknown format for task '%s'", $task->{'filename'});
@@ -82,7 +78,7 @@ sub new {
     }
 
     $task->{'id'} = $task->{'object'};
-    $task->{'id'} .= '@'.$task->{'domain'} if (defined $task->{'domain'});
+    $task->{'id'} .= '@'.$task->{'robot'} if (defined $task->{'robot'});
 
     ## Bless Task object
     bless $task, $pkg;
@@ -117,31 +113,19 @@ sub list_tasks {
 	my $model = $task->{'model'};
 
 	$task_by_model{$model}->{$list_id} = $task;
-	$task_by_list{$list_id}->{$model} = $task;
+	$task_by_model{$list_id}->{$model} = $task;
     }    
 
     return 1;
-}
-
-## Return a list tasks for the given list
-sub get_tasks_by_list {
-    my $list_id = shift;
-
-    return () unless (defined $task_by_list{$list_id});
-    return values %{$task_by_list{$list_id}};
 }
 
 sub get_used_models {
     ## Optional list parameter
     my $list_id = shift;
 
-    if (defined $list_id) {
-	if (defined $task_by_list{$list_id}) {
-	    return keys %{$task_by_list{$list_id}}
-	}else {
-	    return ();
-	}
-	
+    if (defined $list_id &&
+	defined $task_by_model{$list_id}) {
+	return keys %{$task_by_model{$list_id}}
     }else {
 	return keys %task_by_model;
     }

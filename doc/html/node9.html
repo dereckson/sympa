@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with LaTeX2HTML 2002-2-1 (1.71)
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
@@ -27,32 +27,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html1088"
+<A NAME="tex2html1020"
   HREF="node10.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1082"
+<A NAME="tex2html1014"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1076"
+<A NAME="tex2html1008"
   HREF="node8.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1084"
+<A NAME="tex2html1016"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1086"
-  HREF="node31.html">
+<A NAME="tex2html1018"
+  HREF="node30.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1089"
+<B> Next:</B> <A NAME="tex2html1021"
   HREF="node10.html">9. WWSympa, Sympa's web interface</A>
-<B> Up:</B> <A NAME="tex2html1083"
+<B> Up:</B> <A NAME="tex2html1015"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1077"
+<B> Previous:</B> <A NAME="tex2html1009"
   HREF="node8.html">7. sympa.conf parameters</A>
- &nbsp; <B>  <A NAME="tex2html1085"
+ &nbsp; <B>  <A NAME="tex2html1017"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1087"
-  HREF="node31.html">Index</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1019"
+  HREF="node30.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,35 +60,35 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html1090"
+<LI><A NAME="tex2html1022"
   HREF="node9.html#SECTION00910000000000000000">8.1 Prerequisites</A>
-<LI><A NAME="tex2html1091"
+<LI><A NAME="tex2html1023"
   HREF="node9.html#SECTION00920000000000000000">8.2 Installing PERL modules</A>
-<LI><A NAME="tex2html1092"
+<LI><A NAME="tex2html1024"
   HREF="node9.html#SECTION00930000000000000000">8.3 Creating a sympa DataBase</A>
 <UL>
-<LI><A NAME="tex2html1093"
+<LI><A NAME="tex2html1025"
   HREF="node9.html#SECTION00931000000000000000">8.3.1 Database structure</A>
-<LI><A NAME="tex2html1094"
+<LI><A NAME="tex2html1026"
   HREF="node9.html#SECTION00932000000000000000">8.3.2 Database creation</A>
 </UL>
 <BR>
-<LI><A NAME="tex2html1095"
+<LI><A NAME="tex2html1027"
   HREF="node9.html#SECTION00940000000000000000">8.4 Setting database privileges</A>
-<LI><A NAME="tex2html1096"
+<LI><A NAME="tex2html1028"
   HREF="node9.html#SECTION00950000000000000000">8.5 Importing subscribers data</A>
 <UL>
-<LI><A NAME="tex2html1097"
+<LI><A NAME="tex2html1029"
   HREF="node9.html#SECTION00951000000000000000">8.5.1 Importing data from a text file</A>
-<LI><A NAME="tex2html1098"
+<LI><A NAME="tex2html1030"
   HREF="node9.html#SECTION00952000000000000000">8.5.2 Importing data from subscribers files</A>
 </UL>
 <BR>
-<LI><A NAME="tex2html1099"
+<LI><A NAME="tex2html1031"
   HREF="node9.html#SECTION00960000000000000000">8.6 Management of the include cache</A>
-<LI><A NAME="tex2html1100"
+<LI><A NAME="tex2html1032"
   HREF="node9.html#SECTION00970000000000000000">8.7 Extending database table format</A>
-<LI><A NAME="tex2html1101"
+<LI><A NAME="tex2html1033"
   HREF="node9.html#SECTION00980000000000000000">8.8 <I>Sympa</I> configuration</A>
 </UL>
 <!--End of Table of Child-Links-->
@@ -111,16 +111,16 @@ requires only a few changes in the code, since the API used, <A NAME="tex2html19
 Sympa stores three kind of information in the database, each in one table :
 
 <UL>
-<LI>User preferences and passwords are stored in the <A NAME="9067"></A>user_table  table
+<LI>User preferences and passwords are stored in the <A NAME="8418"></A>user_table  table
 
 <P>
 </LI>
-<LI>List subscription informations are stored in the <A NAME="9068"></A>subscriber_table  table, along with subscription options.
+<LI>List subscription informations are stored in the <A NAME="8419"></A>subscriber_table  table, along with subscription options.
   This table also contains the cache for included users (if using include2 mode).
 
 <P>
 </LI>
-<LI>List administrative informations are stored in the <A NAME="9069"></A>admin_table  table if using include2 mode, along with owner and editor options. This table also contains the cache for included owners and editors.
+<LI>List administrative informations are stored in the <A NAME="8420"></A>admin_table  table if using include2 mode, along with owner and editor options. This table also contains the cache for included owners and editors.
 
 <P>
 </LI>
@@ -147,9 +147,9 @@ Check the <A NAME="tex2html20"
 </H1>
 
 <P>
-<I>Sympa</I> will use <A NAME="9076"></A><TT>DBI</TT> to communicate with the database system and
+<I>Sympa</I> will use <A NAME="8427"></A><TT>DBI</TT> to communicate with the database system and
 therefore requires the DBD for your database system. DBI and 
-DBD::YourDB (<A NAME="9079"></A><TT>Msql-Mysql-modules</TT> for MySQL) are distributed as 
+DBD::YourDB (<A NAME="8430"></A><TT>Msql-Mysql-modules</TT> for MySQL) are distributed as 
 CPAN modules. Refer to&nbsp;<A HREF="node4.html#Install_PERL_and_CPAN_modules">3.2.3</A>, 
 page&nbsp;<A HREF="node4.html#Install_PERL_and_CPAN_modules"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A> for installation
 details of these modules.
@@ -168,9 +168,9 @@ details of these modules.
 
 <P>
 The sympa database structure is slightly different from the
-structure of a <A NAME="9082"></A><TT>subscribers</TT> file. A <A NAME="9085"></A><TT>subscribers</TT>
+structure of a <A NAME="8433"></A><TT>subscribers</TT> file. A <A NAME="8436"></A><TT>subscribers</TT>
 file is a text file based on paragraphs (similar to 
-the <A NAME="9088"></A><TT>config</TT> file) ; each paragraph completely describes 
+the <A NAME="8439"></A><TT>config</TT> file) ; each paragraph completely describes 
 a subscriber. If somebody is subscribed to two lists, he/she 
 will appear in both subscribers files.
 
@@ -194,8 +194,8 @@ private info, gecos and profile option for owners).
 </H2>
 
 <P>
-The <A NAME="9091"></A><TT>create_db</TT> script below will create the sympa database for 
-you. You can find it in the <A NAME="9094"></A><TT>script/</TT> directory of the 
+The <A NAME="8442"></A><TT>create_db</TT> script below will create the sympa database for 
+you. You can find it in the <A NAME="8445"></A><TT>script/</TT> directory of the 
 distribution (currently scripts are available for MySQL, SQLite, PostgreSQL, Oracle and Sybase).
 
 <P>
@@ -233,8 +233,8 @@ CREATE TABLE subscriber_table (
 	bounce_score_subscriber smallint (6),
 	bounce_address_subscriber	varchar (100),
 	comment_subscriber	varchar (150),
-	subscribed_subscriber 	int(1),
-	included_subscriber 	int(1),
+	subscribed_subscriber 	enum ('0','1'),
+	included_subscriber 	enum ('0','1'),
 	include_sources_subscriber varchar(50),
 	PRIMARY KEY (list_subscriber, user_subscriber, robot_subscriber),
 	INDEX (user_subscriber,list_subscriber,robot_subscriber)
@@ -249,8 +249,8 @@ CREATE TABLE admin_table (
 	update_admin 		datetime,
 	reception_admin 	varchar(20),
 	comment_admin 		varchar(150),
-	subscribed_admin  	int(1),
-	included_admin  	int(1),
+	subscribed_admin  	enum('0','1'),
+	included_admin  	enum('0','1'),
 	include_sources_admin  	varchar(50),
 	info_admin   		varchar(150),
 	profile_admin  		enum('privileged','normal'),
@@ -258,30 +258,28 @@ CREATE TABLE admin_table (
 	INDEX (list_admin, user_admin,robot_admin,role_admin)
 );
  
-CREATE TABLE netidmap_table (
-        netid_netidmap              varchar (100) NOT NULL,
-	serviceid_netidmap		    varchar (100) NOT NULL,
-	robot_netidmap	            varchar (80) NOT NULL,
-        email_netidmap              varchar (100),
-        PRIMARY KEY (netid_netidmap, serviceid_netidmap, robot_netidmap)
-);
 
-CREATE TABLE logs_table (
-	id_logs			bigint(20) NOT NULL,
-	date_logs		int(11) NOT NULL,
-	robot_logs		varchar(80),
-	list_logs		varchar(50),
-	action_logs		varchar(50) NOT NULL,
-	parameters_logs		varchar(100),
-	target_email_logs	varchar(100),
-	user_email_logs		varchar(100),
-	msg_id_logs		varchar(255),
-	status_logs		varchar(10) NOT NULL,
-	error_type_logs		varchar(150),
-	client_logs		varchar(100),
-	daemon_logs		varchar(10) NOT NULL,
-	PRIMARY KEY (id_logs)					  
-);
+
+# CREATE TABLE log_table (
+# 	id			INT UNSIGNED DEFAULT 0 NOT NULL auto_increment,
+# 	date			int NOT NULL,
+# 	pid			int,
+# 	process			enum ('task','archived','sympa','wwsympa','bounced'),
+#   	email_user          	varchar (100),
+# 	auth			enum ('smtp','md5','smime','null'),	
+# 	ip			varchar (15),
+#   	operation		varchar (40),
+# 	list			varchar (50),
+# 	robot			varchar (60),
+# 	arg			varchar (100),
+# 	status			varchar (100),
+# 	subscriber_count	int,
+# 	PRIMARY KEY (id),
+# 	INDEX (date),	
+# 	INDEX (robot),
+# 	INDEX (list),
+# 	INDEX (email_user)
+# );
 </PRE>
 
 <P>
@@ -335,33 +333,6 @@ CREATE TABLE admin_table (
 	PRIMARY KEY (list_admin, user_admin, robot_admin, role_admin)
 );
 CREATE	INDEX admin_idx ON admin_table(list_admin, user_admin, robot_admin, role_admin);
-
-CREATE TABLE netidmap_table (
-        netid_netidmap              varchar (100) NOT NULL,
-	serviceid_netidmap	    varchar (100) NOT NULL,
-	robot_netidmap	            varchar (80) NOT NULL,
-        email_netidmap              varchar (100),
-        PRIMARY KEY (netid_netidmap, serviceid_netidmap, robot_netidmap)
-);
-CREATE	INDEX netidmap_idx ON netidmap_table(netid_netidmap, serviceid_netidmap, robot_netidmap);
-
-CREATE TABLE logs_table (
-	id_logs			integer NOT NULL,
-	date_logs		integer NOT NULL,
-	robot_logs		varchar(80),
-	list_logs		varchar(50),
-	action_logs		varchar(50) NOT NULL,
-	parameters_logs		varchar(100),
-	target_email_logs	varchar(100),
-	user_email_logs		varchar(100),
-	msg_id_logs		varchar(255),
-	status_logs		varchar(10) NOT NULL,
-	error_type_logs		varchar(150),
-	client_logs		varchar(100),
-	daemon_logs		varchar(10) NOT NULL,
-	PRIMARY KEY (id_logs)					  
-);
-CREATE	INDEX logs_idx ON logs_table(id_logs);
 </PRE>
 
 <P>
@@ -400,8 +371,8 @@ CREATE TABLE subscriber_table (
 	bounce_score_subscriber int4,
 	bounce_address_subscriber	varchar (100),
 	comment_subscriber	varchar (150),
-	subscribed_subscriber 	smallint,
-	included_subscriber 	smallint,
+	subscribed_subscriber 	bit(1),
+	included_subscriber 	bit(1),
 	include_sources_subscriber varchar(50),
 	CONSTRAINT ind_subscriber PRIMARY KEY (list_subscriber, user_subscriber, robot_subscriber)
 );
@@ -417,43 +388,14 @@ CREATE TABLE admin_table (
 	update_admin 		timestamp with time zone,
 	reception_admin 	varchar(20),
 	comment_admin 		varchar(150),
-	subscribed_admin  	smallint,
-	included_admin  	smallint,
+	subscribed_admin  	bit(1),
+	included_admin  	bit(1),
 	include_sources_admin  	varchar(50),
 	info_admin   		varchar(150),
 	profile_admin  		varchar(15),
         CONSTRAINT ind_admin PRIMARY KEY (list_admin, user_admin, robot_admin, role_admin)
 );
 CREATE	INDEX admin_idx ON admin_table(list_admin, user_admin,robot_admin, role_admin);
- 
-DROP TABLE netidmap_table;
-CREATE TABLE netidmap_table (
-        netid_netidmap              varchar (100) NOT NULL,
-	serviceid_netidmap	    varchar (100) NOT NULL,
-	robot_netidmap	            varchar (80) NOT NULL,
-        email_netidmap              varchar (100),
-        CONSTRAINT ind_netidmap PRIMARY KEY (netid_netidmap, serviceid_netidmap, robot_netidmap)
-);
-CREATE	INDEX netidmap_idx ON netidmap_table(netid_netidmap, serviceid_netidmap, robot_netidmap);
-
-DROP TABLE logs_table;
-CREATE TABLE logs_table (
-	id_logs			bigint NOT NULL,
-	date_logs		int4 NOT NULL,
-	robot_logs		varchar (80),
-	list_logs		varchar (50),
-	action_logs		varchar (50) NOT NULL,
-	parameters_logs		varchar (100),
-	target_email_logs	varchar (100),
-	user_email_logs		varchar (100),
-	msg_id_logs		varchar (255),
-	status_logs		varchar (10) NOT NULL,
-	error_type_logs		varchar (150),
-	client_logs		varchar (100),
-	daemon_logs		varchar (10) NOT NULL,
-        CONSTRAINT ind_logs PRIMARY KEY (id_logs)
-);
-CREATE	INDEX logs_idx ON logs_table(id_logs);
 </PRE>
 
 <P>
@@ -544,46 +486,6 @@ go
 
 create index role_admin_fk on admin_table (role_admin)
 go
-
-create table netidmap_table 
-(
-        netid_netidmap             varchar (100) NOT NULL,
-	serviceid_netidmap	   varchar (100) NOT NULL,
-	robot_netidmap	           varchar (80) NOT NULL,
-        email_netidmap             varchar (100),
-        constraint ind_netidmap primary key (netid_netidmap, serviceid_netidmap, robot_netidmap)
-)
-go
-
-create index netid_netidmap_fk on netidmap_table (netid_netidmap)
-go
-
-create index serviceid_netidmap_fk on netidmap_table (serviceid_netidmap)
-go
-
-create index robot_netidmap_fk on netidmap_table (robot_netidmap)
-go
-
-CREATE TABLE logs_table (
-	id_logs			numeric NOT NULL,
-	date_logs		numeric NOT NULL,
-	robot_logs		varchar(80),
-	list_logs		varchar(50),
-	action_logs		varchar(50) NOT NULL,
-	parameters_logs		varchar(100),
-	target_email_logs	varchar(100),
-	user_email_logs		varchar(100),
-	msg_id_logs		varchar(255),
-	status_logs		varchar(10) NOT NULL,
-	error_type_logs		varchar(150),
-	client_logs		varchar(100),
-	daemon_logs		varchar(10) NOT NULL,
-	constraint ind_logs primary key (id_logs)
-)
-go
-
-create index id_logs_fk on logs_table (id_logs)
-go
 </PRE>
 
 <P>
@@ -648,32 +550,7 @@ CREATE TABLE admin_table (
 	include_sources_admin  	varchar2(50),
 	info_admin   		varchar2(150),
 	profile_admin  		varchar2(20),
-       CONSTRAINT ind_admin PRIMARY KEY (list_admin,user_admin,robot_admin,role_admin)
-);
-
-CREATE TABLE netidmap_table (
-        netid_netidmap              varchar2 (100) NOT NULL,
-	serviceid_netidmap	    varchar2 (100) NOT NULL,
-	robot_netidmap	            varchar2 (80) NOT NULL,
-        email_netidmap              varchar2 (100),
-        CONSTRAINT ind_netidmap PRIMARY KEY (netid_netidmap, serviceid_netidmap, robot_netidmap)
-);
-
-CREATE TABLE logs_table (
-	id_logs			number NOT NULL,
-	date_logs		number NOT NULL,
-	robot_logs		varchar2 (80),
-	list_logs		varchar2 (50),
-	action_logs		varchar2 (50) NOT NULL,
-	parameters_logs		varchar2 (100),
-	target_email_logs	varchar2 (100),
-	user_email_logs		varchar2 (100),
-	msg_id_logs		varchar2 (255),
-	status_logs		varchar2 (10) NOT NULL,
-	error_type_logs		varchar2 (150),
-	client_logs		varchar2 (100),
-	daemon_logs		varchar2 (10) NOT NULL,
-	CONSTRAINT ind_admin PRIMARY KEY (id_logs)
+       CONSTRAINT ind_admin PRIMARY KEY (list_admin,user_admin,robot_admin,role_admin),
 );
 
 !
@@ -702,10 +579,10 @@ Example:
 
 <P>
 We strongly recommend you restrict access to <I>sympa</I> database. You will
-then set <A NAME="9097"></A><TT>db_user</TT> and <A NAME="9100"></A><TT>db_passwd</TT> in <A NAME="9103"></A><TT>sympa.conf</TT>.
+then set <A NAME="8448"></A><TT>db_user</TT> and <A NAME="8451"></A><TT>db_passwd</TT> in <A NAME="8454"></A><TT>sympa.conf</TT>.
 
 <P>
-With <A NAME="9106"></A>MySQL :<PRE>
+With <A NAME="8457"></A>MySQL :<PRE>
 grant all on sympa.* to sympa@localhost identified by 'your_password';
 flush privileges;
 </PRE>
@@ -752,16 +629,16 @@ cat /tmp/my_import_file | sympa.pl --import=my_list
 
 <P>
 If a mailing list was previously setup to store subscribers into 
-<A NAME="9107"></A><TT>subscribers</TT> file (the default mode in versions older then 2.2b) 
+<A NAME="8458"></A><TT>subscribers</TT> file (the default mode in versions older then 2.2b) 
 you can load subscribers data into the sympa database. The easiest way
-is to edit the list configuration using <A NAME="9110"></A><I>WWSympa</I> (this requires listmaster 
+is to edit the list configuration using <A NAME="8461"></A><I>WWSympa</I> (this requires listmaster 
 privileges) and change the data source from <B>file</B> to <B>database</B>
 ; subscribers data will be loaded into the database at the same time.
 
 <P>
 If the subscribers file is big, a timeout may occur during the FastCGI execution
-(Note that you can set a longer timeout with the <A NAME="9113"></A><TT>-idle-timeout</TT> option of
-the <TT>FastCgiServer</TT> Apache configuration directive). In this case, or if you have not installed <A NAME="9116"></A><I>WWSympa</I>, you should use the <A NAME="9119"></A><TT>load_subscribers.pl</TT> script.
+(Note that you can set a longer timeout with the <A NAME="8464"></A><TT>-idle-timeout</TT> option of
+the <TT>FastCgiServer</TT> Apache configuration directive). In this case, or if you have not installed <A NAME="8467"></A><I>WWSympa</I>, you should use the <A NAME="8470"></A><TT>load_subscribers.pl</TT> script.
 
 <P>
 
@@ -823,7 +700,7 @@ explicitely the field it expects in SELECT queries.
 <P>
 Moreover you can access these database fields from within <I>Sympa</I> 
 (in templates), as far as you list these additional fields in
-<A NAME="9124"></A><TT>sympa.conf</TT> (See <A HREF="node8.html#db-additional-subscriber-fields">7.10.11</A>, page&nbsp;<A HREF="node8.html#db-additional-subscriber-fields"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>
+<A NAME="8475"></A><TT>sympa.conf</TT> (See <A HREF="node8.html#db-additional-subscriber-fields">7.10.11</A>, page&nbsp;<A HREF="node8.html#db-additional-subscriber-fields"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>
 and <A HREF="node8.html#db-additional-user-fields">7.10.12</A>, page&nbsp;<A HREF="node8.html#db-additional-user-fields"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
 
 <P>
@@ -839,25 +716,25 @@ database to work with, then you must configure
 your list to access the database.
 
 <P>
-You define the database source in <A NAME="9129"></A><TT>sympa.conf</TT> :
-<A NAME="9132"></A><TT>db_type</TT>, <A NAME="9135"></A><TT>db_name</TT>, 
-<A NAME="9138"></A><TT>db_host</TT>, <A NAME="9141"></A><TT>db_user</TT>, 
-<A NAME="9144"></A><TT>db_passwd</TT>.
+You define the database source in <A NAME="8480"></A><TT>sympa.conf</TT> :
+<A NAME="8483"></A><TT>db_type</TT>, <A NAME="8486"></A><TT>db_name</TT>, 
+<A NAME="8489"></A><TT>db_host</TT>, <A NAME="8492"></A><TT>db_user</TT>, 
+<A NAME="8495"></A><TT>db_passwd</TT>.
 
 <P>
 If you are interfacing <I>Sympa</I> with an Oracle database, 
-<A NAME="9148"></A><TT>db_name</TT> is the SID.
+<A NAME="8499"></A><TT>db_name</TT> is the SID.
 
 <P>
 All your lists are now configured to use the database,
-unless you set list parameter <A NAME="9151"></A><TT>user_data_source</TT> 
+unless you set list parameter <A NAME="8502"></A><TT>user_data_source</TT> 
 to <B>file</B> or <B>include</B>. 
 
 <P>
 <I>Sympa</I> will now extract and store user
 information for this list using the database instead of the
-<A NAME="9155"></A><TT>subscribers</TT> file. Note however that subscriber information is 
-dumped to <A NAME="9158"></A><TT>subscribers.db.dump</TT> at every shutdown, 
+<A NAME="8506"></A><TT>subscribers</TT> file. Note however that subscriber information is 
+dumped to <A NAME="8509"></A><TT>subscribers.db.dump</TT> at every shutdown, 
 to allow a manual rescue restart (by renaming subscribers.db.dump to
 subscribers and changing the user_data_source parameter), if ever the
 database were to become inaccessible.
@@ -866,36 +743,36 @@ database were to become inaccessible.
 
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html1088"
+<A NAME="tex2html1020"
   HREF="node10.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1082"
+<A NAME="tex2html1014"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1076"
+<A NAME="tex2html1008"
   HREF="node8.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1084"
+<A NAME="tex2html1016"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1086"
-  HREF="node31.html">
+<A NAME="tex2html1018"
+  HREF="node30.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1089"
+<B> Next:</B> <A NAME="tex2html1021"
   HREF="node10.html">9. WWSympa, Sympa's web interface</A>
-<B> Up:</B> <A NAME="tex2html1083"
+<B> Up:</B> <A NAME="tex2html1015"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1077"
+<B> Previous:</B> <A NAME="tex2html1009"
   HREF="node8.html">7. sympa.conf parameters</A>
- &nbsp; <B>  <A NAME="tex2html1085"
+ &nbsp; <B>  <A NAME="tex2html1017"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1087"
-  HREF="node31.html">Index</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1019"
+  HREF="node30.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2006-01-30
 </ADDRESS>
 </BODY>
 </HTML>
