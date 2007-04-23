@@ -2,11 +2,7 @@
 # alias_manager.pl -  this script is intended to create automatically list aliases
 # when using sympa. Aliases can be added or removed in file --SENDMAIL_ALIASES--
 # RCS Identication ; $Revision$ ; $Date$ 
-
-# L. Marcotte has written a version of alias_manager.pl that is LDAP enabled
-# check the contrib. page for more information :
-# http://sympa.org/contrib.html
-
+#
 # Sympa - SYsteme de Multi-Postage Automatique
 # Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
 # Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
@@ -25,47 +21,46 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-$ENV{'PATH'} = '';
-
 ## Load Sympa.conf
 use strict;
 use lib '--LIBDIR--';
 use Conf;
 use POSIX;
 require "tools.pl";
-require "tt2.pl";
+require "parser.pl";
 
 
 unless (Conf::load('--CONFIG--')) {
-   print STDERR gettext("The configuration file --CONFIG-- contains errors.\n");
+   print Msg(1, 1, "Configuration file --CONFIG-- has errors.\n");
    exit(1);
 }
 my $tmp_alias_file = $Conf{'tmpdir'}.'/sympa_aliases.'.time;
 
 
 my $alias_wrapper = '--MAILERPROGDIR--/aliaswrapper';
-my $lock_file = '--EXPL_DIR--/alias_manager.lock';
+my $lock_file = '--DIR--/alias_manager.lock';
 my $default_domain;
 my $path_to_queue = '--MAILERPROGDIR--/queue';
 my $path_to_bouncequeue = '--MAILERPROGDIR--/bouncequeue';
 my $sympa_conf_file = '--CONFIG--';
 
+$ENV{'PATH'} = '';
+
 my ($operation, $listname, $domain, $file) = @ARGV;
 
 
-if (($operation !~ /^(add)|(del)$/) || ($#ARGV < 2)) {
-    printf STDERR "Usage: $0 <add|del> <listname> <robot> [<file>]\n";
+if ($operation !~ /^(add)|(del)$/) {
+    printf "Usage: $0 <add|del> <listname> <domain> [<file>]\n";
     exit(2);
 }
 
 $default_domain = $Conf{'domain'};
 
-my $alias_file;
-$alias_file = $Conf{'sendmail_aliases'} || '--SENDMAIL_ALIASES--';
+my $alias_file = '--SENDMAIL_ALIASES--';
 $alias_file = $file if ($file);
 
 unless (-w "$alias_file") {
-    print STDERR "Unable to access $alias_file\n";
+    print STDERR "Unable to access $alias_file";
     exit(5);
 }
     
@@ -77,27 +72,15 @@ $data{'list'}{'domain'} = $data{'robot'} = $domain;
 $data{'list'}{'name'} = $listname;
 $data{'default_domain'} = $default_domain;
 $data{'is_default_domain'} = 1 if ($domain eq $default_domain);
-$data{'return_path_suffix'} = &Conf::get_robot_conf($domain, 'return_path_suffix');
-
-
+my $template_file = &tools::get_filename('etc', 'list_aliases.tpl', $domain);
 my @aliases ;
+&parser::parse_tpl (\%data,$template_file,\@aliases);
 
-my $tt2_include_path = &tools::make_tt2_include_path($domain,'',,);
-
-my $aliases_dump;
-&tt2::parse_tt2 (\%data, 'list_aliases.tt2',\$aliases_dump, $tt2_include_path);
-
-@aliases = split /\n/, $aliases_dump;
-
-unless (@aliases) {
-    	print STDERR "No aliases defined\n";
-	exit(15);
-}
 
 if ($operation eq 'add') {
     ## Create a lock
     unless (open(LF, ">>$lock_file")) { 
-	print STDERR "Can't open lock file $lock_file\n";
+	print STDERR "Can't open lock file $lock_file";
 	exit(14);
     }
     flock LF, 2;
@@ -109,19 +92,19 @@ if ($operation eq 'add') {
     }
 
     unless (open  ALIAS, ">> $alias_file") {
-	print STDERR "Unable to append to $alias_file\n";
+	print STDERR "Unable to append to $alias_file";
 	exit(5);
     }
 
     foreach (@aliases) {
-	print ALIAS "$_\n";
+	print ALIAS "$_";
     }
     close ALIAS;
 
     ## Newaliases
-    unless ($file) {
+    if ($alias_file eq '--SENDMAIL_ALIASES--') {
 	unless (system($alias_wrapper) == 0) {
-	    print STDERR "Failed to execute newaliases: $!\n";
+	    print STDERR "Failed to execute newaliases: $!";
 	    exit(6)
 	    }
     }
@@ -137,12 +120,12 @@ if ($operation eq 'add') {
     flock LF, 2;
 
     unless (open  ALIAS, "$alias_file") {
-	print STDERR "Could not read $alias_file\n";
+	print STDERR "Could not read $alias_file";
 	exit(7);
     }
     
     unless (open NEWALIAS, ">$tmp_alias_file") {
-	printf STDERR "Could not create $tmp_alias_file\n";
+	printf STDERR "Could not create $tmp_alias_file";
 	exit (8);
     }
 
@@ -176,12 +159,12 @@ if ($operation eq 'add') {
     }
     ## replace old aliases file
     unless (open  NEWALIAS, "$tmp_alias_file") {
-	print STDERR "Could not read $tmp_alias_file\n";
+	print STDERR "Could not read $tmp_alias_file";
 	exit(10);
     }
     
     unless (open OLDALIAS, ">$alias_file") {
-	print STDERR "Could not overwrite $alias_file\n";
+	print STDERR "Could not overwrite $alias_file";
 	exit (11);
     }
     print OLDALIAS <NEWALIAS>;
@@ -190,9 +173,9 @@ if ($operation eq 'add') {
     unlink $tmp_alias_file;
 
     ## Newaliases
-    unless ($file) {
+    if ($alias_file eq '--SENDMAIL_ALIASES--') {
 	unless (system($alias_wrapper) == 0) {
-	    print STDERR "Failed to execute newaliases: $!\n";
+	    print STDERR "Failed to execute newaliases: $!";
 	exit (6);
 	}
     }
@@ -201,7 +184,7 @@ if ($operation eq 'add') {
     close LF;
 
 }else {
-    print STDERR "Action $operation not implemented yet\n";
+    print STDERR "Action $operation not implemented yet";
     exit(2);
 }
 
@@ -212,7 +195,7 @@ sub already_defined {
     my @aliases = @_;
     
     unless (open  ALIAS, "$alias_file") {
-	printf STDERR "Could not read $alias_file\n";
+	printf STDERR "Could not read $alias_file";
 	exit (7);
     }
 
