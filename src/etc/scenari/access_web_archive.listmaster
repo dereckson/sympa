@@ -1,4 +1,11 @@
-title.gettext listmaster
+title.fr listmaster
+title.us listmaster
+title.et listmaster
+title.de listmaster
+title.es listmaster
+title.cz listmaster
+title.hu listmaster
+title.nl listmaster
 
 is_listmaster([sender])        md5,smime  -> do_it
-true()                         md5,smime -> reject(reason='web_archive_listmaster')
+
