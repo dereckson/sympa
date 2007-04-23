@@ -1,6 +1,9 @@
 From: SYMPA <[% conf.email %]@[% conf.host %]>
 To: [% to %]
 Subject: [% FILTER qencode %][%command%][%END%]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 [% IF list_context -%]
   [% IF type == 'signoff' -%]
@@ -25,7 +28,7 @@ Subject: [% FILTER qencode %][%command%][%END%]
   [%- END -%]	
 [%- END -%]
 
-[%|loc(conf.sympa,command)-%]If you want this action to be taken, please
+[%|loc(conf.sympa)-%]If you want this action to be taken, please
 
 - reply to this mail
 OR

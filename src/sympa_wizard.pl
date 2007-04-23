@@ -134,7 +134,7 @@ my @params = ({'title' => 'Directories and file location'},
 	       'advice' =>''},	      
 	      
 	      {'name' => 'static_content_url',
-	       'default' => '/static-sympa',
+	       'default' => '/sympa-static',
 	       'query' => 'The URL mapped with the static_content_path directory defined above',
 	       'file' => 'sympa.conf',
 	       'advice' =>''},	      
@@ -183,21 +183,19 @@ my @params = ({'title' => 'Directories and file location'},
 	       'file' => 'sympa.conf',
 	       'advice' =>"Effective address will be \[EMAIL\]@\[HOST\]"},
 
+	      {'name' => 'lang',
+	       'default' => 'en_US',
+	       'query' => 'Default lang (cs | de | el | en_US | fr | hu | it | ja_JP | nl | oc | pt_BR | tr)',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>''},
+
 	      {'name' => 'create_list',
 	       'default' => 'public_listmaster',
 	       'query' => 'Who is able to create lists',
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>'This parameter is a scenario, check sympa documentation about scenarios if you want to define one'},
 
-	      {'title' => 'Tuning'},
-	      	      
-
-	      {'name' => 'cache_list_config',
-	       'default' => 'none',
-	       'query' => 'Use of binary version of the list config structure on disk: none | binary_file',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'Set this parameter to "binary_file" if you manage a big amount of lists (1000+) ; it should make the web interface startup faster'},
-
+	      
 	      {'name' => 'sympa_priority',
 	       'query' => 'Sympa commands priority',
 	       'file' => 'sympa.conf',
@@ -250,20 +248,6 @@ my @params = ({'title' => 'Directories and file location'},
 	       'query' => 'Specify header fields to be removed before message distribution',
 	       'file' => 'sympa.conf',
 	       'advice' => '' },
-
-	      {'title' => 'Internationalization'},
-
-	      {'name' => 'lang',
-	       'default' => 'en_US',
-	       'query' => 'Default lang (cs | de | el | en_US | fr | hu | it | ja_JP | nl | oc | pt_BR | tr)',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'This is the default language used by Sympa'},
-
-	      {'name' => 'supported_lang',
-	       'default' => 'de,cs,el,es,et_EE,en_US,fr,hu,it,ja_JP,nl,oc,pt_BR,sv,tr',
-	       'query' => 'Supported languages',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>'This is the set of language that will be proposed to your users for the Sympa GUI. Don\'t select a language if you don\'t have the proper locale packages installed.'},
 
 	      {'title' => 'Errors management'},
 
