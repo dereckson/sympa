@@ -21,6 +21,7 @@
 ## Set symbolic links at installation time
 
 my @scenario_defaults = ('add.owner',
+			 'create_list.intranet',
 			 'd_edit.owner',
 			 'd_read.private',
 			 'del.owner',
@@ -28,6 +29,7 @@ my @scenario_defaults = ('add.owner',
 			 'invite.private',
 			 'remind.owner',
 			 'review.owner',
+			 'review.public',
 			 'send.private',
 			 'subscribe.open',
 			 'topics_visibility.noconceal',
@@ -37,19 +39,19 @@ my @scenario_defaults = ('add.owner',
 
 $default_lang = 'us';
 
-my %wws_template_equiv = ('lists' => ['which', 'search_list'],
+my %wws_template_equiv = ('lists' => ['which', 'search_list','search_user'],
 			  'review' => ['search']
 			  );
 
 unless ($#ARGV >= 1) {
-    printf STDERR "Usage %s web_tt2|mail_tt2|scenari <install directory>\n", $0;
+    printf STDERR "Usage %s wws_templates|templates|scenari <install directory>\n", $0;
     exit -1;
 }
 
 my ($action, $dir) = ($ARGV[0], $ARGV[1]);
 
-unless ($action =~ /^web_tt2|mail_tt2|scenari$/) {
-    printf STDERR "Usage %s web_tt2|mail_tt2|scenari <install directory>\n", $0;
+unless ($action =~ /^wws_templates|templates|scenari$/) {
+    printf STDERR "Usage %s wws_templates|templates|scenari <install directory>\n", $0;
     exit -1;
 }
  
@@ -83,8 +85,33 @@ if ($action eq 'scenari') {
 	}
 	
     }
-}elsif ($action eq 'web_tt2') {
+}elsif ($action eq 'wws_templates') {
     chdir $dir;
+    ## Set defaults
+    unless (opendir DIR, '.') {
+	printf STDERR "Failed to open directory %s: %s\n", $dir, $!;
+	next;
+    }
+
+    foreach my $tpl (grep /\.$default_lang\.tpl$/, readdir(DIR)) {
+	$tpl =~ /^(.+)\.$default_lang\.tpl$/;
+	my $link = $1.'.tpl';
+
+	if (-f $link) {
+	    unless (unlink $link) {
+		printf STDERR "Cannot delete file %s : %s\n", $link, $!;
+		next;
+	    }
+	}
+
+	printf "Setting symlink: %s => %s\n", $link, $tpl;
+	unless (symlink $tpl, $link) {
+	    printf STDERR "Failed to set symlink %s: %s\n", $link, $!;
+	    next;
+	}
+    }
+    closedir DIR;
+    
 
     ## Set equiv
     unless (opendir DIR, '.') {
@@ -92,7 +119,7 @@ if ($action eq 'scenari') {
 	next;
     }
 
-    foreach my $tpl (grep /\.tt2$/, readdir(DIR)) {
+    foreach my $tpl (grep /\.tpl$/, readdir(DIR)) {
 	$tpl =~ /^(\w+)\.(.+)$/;
 	my ($action, $suffix) = ($1, $2);
 
@@ -120,8 +147,32 @@ if ($action eq 'scenari') {
     }
     closedir DIR;
 
-}elsif ($action eq 'mail_tt2') {
+}elsif ($action eq 'templates') {
     chdir $dir;
+    ## Set defaults
+    unless (opendir DIR, '.') {
+	printf STDERR "Failed to open directory %s: %s\n", $dir, $!;
+	next;
+    }
+
+    foreach my $tpl (grep /\.$default_lang\.tpl$/, readdir(DIR)) {
+	$tpl =~ /^(.+)\.$default_lang\.tpl$/;
+	my $link = $1.'.tpl';
+
+	if (-f $link) {
+	    unless (unlink $link) {
+		printf STDERR "Cannot delete file %s : %s\n", $link, $!;
+		next;
+	    }
+	}
+
+	printf "Setting symlink: %s => %s\n", $link, $tpl;
+	unless (symlink $tpl, $link) {
+	    printf STDERR "Failed to set symlink %s: %s\n", $link, $!;
+	    next;
+	}
+    }
+    closedir DIR;
 }
 
 exit 0;
