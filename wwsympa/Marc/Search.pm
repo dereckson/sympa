@@ -103,28 +103,28 @@ sub _find_match
   # Check for a match in subject
   if (($self->subj) && ($_ = $subj) && (&{$self->{function2}}))  
     {
-      $subj =~ s,($self->{key_word}),<B>$1</B>,g; # Bold any matches
+      $subj =~ s,($self->{key_word}),<B>$1</B>,go; # Bold any matches
       $self->subj_count(1);	# Keeping count
       $match = 1;		# We'll be printing this one
     }
   # Check for a match in from
   if (($self->from) && ($_ = $from) && (&{$self->{function2}}))
     {
-      $from =~ s,($self->{key_word}),<B>$1</B>,g;
+      $from =~ s,($self->{key_word}),<B>$1</B>,go;
       $self->from_count(1);
       $match = 1;
     }
   # Check for a match in date
   if (($self->date) && ($_ = $date) && (&{$self->{function2}}))
     {
-      $date =~ s,($self->{key_word}),<B>$1</B>,g;
+      $date =~ s,($self->{key_word}),<B>$1</B>,go;
       $self->date_count(1);
       $match = 1;
     }
   # Check for a match in id
   if (($self->id) && ($_ = $id) && (&{$self->{function2}}))
     {
-      $id =~ s,($self->{key_word}),<B>$1</B>,g;
+      $id =~ s,($self->{key_word}),<B>$1</B>,go;
       $self->id_count(1);
       $match = 1;
     }
@@ -164,7 +164,7 @@ sub _find_match
 		      $line = $matches{$hit} + 1; 
 		      $body_string .= "line $line: $body[$matches{$hit}]";
 		    }
-		$body_string =~ s,($self->{key_word}),<B>$1</B>,g;
+		$body_string =~ s,($self->{key_word}),<B>$1</B>,go;
 		last BODY;
 	      }
 	  }
@@ -178,7 +178,7 @@ sub _find_match
 	    if (($_ = $body[$i]) && (&{$self->{function2}})) 
 	      {
 		($body_string = $body[($i - 1)] . $body[$i] . 
-		 $body[($i + 1)]) =~ s,($self->{key_word}),<B>$1</B>,g;
+		 $body[($i + 1)]) =~ s,($self->{key_word}),<B>$1</B>,go;
 		$self->body_count(1);
 		$match = 1;
 		last BODY;
@@ -221,7 +221,7 @@ sub search
 	foreach my $dir (@directories)
 	{
 		my $directory = ($self->search_base . '/' . $dir . '/');
-		find({ wanted => \&_get_file_list, untaint => 1, untaint_pattern => qr|^([-@\w./]+)$| },$directory);      
+		find(\&_get_file_list,$directory);      
 	}
 	# File::Find returns these in somewhat haphazard order.
 	@MSGFILES = sort @MSGFILES;
@@ -240,7 +240,7 @@ sub search
 	foreach $file (@MSGFILES) 
 	{
 		my ($subj,$from,$date,$id,$body_ref);
-		unless (open FH, ,'<:bytes',  $file)
+		unless (open FH, "<$file")
 		{
 #			$self->error("Couldn't open file $file, $!");
 		}
@@ -255,26 +255,13 @@ sub search
 		# think, a good argument in favor of open source code!
 		while (<FH>)
 		{
-		        ## Next line is appended to the subject
-			if (defined $subj) {
-			    $subj .= $1 if (/\s(.*)( -->|$)/);
-					    if (/-->$/) {
-						$subj =~ s/ -->$//;
-						last;
-					    }
-			    } elsif (/^<!--X-Subject: (.*)( -->|$)/)
+			if (/^<!--X-Subject: (.*) -->/)
 			{
-			    ## No more need to decode header fields
-			    # $subj = &MIME::Words::decode_mimewords($1); 
-			    $subj = $1;
-			    last if (/-->/);
+				$subj = $1;
+				last;
 			} 
 		} 
 		($from = <FH>) =~ s/^<!--X-From-R13: (.*) -->/$1/;
-
-		## No more need to decode header fields
-		#$from = &MIME::Words::decode_mimewords($from);
-		
 		$from =~ tr/N-Z[@A-Mn-za-m/@A-Z[a-z/;
 		($date = <FH>) =~ s/^<!--X-Date: (.*) -->/$1/;
         ($id = <FH>) =~ s/^<!--X-Message-Id: (.*) -->/$1/;
@@ -285,7 +272,7 @@ sub search
 				# Messages are contained between Body-of-Message tags
 				next unless (/^<!--X-Body-of-Message-->/); 
 				$_ = <FH>;		
-				while (! eof && ($_ !~ /^<!--X-MsgBody-End-->/)) 
+				while ($_ !~ /^<!--X-MsgBody-End-->/) 
 				{	
 					push(@$body_ref,$_);
 					$_ = <FH>;

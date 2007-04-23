@@ -1,11 +1,12 @@
-title.gettext intranet access
+title.us intranet access
+title.fr visible de l'intranet
+title.de intranet access
+title.es visible en Intranet
 
 match([remote_host],/[conf->host]$/)       smtp,md5,smime    -> do_it
 match([sender],/[conf->host]$/)            smtp,md5,smime    -> do_it
-is_subscriber([listname],[sender])         smtp,md5,smime    -> do_it
-is_owner([listname],[sender])              smtp,md5,smime    -> do_it
-is_editor([listname],[sender])             smtp,md5,smime    -> do_it
-is_listmaster([sender])                    smtp,md5,smime    -> do_it
+is_subscriber([listname],[sender])   smtp,md5,smime    -> do_it
+
 
 
 
