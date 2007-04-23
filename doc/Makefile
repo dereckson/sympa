@@ -51,7 +51,6 @@ LATEX	= latex
 DVIPS	= dvips
 FIG2DEV	= fig2dev
 LATEX2HTML = latex2html
-PDFLATEX	=	pdflatex	
 MAKEINDEX = makeindex
 
 # encapsulated postcript part of the source
@@ -64,7 +63,7 @@ MAKEINDEX = makeindex
 	fig2dev -Lps $*.fig > $*.eps
 
 
-all:	ps pdf html parse_tex.pl
+all:	ps html parse_tex.pl
 
 #
 # PS generation
@@ -72,31 +71,11 @@ all:	ps pdf html parse_tex.pl
 
 ps:	sympa.ps
 
-pdf:	sympa.pdf
-
 sympa.ps: sympa.dvi
 	$(DVIPS) -f sympa.dvi > sympa.ps
 
-sympa.pdf: sympa.tex
-	$(PDFLATEX) sympa.tex
-
 sympa.tex: sympa.tex.tpl
-	@(DIR='${DIR}'; export DIR; \
-	BINDIR='${BINDIR}'; export BINDIR; \
-	EXPL_DIR='${EXPL_DIR}'; export EXPL_DIR; \
-	SBINDIR='${SBINDIR}'; export SBINDIR; \
-	LIBDIR='${LIBDIR}'; export LIBDIR; \
-	LOCALEDIR='${LOCALEDIR}'; export LOCALEDIR; \
-	SPOOLDIR='${SPOOLDIR}'; export SPOOLDIR; \
-	SCRIPTDIR='${SCRIPTDIR}'; export SCRIPTDIR; \
-	CGIDIR='${CGIDIR}'; export CGIDIR; \
-	MAILERPROGDIR='${MAILERPROGDIR}'; export MAILERPROGDIR; \
-	ETCBINDIR='${ETCBINDIR}'; export ETCBINDIR; \
-	ETCDIR='${ETCDIR}'; export ETCDIR; \
-	PIDDIR='${ETCDIR}'; export PIDDIR; \
-	CONFIG='${CONFIG}'; export CONFIG; \
-	WWSCONFIG='${WWSCONFIG}'; export WWSCONFIG; \
-	$(PERL) ./parse_tex.pl sympa.tex.tpl sympa.tex;)
+	$(PERL) ./parse_tex.pl sympa.tex.tpl sympa.tex
 
 sympa.dvi: sympa.tex $(EPS)
 	cp /dev/null sympa.ind
@@ -112,13 +91,14 @@ sympa.dvi: sympa.tex $(EPS)
 # HTML generation
 #
 
-html:	html/sympa.html
+html:	sympa/sympa.html
 
 # -tmp is required since cwd contains a dot in it
-html/sympa.html: sympa.tex $(GIF)
-	$(LATEX2HTML) -dir html -mkdir -tmp /tmp -verbosity 0 -local_icons sympa
-	cd html ; rm -f WARNINGS images.* internals.pl labels.pl
-	cp sympa.ps html
+sympa/sympa.html: sympa.tex $(GIF)
+	$(LATEX2HTML) -tmp /tmp -verbosity 0 -local_icons sympa
+	cd sympa ; rm -f WARNINGS images.* internals.pl labels.pl
+#	cp ls-lR.gif sympa
+	cp sympa.ps sympa
 
 #
 # Clean-up
@@ -126,7 +106,7 @@ html/sympa.html: sympa.tex $(GIF)
 
 clean: rmaux
 	rm -f *.ps
-	rm -rf html
+	rm -rf sympa
 
 rmaux:
 	rm -f *.aux *.log *.toc *.dvi *.bak *.cb *.ind *.idx *.ilg
@@ -134,24 +114,6 @@ rmaux:
 
 distrib: all rmaux
 
-makedir:
-	@if [ ! -d $(DESTDIR)$(DOCDIR) ]; then \
-		echo "Creating required directory $(DESTDIR)$(DOCDIR)"; \
-		mkdir -p $(DESTDIR)$(DOCDIR); \
-	fi
-
-install: makedir 
-	@for f in sympa.tex sympa.ps sympa.pdf; do \
-		echo "Installing documentation...$(DESTDIR)$(DOCDIR)/$$f"; \
-		cp $$f $(DESTDIR)$(DOCDIR); \
-	done
-	@if [  -d $(DESTDIR)$(DOCDIR)/sympa ]; then \
-		rm -rf $(DESTDIR)$(DOCDIR)/sympa; \
-	fi
-	@if [  -d $(DESTDIR)$(DOCDIR)/html ]; then \
-		rm -rf $(DESTDIR)$(DOCDIR)/html; \
-	fi
-	cp -R html/ $(DESTDIR)$(DOCDIR)
 
 
 

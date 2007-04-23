@@ -19,14 +19,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-SRC	=	create_db.Pg create_db.mysql create_db.Oracle create_db.Sybase create_db.SQLite 
+SRC	=	create_db.Pg create_db.mysql create_db.Oracle create_db.Sybase
 
-SUBSTSRC	=	arc2webarc.pl testldap.pl p12topem.pl init_comment.pl crypt_passwd.pl testlogs.pl mod2html.pl tpl2tt2.pl ldap_alias_manager.pl mysql_alias_manager.pl
+SUBSTSRC	=	load_subscribers.pl arc2webarc.pl testldap.pl p12topem.pl init_comment.pl crypt_passwd.pl
 
 INITSRC		=	sympa
 
 #SCRIPTDIR	=	../../../script
-SCRIPTDIR	=	$(SBINDIR)
+SCRIPTDIR	=	$(BINDIR)
 
 all:	
 
@@ -49,7 +49,6 @@ installsubstsrc:
 		UMASK=0755; export UMASK; \
 		DIR=$(DIR); export DIR; \
 		DESTDIR=$(DESTDIR); export DESTDIR; \
-		INITDIR=$(INITDIR); export INITDIR; \
 		INSTALLDIR=$(SCRIPTDIR); export INSTALLDIR; \
 		BINDIR=$(BINDIR); export BINDIR; \
 		ETCBINDIR=$(ETCBINDIR); export ETCBINDIR; \
@@ -80,7 +79,6 @@ installinit:
 		UMASK=0755; export UMASK; \
 		DIR=$(DIR); export DIR; \
 		DESTDIR=$(DESTDIR); export DESTDIR; \
-		INITDIR=$(INITDIR); export INITDIR; \
 		INSTALLDIR=$(INITDIR); export INSTALLDIR; \
 		BINDIR=$(BINDIR); export BINDIR; \
 		PIDDIR=$(PIDDIR); export PIDDIR; \

@@ -20,11 +20,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 use lib "../src/";
-use lib "../wwsympa/";
-use Log;
 use Conf;
 use POSIX;
-require 'tools.pl';
 require "parser.pl";
 
 my $in_file = $ARGV[0];
@@ -41,22 +38,12 @@ close VERSION;
 
 ## Init struct
 my %data = ('escaped_start' => '[STARTPARSE]',
-	    'escaped_stop' => '[STOPPARSE]',
 	    'date' => &POSIX::strftime("%d %B %Y", localtime((stat($in_file))[9])),
 	    'version' => $version
 	    );
-
-## All DIR variables
-foreach my $k (keys %ENV) {
-#    if ($k =~ /DIR$/) {
-	$data{$k} = $ENV{$k};
-#    }
-}
-
 ## scenari
-my $scenario_regexp = &tools::get_regexp('scenario');
 foreach my $file (<../src/etc/scenari/*.*>) {
-    $file =~ /\/(\w+)\.($scenario_regexp)$/;
+    $file =~ /\/(\w+)\.(\w+)$/;
     my ($action, $name) = ($1, $2);
     my $title;
     open SCENARIO, $file;
@@ -71,7 +58,7 @@ foreach my $file (<../src/etc/scenari/*.*>) {
 }
 
 open OUT, ">$out_file" || die;
-&parser::parse_tpl(\%data, $in_file, \*OUT);
+&parse_tpl(\%data, $in_file, \*OUT);
 close OUT;
 
 exit 0;
