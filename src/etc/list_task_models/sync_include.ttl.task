@@ -1,4 +1,4 @@
-title.gettext Update of list members based on the TTL
+title.fr Update of list users
 
 /INIT
 sync_include ()
