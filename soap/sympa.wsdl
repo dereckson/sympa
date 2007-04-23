@@ -103,49 +103,6 @@
 	<part name="gecos" type="xsd:string" xsd:minOccurs="0"/>	
 </message>
 
-<message name="addRequest">
-	<part name="list" type="xsd:string"/>		
-	<part name="email" type="xsd:string"/>
-	<part name="gecos" type="xsd:string"  xsd:minOccurs="0"/>	
-	<part name="quiet" type="xsd:boolean"  xsd:minOccurs="0"/>	
-</message>
-
-
-<message name="addResponse">
-	<part name="return" type="xsd:boolean"/>
-</message>
-
-<message name="delRequest">
-	<part name="list" type="xsd:string"/>		
-	<part name="email" type="xsd:string"/>
-	<part name="quiet" type="xsd:boolean"  xsd:minOccurs="0"/>	
-</message>
-
-
-<message name="delResponse">
-	<part name="return" type="xsd:boolean"/>
-</message>
-
-<message name="createListRequest">
-	<part name="list" type="xsd:string"/>
-	<part name="subject" type="xsd:string"/>
-	<part name="template" type="xsd:string"/>
-	<part name="description" type="xsd:string"/>
-	<part name="topics" type="xsd:string"/>
-</message>
-
-<message name="createListResponse">
-	<part name="return" type="xsd:boolean"/>
-</message>
-
-<message name="closeListRequest">
-	<part name="list" type="xsd:string"/>
-</message>
-
-<message name="closeListResponse">
-	<part name="return" type="xsd:boolean"/>
-</message>
-
 <message name="subscribeResponse">
 	<part name="return" type="xsd:boolean"/>
 </message>
@@ -159,14 +116,6 @@
 	<part name="return" type="xsd:string"/>	
 </message>
 
-<message name="getUserEmailByCookieRequest">
-	<part name="cookie" type="xsd:string"/>
-</message>
-
-<message name="getUserEmailByCookieResponse">
-	<part name="return" type="xsd:string"/>
-</message>
-
 <message name="authenticateAndRunRequest">
 	<part name="email" type="xsd:string"/>
 	<part name="cookie" type="xsd:string"/>
@@ -175,18 +124,6 @@
 </message>
 
 <message name="authenticateAndRunResponse">
-	<part name="return" type="tns:ArrayOfString" xsd:minOccurs="0"/>
-</message>
-
-<message name="authenticateRemoteAppAndRunRequest">
-	<part name="appname" type="xsd:string"/>
-	<part name="apppassword" type="xsd:string"/>
-	<part name="vars" type="xsd:string"/>
-	<part name="service" type="xsd:string"/>
-	<part name="parameters" type="tns:ArrayOfString" xsd:minOccurs="0"/>
-</message>
-
-<message name="authenticateRemoteAppAndRunResponse">
 	<part name="return" type="tns:ArrayOfString" xsd:minOccurs="0"/>	
 </message>
 
@@ -241,22 +178,6 @@
 		<input message="tns:amIRequest" />
 		<output message="tns:amIResponse" />
 	</operation>
-	<operation name="add">
-		<input message="tns:addRequest" />
-		<output message="tns:addResponse" />
-	</operation>
-	<operation name="del">
-		<input message="tns:delRequest" />
-		<output message="tns:delResponse" />
-	</operation>
-	<operation name="createList">
-		<input message="tns:createListRequest" />
-		<output message="tns:createListResponse" />
-	</operation>
-	<operation name="closeList">
-		<input message="tns:closeListRequest" />
-		<output message="tns:closeListResponse" />
-	</operation>
 	<operation name="review">
 		<input message="tns:reviewRequest" />
 		<output message="tns:reviewResponse" />
@@ -277,17 +198,9 @@
 		<input message="tns:casLoginRequest" />
 		<output message="tns:casLoginResponse" />
 	</operation>
-	<operation name="getUserEmailByCookie">
-		<input message="tns:getUserEmailByCookieRequest" />
-		<output message="tns:getUserEmailByCookieResponse" />
-	</operation>
 	<operation name="authenticateAndRun">
 		<input message="tns:authenticateAndRunRequest" />
 		<output message="tns:authenticateAndRunResponse" />
-	</operation>
-	<operation name="authenticateRemoteAppAndRun">
-		<input message="tns:authenticateRemoteAppAndRunRequest" />
-		<output message="tns:authenticateRemoteAppAndRunResponse" />
 	</operation>
 	<operation name="lists">
 		<input message="tns:listsRequest" />
@@ -349,58 +262,6 @@
 	</operation>
 	<operation name="amI">
 		<soap:operation soapAction="urn:sympasoap#amI"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="add">
-		<soap:operation soapAction="urn:sympasoap#add"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="del">
-		<soap:operation soapAction="urn:sympasoap#del"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="createList">
-		<soap:operation soapAction="urn:sympasoap#createList"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="closeList">
-		<soap:operation soapAction="urn:sympasoap#closeList"/>
 			<input>
 				<soap:body use="encoded" 
 					namespace="urn:sympasoap" 
@@ -477,34 +338,8 @@
 					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
 			</output>
 	</operation>
-	<operation name="getUserEmailByCookie">
-		<soap:operation soapAction="urn:sympasoap#getUserEmailByCookie"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
 	<operation name="authenticateAndRun">
 		<soap:operation soapAction="urn:sympasoap#authenticateAndRun"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="authenticateRemoteAppAndRun">
-		<soap:operation soapAction="urn:sympasoap#authenticateRemoteAppAndRun"/>
 			<input>
 				<soap:body use="encoded" 
 					namespace="urn:sympasoap" 

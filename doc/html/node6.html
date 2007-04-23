@@ -1,20 +1,23 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002-2-1 (1.70) JA patch-2.0
+patched version by:  Kenshi Muto, Debian Project.
+* modified by:  Shige TAKENO
+LaTeX2HTML 2002-2-1 (1.70),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>5. Upgrading Sympa</TITLE>
-<META NAME="description" CONTENT="5. Upgrading Sympa">
+<TITLE>5. Mail aliases</TITLE>
+<META NAME="description" CONTENT="5. Mail aliases">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002-2-1 JA patch-2.0">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,32 +30,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html900"
+<A NAME="tex2html768"
   HREF="node7.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html894"
+<A NAME="tex2html762"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html888"
+<A NAME="tex2html756"
   HREF="node5.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html896"
+<A NAME="tex2html764"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html898"
-  HREF="node31.html">
+<A NAME="tex2html766"
+  HREF="node26.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html901"
-  HREF="node7.html">6. Mail aliases</A>
-<B> Up:</B> <A NAME="tex2html895"
+<B> Next:</B> <A NAME="tex2html769"
+  HREF="node7.html">6. sympa.conf parameters</A>
+<B> Up:</B> <A NAME="tex2html763"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html889"
-  HREF="node5.html">4. Running Sympa</A>
- &nbsp; <B>  <A NAME="tex2html897"
+<B> Previous:</B> <A NAME="tex2html757"
+  HREF="node5.html">4. Upgrading Sympa</A>
+ &nbsp; <B>  <A NAME="tex2html765"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html899"
-  HREF="node31.html">Index</A></B> 
+ &nbsp; <B>  <A NAME="tex2html767"
+  HREF="node26.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,334 +63,324 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html902"
-  HREF="node6.html#SECTION00610000000000000000">5.1 Incompatible changes</A>
-<LI><A NAME="tex2html903"
-  HREF="node6.html#SECTION00620000000000000000">5.2 CPAN modules update</A>
-<LI><A NAME="tex2html904"
-  HREF="node6.html#SECTION00630000000000000000">5.3 Database structure update</A>
-<LI><A NAME="tex2html905"
-  HREF="node6.html#SECTION00640000000000000000">5.4 Preserving your customizations</A>
-<LI><A NAME="tex2html906"
-  HREF="node6.html#SECTION00650000000000000000">5.5 Running 2 Sympa versions on a single server</A>
-<LI><A NAME="tex2html907"
-  HREF="node6.html#SECTION00660000000000000000">5.6 Moving to another server</A>
+<LI><A NAME="tex2html770"
+  HREF="node6.html#SECTION00610000000000000000">5.1 Robot aliases</A>
+<LI><A NAME="tex2html771"
+  HREF="node6.html#SECTION00620000000000000000">5.2 List aliases</A>
+<LI><A NAME="tex2html772"
+  HREF="node6.html#SECTION00630000000000000000">5.3 Alias manager</A>
+<LI><A NAME="tex2html773"
+  HREF="node6.html#SECTION00640000000000000000">5.4 Virtual domains</A>
 </UL>
 <!--End of Table of Child-Links-->
 <HR>
 
 <H1><A NAME="SECTION00600000000000000000"></A>
-    <A NAME="upgrading-sympa"></A>
+    <A NAME="aliases"></A>    <A NAME="660"></A>
 <BR>
-5. Upgrading Sympa
+5. Mail aliases
 </H1>
 
 <P>
-Sympa upgrade is a relatively riskless operations, mainly because the install process preserves your
-customizations (templates, configuration, authorization scenarios,...) and also because Sympa automates
-a few things (DB update, CPAN modules installation). 
+Mail aliases are required in Sympa for <A NAME="5764"></A><TT>sympa.pl</TT> to receive mail commands and 
+list messages. Management of these aliases management will depend on the MTA (<A NAME="5767"></A><TT>sendmail</TT>, <A NAME="5770"></A><TT>qmail</TT>,
+<A NAME="5773"></A><TT>postfix</TT>, <A NAME="5776"></A><TT>exim</TT>) you're using, where you store aliases and whether
+you are managing virtual domains or not.
 
 <P>
 
 <H1><A NAME="SECTION00610000000000000000"></A>
-    <A NAME="669"></A>
+   <A NAME="robot-aliases"></A>    <A NAME="668"></A>
 <BR>
-5.1 Incompatible changes
+5.1 Robot aliases
 </H1>
 
 <P>
-New features, changes and bug fixes are summarized in the <A NAME="7980"></A><TT>NEWS</TT> file, part of the tar.gz (the 
-<A NAME="7983"></A><TT>Changelog</TT> file is a complete log file of CVS changes). 
+An electronic list manager such as <I>Sympa</I> is built around two processing steps:
 
 <P>
-Sympa is a long-term project, so some major changes may need some extra work. The following list is well kown changes that require some attention :
 
 <UL>
-<LI>version 5.1 (August 2005) use XHTML and CSS in web templates
+<LI>a message sent to a list or to <I>Sympa</I> itself
+        (commands such as subscribe or unsubscribe) is received
+        by the SMTP server. The SMTP server, on reception of this message, runs the
+        <A NAME="5781"></A><TT>queue</TT> program (supplied in this package) to store
+        the message in a spool.
+
+<P>
 </LI>
-<LI>version 4.2b3 (August 2004) introduce TT2 template format
-</LI>
-<LI>version 4.0a5 (September 2003) change auth.conf (no default anymore so you may have the create this file)
-</LI>
-<LI>version 3.3.6b2 (May 2002) the list parameter user_data_source as a new value include2 which is the recommended value for any list.
+<LI>the <A NAME="5784"></A><TT>sympa.pl</TT> daemon, set in motion at
+        system startup, scans this spool. As soon as it
+        detects a new message, it processes it and performs the
+        requested action (distribution or processing of a command).
+
+<P>
 </LI>
 </UL>
 
 <P>
-The file <A NAME="7986"></A><TT>NEWS</TT> list all changes and of course, all changes that may require some attention from the installer. As mentionned at the beginning of this
-file, incompatible changes are preceded by '*****'. While running the <A NAME="7989"></A><TT>make install</TT> Sympa will
-detect the previously installed version and will prompt you with incompatible changes between both versions
-of the software. You can interrupt the install process at that stage if you are too frightened.
-Output of the <A NAME="7992"></A><TT>make install</TT> :<PRE>
-You are upgrading from Sympa 4.2
-You should read CAREFULLY the changes listed below ; they might be incompatible changes :
-&lt;RETURN&gt;
+To separate the processing of commands (subscription,
+unsubscription, help requests, etc.) from the processing of messages destined for mailing
+lists, a special mail alias is reserved for administrative requests, so
+that <I>Sympa</I> can be permanently accessible to users. The following
+lines must therefore be added to the <A NAME="5788"></A><TT>sendmail</TT> alias file
+(often <A NAME="5791"></A><TT>/etc/aliases</TT>):
 
-*****   require new perlmodule XML-LibXML
+<P>
+<BLOCKQUOTE>
+sympa:             "| /usr/local/sympa-os//bin/queue sympa@my.domain.org"
+<BR>
+listmaster: 	   "| /usr/local/sympa-os//bin/queue listmaster@my.domain.org"
+<BR>
+bounce+*:          "| /usr/local/sympa-os//bin/bouncequeue sympa@my.domain.org"
+<BR>
+sympa-request:     postmaster
+<BR>
+sympa-owner:       postmaster
+<BR>
+</BLOCKQUOTE>
 
-*****   You should update your DB structure (automatically performed by Sympa with MySQL), adding the following table (mySQL example) :
-*****   CREATE TABLE admin_table (
-*****   list_admin              varchar(50) NOT NULL,
-*****   user_admin              varchar(100) NOT NULL,
-*****   role_admin              enum('listmaster','owner','editor') NOT NULL,
-*****   date_admin              datetime NOT NULL,
-*****   update_admin            datetime,
-*****   reception_admin         varchar(20),
-*****   comment_admin           varchar(150),
-*****   subscribed_admin        enum('0','1'),
-*****   included_admin          enum('0','1'),
-*****   include_sources_admin   varchar(50),
-*****   info_admin              varchar(150),
-*****   profile_admin           enum('privileged','normal'),
-*****   PRIMARY KEY (list_admin, user_admin,role_admin),
-*****   INDEX (list_admin, user_admin,role_admin)
-*****   );
+<P>
+Note: if you run <I>Sympa</I> virtual robots, you will need one <TT>sympa</TT>
+alias entry per virtual robot (see virtual robots section, <A HREF="node14.html#virtual-robot">13</A>,
+page&nbsp;<A HREF="node14.html#virtual-robot"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
 
-*****   Extend the generic_sso feature ; Sympa is now able to retrieve the user email address in a LDAP directory
-&lt;RETURN&gt;
+<P>
+<TT>sympa-request</TT> should be the address of the robot
+<A NAME="5797"></A>administrator, i.e. a person who looks after
+<I>Sympa</I> (here <TT>postmastercru.fr</TT>).
+
+<P>
+<TT>sympa-owner</TT> is the return address for <I>Sympa</I> error
+messages.
+
+<P>
+The alias bounce+* is dedicated to collect bounces. It is useful
+only if at least one list uses <TT> welcome_return_path unique </TT> or
+<TT> remind_return_path unique</TT>.
+Don't forget to run <A NAME="5803"></A><TT>newaliases</TT> after any change to
+the <A NAME="5806"></A><TT>/etc/aliases</TT> file!
+
+<P>
+Note: aliases based on <TT>listserv</TT> (in addition to those
+based on <TT>sympa</TT>) can be added for the benefit of users
+accustomed to the <TT>listserv</TT> and <TT>majordomo</TT> names.
+For example:
+
+<P><PRE>
+listserv:          sympa
+listserv-request:  sympa-request
+majordomo:         sympa
+listserv-owner:    sympa-owner
 </PRE>
 
 <P>
 
 <H1><A NAME="SECTION00620000000000000000"></A>
-    <A NAME="682"></A>
+<A NAME="list-aliases"></A>    <A NAME="698"></A>
+    <A NAME="699"></A>
 <BR>
-5.2 CPAN modules update
+5.2 List aliases
 </H1>
 
 <P>
-Required and optional perl modules (CPAN) installation is automatically handled at the <A NAME="7995"></A><TT>make</TT> time. You are asked before each module is installed. For optional modules, associated features are listed.
+For each new list, it is necessary to create up to six mail aliases (at least three).
+If you managed to setup the alias manager (see next section) then <I>Sympa</I> will
+install automatically the following aliases for you.
 
 <P>
-Output of the <A NAME="7998"></A><TT>make</TT> command :<PRE>
-Checking for REQUIRED modules:
-------------------------------------------
-perl module          from CPAN       STATUS
------------          ---------       ------
-Archive::Zip         Archive-Zip    OK (1.09   &gt;= 1.05)
-CGI                  CGI            OK (2.89   &gt;= 2.52)
-DB_File              DB_FILE        OK (1.806  &gt;= 1.75)
-Digest::MD5          Digest-MD5     OK (2.20   &gt;= 2.00)
-FCGI                 FCGI           OK (0.67   &gt;= 0.67)
-File::Spec           File-Spec      OK (0.83   &gt;= 0.8)
-IO::Scalar           IO-stringy     OK (2.104  &gt;= 1.0)
-LWP                  libwww-perl    OK (5.65   &gt;= 1.0)
-Locale::TextDomain   libintl-perl   OK (1.10   &gt;= 1.0)
-MHonArc::UTF8        MHonArc        version is too old ( &lt; 2.4.6).
-&gt;&gt;&gt;&gt;&gt;&gt;&gt; You must update "MHonArc" to version "" &lt;&lt;&lt;&lt;&lt;&lt;.
-Setting FTP Passive mode
-Description: 
-Install module MHonArc::UTF8 ? n
-MIME::Base64         MIME-Base64    OK (3.05   &gt;= 3.03)
-MIME::Tools          MIME-tools     OK (5.411  &gt;= 5.209)
-Mail::Internet       MailTools      OK (1.60   &gt;= 1.51)
-Regexp::Common       Regexp-Common  OK (2.113  &gt;= 1.0)
-Template             Template-ToolkitOK (2.13   &gt;= 1.0)
-XML::LibXML          XML-LibXML     OK (1.58   &gt;= 1.0)
+For example, to create the <TT>mylist</TT> list, the following
+aliases must be added:
 
-Checking for OPTIONAL modules:
-------------------------------------------
-perl module          from CPAN       STATUS
------------          ---------       ------
-Bundle::LWP          LWP            OK (1.09   &gt;= 1.09)
-Constant subroutine CGI::XHTML_DTD redefined at /usr/lib/perl5/5.8.0/constant.pm line 108, &lt;STDIN&gt; line 1.
-CGI::Fast            CGI            CGI::Fast doesn't return 1 (check it).
-Crypt::CipherSaber   CipherSaber    OK (0.61   &gt;= 0.50)
-DBD::Oracle          DBD-Oracle     was not found on this system.
-Description: Oracle database driver, required if you connect to a Oracle database.
-Install module DBD::Oracle ?
-</PRE>
+<P>
+<BLOCKQUOTE><TABLE CELLPADDING=3>
+<TR><TD ALIGN="LEFT"><TT>
+        <TT>mylist</TT>:         </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            "|/usr/local/sympa-os//bin/queue mylist@my.domain.org"
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT> 
+        <TT>mylist-request</TT>: </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            "|/usr/local/sympa-os//bin/queue mylist-request@my.domain.org"
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT> 
+        <TT>mylist-editor</TT>:  </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            "|/usr/local/sympa-os//bin/queue mylist-editor@my.domain.org"
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT> 
+        <TT>mylist-owner</TT>:   </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            "|/usr/local/sympa-os//bin/bouncequeue mylist@my.domain.org
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT> 
+        <TT>mylist-subscribe</TT>:   </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            "|/usr/local/sympa-os//bin/queue mylist-subscribe@my.domain.org@my.domain.org"
+            </TT></TD>
+</TR>
+<TR><TD ALIGN="LEFT"><TT> 
+        <TT>mylist-unsubscribe</TT>: </TT></TD>
+<TD ALIGN="LEFT"><TT>
+            "|/usr/local/sympa-os//bin/queue mylist-unsubscribe@my.domain.org"
+            </TT></TD>
+</TR>
+<TR><TD></TD>
+<TD></TD>
+</TR>
+</TABLE></BLOCKQUOTE>
+
+<P>
+The address <TT>mylist-request</TT> should correspond
+to the person responsible for managing <TT>mylist</TT>
+(the <A NAME="5823"></A>owner).  <I>Sympa</I> will forward messages for
+<TT>mylist-request</TT> to the owner of <TT>mylist</TT>,
+as defined in the <A NAME="5827"></A><TT>/usr/local/sympa-os//expl/mylist/config</TT>
+file.  Using this feature means you would not need to modify the
+alias file if the owner of the list were to change.
+
+<P>
+Similarly, the address <TT>mylist-editor</TT> can be used
+to contact the list editors if any are defined in
+<A NAME="5831"></A><TT>/usr/local/sympa-os//expl/mylist/config</TT>.  This address definition
+is not compulsory.
+
+<P>
+The address <TT>mylist-owner</TT> is the address receiving
+non-delivery reports. The <A NAME="5835"></A><TT>bouncequeue</TT> program stores these messages 
+in the <A NAME="5838"></A><TT>queuebounce</TT> directory. <A NAME="5841"></A><I>WWSympa</I> ((see&nbsp;<A HREF="node2.html#wwsympa">1.2</A>, page&nbsp;<A HREF="node2.html#wwsympa"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
+may then analyze them and provide a web access to them.
+
+<P>
+The address <TT>mylist-subscribe</TT> is an address enabling
+users to subscribe in a manner which can easily be explained to them.
+Beware: subscribing this way is so straightforward that you may find spammers
+subscribing to your list by accident.
+
+<P>
+The address <TT>mylist-unsubscribe</TT> is the equivalent for
+unsubscribing. By the way, the easier it is for users to unsubscribe, the easier it will
+be for you to manage your list!
 
 <P>
 
 <H1><A NAME="SECTION00630000000000000000"></A>
-    <A NAME="690"></A>
+<A NAME="alias-manager"></A>
 <BR>
-5.3 Database structure update
-</H1>
+5.3 Alias manager
+</H1>	
 
 <P>
-Whatever RDBMS you are using (mysql, SQLite, Pg, Sybase or Oracle) Sympa will check every database tables and fields. If one is missing <A NAME="8001"></A><TT>sympa.pl</TT>
-will not start. If you are using <A NAME="8004"></A>mysql Sympa will also check field types and will try to change them (or create them) automatically ; 
-assuming that the DB user configured has sufficient privileges. If You are not using Mysql or if the DB user configured in <A NAME="8005"></A><TT>sympa.conf</TT> 
-does have sufficient privileges, then you should change the database structure yourself, as mentionned in the <A NAME="8008"></A><TT>NEWS</TT> file.
+The <A NAME="5846"></A><TT>alias_manager.pl</TT> script does aliases management. It is run by <A NAME="5849"></A><I>WWSympa</I> and
+ will install aliases for a new list and delete aliases for closed lists. 
 
 <P>
-Output of Sympa logs :<PRE>
-Table admin_table created in database sympa
-Field 'comment_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field comment_admin added to table admin_table
-Field 'date_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field date_admin added to table admin_table
-Field 'include_sources_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field include_sources_admin added to table admin_table
-Field 'included_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field included_admin added to table admin_table
-Field 'info_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field info_admin added to table admin_table
-Field 'list_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field list_admin added to table admin_table
-Field 'profile_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field profile_admin added to table admin_table
-Field 'reception_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field reception_admin added to table admin_table
-Field 'role_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field role_admin added to table admin_table
-Field 'subscribed_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field subscribed_admin added to table admin_table
-Field 'update_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Field update_admin added to table admin_table
-Field 'user_admin' (table 'admin_table' ; database 'sympa') was NOT found. Attempting to add it...
-Setting list_admin,user_admin,role_admin fields as PRIMARY
-Field user_admin added to table admin_table
+The script expects the following arguments :
+
+<OL>
+<LI>add | del
+</LI>
+<LI><TT>&lt;</TT>list name<TT>&gt;</TT>
+</LI>
+<LI><TT>&lt;</TT>list domain<TT>&gt;</TT>
+</LI>
+</OL>
+Example : <A NAME="5852"></A><TT>/usr/local/sympa-os//bin/alias_manager.pl add mylistcru.fr</TT>
+
+<P>
+<A NAME="5855"></A><TT>/usr/local/sympa-os//bin/alias_manager.pl</TT> works on the alias file as defined in <A NAME="5858"></A><TT>sympa.conf</TT>)
+by the <A NAME="5861"></A>SENDMAIL_ALIASES  variable (default is <A NAME="5862"></A><TT>/etc/mail/sympa_aliases</TT>) in the main Makefile (see <A HREF="node4.html#makefile">3.3</A>,  page&nbsp;<A HREF="node4.html#makefile"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>). You must refer to this aliases file in your <A NAME="5865"></A><TT>sendmail.mc</TT> (if using sendmail) :<PRE>
+define(`ALIAS_FILE', `/etc/aliases,/etc/mail/sympa_aliases')dnl
 </PRE>
 
 <P>
-You might need, for some reason, to make Sympa run the migration procedure from version <I>X</I> to version <I>Y</I>.
-This procedure is run automatically by <A NAME="8011"></A><TT>sympa.pl -upgrade</TT> when it detects that <A NAME="8014"></A><TT>/data_structure.version</TT> is older 
-than the current version, but you can also run trigger this procedure yourself :<PRE>
-sympa.pl --upgrade --from=4.1 --to=5.2
-</PRE>
+<A NAME="5868"></A><TT>/usr/local/sympa-os//bin/alias_manager.pl</TT> runs a <A NAME="5871"></A><TT>newaliases</TT> command (via <A NAME="5874"></A><TT>aliaswrapper</TT>), after any changes to aliases file.
+
+<P>
+If you manage virtual domains with your mail server, then you might want to change
+the form of aliases used by the alias_manager. You can customize the <A NAME="5877"></A><TT>list_aliases</TT>
+template that is parsed to generate list aliases (see<A HREF="node16.html#list-aliases-tpl">15.8.8</A>,  
+page&nbsp;<A HREF="node16.html#list-aliases-tpl"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+
+<P>
+<A NAME="ldap-aliases"></A>L. Marcotte has written a version of <A NAME="5880"></A><TT>alias_manager.pl</TT> that is LDAP enabled.
+Check the contrib. page for more information : <A NAME="tex2html18"
+  HREF="http://sympa.org/contrib.html">http://sympa.org/contrib.html</A>.
 
 <P>
 
 <H1><A NAME="SECTION00640000000000000000"></A>
-    <A NAME="708"></A>
+<A NAME="virtual-domains"></A>
 <BR>
-5.4 Preserving your customizations
-</H1>
+5.4 Virtual domains
+</H1>	
 
 <P>
-Sympa comes with default configuration files (templates, scenarios,...) that will be installed in the <A NAME="8017"></A><TT>/usr/local/sympa-os/bin</TT> directory. 
-If you need to customize some of them, you should copy the file first in a safe place, ie in the <A NAME="8020"></A><TT>/usr/local/sympa-os/etc</TT> directory.
-If you do so, the Sympa upgrade process will preserve your site customizations.
+When using virtual domains with <A NAME="5883"></A><TT>sendmail</TT> or <A NAME="5886"></A><TT>postfix</TT>, you can't
+refer to  <TT>mylist@my.domain.org</TT> on the right-hand side of an 
+<A NAME="5890"></A><TT>/etc/aliases</TT> entry. You need to define an additional entry in a virtual table.
+You can also add a unique entry, with a regular expression, for your domain. 
 
 <P>
+With Postfix, you should edit the <A NAME="5893"></A><TT>/etc/postfix/virtual.regexp</TT> file as follows :
+<BLOCKQUOTE>
+/<code>^</code>(.*)@my.domain.org$/	 my.domain.org-$1
 
-<H1><A NAME="SECTION00650000000000000000"></A>
-    <A NAME="712"></A>
-<BR>
-5.5 Running 2 Sympa versions on a single server
-</H1>
+</BLOCKQUOTE>
+ Entries in the 'aliases' file will look like this :
+<BLOCKQUOTE>
+my.domain.org-sympa:   "|/usr/local/sympa-os//bin/sympa.pl sympa@my.domain.org"
+    .....
+    my.domain.org-listA:   "|/usr/local/sympa-os//bin/sympa.pl listA@my.domain.org"
 
-<P>
-This can be very convenient to have a stable version of Sympa and a fresh version for test purpose, both running on the same server.
-
-<P>
-Both sympa instances must be completely partitioned, unless you want the make production mailing lists visible through the
-test service. 
-
-<P>
-The biggest part of the partitioning is achieved while running the <A NAME="8023"></A><TT>./configure</TT>. Here is a sample call to <A NAME="8026"></A><TT>./configure</TT>
-on the test server side :
-
-<P><PRE>
-./configure --prefix=/home/sympa-dev \
-            --with-confdir=/home/sympa-dev/etc \
-            --with-mandir=/home/sympa-dev/man \
-            --with-initdir=/home/sympa-dev/init \
-	    --with-piddir=/home/sympa-dev/pid
-            --with-lockdir=/home/sympa-dev/lock \
-            --with-sendmail_aliases=/home/sympa-dev/etc/sympa_aliases
-</PRE>
+</BLOCKQUOTE>
 
 <P>
-You can also customize more parameters via the <A NAME="8029"></A><TT>/home/sympa-dev/etc/sympa.conf</TT> file.
+With Sendmail, add the following entry to <A NAME="5896"></A><TT>/etc/mail/virtusertable</TT> file :
+<BLOCKQUOTE>
+@my.domain.org       my.domain.org-%1%3
 
-<P>
-If you wish to share the same lists in both Sympa instances, then some parameters should have the same value :
-<A NAME="8032"></A><TT>home</TT>, <A NAME="8035"></A><TT>db_name</TT>, <A NAME="8038"></A><TT>arc_path</TT>
-
-<P>
-
-<H1><A NAME="SECTION00660000000000000000"></A>
-    <A NAME="724"></A>
-<BR>
-5.6 Moving to another server
-</H1>
-
-<P>
-If you're upgrading and moving to another server at the same time, we recommend you first to stop the operational service, move your data and 
-then upgrade Sympa on the new server. This will guarantee that Sympa upgrade procedures have been applied
-on the data. 
-
-<P>
-The migration process requires that you move the following data from the old server to the new one :
-
-<UL>
-<LI>the user database. If using mysql you can probably just stop <A NAME="8041"></A><TT>mysqld</TT> and copy the <A NAME="8044"></A><TT>/var/lib/mysql/sympa/</TT>
-      directory to the new server.
-
-<P>
-</LI>
-<LI>the <A NAME="8047"></A><TT>/usr/local/sympa-os/expl</TT> directory that contains list config
-
-<P>
-</LI>
-<LI>the <A NAME="8050"></A> directory that contains the spools
-
-<P>
-</LI>
-<LI>the <A NAME="8053"></A> directory and <A NAME="8056"></A><TT>/usr/local/sympa-os/etc/sympa.conf</TT> and <A NAME="8059"></A><TT>wwsympa.conf</TT>. Sympa new installation create a file <A NAME="8062"></A><TT>/usr/local/sympa-os/etc/sympa.conf</TT> (see <A HREF="node8.html#exp-admin">7</A>) and initialize randomly the cookie parameter. Changing this parameter will break all passwords.  When upgrading Sympa on a new server take care that you start with the same value of this parameter, otherwise you will have troubles !
-
-<P>
-</LI>
-<LI>the web archives
-
-<P>
-</LI>
-</UL>
-
-<P>
-In some case, you may want to install the new version and run it for a few days before switching
-the existing service to the new Sympa server.  In this case perform a new installation with an empty
-database and play with it. When you decide to move the existing service to the new server :
-
-<OL>
-<LI>stop all sympa processus on both servers, 
-</LI>
-<LI>transfert the database
-</LI>
-<LI>edit the <A NAME="8065"></A><TT>/data_structure.version</TT> on the new server ; change the version value to reflect the old number
-</LI>
-<LI>start <A NAME="8068"></A><TT>sympa.pl -upgrade</TT>, it will upgrade the database structure according the hop you do. 
-</LI>
-</OL>
+</BLOCKQUOTE>
 
 <P>
 
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html900"
+<A NAME="tex2html768"
   HREF="node7.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html894"
+<A NAME="tex2html762"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html888"
+<A NAME="tex2html756"
   HREF="node5.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html896"
+<A NAME="tex2html764"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html898"
-  HREF="node31.html">
+<A NAME="tex2html766"
+  HREF="node26.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html901"
-  HREF="node7.html">6. Mail aliases</A>
-<B> Up:</B> <A NAME="tex2html895"
+<B> Next:</B> <A NAME="tex2html769"
+  HREF="node7.html">6. sympa.conf parameters</A>
+<B> Up:</B> <A NAME="tex2html763"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html889"
-  HREF="node5.html">4. Running Sympa</A>
- &nbsp; <B>  <A NAME="tex2html897"
+<B> Previous:</B> <A NAME="tex2html757"
+  HREF="node5.html">4. Upgrading Sympa</A>
+ &nbsp; <B>  <A NAME="tex2html765"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html899"
-  HREF="node31.html">Index</A></B> 
+ &nbsp; <B>  <A NAME="tex2html767"
+  HREF="node26.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2005-06-16
 </ADDRESS>
 </BODY>
 </HTML>

@@ -18,11 +18,6 @@ use constant PAR  => 2;
 use constant QUO1 => 3;
 use constant QUO2 => 4;
 use constant QUO3 => 5;
-use constant BEGM => 6;
-use constant PARM => 7;
-use constant QUOM1 => 8;
-use constant QUOM2 => 9;
-use constant COMM => 10;
 
 =head1 NAME
 
@@ -68,7 +63,7 @@ C<E<lt>&|/locE<gt>I<...>E<lt>/&E<gt>> will be extracted.
 
 =item Template Toolkit
 
-Texts inside C<[%|l%]...[%END%]>, C<[%|loc%]...[%END%]> or C<[%|locdt%]...[%END%]>
+Texts inside C<[%|l%]...[%END%]> or C<[%|loc%]...[%END%]>
 are extracted.
 
 =item Text::Template
@@ -78,7 +73,7 @@ extracted.
 
 =cut
 
-my (%file, %type_of_entries, %Lexicon, %opts);
+my (%file, %Lexicon, %opts);
 my ($PO, $out);
 
 # options as above. Values in %opts
@@ -141,9 +136,7 @@ foreach my $file (@ARGV) {
 		my ($self, $text, $is_cdata) = @_;
 		my $sentences = Lingua::EN::Sentence::get_sentences($text) or return;
 		$text =~ s/\n/ /g; $text =~ s/^\s+//; $text =~ s/\s+$//;
-		&add_expression({'expression' => $text,
-				 'filename' => $filename,
-				 'line' => $line});
+		push @{$file{$text}}, [ $filename, $line ];
 	    }
 	}   
 
@@ -161,43 +154,30 @@ foreach my $file (@ARGV) {
     while (m!\G.*?<&\|/l(?:oc)?(.*?)&>(.*?)</&>!sg) {
 	my ($vars, $str) = ($1, $2);
 	$line += ( () = ($& =~ /\n/g) ); # cryptocontext!
-	$str =~ s/\\\'/\'/g; 
-	&add_expression({'expression' => $str,
-			 'filename' => $filename,
-			 'line' => $line,
-			 'vars' => $vars});
+	$str =~ s/\\'/\'/g; 
+	push @{$file{$str}}, [ $filename, $line, $vars ];
     }
 
     # Template Toolkit
     $line = 1; pos($_) = 0;
-    while (m!\G.*?\[%\s*\|(locdt|loc)(.*?)\s*%\](.*?)\[%\-?\s*END\s*\-?%\]!sg) {
-	my ($this_tag, $vars, $str) = ($1, $2, $3);
+    while (m!\G.*?\[%\s*\|l(?:oc)?(.*?)\s*%\](.*?)\[%\-?\s*END\s*\-?%\]!sg) {
+	my ($vars, $str) = ($1, $2);
 	$line += ( () = ($& =~ /\n/g) ); # cryptocontext!
-	$str =~ s/\\\'/\'/g; 
+	$str =~ s/\\'/\'/g; 
 	$vars =~ s/^\s*\(//;
 	$vars =~ s/\)\s*$//;
-	my $expression = {'expression' => $str,
-			  'filename' => $filename,
-			  'line' => $line,
-			  'vars' => $vars};       
-	$expression->{'type'} = 'date' if ($this_tag eq 'locdt');
-	&add_expression($expression);
+	push @{$file{$str}}, [ $filename, $line, $vars ];
     }
 	    
     # Template Toolkit with ($tag$%|loc%$tag$)...($tag$%END%$tag$) in archives
     $line = 1; pos($_) = 0;
-    while (m!\G.*?\(\$tag\$%\s*\|(locdt|loc)(.*?)\s*%\$tag\$\)(.*?)\(\$tag\$%\s*END\s*%\$tag\$\)!sg) {
-	my ($this_tag, $vars, $str) = ($1, $2, $3);
+    while (m!\G.*?\(\$tag\$%\s*\|l(?:oc)?(.*?)\s*%\$tag\$\)(.*?)\(\$tag\$%\s*END\s*%\$tag\$\)!sg) {
+	my ($vars, $str) = ($1, $2);
 	$line += ( () = ($& =~ /\n/g) ); # cryptocontext!
-	$str =~ s/\\\'/\'/g; 
+	$str =~ s/\\'/\'/g; 
 	$vars =~ s/^\s*\(//;
 	$vars =~ s/\)\s*$//;
-	my $expression = {'expression' => $str,
-			  'filename' => $filename,
-			  'line' => $line,
-			  'vars' => $vars};       
-	$expression->{'type'} = 'date' if ($this_tag eq 'locdt');
-	&add_expression($expression);
+	push @{$file{$str}}, [ $filename, $line, $vars ];
     }	    
 
 	    # Sympa variables (gettext_id)
@@ -205,18 +185,14 @@ foreach my $file (@ARGV) {
 	    while (/\G.*?\'gettext_id\'\s*=>\s*\"([^\"]+)\"/sg) {
 		my $str = $1;
 		$line += ( () = ($& =~ /\n/g) ); # cryptocontext!
-		&add_expression({'expression' => $str,
-				 'filename' => $filename,
-				 'line' => $line});
+		push @{$file{$str}}, [ $filename, $line];
 	    }
 
 	    $line = 1; pos($_) = 0;
 	    while (/\G.*?\'gettext_id\'\s*=>\s*\'([^\']+)\'/sg) {
 		my $str = $1;
 		$line += ( () = ($& =~ /\n/g) ); # cryptocontext!
-		&add_expression({'expression' => $str,
-				 'filename' => $filename,
-				 'line' => $line});
+		push @{$file{$str}}, [ $filename, $line];
 	    }
 
 	    # Sympa scenarios variables (title.gettext)
@@ -224,13 +200,11 @@ foreach my $file (@ARGV) {
 	    while (/\G.*?title.gettext\s*([^\n]+)/sg) {
 		my $str = $1;
 		$line += ( () = ($& =~ /\n/g) ); # cryptocontext!
-		&add_expression({'expression' => $str,
-				 'filename' => $filename,
-				 'line' => $line});
+		push @{$file{$str}}, [ $filename, $line];
 	    }
 
     # Perl source file
-	    my ($state,$str,$vars)=(0); my $is_date = 0;
+    my ($state,$str,$vars)=(0);
     pos($_) = 0;
     my $orig = 1 + (() = ((my $__ = $_) =~ /\n/g));
   PARSER: {
@@ -238,24 +212,13 @@ foreach my $file (@ARGV) {
       my $line = $orig - (() = ((my $__ = $_) =~ /\n/g));
       # maketext or loc or _
       $state == NUL &&
-        m/\b(translate|gettext(?:_strftime)?|maketext|__?|loc|x)/gcx && do {
-          if ($& eq 'gettext_strftime') {
-            $state = BEGM;
-	    $is_date = 1;
-          } else {
-            $state = BEG;
-	    $is_date = 0;
-          }
-          redo;
-        };
-      ($state == BEG || $state == BEGM) && m/^([\s\t\n]*)/gcx && do { redo; };
+        m/\b(translate|gettext|maketext|__?|loc|x)/gcx && do { $state = BEG;  redo; };
+      $state == BEG && m/^([\s\t\n]*)/gcx && do { redo; };
       # begin ()
       $state == BEG && m/^([\S\(]) /gcx && do {
 	$state = ( ($1 eq '(') ? PAR : NUL) ;
 	redo;
       };
-      $state == BEGM && m/^([\(])  /gcx && do { $state = PARM; redo };
-
       # begin or end of string
       $state == PAR  && m/^(\')  /gcx     && do { $state = QUO1; redo; };
       $state == QUO1 && m/^([^\']+)/gcx && do { $str.=$1; redo; };
@@ -269,30 +232,12 @@ foreach my $file (@ARGV) {
       $state == QUO3 && m/^([^\`]*)/gcx && do { $str.=$1; redo; };
       $state == QUO3 && m/^\`  /gcx     && do { $state = PAR;  redo; };
 
-      $state == BEGM && m/^(\') /gcx     && do { $state = QUOM1; redo; };
-      $state == PARM && m/^(\') /gcx     && do { $state = QUOM1; redo; };
-      $state == QUOM1 && m/^([^\']+)/gcx && do { $str.=$1; redo; };
-      $state == QUOM1 && m/^\'  /gcx     && do { $state = COMM;  redo; };
-
-      $state == BEGM && m/^(\") /gcx     && do { $state = QUOM2; redo; };
-      $state == PARM && m/^(\") /gcx     && do { $state = QUOM2; redo; };
-      $state == QUOM2 && m/^([^\"]+)/gcx && do { $str.=$1; redo; };
-      $state == QUOM2 && m/^\"  /gcx     && do { $state = COMM;  redo; };
-
       # end ()
-      ($state == PAR && m/^[\)]/gcx || $state == COMM && m/^,/gcx)
+      $state == PAR && m/^[\)]/gcx
 	&& do {
 	  $state = NUL;	
 	  $vars =~ s/[\n\r]//g if ($vars);
-	  if ($str) {
-	      my $expression = {'expression' => $str,
-				'filename' => $filename,
-				'line' => $line - (() = $str =~ /\n/g),
-				'vars' => $vars};
-	      $expression->{'type'} = 'date' if ($is_date);
-
-	      &add_expression($expression);
-	  }
+	  push @{$file{$str}}, [ $filename, $line - (() = $str =~ /\n/g), $vars] if ($str);
 	  undef $str; undef $vars;
 	  redo;
 	};
@@ -366,36 +311,16 @@ foreach my $entry (sort keys %Lexicon) {
     }
 
     my %seen;
-
-    ## Print code/templates references
     print "\n#:$f\n";
-
-    ## Print variables if any
     foreach my $entry ( grep { $_->[2] } @{$file{$entry}} ) {
 	my ($file, $line, $var) = @{$entry};
 	$var =~ s/^\s*,\s*//; $var =~ s/\s*$//;
 	print "#. ($var)\n" unless !length($var) or $seen{$var}++;
     }
 
-    ## If the entry is a date format, add a developper comment to help translators
-    if ($type_of_entries{$entry} eq 'date') {
-	print "#. This entry is a date/time format\n";
-	print "#. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html\n";
-    }
-
     print "#, maketext-format" if $opts{g} and /%(?:\d|\w+\([^\)]*\))/;
     print "msgid "; output($entry);
     print "msgstr "; output($Lexicon{$entry});
-}
-
-## Add expressions to list of expressions to translate
-## parameters : expression, filename, line, vars
-sub add_expression {
-    my $param = shift;
-
-    push @{$file{$param->{'expression'}}}, [ $param->{'filename'}, $param->{'line'}, $param->{'vars'} ];
-    $type_of_entries{$param->{'expression'}} = $param->{'type'} if ($param->{'type'});
-
 }
 
 sub output {

@@ -40,7 +40,7 @@ unless (&Conf::load($sympa_conf_file)) {
 
 ## Probe Db if defined
 if ($Conf{'db_name'} and $Conf{'db_type'}) {
-    unless ($List::use_db = &Upgrade::probe_db()) {
+    unless ($List::use_db = &List::probe_db()) {
 	&die('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
     }
 }
@@ -73,7 +73,7 @@ if (($main::options{'help'} ne '') ||
 }else{
 
     if ($listname) {
-	my $self = new List($listname, $robot);
+	my $self = new List($listname);
 	$cert = $self->{'dir'}.'/cert.pem';
 	$privatekey = $self->{'dir'}.'/private_key';
 	unless (-d $self->{'dir'}) {

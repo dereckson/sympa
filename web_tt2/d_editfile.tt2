@@ -1,69 +1,69 @@
 <!-- $Id$ -->
 
-<div class="block">
-
-  <div class="search_form">
-     <a class="input"  href="[% path_cgi %]/d_read/[% list %]/[% escaped_father %]"><img src="[% father_icon %]" alt="up to higher level directory"> [%|loc%]Up to higher level directory[%END%] </a>
-  </div>
-<br/>
 
 
+<table width="100%"><tr>
+ <td>
   [% IF url %]
   <h1>[%|loc(visible_path)%]Edition of the bookmark %1[%END%]</h1>
   [% ELSE %]
   <h1>[%|loc(visible_path)%]Edition of the file %1[%END%]</h1>
   [% END %]
+ </td>
+ <td align="right">
+  <h3><a href="[% path_cgi %]/d_read/[% list %]/[% escaped_father %]"> <img style="border: 0px; vertical-align: bottom;" src="[% father_icon %]"> [%|loc%]Up to higher level directory[%END%] </a></h3>
+ </td>      
+</tr></table>
+<br/>
 
     [%|loc(doc_owner)%]Owner : %1[%END%] <br />
     [%|loc(doc_date)%]Last update : %1[%END%] <br />
     [%|loc(desc)%]Description : %1[%END%] <br /><br />
 
-</div>
+<table cellspacing="15">
 
-  <br /><br />
   [% IF !directory %]
-  
+  <tr>
   <form method="post" action="[% path_cgi %]" enctype="multipart/form-data">
-  <fieldset>
-
+  <td style="text-align: right;" valign="bottom">
   [% IF url %]
-  <label for="url"><strong> [%|loc%]Bookmark URL[%END%] </strong</label>><br /> 
-  <input id="url" name="url" value="[% url %]" />
+  <label><strong> [%|loc%]Bookmark URL[%END%] </strong><br /> 
+  <input name="url" value="[% url %]" /></label>
   [% ELSE %]
-  <label for="uploaded_file"><strong> [%|loc(visible_path)%]Replace the file %1 with your file[%END%] </strong></label>
-  &nbsp;<input id="uploaded_file" type="file" name="uploaded_file" />&nbsp;
+  <label><strong> [%|loc(visible_path)%]Replace the file %1 with your file[%END%] </strong><br /> 
+  <input type="file" name="uploaded_file" /></label>
   [% END %]
-  &nbsp;
+  </td>
+  <td style="text-align: left;" valign="bottom"> 
   [% IF url %]
-  <input class="MainMenuLinks" type="submit" value="[%|loc%]Update[%END%]" name="action_d_savefile" />
+  <input type="submit" value="[%|loc%]Update[%END%]" name="action_d_savefile" />
   [% ELSE %]
-  <input class="MainMenuLinks" type="submit" value="[%|loc%]Publish[%END%]" name="action_d_overwrite" />
+  <input type="submit" value="[%|loc%]Publish[%END%]" name="action_d_overwrite" />
   [% END %]
   <input type="hidden" name="list" value="[% list %]" />
   <input type="hidden" name="path" value="[% path %]" />
   <input type="hidden" name="serial" value="[% serial_file %]" />
-  </fieldset>
+  </td>
   </form>
-
+  </tr>
   [% END %]
 
 
+</table>
 <br />
 <br />
 
 [% IF !url %]
 [% IF textfile %]
   <form action="[% path_cgi %]" method="post">
-  <fieldset>
-  <label for="content"><strong> [%|loc(visible_path)%]Edit the file %1[%END%]</strong></label><br />
-  <textarea id="content" name="content" cols="90" rows="25">
+  <label><strong> [%|loc(visible_path)%]Edit the file %1[%END%]</strong><br />
+  <textarea name="content" cols="80" rows="25">
 [% INSERT $filepath IF filepath %]
-  </textarea><br />
+  </textarea></label><br />
   <input type="hidden" name="list" value="[% list %]" />
   <input type="hidden" name="path" value="[% path %]" />
   <input type="hidden" name="serial" value="[% serial_file %]" />
-  <input class="MainMenuLinks" type="submit" name="action_d_savefile" value="[%|loc%]Publish[%END%]" />
-  </fieldset>
+  <input type="submit" name="action_d_savefile" value="[%|loc%]Publish[%END%]" />
   </form>
 [% END %]
 [% END %]
