@@ -76,12 +76,8 @@ sub rfc1891 {
 		    $status = $1;
 		}
 		
-		if (/^Original-Recipient:\s*rfc822\s*;\s*(.*)$/mi ||
-		    /^Final-Recipient:\s*rfc822\s*;\s*(.*)$/mi) {
+		if (/^Final-Recipient:\s*rfc822\s*;\s*(.*)$/mi) {
 		    $recipient = $1;
-		    if ($recipient =~ /\@.+:(.+)$/) {
-			$recipient = $1;
-		    }
 		    $recipient =~ s/^<(.*)>$/$1/;
 		    $recipient =~ y/[A-Z]/[a-z]/;
 		}

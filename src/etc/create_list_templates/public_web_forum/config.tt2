@@ -2,7 +2,7 @@ subject [% subject %]
 
 status [% status %]
 
-[% IF topics -%]
+[% IF topics %]
 topics [% topics %]
 [% END %]
 
@@ -37,23 +37,15 @@ digest 3 4:36
 default_user_options
   reception summary
 
-[% FOREACH o = owner -%]
 owner
-  email [% o.email %]
+  email [% owner.email %]
   profile privileged
-  [% IF o.gecos -%] 
-  gecos [% o.gecos %]
+  [% IF owner.gecos %] 
+  gecos [% owner.gecos %]
   [% END %]
 
-[% END %]
-
-[% IF editor -%]
-[% FOREACH e = editor -%]
 editor
-  email [% e.email %]
-
-[% END %]
-[% END %]
+  email [% owner.email %]
 
 shared_doc
 d_edit default
@@ -62,8 +54,6 @@ d_read public
 creation
   date [% creation.date %]
   date_epoch [% creation.date_epoch %]
-[% IF creation_email -%]
-  email [% creation_email %]
-[% END %]
+  email [% creation.email %]
 
 serial 0

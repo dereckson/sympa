@@ -1,20 +1,18 @@
-	<form action="[% path_cgi %]" method="post">
-	<fieldset>
-	  <input type="hidden" name="list" value="[% list %]" />
-	  <label for="new_robot">[%|loc%]New list name:[%END%]</label> <input id="new_robot" name="new_listname" value="" /> @
+	<FORM ACTION="[% path_cgi %]" METHOD=POST>
+	  <INPUT TYPE="hidden" NAME="list" VALUE="[% list %]">
+	  [%|loc%]New list name:[%END%] <INPUT NAME="new_listname" VALUE=""> 
 	[% IF robots %]
-           <select name="new_robot">
+           <SELECT NAME="new_robot">
            [% FOREACH vr = robots %]
-             <option value="[% vr.key %]" [% vr.value %]>[% vr.key %]</option>
+             <OPTION VALUE="[% vr.key %]" [% vr.value %]>[% vr.key %]
            [% END %]
-	   </select>
+	   </SELECT>
 	[% ELSE %]
-	   <input name="new_robot" type="hidden" value="[% robot %]" />
+	   <INPUT NAME="new_robot" TYPE="hidden" VALUE="[% robot %]">
 	   [% robot %]
         [% END %]
-	  <input class="MainMenuLinks" type="submit" name="action_rename_list" value="[%|loc%]Rename this list[%END%]" onclick="return request_confirm('[% FILTER escape_quote %][%|loc%]Do you really want to rename this list?[%END%][%END%]')" />
-	</fieldset>
-	</form>
+	  <INPUT TYPE="submit" NAME="action_rename_list" VALUE="[%|loc%]Rename this list[%END%]" onClick="return request_confirm('[%|loc%]Do you really want to rename this list?[%END%]')">
+	</FORM>
 
 
 	

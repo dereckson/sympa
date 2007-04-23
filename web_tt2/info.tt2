@@ -1,11 +1,25 @@
 <!-- $Id$ -->
-[% IF homepage_content %]
-     [% homepage_content %]
-[% ELSE %]
-   <pre>
-     [% info_content %]
-   </pre>
-[% END %]
+
+<TABLE WIDTH="100%" BORDER=0 CELLSPACING=0  CELLPADDING=0>
+  <TR VALIGN=top>
+    <TD> 
+      <BR>
+      [% IF homepage %]
+ 	  [% TRY %]
+            [% INSERT 'homepage' %]
+          [% CATCH %]
+	  [% END %]
+      [% ELSE %]
+         <PRE>
+	  [% TRY %]
+            [% INSERT 'info' %]
+          [% CATCH %]
+	  [% END %]
+         </PRE>
+      [% END %]
+    </TD>
+  </TR>
+</TABLE>
 
 
 
