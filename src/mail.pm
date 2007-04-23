@@ -220,10 +220,12 @@ sub mail_file {
 	$headers .= "MIME-Version: 1.0\n";
     }
     unless ($header_ok{'content-type'}) {
-	$headers .= "Content-Type: text/plain; charset=UTF-8\n";
+	$headers .= "Content-Type: text/plain; charset=$data->{'charset'}\n";
     }
     unless ($header_ok{'content-transfer-encoding'}) {
-	$headers .= "Content-Transfer-Encoding: 8bit\n"; 
+	$headers .= "Content-Transfer-Encoding:"; 
+        $headers .= gettext("_encoding_");
+	$headers .= "\n";
     }
     unless ($existing_headers) {
 	$headers .= "\n";
@@ -244,6 +246,9 @@ sub mail_file {
 	push @msgs, join('', <IN>);
 	close IN;
     }
+    unless ($message = &reformat_message("$headers"."$message", \@msgs)) {
+	&do_log('err', "mail::mail_file: Failed to reformat message");
+    }
 
     my $listname = '';
     if (ref($data->{'list'}) eq "HASH") {
@@ -252,10 +257,6 @@ sub mail_file {
 	$listname = $data->{'list'};
     }
      
-    unless ($message = &reformat_message("$headers"."$message", \@msgs)) {
-	&do_log('err', "mail::mail_file: Failed to reformat message");
-    }
-
     ## Set it in case it was not set
     $data->{'return_path'} ||= &Conf::get_robot_conf($robot, 'request');
   

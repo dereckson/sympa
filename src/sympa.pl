@@ -86,11 +86,9 @@ Options:
    --lowercase                           : lowercase email addresses in database
    --create_list --robot=robot_name --input_file=/path/to/file.xml 
                                          : create a list with the xml file under robot_name
-   --instantiate_family=family_name  --robot=robot_name --input_file=/path/to/file.xml [--close_unknown] [--quiet]
+   --instantiate_family=family_name  --robot=robot_name --input_file=/path/to/file.xml       
                                          : instantiate family_name lists described in the file.xml under robot_name,
-                                           the family directory must exist ;
-                                           automatically close undefined lists in a new instantation if --close_unknown specified,
-                                           do not print report if --quiet specified.
+                                           the family directory must exist
   --add_list=family_name --robot=robot_name --input_file=/path/to/file.xml
                                          : add the list described by the file.xml under robot_name, to the family
                                            family_name.
@@ -122,7 +120,7 @@ my %options;
 unless (&GetOptions(\%main::options, 'dump=s', 'debug|d', ,'log_level=s','foreground', 'service=s','config|f=s', 
 		    'lang|l=s', 'mail|m', 'keepcopy|k=s', 'help', 'version', 'import=s','make_alias_file','lowercase',
 		    'close_list=s','purge_list=s','create_list','instantiate_family=s','robot=s','add_list=s','modify_list=s','close_family=s','md5_digest=s',
-		    'input_file=s','sync_include=s','upgrade','from=s','to=s','reload_list_config','list=s','quiet','close_unknown')) {
+		    'input_file=s','sync_include=s','upgrade','from=s','to=s','reload_list_config','list=s')) {
     &fatal_err("Unknown options.");
 }
 
@@ -230,7 +228,7 @@ unless (&Conf::checkfiles_as_root()) {
 }
 
 ## Check that the data structure is uptodate
-unless ($main::options{'upgrade'} || $main::options{'help'}) {
+unless ($main::options{'upgrade'}) {
     unless (&Upgrade::data_structure_uptodate()) {
 	&fatal_err("error : data structure was not updated ; you should run sympa.pl --upgrade to run the upgrade process.");
     }
@@ -248,9 +246,8 @@ if ($signal ne 'hup') {
 	    close(TTY);
 	}
 	open(STDIN, ">> /dev/null");
-	open(STDOUT, ">> /dev/null");
 	open(STDERR, ">> /dev/null");
-
+	open(STDOUT, ">> /dev/null");
 	setpgrp(0, 0);
 	# start the main sympa.pl daemon
 
@@ -321,7 +318,6 @@ if ($signal ne 'hup') {
 
     do_log('debug', "Running server $$ for $service purpose ");
     unless ($main::options{'batch'} ) {
-
 	## Create and write the pidfile
 	my $file = $Conf{'pidfile'};
 	$file = $Conf{'pidfile_distribute'} if ($main::daemon_usage == DAEMON_MESSAGE) ;
@@ -596,22 +592,14 @@ if ($main::options{'dump'}) {
  	exit 1;	
     }
 
-    unless ($family->instantiate($main::options{'input_file'}, $main::options{'close_unknown'})) {
+    unless ($family->instantiate($main::options{'input_file'})) {
  	print STDERR "\nImpossible family instantiation : action stopped \n";
  	exit 1;
     } 
         
-    my %result;
-    my $err = $family->get_instantiation_results(\%result);
+    my $string = $family->get_instantiation_results();
     close INFILE;
-
-    unless ($main::options{'quiet'}) {
-        print STDOUT "@{$result{'info'}}";
-        print STDOUT "@{$result{'warn'}}";
-    }
-    if ($err) {
-        print STDERR "@{$result{'errors'}}";
-    }
+    print STDERR $string;
     
     exit 0;
 }elsif ($main::options{'add_list'}) {
@@ -681,6 +669,9 @@ if ($main::options{'dump'}) {
 }elsif ($main::options{'upgrade'}) {
     
     &do_log('notice', "Upgrade process...");
+    &do_log('notice', "If you did not set the 'filesystem_encoding' sympa.conf parameter, you should do so before running this script...hit <return> to continue");
+
+    my $wait = <STDIN>;
 
     $main::options{'from'} ||= &Upgrade::get_previous_version();
     $main::options{'to'} ||= $Version::Version;
@@ -1003,11 +994,10 @@ List::db_disconnect if ($List::dbh);
 } #end of block while ($signal ne 'term'){
 
 do_log('notice', 'Sympa exited normally due to signal');
-my $file = $Conf{'pidfile'};
-$file = $Conf{'pidfile_distribute'} if ($main::daemon_usage == DAEMON_MESSAGE) ;
-$file = $Conf{'pidfile_creation'} if ($main::daemon_usage == DAEMON_CREATION) ;
-&tools::remove_pid($file, $$);
-
+unless (unlink $Conf{'pidfile'}) {
+    fatal_err("Could not delete %s, exiting", $Conf{'pidfile'});
+    ## No return.
+}
 exit(0);
 
 
@@ -1765,8 +1755,7 @@ sub DoMessage{
 
     ## message topic context	
     if (($action =~ /^do_it/) && ($context->{'topic_needed'})) {
-        $action = 'editorkey' if ($list->{'admin'}{'msg_topic_tagging'} eq 'required_moderator');
-	$action = 'request_auth' if ($list->{'admin'}{'msg_topic_tagging'} eq 'required_sender');
+	$action = "editorkey";
     }
 
     if (($action =~ /^do_it/) || ($main::daemon_usage == DAEMON_MESSAGE)) {

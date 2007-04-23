@@ -1802,7 +1802,7 @@ sub get_filename {
 	}
 	my @result;
 	foreach my $f (@try) {
-	    &do_log('debug3','get_filename : name: %s ; dir %s', $name, $f  );
+	    &do_log('debug3','get_filname : name: %s ; dir %s', $name, $f  );
 	    if (-r $f) {
 		if ($options->{'order'} eq 'all') {
 		    push @result, $f;
@@ -1991,34 +1991,6 @@ sub qencode_hierarchy {
     return $count;
 }
 
-## Dumps the value of each character of the inuput string
-sub dump_encoding {
-    my $out = shift;
-
-    $out =~ s/./sprintf('%02x', ord($&)).' '/eg;
-    return $out;
-}
-
-## Remove PID file and STDERR output
-sub remove_pid {
-    my ($pidfile, $pid) = @_;
-
-    unless (unlink $pidfile) {
-	&do_log('err', "Failed to remove $pidfile: %s", $!);
-	return undef;
-    }
-    
-    my $err_file = $Conf{'tmpdir'}.'/'.$pid.'.stderr';
-    if (-f $err_file) {
-	unless (unlink $err_file) {
-	    &do_log('err', "Failed to remove $err_file: %s", $!);
-	    return undef;
-	}
-    }
-
-    return 1;
-}
-
 sub write_pid {
     my ($pidfile, $pid) = @_;
 
@@ -2035,14 +2007,6 @@ sub write_pid {
     
     chown $uid, $gid, $piddir;
 
-    ## If pidfile exists, read the PID and get date
-    my ($other_pid);
-    if (-f $pidfile) {
-	open PFILE, $pidfile;
-	$other_pid = <PFILE>; chomp $other_pid;
-	close PFILE;	
-    }
-
     ## Create and write the pidfile
     unless (open(LOCK, "+>> $pidfile")) {
 	 fatal_err('Could not open %s, exiting', $pidfile);
@@ -2050,25 +2014,6 @@ sub write_pid {
     unless (flock(LOCK, 6)) {
 	fatal_err('Could not lock %s, process is probably already running : %s', $pidfile, $!);
     }
-
-    ## The previous process died suddenly, without pidfile cleanup
-    ## Send a notice to listmaster with STDERR of the previous process
-    if ($other_pid) {
-	&do_log('notice', "Previous process $other_pid died suddenly ; notifying listmaster");
-	my $err_file = $Conf{'tmpdir'}.'/'.$other_pid.'.stderr';
-	my (@err_output, $err_date);
-	if (-f $err_file) {
-	    open ERR, $err_file;
-	    @err_output = <ERR>;
-	    close ERR;
-
-	    $err_date = &POSIX::strftime("%d %b %Y  %H:%M", localtime( (stat($err_file))[9]));
-	}
-
-	&List::send_notify_to_listmaster('crash', $Conf::Conf{'domain'},
-					 {'crash_err' => \@err_output, 'crash_date' => $err_date});
-    }
-
     unless (open(LCK, "> $pidfile")) {
 	fatal_err('Could not open %s, exiting', $pidfile);
     }
@@ -2080,11 +2025,6 @@ sub write_pid {
     close(LCK);
     
     chown $uid, $gid, $pidfile;
-
-    ## Error output is stored in a file with PID-based name
-    ## Usefull if process crashes
-    open(STDERR, '>>',  $Conf{'tmpdir'}.'/'.$pid.'.stderr') unless ($main::options{'foreground'});
-    chown $uid, $gid, $Conf{'tmpdir'}.'/'.$pid.'.stderr';
 
     return 1;
 }
