@@ -18,7 +18,7 @@ use strict;
 ## Sympa API
 require 'tt2.pl';
 use List;
-use mail;
+use smtp;
 use Conf;
 use Log;
 use Language;
@@ -55,7 +55,7 @@ $wwsconf->{'log_facility'}||= $Conf{'syslog'};
 &Log::do_openlog($wwsconf->{'log_facility'}, $Conf{'log_socket_type'}, 'soap');
 &Log::do_log('info', 'SOAP server launched');
 
-unless ($List::use_db = &List::check_db_connect()) {
+unless ($List::use_db = &List::probe_db()) {
     &do_log('err','SOAP server requires a RDBMS to run');
 }
 
@@ -66,10 +66,8 @@ my $pinfo = &List::_apply_defaults();
 &mail::set_send_spool($Conf{'queue'});
 
 ## Loading all Lists at startup, in order to increase execution speed
-
-my $all_lists = &List::get_lists('*');
-foreach my $list (@$all_lists){
-    ## Nothing to do here
+foreach my $listname (&List::get_lists('*')){
+     my $list = new List ($listname);
  }
 
 
@@ -80,7 +78,7 @@ foreach my $list (@$all_lists){
 my $server = SOAP::Transport::HTTP::FCGI::Sympa->new(); 
 
 #$server->dispatch_with({'urn:Sympa' => 'sympasoap'});
-$server->dispatch_to('--LIBDIR--/bin','sympasoap');
+$server->dispatch_to('--LIBDIR--','sympasoap');
 
 $server->handle($birthday);
 

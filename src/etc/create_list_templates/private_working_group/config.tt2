@@ -53,10 +53,8 @@ editor
 [% END %]
 
 shared_doc
-d_edit private
+d_edit default
 d_read private
-
-pictures_feature on
 
 creation
   date [% creation.date %]
