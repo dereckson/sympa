@@ -21,9 +21,9 @@
 
 sbin_SUBST	=	bounced.pl archived.pl
 
-cgi_SUBST	=	wwsympa.fcgi wwsympa_sudo_wrapper.pl
+cgi_SUBST	=	wwsympa.fcgi
 
-lib_SUBST	=	wwslib.pm cookielib.pm bounce-lib.pl Marc.pm Auth.pm SharedDocument.pm
+lib_SUBST	=	wwslib.pm cookielib.pm bounce-lib.pl Marc.pm Auth.pm
 
 SRC		=	mime.types 
 
@@ -50,11 +50,9 @@ installmod:
 	chown $(USER) $(DESTDIR)$(CGIDIR)/$$i; \
 	chgrp $(GROUP) $(DESTDIR)$(CGIDIR)/$$i; \
 	done
-	@if [ "$(enable_secure)" != "yes" ]; then \
-		echo "Setting SetUID bit on wwsympa.fcgi..."; \
-		chmod u+s $(DESTDIR)$(CGIDIR)/wwsympa.fcgi; \
-		chmod g+s $(DESTDIR)$(CGIDIR)/wwsympa.fcgi; \
-	fi
+	@echo "Setting SetUID bit on wwsympa.fcgi..."
+	chmod u+s $(DESTDIR)$(CGIDIR)/wwsympa.fcgi
+	chmod g+s $(DESTDIR)$(CGIDIR)/wwsympa.fcgi
 	chmod 755 $(DESTDIR)$(ICONSDIR)
 	chmod 755 $(DESTDIR)$(LIBDIR)/Marc
 	@for i in $(lib_SUBST) Marc/Search.pm; do \
@@ -147,8 +145,6 @@ substcgi:
 		PERL=$(PERL); export PERL; \
 		UMASK=0755; export UMASK; \
 		INSTALLDIR=$(CGIDIR); export INSTALLDIR; \
-		USER=$(USER); export USER; \
-		SUDO=$(SUDO); export SUDO; \
 		SBINDIR=$(SBINDIR); export SBINDIR; \
 		CGIDIR=$(CGIDIR); export CGIDIR; \
 		PIDDIR=$(PIDDIR); export PIDDIR;\
@@ -159,7 +155,6 @@ substcgi:
 		ICONSDIR=$(ICONSDIR); export ICONSDIR; \
 		WWSCONFIG=$(WWSCONFIG); export WWSCONFIG; \
 		CONFIG=$(CONFIG); export CONFIG; \
-		if [ "$(enable_secure)" = "yes" ]; then PERLOPT=""; else PERLOPT="-U"; fi; export PERLOPT; \
 		$(PERL) ../subst.pl $(cgi_SUBST) \
 	)
 
