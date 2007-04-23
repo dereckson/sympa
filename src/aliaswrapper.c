@@ -21,22 +21,11 @@
 
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 int main(int argc, char *argv[])
 {
-	extern char **environ;
-	char *arg[3];
-
-	environ[0] = NULL;
-	arg[0] = NEWALIASES;
-	arg[1] = NEWALIASES_ARG;
-	arg[2] = NULL;
-	if (*arg[1] == '\0') {
-	  arg[1] = NULL;
-	}
 	setuid(0);
-	execv(arg[0], arg);
+	execle(NEWALIASES, NEWALIASES, NEWALIASES_ARG, NULL);
 	perror("Exec of "NEWALIASES NEWALIASES_ARG" failed!");
 	exit(1);
 }
