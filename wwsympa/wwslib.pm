@@ -1,81 +1,52 @@
-# wwslib.pm - This module includes functions used by wwsympa.fcgi
-# RCS Identication ; $Revision$ ; $Date$ 
-#
-# Sympa - SYsteme de Multi-Postage Automatique
-# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
-# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-
 package wwslib;
-use lib '--LIBDIR--';
 
 use Exporter;
 @ISA = ('Exporter');
 @EXPORT = ();
 
-use Log;
-use Conf;
-# use Net::SSLeay qw(&get_https);
-# use Net::SSLeay;
+## Supported web languages
+@languages = ('fr','us','es','it','cn','cz','de','hu');
 
-%reception_mode = ('mail' => {'gettext_id' => 'standard (direct reception)'},
-		   'digest' => {'gettext_id' => 'digest MIME format'},
-		   'digestplain' => {'gettext_id' => 'digest plain text format'},
-		   'summary' => {'gettext_id' => 'summary mode'},
-		   'notice' => {'gettext_id' => 'notice mode'},
-		   'txt' => {'gettext_id' => 'text only mode'},
-		   'html'=> {'gettext_id' => 'html only mode'},
-		   'urlize' => {'gettext_id' => 'urlize mode'},
-		   'nomail' => {'gettext_id' => 'no mail (useful for vacations)'},
-		   'not_me' => {'gettext_id' => 'you do not receive your own posts'}
-		   );
+%reception_mode = ('mail' => 'normal',
+		   'digest' => 'digest',
+		   'summary' => 'summary',
+		   'notice' => 'notice',
+		   'txt' => 'txt',
+		   'html'=> 'html',
+		   'urlize' => 'urlize',
+		   'nomail' => 'no mail',
+		   'not_me' => 'not_me');
 
 ## Cookie expiration periods with corresponding entry in NLS
-%cookie_period = (0     => {'gettext_id' => "session"},
-		  10    => {'gettext_id' => "10 minutes"},
-		  30    => {'gettext_id' => "30 minutes"}, 
-		  60    => {'gettext_id' => "1 hour"},
-		  360   => {'gettext_id' => "6 hours"},
-		  1440  => {'gettext_id' => "1 day"}, 
-		  43200 => {'gettext_id' => "1 week"});
+%cookie_period = (0     => 1,
+		  10    => 2,
+		  30    => 3, 
+		  60    => 4,
+		  360   => 5,
+		  1440  => 6, 
+		  43200 => 7);
 
-%visibility_mode = ('noconceal' => {'gettext_id' => "listed in the list review page"},
-		    'conceal' => {'gettext_id' => "concealed"}
-		    );
+%visibility_mode = ('noconceal' => 'public',
+		    'conceal' => 'conceal');
 
 ## Filenames with corresponding entry in NLS set 15
-%filenames = ('welcome.tt2'             => {'gettext_id' => "welcome message"},
-	      'bye.tt2'                 => {'gettext_id' => "unsubscribe message"},
-	      'removed.tt2'             => {'gettext_id' => "deletion message"},
-	      'message.footer'          => {'gettext_id' => "message footer"},
-	      'message.header'          => {'gettext_id' => "message header"},
-	      'remind.tt2'              => {'gettext_id' => "remind message"},
-	      'reject.tt2'              => {'gettext_id' => "editor rejection message"},
-	      'invite.tt2'              => {'gettext_id' => "subscribing invitation message"},
-	      'helpfile.tt2'            => {'gettext_id' => "help file"},
-	      'lists.tt2'               => {'gettext_id' => "directory of lists"},
-	      'global_remind.tt2'       => {'gettext_id' => "global remind message"},
-	      'summary.tt2'             => {'gettext_id' => "summary message"},
-	      'info'                    => {'gettext_id' => "list description"},
-	      'homepage'                => {'gettext_id' => "list homepage"},
-	      'create_list_request.tt2' => {'gettext_id' => "list creation request message"},
-	      'list_created.tt2'        => {'gettext_id' => "list creation notification message"},
-	      'your_infected_msg.tt2'   => {'gettext_id' => "virus infection message"},
-	      'list_aliases.tt2'        => {'gettext_id' => "list aliases template"}
+%filenames = ('welcome.tpl' => 1,
+	      'bye.tpl' => 2,
+	      'removed.tpl'=> 3,
+	      'message.footer' => 4,
+	      'message.header' => 5,
+	      'remind.tpl' => 6,
+	      'reject.tpl' => 7,
+	      'invite.tpl' => 8,
+	      'helpfile.tpl' => 9,
+	      'lists.tpl' => 10,
+	      'global_remind.tpl' => 11,
+	      'summary.tpl' => 12,
+	      'info' => 13,
+	      'homepage' => 14,
+	      'create_list_request.tpl' => 15,
+	      'list_created.tpl' => 16,
+	      'your_infected_msg.tpl' => 17
 	      );
 
 ## Defined in RFC 1893
@@ -136,36 +107,32 @@ my $cipher;
 sub load_config {
     my $file = pop;
 
-    ## Old params
-    my %old_param = ('alias_manager' => 'No more used, using --SBINDIR--/alias_manager.pl',
-		     'wws_path' => 'No more used');
-
     ## Valid params
     my %default_conf = (arc_path => '/home/httpd/html/arc',
 			archive_default_index => 'thrd',
-			archived_pidfile => '--PIDDIR--/archived.pid',		  
+			archived_pidfile => 'archived.pid',		  
 			bounce_path => '/var/bounce',
-			bounced_pidfile => '--PIDDIR--/bounced.pid',
+			bounced_pidfile => 'bounced.pid',
 			cookie_domain => 'localhost',
 			cookie_expire => 0,
 			icons_url => '/icons',
 			mhonarc => '/usr/bin/mhonarc',
 			review_page_size => 25,
-			viewlogs_page_size => 25,
-			task_manager_pidfile => '--PIDDIR--/task_manager.pid',
+			task_manager_pidfile => 'task_manager.pid',
 			title => 'Mailing Lists Service',
 			use_fast_cgi => 1,
+			wws_path => '--BINDIR--',
 			default_home => 'home',
 			log_facility => '',
+			alias_manager => '',
 			robots => '',
-			password_case => 'insensitive',
-			htmlarea_url => '',
+			password_case => 'insensitive'
 			);
 
     my $conf = \%default_conf;
 
     unless (open (FILE, $file)) {
-	&Log::do_log('err',"load_config: unable to open $file");
+	printf STDERR "load_config: unable to open $file\n";
 	return undef;
     }
     
@@ -177,10 +144,8 @@ sub load_config {
 	    $v =~ s/\s*$//;
 	    if (defined ($conf->{$k})) {
 		$conf->{$k} = $v;
-	    }elsif (defined $old_param{$k}) {
-		&Log::do_log('err',"Parameter %s in %s no more supported : %s", $k, $file, $old_param{$k});
 	    }else {
-		&Log::do_log('err',"Unknown parameter %s in %s", $k, $file);
+		printf STDERR "Unknown parameter %s in %s\n", $k, $file;
 	    }
 	}
 	next;
@@ -190,15 +155,15 @@ sub load_config {
 
     ## Check binaries and directories
     if ($conf->{'arc_path'} && (! -d $conf->{'arc_path'})) {
-	&Log::do_log('err',"No web archives directory: %s\n", $conf->{'arc_path'});
+	printf STDERR "No web archives directory: %s\n", $conf->{'arc_path'};
     }
 
     if ($conf->{'bounce_path'} && (! -d $conf->{'bounce_path'})) {
-	&Log::do_log('err',"Missing directory '%s' (defined by 'bounce_path' parameter)", $conf->{'bounce_path'});
+	printf STDERR "No bounces directory: %s\n", $conf->{'bounce_path'};
     }
 
     if ($conf->{'mhonarc'} && (! -x $conf->{'mhonarc'})) {
-	&Log::do_log('err',"MHonArc is not installed or %s is not executable.", $conf->{'mhonarc'});
+	printf STDERR "MHonArc is not installed or %s is not executable.\n", $conf->{'mhonarc'};
     }
 
     # robots <robot_domain>,<http_host>,<robot title>(|<robot_domain>,<http_host>,<robot title>)+
@@ -217,13 +182,13 @@ sub load_mime_types {
     my $types = {};
 
     @localisation = ('/etc/mime.types', '/usr/local/apache/conf/mime.types',
-		     '/etc/httpd/conf/mime.types',$Conf{'etc'}.'/mime.types');
+		     '/etc/httpd/conf/mime.types','mime.types');
 
     foreach my $loc (@localisation) {
 	next unless (-r $loc);
 
 	unless(open (CONF, $loc)) {
-	    &Log::do_log('err',"load_mime_types: unable to open $loc");
+	    printf STDERR "load_mime_types: unable to open $loc\n";
 	    return undef;
 	}
     }
@@ -255,31 +220,26 @@ sub load_mime_types {
 ## Returns user information extracted from the cookie
 sub get_email_from_cookie {
 #    &Log::do_log('debug', 'get_email_from_cookie');
-    my $cookie = shift;
     my $secret = shift;
+    my $email ;
 
-    my ($email, $auth) ;
-
-    # &Log::do_log('info', "get_email_from_cookie($cookie,$secret)");
-    
-    unless (defined $secret) {
-	&report::reject_report_web('intern','cookie_error',{},'','','',$robot);
-	&Log::do_log('info', 'parameter cookie undefined, authentication failure');
+    unless ($secret) {
+	&main::message('error in sympa configuration');
+	&Log::do_log('info', 'parameter cookie undefine, authentication failure');
     }
 
-    unless ($cookie) {
-	&report::reject_report_web('intern','cookie_error',$cookie,'get_email_from_cookie','','',$robot);
-	&Log::do_log('info', ' cookie undefined, authentication failure');
+    unless ($ENV{'HTTP_COOKIE'}) {
+	&main::message('error in sympa missing cookie');
+	&Log::do_log('info', ' ENV{HTTP_COOKIE} undefined, authentication failure');
     }
 
-    ($email, $auth) = &cookielib::check_cookie ($cookie, $secret);
-    unless ( $email) {
-	&report::reject_report_web('user','auth_failed',{},'');
+    unless ( $email = &cookielib::check_cookie ($ENV{'HTTP_COOKIE'}, $secret)) {
+	&main::message('auth failed');
 	&Log::do_log('info', 'get_email_from_cookie: auth failed for user %s', $email);
 	return undef;
     }    
 
-    return ($email, $auth);
+    return $email;
 }
 
 sub new_passwd {
@@ -296,9 +256,48 @@ sub new_passwd {
 ## Basic check of an email address
 sub valid_email {
     my $email = shift;
-    
-    $email =~ /^([\w\-\_\.\/\+\=]+|\".*\")\@[\w\-]+(\.[\w\-]+)+$/;
+
+    $email =~ /^(\S+|\".*\")@\S+$/;
+
 }
+
+# create a cipher
+sub ciphersaber_installed {
+    if (require (Crypt::CipherSaber)) {
+	return &Crypt::CipherSaber->new($Conf{'cookie'});
+    }else{
+	return ('no_cipher');
+    }
+}
+
+## encrypt a password
+sub crypt_passwd {
+    my $inpasswd = shift ;
+
+    unless (define($cipher)){
+	$cipher = ciphersaber_installed();
+    }
+    return $inpasswd if ($cipher eq 'no_cipher') ;
+    return ("crypt.".$cipher->encrypt ($inpasswd)) ;
+}
+
+## decrypt a password
+sub decrypt_passwd {
+    my $inpasswd = shift ;
+
+    return $inpasswd unless ($inpasswd =~ /^crypt\.(.*)$/) ;
+    $inpasswd = $1;
+
+    unless (define($cipher)){
+	$cipher = ciphersaber_installed();
+    }
+    if ($cipher eq 'no_cipher') {
+	do_log('info','password seems crypted while CipherSaber is not installed !');
+	return $inpasswd ;
+    }
+    return $cipher->decrypt ($inpasswd);
+}
+
 
 sub init_passwd {
     my ($email, $data) = @_;
@@ -316,7 +315,7 @@ sub init_passwd {
 	    unless ( &List::update_user_db($email,
 					   {'password' => $passwd,
 					    'lang' => $user->{'lang'} || $data->{'lang'}} )) {
-		&report::reject_report_web('intern','update_user_db_failed',{'user'=>$email},'','',$email,$robot);
+		&main::message('update_failed');
 		&Log::do_log('info','init_passwd: update failed');
 		return undef;
 	    }
@@ -327,7 +326,7 @@ sub init_passwd {
 				     'password' => $passwd,
 				     'lang' => $data->{'lang'},
 				     'gecos' => $data->{'gecos'}})) {
-	    &report::reject_report_web('intern','add_user_db_failed',{'user'=>$email},'','',$email,$robot);
+	    &main::message('add_failed');
 	    &Log::do_log('info','init_passwd: add failed');
 	    return undef;
 	}
@@ -336,23 +335,6 @@ sub init_passwd {
     return 1;
 }
 
-sub get_my_url {
-    
-		 
-    my $return_url;
-    
-    ## Mod_ssl sets SSL_PROTOCOL ; apache-ssl sets SSL_PROTOCOL_VERSION
-    if ($ENV{SSL_PROTOCOL} || $ENV{SSL_PROTOCOL_VERSION}) {
-	$return_url = 'https';
-    }else{
-	$return_url = 'http';	
-    }	     
-
-    $return_url .= '://'.$ENV{'HTTP_HOST'};
-    $return_url .= ':'.$ENV{'SERVER_PORT'} unless (($ENV{'SERVER_PORT'} eq '80')||($ENV{'SERVER_PORT'} eq '443'));
-    $return_url .= $ENV{'REQUEST_URI'};
-    return ($return_url);
-}
 
 1;
 
