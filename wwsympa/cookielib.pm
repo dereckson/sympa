@@ -48,14 +48,12 @@ sub check_cookie {
 	
 	next unless ($cookie->name =~ /^(sympauser|user)$/);
 
-	my @values = split /:/,$cookie->value; 
-	if ($#values >= 1) {
-	    my ($email, $mac, $auth) = @values;
-	    $auth ||= 'classic';
+	if ($cookie->value =~ /^(.*):(\S+)\s*$/) {
+	    my ($email, $mac) = ($1, $2);
 
 	    ## Check the MAC
 	    if (&get_mac($email,$secret) eq $mac) {
-		return ($email, $auth);
+		return $email;
 	    }
 	}	
     }
@@ -96,27 +94,9 @@ sub check_lang_cookie {
     return undef;
 }
 
-## Check cookie for expert_page mode in the shared
-sub check_expertpage_cookie {
-    my $http_cookie = shift;
-    
-    my %cookies = parse CGI::Cookie($http_cookie);
-    
-    ## Scan parameters
-    foreach (sort keys %cookies) {
-	my $cookie = $cookies{$_};
-	
-	next unless ($cookie->name eq 'sympaexpertpage');
-
-	return $cookie->value;
-    }
-
-    return undef;
-}
-
 ## Set user $email cookie, ckecksum use $secret, expire=(now|session|#sec) domain=(localhost|<a domain>)
 sub set_cookie {
-    my ($email, $secret, $http_domain, $expires, $auth) = @_ ;
+    my ($email, $secret, $http_domain, $expires) = @_ ;
 
     unless ($email) {
 	return undef;
@@ -135,9 +115,6 @@ sub set_cookie {
     }
 
     my $value = sprintf '%s:%s', $email, &get_mac($email,$secret);
-    if ($auth ne 'classic') {
-	$value .= ':'.$auth;
-    }
     my $cookie;
     if ($expires =~ /session/i) {
 	$cookie = new CGI::Cookie (-name    => 'sympauser',
@@ -177,14 +154,9 @@ sub set_arc_cookie {
     return 1;
 }
     
-    
 ## Set cookie with lang pref
 sub set_lang_cookie {
     my ($lang,$domain) = @_;
-
-    if ($domain eq 'localhost') {
-	$domain="";
-    }
 
     my $cookie = new CGI::Cookie (-name    => 'sympalang',
 				  -value   => $lang,
@@ -199,45 +171,17 @@ sub set_lang_cookie {
     return 1;
 }
     
-## Sets an HTTP cookie to be sent to a SOAP client
-sub set_cookie_soap {
-    my ($email,$secret,$http_domain,$expire) = @_ ;
-    my $cookie;
-    my $value;
-    &do_log('debug', 'cookielib::set_cookie_soap(%s,%s,%s,%s)', $email, $secret, $http_domain, $expire);
-
-    # WARNING : to check the cookie the SOAP services does not gives
-    # all the cookie, only it's value so we need ':'
-    $value = sprintf '%s:%s',$email,&get_mac($email,$secret);
-  
-    ## With set-cookie2 max-age of 0 means removing the cookie
-    ## Maximum cookie lifetime is the session
-    $expire ||= 600; ## 10 minutes
-
-    if ($http_domain eq 'localhost') {
-	$cookie = sprintf "%s=%s; Path=/; Max-Age=%s", 'sympauser', $value, $expire;
-    }else {
-	$cookie = sprintf "%s=%s; Domain=%s; Path=/; Max-Age=%s", 'sympauser', $value, $http_domain, $expire;;
-    }
-
-    $ENV{'SOAP_COOKIE_sympauser'} = $cookie;
-
-    ## Send cookie to the client
-    return 1;
-}
-
 ## returns Message Authentication Check code
 sub get_mac {
         my $email = shift ;
-	my $secret = shift ;	
-	&do_log('debug4', "get_mac($email, $secret)");
-
+	my $secret = shift ;
+	
 	unless ($secret) {
-	    &do_log('err', 'get_mac : failure missing server secret for cookie MD5 digest');
+	    printf STDERR 'get_mac : failure missing server secret for cookie MD5 digest';
 	    return undef;
 	}
 	unless ($email) {
-	    &do_log('err', 'get_mac : failure missing email adresse or cookie MD5 digest');
+	    printf STDERR 'get_mac : failure missing email adresse or cookie MD5 digest';
 	    return undef;
 	}
 
@@ -263,7 +207,7 @@ sub check_cookie_extern {
 	
 	next unless ($cookie->name =~ /sympa_altemails/);
 	
- 	if ($cookie->value =~ /^(\S+)&(\w+)$/) {
+	if ($cookie->value =~ /^(\S+)&(\w+)$/) {
 	    return undef unless (&get_mac($1,$secret) eq $2) ;
 		
 	    my %alt_emails ;
@@ -297,7 +241,7 @@ sub set_cookie_extern {
     my $emails = join(',',@mails);
 
     $value = sprintf '%s&%s',$emails,&get_mac($emails,$secret);
- 
+  
     if ($http_domain eq 'localhost') {
 	$http_domain="";
     }
@@ -314,187 +258,4 @@ sub set_cookie_extern {
     return 1;
 }
 
-## get cookie for list of subscribtion
-sub get_which_cookie {
-    
-    my $http_cookie = shift;
-    &do_log('debug2',"get_which_cookie ($http_cookie)");    
-
-    my %cookies = parse CGI::Cookie($http_cookie);
-        
-    foreach (sort keys %cookies) {
-	my $cookie = $cookies{$_};
-	
-	next unless ($cookie->name eq 'your_subscriptions');
-	my @which;
-	foreach my $list (split /,/, $cookie->value) {
-	    push @which,$list;
-	}
-	return (@which);
-    }
-    return undef;
-}
-
-## Set cookie for expert_page mode in the shared
-sub set_expertpage_cookie {
-    my ($put,$domain) = @_;
-    
-    if ($domain eq 'localhost') {
-	$domain="";
-    }
-    
-    my $expire;
-    if ($put == 1) {
-	$expire = '+1y';
-    } else {
-	$expire = '-10y';
-    }
-    
-    my $cookie = new CGI::Cookie (-name    => 'sympaexpertpage',
-				  -value   => '1',
-				  -expires => $expire,
-				  -domain  => $domain,
-				  -path    => '/'
-				  );
-    
-    ## Send cookie to the client
-    printf "Set-Cookie:  %s\n", $cookie->as_string;
-    
-    return 1;
-}
-
-## Set cookie for accessing web archives
-sub set_which_cookie {
-    my $domain = shift ;
-    my @which = @_;
-
-    my @listnames;
-    foreach my $list (@which) {
-	push @listnames, $list->{'name'};
-    }
-
-    my $commawhich = join ',', @which;
-    
-    if ($domain eq 'localhost') {
-	$domain="";
-    }
-    &do_log('debug2',"set_which_cookie ($domain,$commawhich)");
-
-    my $cookie = new CGI::Cookie (-name    => 'your_subscriptions',
-				  -value   => $commawhich ,
-				  -domain  => $domain,
-				  -path    => '/'
-				  );
-    
-    ## Send cookie to the client
-    printf "Set-Cookie:  %s\n", $cookie->as_string;
-    return 1;
-}
-
-## get unappropriate_cas_server
-sub get_do_not_use_cas {
-    
-    my $http_cookie = shift;
-
-    my %cookies = parse CGI::Cookie($http_cookie);
-        
-    foreach (keys %cookies) {
-	my $cookie = $cookies{$_};
-	
-	next unless ($cookie->name eq 'do_not_use_cas');
-	my $val = $cookie->value;
-	return ($cookie->value);
-    }
-
-    return (undef);
-}
-
-## Set cookie for accessing web archives
-sub set_do_not_use_cas {
-    my $domain = shift;
-    my $value = shift ;    
-    my $expires=shift;
-    
-    my $expiration;
-
-    if ($expires =~ /now/i) {
-	$expiration = "-10y";
-    }else{
-	$expiration = '+'.$expires.'m';
-    }
-
-    if ($domain eq 'localhost') {
-	$domain="";
-    }
-
-    do_log('debug',"cookielib::set_do_not_use_cas($domain,$value,$expiration) ");
-
-    unless (($value == 0) || ($value == 1)) {
-	do_log('err',"cookielib::set_do_not_use_cas($value) incorrect parameter");
-	return undef;
-    }
-    
-    my $cookie = new CGI::Cookie (-name    => 'do_not_use_cas',
-				  -value   => $value ,
-				  -domain  => $domain,
-				  -expires => $expiration,
-				  -path    => '/'
-				  );
-    
-    ## Send cookie to the client
-    printf "Set-Cookie:  %s\n", $cookie->as_string;
-    return 1;
-}
-
-
-## Set cookie for accessing web archives
-sub set_cas_server {
-    my $domain = shift;
-    my $value = shift ;    
-    my $expires=shift;
-
-    if ($expires =~ /now/i) {
-	$expires = "-10y";
-    }
-
-    if ($domain eq 'localhost') {
-	$domain="";
-    }
-
-    do_log('debug',"cookielib::set_cas_server($domain,$value) ");
-    
-    my $cookie = new CGI::Cookie (-name    => 'cas_server',
-				  -value   => $value ,
-				  -domain  => $domain,
-				  -expires => $expires,
-				  -path    => '/'
-				  );
-    
-    ## Send cookie to the client
-    printf "Set-Cookie:  %s\n", $cookie->as_string;
-    return 1;
-}
-
-
-## get unappropriate_cas_server
-sub get_cas_server {
-    
-    my $http_cookie = shift;
-
-    my %cookies = parse CGI::Cookie($http_cookie);
-        
-    foreach (keys %cookies) {
-	my $cookie = $cookies{$_};
-	
-	next unless ($cookie->name eq 'cas_server');
-	my $val = $cookie->value;
-	return ($cookie->value);
-    }
-
-    return (undef);
-}
-
 1;
-
-
-
