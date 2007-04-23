@@ -1,4 +1,5 @@
-title.gettext delete monthly bounces for unsubscribed addresses
+title.fr Suppression des bounces pour les adresses désabonnées
+title.us delete bounces for unsuscribed adresses
 
 /ACTION
 purge_orphan_bounces ()
