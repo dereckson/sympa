@@ -57,7 +57,7 @@ unless (&Conf::load($sympa_conf_file)) {
 }
 
 if ($Conf{'db_name'} and $Conf{'db_type'}) {
-    unless ($List::use_db = &Upgrade::probe_db()) {
+    unless ($List::use_db = &List::probe_db()) {
  	&die('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
     }
 }
@@ -160,8 +160,8 @@ foreach my $tpl (@templates) {
 
     ## We don't migrate mhonarc-ressources files
     if ($tpl =~ /mhonarc\-ressources$/) {
-	rename $tpl, "$tpl.incompatible";
-	printf STDERR "File $tpl could not be translated to TT2 ; it has been renamed $tpl.incompatible. You should customize a standard mhonarc-ressourses.tt2 file\n";
+	rename $tpl, "$tpl.uncompatible";
+	printf STDERR "File $tpl could not be translated to TT2 ; it has been renamed $tpl.uncompatible. You should customize a standard mhonarc-ressourses.tt2 file\n";
 	next;
     }
 
