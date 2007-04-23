@@ -28,8 +28,6 @@ my %fields =
    function1        => undef,
    function2        => undef,
    how              => undef,
-   id               => undef,
-   id_count         => 0,
    key_word         => undef,
    limit            => 25,
    match            => 0,
@@ -61,13 +59,6 @@ sub body_count
   return $self->{body_count} += $count;
 }
 
-sub id_count
-{
-  my $self = shift;
-  my $count = shift || 0;
-  return $self->{id_count} += $count;
-}
-
 sub date_count
 {
   my $self = shift;
@@ -95,7 +86,7 @@ sub subj_count
 
 sub _find_match 
 {
-  my($self,$file,$subj,$from,$date,$id,$body_ref) = @_;
+  my($self,$file,$subj,$from,$date,$body_ref) = @_;
   my $body_string = '';
   my $match       = 0;
   my $res         = undef;
@@ -103,29 +94,22 @@ sub _find_match
   # Check for a match in subject
   if (($self->subj) && ($_ = $subj) && (&{$self->{function2}}))  
     {
-      $subj =~ s,($self->{key_word}),<B>$1</B>,g; # Bold any matches
+      $subj =~ s,($self->{key_word}),<B>$1</B>,go; # Bold any matches
       $self->subj_count(1);	# Keeping count
       $match = 1;		# We'll be printing this one
     }
   # Check for a match in from
   if (($self->from) && ($_ = $from) && (&{$self->{function2}}))
     {
-      $from =~ s,($self->{key_word}),<B>$1</B>,g;
+      $from =~ s,($self->{key_word}),<B>$1</B>,go;
       $self->from_count(1);
       $match = 1;
     }
   # Check for a match in date
   if (($self->date) && ($_ = $date) && (&{$self->{function2}}))
     {
-      $date =~ s,($self->{key_word}),<B>$1</B>,g;
+      $date =~ s,($self->{key_word}),<B>$1</B>,go;
       $self->date_count(1);
-      $match = 1;
-    }
-  # Check for a match in id
-  if (($self->id) && ($_ = $id) && (&{$self->{function2}}))
-    {
-      $id =~ s,($self->{key_word}),<B>$1</B>,g;
-      $self->id_count(1);
       $match = 1;
     }
   # Is this a full?
@@ -164,7 +148,7 @@ sub _find_match
 		      $line = $matches{$hit} + 1; 
 		      $body_string .= "line $line: $body[$matches{$hit}]";
 		    }
-		$body_string =~ s,($self->{key_word}),<B>$1</B>,g;
+		$body_string =~ s,($self->{key_word}),<B>$1</B>,go;
 		last BODY;
 	      }
 	  }
@@ -178,7 +162,7 @@ sub _find_match
 	    if (($_ = $body[$i]) && (&{$self->{function2}})) 
 	      {
 		($body_string = $body[($i - 1)] . $body[$i] . 
-		 $body[($i + 1)]) =~ s,($self->{key_word}),<B>$1</B>,g;
+		 $body[($i + 1)]) =~ s,($self->{key_word}),<B>$1</B>,go;
 		$self->body_count(1);
 		$match = 1;
 		last BODY;
@@ -191,7 +175,6 @@ sub _find_match
 		$file =~ s,$self->{'search_base'},$self->{'base_href'},;
 		$res->{'file'} = $file;
 		$res->{'body_string'} = $body_string;
-        $res->{'id'} = $id;
      	$res->{'date'} = $date;
      	$res->{'from'} = $from;
      	$res->{'subj'} = $subj;
@@ -221,7 +204,7 @@ sub search
 	foreach my $dir (@directories)
 	{
 		my $directory = ($self->search_base . '/' . $dir . '/');
-		find({ wanted => \&_get_file_list, untaint => 1, untaint_pattern => qr|^([-@\w./]+)$| },$directory);      
+		find(\&_get_file_list,$directory);      
 	}
 	# File::Find returns these in somewhat haphazard order.
 	@MSGFILES = sort @MSGFILES;
@@ -239,8 +222,8 @@ sub search
 	$limit += $previous;
 	foreach $file (@MSGFILES) 
 	{
-		my ($subj,$from,$date,$id,$body_ref);
-		unless (open FH, ,'<:bytes',  $file)
+		my ($subj,$from,$date,$body_ref);
+		unless (open FH, "<$file")
 		{
 #			$self->error("Couldn't open file $file, $!");
 		}
@@ -255,29 +238,15 @@ sub search
 		# think, a good argument in favor of open source code!
 		while (<FH>)
 		{
-		        ## Next line is appended to the subject
-			if (defined $subj) {
-			    $subj .= $1 if (/\s(.*)( -->|$)/);
-					    if (/-->$/) {
-						$subj =~ s/ -->$//;
-						last;
-					    }
-			    } elsif (/^<!--X-Subject: (.*)( -->|$)/)
+			if (/^<!--X-Subject: (.*) -->/)
 			{
-			    ## No more need to decode header fields
-			    # $subj = &MIME::Words::decode_mimewords($1); 
-			    $subj = $1;
-			    last if (/-->/);
+				$subj = $1;
+				last;
 			} 
 		} 
 		($from = <FH>) =~ s/^<!--X-From-R13: (.*) -->/$1/;
-
-		## No more need to decode header fields
-		#$from = &MIME::Words::decode_mimewords($from);
-		
 		$from =~ tr/N-Z[@A-Mn-za-m/@A-Z[a-z/;
 		($date = <FH>) =~ s/^<!--X-Date: (.*) -->/$1/;
-        ($id = <FH>) =~ s/^<!--X-Message-Id: (.*) -->/$1/;
 		if ($body)
 		{
 			while (<FH>) 
@@ -285,7 +254,7 @@ sub search
 				# Messages are contained between Body-of-Message tags
 				next unless (/^<!--X-Body-of-Message-->/); 
 				$_ = <FH>;		
-				while (! eof && ($_ !~ /^<!--X-MsgBody-End-->/)) 
+				while ($_ !~ /^<!--X-MsgBody-End-->/) 
 				{	
 					push(@$body_ref,$_);
 					$_ = <FH>;
@@ -298,14 +267,13 @@ sub search
 #            $self->error("Couldn't close file $file, $!");
 		}
 
-		if ($self->_find_match($file,$subj,$from,$date,$id,$body_ref))
+		if ($self->_find_match($file,$subj,$from,$date,$body_ref))
 		{
 			return ($i + $previous)	
 			if (   $self->body_count == $limit 
 			or $self->subj_count == $limit 
 			or $self->from_count == $limit 
-			or $self->date_count == $limit
-            or $self->id_count == $limit);
+			or $self->date_count == $limit);
 		}
 		$i++;
 	}
