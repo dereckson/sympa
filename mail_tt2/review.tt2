@@ -1,9 +1,6 @@
-From: [% fromlist %]
-Subject: [% FILTER qencode %][%subject%][%END%]
-
 [%|loc(list.name,list.host)%]Here are the subscribers of %1@%2 mailing list:[%END%]
 
-[% FOREACH u = users -%]
+[% FOREACH u = users %]
 [% u.email %] - [% u.gecos %] - [% u.reception %]
 [% END %]
 

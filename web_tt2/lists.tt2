@@ -1,70 +1,79 @@
 <!-- $Id$ -->
 
-
 [% IF action == 'search_list' %]
-  [%|loc(occurrence)%]%1 occurrence(s) found[%END%]<br /><br />
+  [%|loc(occurrence)%]%1 occurrence(s) found[%END%]<BR><BR>
 [% ELSIF action == 'search_user' %]
-  [%|loc(email)%]<strong>%1</strong> is subscribed to the following mailing lists[%END%]
+  [%|loc(email)%]<B>%1</B> is subscribed to the following mailing lists[%END%]
 [% END %]
 
-[% IF which %]
- <ul class="listenum" >
- [% FOREACH l = which %]
-  <li class="listenum">
-  [% IF l.value.admin %]<a class="actionMenuLinks" href="[% path_cgi %]/admin/[% l.key %]" >[%|loc%]admin[%END%]</a>[% END %] 
-  <a href="[% path_cgi %]/info/[% l.key %]" ><strong>[% hidden_head %][% l.key %][% hidden_at %][% l.value.host %][% hidden_end %]</strong></a><br />
-  <span>[% l.value.subject %]<span><br />
-  </li>
- [% END %] 
- </ul>
+<TABLE BORDER="0" WIDTH="100%">
+   [% FOREACH l = which %]
+     <TR>
+      [% IF l.value.admin %]
+       <TD>
+       [% PROCESS 'button_header.tt2' %]
+       <TD BGCOLOR="[% light_color %]" ALIGN="center" VALIGN="top">
+             <FONT COLOR="[% selected_color %]" SIZE="-1">
+              <A HREF="[% path_cgi %]/admin/[% l.key %]" ><b>[%|loc%]admin[%END%]</b></A>
+         </FONT>
+       </TD>
+     [% PROCESS 'button_footer.tt2' %]
 
- <br />
+</TD>
+     [% ELSE %]
+       <TD>&nbsp;</TD>
+     [% END %]
+     <TD WIDTH="100%" ROWSPAN="2">
+     <A HREF="[% path_cgi %]/info/[% l.key %]" ><B>[% hidden_head %][% l.key %][% hidden_at %][% l.value.host %][% hidden_end %]</B></A>
+     <BR>
+     [% l.value.subject %]
+     </TD></TR> 
+     <TR><TD>&nbsp;</TD></TR>
+     [% END %] 
+</TABLE>
 
- [% IF action == 'which' %]
-  [% IF ! which %]
-   &nbsp;&nbsp;<span class="color_dark">[%|loc(user.email)%]No subscriptions with address <strong>%1</strong>![%END%]</span>
-   <br />
-  [% END %]
+<BR>
 
-  [% IF unique != '1' %]
-   <table summary="">
-   &nbsp;&nbsp;<span class="color_dark">[%|loc%]See your subscriptions with the following email addresses[%END%]</span><br />
-   <br /><br />
-
-   <tr> 
-   <form method="post" action="[% path_cgi %]">
-   <fieldset>  
-   [% FOREACH email = alt_emails %]
-    <input name="email" type="hidden" value="[% email.key %]" />
-    &nbsp;&nbsp;<a href="[% path_cgi %]/change_identity/[% email.key %]/which">[% email.key %]</a> 
-    <br />
-   [% END %]  
-   </fieldset>
-   </form>
-   </tr>
-   </table>
-
-   <br /> 
-
-   <table summary="">
-   <tr>
-   &nbsp;&nbsp;<span class="color_dark">[%|loc%]Unify your subscriptions with the email[%END%] <strong>[% user.email %]</strong></span><br /> 
-   &nbsp;&nbsp;<span class="color_dark">[%|loc%]That is to say you are using a unique email address in Sympa for your subscriptions and preferences[%END%]</span>
-
-   <tr>
-   <td>
-   <form action="[% path_cgi %]" method="post">
-   <fieldset>
-   &nbsp;&nbsp;<input class="MainMenuLinks" type="submit" name="action_unify_email" value="[%|loc%]Validate[%END%]" />
-   </fieldset>
-   </form>
-   </td>
-   </tr>
-   </table>
-   <br />
-  [% END %]
- [% END %]
-[% ELSE %]
-<p>[%|loc%]No mailing list available.[%END%]</p>
+[% IF action == 'which' %]
+[% IF ! which %]
+&nbsp;&nbsp;<FONT COLOR="[% dark_color %]">[%|loc(user.email)%]No subscriptions with address <B>%1</B>![%END%]</FONT>
+<BR>
 [% END %]
 
+[% IF unique != '1' %]
+<TABLE>
+&nbsp;&nbsp;<FONT COLOR="[% dark_color %]">[%|loc%]See your subscriptions with the following email addresses[%END%]</FONT><BR>
+<BR><BR>
+
+ <TR> 
+    <FORM METHOD=POST ACTION="[% path_cgi %]">
+     
+[% FOREACH email = alt_emails %]
+   <INPUT NAME="email"  TYPE=hidden VALUE="[% email.key %]">
+   &nbsp;&nbsp;<A HREF="[% path_cgi %]/change_identity/[% email.key %]/which">[% email.key %]</A> 
+    <BR>
+[% END %]  
+    </FORM>
+  </TR>
+</TABLE>
+
+<BR> 
+
+<TABLE>
+<TR>
+&nbsp;&nbsp;<FONT COLOR="[% dark_color %]">[%|loc%]Unify your subscriptions with the email[%END%] <B>[% user.email %]</B></FONT><BR> 
+&nbsp;&nbsp;<FONT COLOR="[% dark_color %]">[%|loc%]That is to say using a unique email address in Sympa for your subscriptions and preferences[%END%]</FONT>
+
+<TR>
+<TD>
+    <FORM ACTION="[% path_cgi %]" METHOD=POST>
+  
+&nbsp;&nbsp;<INPUT TYPE="submit" NAME="action_unify_email" VALUE="[%|loc%]Validate[%END%]"></FONT>
+    </FORM>
+</TD>
+</TR>
+<BR>
+
+</TABLE>
+[% END %]
+[% END %]

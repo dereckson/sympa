@@ -1,4 +1,5 @@
-# Fetch.pm - This module includes functions to fetch remote files
+# X509.pm - This module includes X509-related functions (except some
+# that use openssl command line.
 #
 #<!-- RCS Identication ; $Revision$ ; $Date$ -->
 #
@@ -21,26 +22,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-package WebAgent;
-
-use LWP::UserAgent;
-## Good documentation : http://articles.mongueurs.net/magazines/linuxmag57.html
-
-@ISA = qw (LWP::UserAgent);
-
-my ($web_user, $web_passwd);
-
-sub get_basic_credentials {
-    my ( $self, $realm, $uri ) = @_;
-
-    return ( $web_user, $web_passwd );
-}
-
-sub set_basic_credentials {
-    ($web_user, $web_passwd ) = @_;
-}
-
-package Fetch;
+package X509;
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -108,7 +90,7 @@ sub get_https{
 	   do_log ('debug','ssl peer certificat %s issued by %s. Cipher used %s',$subject_name,$issuer_name,$cipher);
 	}
 
-	print $ssl_socket "GET $path HTTP/1.0\nHost: $host\n\n";
+	print $ssl_socket "GET $path HTTP/1.0\n\n";
 
 	do_log ('debug',"requested GET $path HTTP/1.1");
 	#my ($buffer) = $ssl_socket->getlines;
@@ -142,7 +124,7 @@ sub get_https2{
 	my $trusted_ca_path = $ssl_data->{'capath'};
 	$trusted_ca_path ||= $Conf{'capath'};
 
-	do_log ('debug','Fetch::get_https2 (%s,%s,%s,%s,%s)',$host,$port,$path,$trusted_ca_file,$trusted_ca_path );
+	do_log ('debug','X509::get_https2 (%s,%s,%s,%s,%s)',$host,$port,$path,$trusted_ca_file,$trusted_ca_path );
 
 	unless ( -r ($trusted_ca_file) ||  (-d $trusted_ca_path )) {
 	    do_log ('err',"error : incorrect access to cafile $trusted_ca_file bor capath $trusted_ca_path");
@@ -186,7 +168,7 @@ sub get_https2{
 #	   do_log ('debug','ssl peer certificat %s issued by %s. Cipher used %s',$subject_name,$issuer_name,$cipher);
 #	}
 
-	my $request = "GET $path HTTP/1.0\nHost: $host\n\n";
+	my $request = "GET $path HTTP/1.0\n\n";
 	print $ssl_socket "$request\n\n";
 
 	do_log ('debug',"requesting  $request");
@@ -207,7 +189,6 @@ sub get_https2{
 
 	return (@result);	
 }
-
 
 
 #################################################################

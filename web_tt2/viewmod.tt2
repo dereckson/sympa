@@ -1,30 +1,14 @@
 <!-- $Id$ -->
 
- <form action="[% path_cgi %]" method="post" name="moderate_mail">
- <fieldset>
-  <input type="hidden" name="list" value="[% list %]" />
-  <input type="hidden" name="id" value="[% id %]" />
-
- [%- IF topic_required -%]
-  <input class="MainMenuLinks" type="submit" name="action_distribute" value="[%|loc%]Distribute[%END%]" onclick="return checkbox_check_topic(moderate_mail)" />
- [%- ELSE -%]
-  <input class="MainMenuLinks" type="submit" name="action_distribute" value="[%|loc%]Distribute[%END%]" />
- [%- END -%]
-  <input class="MainMenuLinks" type="submit" name="action_reject.quiet" value="[%|loc%]Reject[%END%]" />
-  <input class="MainMenuLinks" type="submit" name="action_reject" value="[%|loc%]Notified reject[%END%]" />
- [%- IF request_topic -%]
-  <br /><br />
- [%|loc%]This list is configured to require topic(s).[%END%]
-  <br />
- <label for="topic_[%t.name%]">[%|loc%]Please select one or more topic(s) that corresponds to your message below :[%END%] 
-  <br /><br />
- [% FOREACH t = available_topics %]
-   <input id="topic_[%t.name%]" type="checkbox" name="topic_[%t.name%]" value="1"> [% t.title %] </input>
-  <br />
- [%- END- %]
- <br />
- [%- END -%]
-</fieldset>
-</form>
+ <FORM ACTION="[% path_cgi %]" METHOD=POST>
+  <INPUT TYPE="hidden" NAME="list" VALUE="[% list %]">
+  <INPUT TYPE="hidden" NAME="id" VALUE="[% id %]">
+<TABLE>
+<TR BGCOLOR="[% bg_color %]"><TD>
+  <INPUT TYPE="submit" NAME="action_distribute" VALUE="[%|loc%]Distribute[%END%]">
+  <INPUT TYPE="submit" NAME="action_reject.quiet" VALUE="[%|loc%]Reject[%END%]">
+  <INPUT TYPE="submit" NAME="action_reject" VALUE="[%|loc%]Notified reject[%END%]">
+</TD></TR></TABLE>
+</FORM>
 [% PROCESS 'msg00000.html' %]
 

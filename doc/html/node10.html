@@ -1,20 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002 (1.62) JA patch-1.4
+patched version by:  Kenshi Muto, Debian Project.
+LaTeX2HTML 2002 (1.62),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>9. WWSympa, Sympa's web interface</TITLE>
-<META NAME="description" CONTENT="9. WWSympa, Sympa's web interface">
+<TITLE>9. Authentication</TITLE>
+<META NAME="description" CONTENT="9. Authentication">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002 JA patch-1.4">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,32 +29,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html1114"
+<A NAME="tex2html910"
   HREF="node11.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1108"
+<A NAME="tex2html904"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1102"
+<A NAME="tex2html898"
   HREF="node9.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1110"
+<A NAME="tex2html906"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1112"
-  HREF="node31.html">
+<A NAME="tex2html908"
+  HREF="node23.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1115"
-  HREF="node11.html">10. Sympa Internationalization</A>
-<B> Up:</B> <A NAME="tex2html1109"
+<B> Next:</B> <A NAME="tex2html911"
+  HREF="node11.html">10. Authorization scenarios</A>
+<B> Up:</B> <A NAME="tex2html905"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1103"
-  HREF="node9.html">8. Sympa and its database</A>
- &nbsp; <B>  <A NAME="tex2html1111"
+<B> Previous:</B> <A NAME="tex2html899"
+  HREF="node9.html">8. Sympa SOAP server</A>
+ &nbsp <B>  <A NAME="tex2html907"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1113"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html909"
+  HREF="node23.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,278 +62,547 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html1116"
-  HREF="node10.html#SECTION001010000000000000000">9.1 Organization</A>
-<LI><A NAME="tex2html1117"
-  HREF="node10.html#SECTION001020000000000000000">9.2 Web server setup</A>
+<LI><A NAME="tex2html912"
+  HREF="node10.html#SECTION001010000000000000000">9.1 S/MIME and HTTPS authentication</A>
+<LI><A NAME="tex2html913"
+  HREF="node10.html#SECTION001020000000000000000">9.2 Authentication with email address, uid or alternate email address</A>
+<LI><A NAME="tex2html914"
+  HREF="node10.html#SECTION001030000000000000000">9.3 Generis SSO authentication</A>
+<LI><A NAME="tex2html915"
+  HREF="node10.html#SECTION001040000000000000000">9.4 CAS-based authentication</A>
+<LI><A NAME="tex2html916"
+  HREF="node10.html#SECTION001050000000000000000">9.5 auth.conf</A>
 <UL>
-<LI><A NAME="tex2html1118"
-  HREF="node10.html#SECTION001021000000000000000">9.2.1 wwsympa.fcgi access permissions</A>
-<LI><A NAME="tex2html1119"
-  HREF="node10.html#SECTION001022000000000000000">9.2.2 Installing wwsympa.fcgi in your Apache server</A>
-<LI><A NAME="tex2html1120"
-  HREF="node10.html#SECTION001023000000000000000">9.2.3 Using FastCGI</A>
+<LI><A NAME="tex2html917"
+  HREF="node10.html#SECTION001051000000000000000">9.5.1 user_table paragraph</A>
+<LI><A NAME="tex2html918"
+  HREF="node10.html#SECTION001052000000000000000">9.5.2 ldap paragraph</A>
+<LI><A NAME="tex2html919"
+  HREF="node10.html#SECTION001053000000000000000">9.5.3 generic_sso paragraph</A>
+<LI><A NAME="tex2html920"
+  HREF="node10.html#SECTION001054000000000000000">9.5.4 cas paragraph</A>
 </UL>
 <BR>
-<LI><A NAME="tex2html1121"
-  HREF="node10.html#SECTION001030000000000000000">9.3 wwsympa.conf parameters</A>
-<UL>
-<LI><A NAME="tex2html1122"
-  HREF="node10.html#SECTION001031000000000000000">9.3.1 arc_path</A>
-<LI><A NAME="tex2html1123"
-  HREF="node10.html#SECTION001032000000000000000">9.3.2 archive_default_index thrd | mail</A>
-<LI><A NAME="tex2html1124"
-  HREF="node10.html#SECTION001033000000000000000">9.3.3 archived_pidfile</A>
-<LI><A NAME="tex2html1125"
-  HREF="node10.html#SECTION001034000000000000000">9.3.4 bounce_path</A>
-<LI><A NAME="tex2html1126"
-  HREF="node10.html#SECTION001035000000000000000">9.3.5 bounced_pidfile</A>
-<LI><A NAME="tex2html1127"
-  HREF="node10.html#SECTION001036000000000000000">9.3.6 cookie_expire</A>
-<LI><A NAME="tex2html1128"
-  HREF="node10.html#SECTION001037000000000000000">9.3.7 cookie_domain</A>
-<LI><A NAME="tex2html1129"
-  HREF="node10.html#SECTION001038000000000000000">9.3.8 default_home</A>
-<LI><A NAME="tex2html1130"
-  HREF="node10.html#SECTION001039000000000000000">9.3.9 icons_url</A>
-<LI><A NAME="tex2html1131"
-  HREF="node10.html#SECTION0010310000000000000000">9.3.10 log_facility</A>
-<LI><A NAME="tex2html1132"
-  HREF="node10.html#SECTION0010311000000000000000">9.3.11 mhonarc</A>
-<LI><A NAME="tex2html1133"
-  HREF="node10.html#SECTION0010312000000000000000">9.3.12 htmlarea_url</A>
-<LI><A NAME="tex2html1134"
-  HREF="node10.html#SECTION0010313000000000000000">9.3.13 password_case sensitive | insensitive</A>
-<LI><A NAME="tex2html1135"
-  HREF="node10.html#SECTION0010314000000000000000">9.3.14 title</A>
-<LI><A NAME="tex2html1136"
-  HREF="node10.html#SECTION0010315000000000000000">9.3.15 use_fast_cgi   0 | 1</A>
-</UL>
-<BR>
-<LI><A NAME="tex2html1137"
-  HREF="node10.html#SECTION001040000000000000000">9.4 MhOnArc</A>
-<LI><A NAME="tex2html1138"
-  HREF="node10.html#SECTION001050000000000000000">9.5 Archiving daemon</A>
-<LI><A NAME="tex2html1139"
-  HREF="node10.html#SECTION001060000000000000000">9.6 Database configuration</A>
-<LI><A NAME="tex2html1140"
-  HREF="node10.html#SECTION001070000000000000000">9.7 Logging in as listmaster</A>
+<LI><A NAME="tex2html921"
+  HREF="node10.html#SECTION001060000000000000000">9.6 Sharing <I>WWSympa</I> authentication with other applications</A>
 </UL>
 <!--End of Table of Child-Links-->
 <HR>
 
-<H1><A NAME="SECTION001000000000000000000">
-9. WWSympa, Sympa's web interface</A>
-</H1>
-
-<P>
-WWSympa is <I>Sympa</I>'s web interface.
-
-<P>
-
-<H1><A NAME="SECTION001010000000000000000"></A>
-<A NAME="WWSympa"></A>
+<H1><A NAME="SECTION001000000000000000000"></A>
+<A NAME="authn"></A>
 <BR>
-9.1 Organization
+9. Authentication
 </H1>
 
 <P>
-<A NAME="9162"></A><I>WWSympa</I> is fully integrated with <I>Sympa</I>. It uses <A NAME="9166"></A><TT>sympa.conf</TT>
-and <I>Sympa</I>'s libraries. The default <I>Sympa</I> installation will also
-install WWSympa.
+<I>Sympa</I> needs to authenticate users (subscribers, owners, moderators, listmaster) on both its
+mail and web interface to then apply appropriate privileges (authorization process) to subsequent 
+requested actions. <I>Sympa</I> is able to cope with multiple authentication means on the client side and 
+when using user+password it can validate these credentials against LDAP authentication backends.
 
 <P>
-Every single piece of HTML in <A NAME="9171"></A><I>WWSympa</I> is generated by the CGI code
-using template files (See <A HREF="node18.html#tpl-format">17.1</A>, page&nbsp;<A HREF="node18.html#tpl-format"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
-This facilitates internationalization of pages, as well as per-site
-customization. 
+When contacted on the mail interface <I>Sympa</I> has 3 authentication levels. Lower level is to trust
+the <A NAME="6043"></A><TT>From:</TT> SMTP header field. A higher level of authentication will require that the 
+user confirms his/her message. The strongest supported authentication method is S/MIME (note that <I>Sympa</I> 
+also deals with S/MIME encrypted messages).
 
 <P>
-The code consists of one single PERL CGI script, <A NAME="9174"></A><TT>WWSympa.fcgi</TT>.
-To enhance performance you can configure <A NAME="9177"></A><I>WWSympa</I> to use
-FastCGI ; the CGI will be persistent in memory.
+On the <I>Sympa</I> web interface (<A NAME="6048"></A><I>WWSympa</I>) the user can authenticate in 4 different ways (if appropriate setup
+has been done on <I>Sympa</I> serveur). Default authentication mean is via the user's email address and a password 
+managed by <I>Sympa</I> itself. If an LDAP authentication backend (or multiple) has been defined, then the user 
+can authentication with his/her LDAP uid and password. <I>Sympa</I> is also able to delegate the authentication
+job to a web Single SignOn system ; currently <A NAME="tex2html32"
+  HREF="http://www.yale.edu/tp/auth/">CAS</A>
+(the Yale University system) or a generic SSO setup, adapted to SSO products providing an Apache module. 
+When contacted via HTTPS, <I>Sympa</I> can make use of X509 client certificates to authenticate users.
+
+<P>
+The authorization process in <I>Sympa</I> (authorization scenarios) refers to authentication methods. The 
+same authorization scenarios are used for both mail and web accesss ; therefore some authentication 
+methods are considered as equivalent : mail confirmation (on the mail interface) is equivalent to
+password authentication (on the web interface) ; S/MIME authentication is equivalent to HTTPS with
+client certificate authentication. Each rule in authorization scenarios requires an authentication method 
+(<A NAME="6056"></A><TT>smtp</TT>,<A NAME="6059"></A><TT>md5</TT> or <A NAME="6062"></A><TT>smime</TT>) ; if the required authentication method was 
+not used, a higher authentication mode can be requested.
+
+<P>
+
+<H1><A NAME="SECTION001010000000000000000">
+9.1 S/MIME and HTTPS authentication</A>
+</H1>
+
+<P>
+Chapter <A HREF="node21.html#smime-sig">20.2</A> (page&nbsp;<A HREF="node21.html#smime-sig"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>) deals with <I>Sympa</I> and S/MIME signature.
+<I>Sympa</I> uses <TT>OpenSSL</TT> library to work on S/MIME messages, you need to configure some
+related <I>Sympa</I> parameters : <A HREF="node21.html#smimeconf">20.4.2</A> (page&nbsp;<A HREF="node21.html#smimeconf"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+
+<P>
+<I>Sympa</I> HTTPS authentication is based on Apache+mod_SSL that provide the required authentication
+information via CGI environment variables. You will need to edit Apache configuration to 
+allow HTTPS access and require X509 client certificate. Here is a sample Apache configuration
+
+<P><PRE>
+SSLEngine on
+SSLVerifyClient optional
+SSLVerifyDepth  10
+...
+&lt;Location /wws&gt;
+   SSLOptions +StdEnvVars
+   SetHandler fastcgi-script
+&lt;/Location&gt;
+</PRE>
+
+<P>
+
+<H1><A NAME="SECTION001020000000000000000"></A>
+<A NAME="ldap-auth"></A>
 <BR>
-All data will be accessed through the CGI, including web archives.
-This is required to allow the authentication scheme to be applied
-systematically.
-
-<P>
-Authentication is based on passwords stored in the database table
-user_table ; if the appropriate <A NAME="9180"></A><TT>Crypt::CipherSaber</TT> is
-installed, password are encrypted in the database using reversible
-encryption based on RC4. Otherwise they are stored in clear text.
-In both cases reminding of passwords is possible.
- To keep track of authentication information <A NAME="9183"></A><I>WWSympa</I> 
-uses HTTP cookies stored on the client side. The HTTP cookie only 
-indicates that a specified e-mail address has been authenticated ;
-permissions are evaluated when an action is requested.
-
-<P>
-The same web interface is used by the listmaster, list owners, subscribers and
-others. Depending on permissions, the same URL may generate a different view.
-
-<P>
-<A NAME="9186"></A><I>WWSympa</I>'s main loop algorithm is roughly the following : 
-
-<OL>
-<LI>Check authentication information returned by 
-	the HTTP cookie
-
-<P>
-</LI>
-<LI>Evaluate user's permissions for the
-        requested action 
-
-<P>
-</LI>
-<LI>Process the requested action 
-
-<P>
-</LI>
-<LI>Set up variables resulting from the action 
-
-<P>
-</LI>
-<LI>Parse the HTML template files
-</LI>
-</OL>
-
-<P>
-
-<H1><A NAME="SECTION001020000000000000000">
-9.2 Web server setup</A>
+9.2 Authentication with email address, uid or alternate email address
 </H1>
 
 <P>
+<I>Sympa</I> stores the data relative to the subscribers in a DataBase. Among these data: password, email exploited during the Web authentication. The  module of <A NAME="6070"></A>LDAP authentication allows to use <I>Sympa</I> in an intranet without duplicating user passwords. 
 
-<H2><A NAME="SECTION001021000000000000000">
-9.2.1 wwsympa.fcgi access permissions</A>
+<P>
+This way users can indifferently authenticate with their ldap_uid, their alternate_email or their canonic email stored in the <A NAME="6072"></A>LDAP directory.
+
+<P>
+<I>Sympa</I> gets the canonic email in the <A NAME="6074"></A>LDAP directory with the ldap_uid or the alternate_email.  
+<I>Sympa</I> will first attempt an anonymous bind to the directory to get the user's DN, then <I>Sympa</I> will bind with the DN and the user's ldap_password in order to perform an efficient authentication. This last bind will work only if the good ldap_password is provided. Indeed the value returned by the bind(DN,ldap_password) is tested.
+
+<P>
+Example: a person is described by<PRE>
+                 Dn:cn=Fabrice Rafart,
+                 ou=Siege ,
+                 o=MaSociete ,
+                 c=FR Objectclass:
+                 person Cn: Fabrice Rafart
+                 Title: Network Responsible
+                 O: Siege
+                 Or: Data processing
+                 Telephonenumber: 01-00-00-00-00
+                 Facsimiletelephonenumber:01-00-00-00-00
+                 L:Paris
+                 Country: France
+
+		 uid: frafart
+ 		 mail: Fabrice.Rafart@MaSociete.fr
+                 alternate_email: frafart@MaSociete.fr
+                 alternate:rafart@MaSociete.fr
+</PRE>
+
+<P>
+So Fabrice Rafart can be authenticated with: frafart, Fabrice.Rafart@MaSociete.fr, frafart@MaSociete.fr,Rafart@MaSociete.fr.
+After this operation, the address in the field FROM will be the Canonic email, in this case  Fabrice.Rafart@MaSociete.fr. 
+That means that <I>Sympa</I> will get this email and use it during all the session until you clearly ask <I>Sympa</I> to change your email address via the two pages : which and pref.
+
+<P>
+
+<H1><A NAME="SECTION001030000000000000000"></A>
+<A NAME="generic-sso"></A>
+<BR>
+9.3 Generis SSO authentication
+</H1>
+
+<P>
+The authentication method has first been introduced to allow interraction with <A NAME="tex2html33"
+  HREF="http://shibboleth.internet2.edu/">Shibboleth</A>, Internet2's inter-institutional authentication system. But it should be usable with any SSO system that provides an Apache authentication module being able to protect a specified URL on the site (not the whole site). Here is a sample httpd.conf that shib-protects the associated Sympa URL :<PRE>
+...
+&lt;Location /wws/sso_login/inqueue&gt;
+  AuthType shibboleth
+  require affiliation ~ ^member@.+
+&lt;/Location&gt;
+...
+</PRE>
+
+<P>
+The SSO is also expected to provide user attributes including the user email address as environment variables. To make the SSO appear in the login menu, a textbf generic_sso paragraph describing the SSO service should be added to  <A NAME="6079"></A><TT>auth.conf</TT>. The format of this paragraph is described in the following section.
+
+<P>
+Apart from the user email address, the SSO can provide other user attributes that <I>Sympa</I> will store in the user_table DB table (for persistancy) and make them available in the [user_attributes] structure that you can use within authorization scenarios (see&nbsp;<A HREF="node11.html#rules">10.1</A>, page&nbsp;<A HREF="node11.html#rules"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+
+<P>
+
+<H1><A NAME="SECTION001040000000000000000"></A>
+<A NAME="cas"></A>
+<BR>
+9.4 CAS-based authentication
+</H1>
+
+<P>
+CAS is Yale university SSO software. Sympa can use CAS authentication service.
+
+<P>
+The listmaster should define at least one or more CAS servers (<B>cas</B> paragraph) in <A NAME="6083"></A><TT>auth.conf</TT>. If <B>non_blocking_redirection</B> parameter was set for a CAS server then Sympa will try a transparent login on this server
+when the user accesses the web interface. If one CAS server redirect the user to Sympa with a valid ticket Sympa receives a user ID from the CAS server. It then connects to the related LDAP directory to get the user email address. If no CAS server returns a valid user ID, Sympa will let the user either select a CAS server to login or perform a Sympa login.
+
+<P>
+
+<H1><A NAME="SECTION001050000000000000000"></A>
+<A NAME="auth-conf"></A>
+<BR>
+9.5 auth.conf
+</H1>
+
+<P>
+The <A NAME="6086"></A><TT>/home/sympa/etc/auth.conf</TT> configuration file contains numerous
+parameters which are read on start-up of <I>Sympa</I>. If you change this file, do not forget
+that you will need to restart wwsympa.fcgi afterwards. 
+
+<P>
+The <A NAME="6090"></A><TT>/home/sympa/etc/auth.conf</TT> is organised in paragraphs. Each paragraph describes an authentication 
+service with all required parameters to perform an authentication using this service. Current version of
+<I>Sympa</I> can perform authentication through LDAP directories, using an external Single Sign-On Service (like CAS 
+or Shibboleth), or using internal user_table.
+
+<P>
+The login page contains 2 forms : the login form and the SSO. When users hit the login form, each ldap or user_table authentication
+paragraph is applied unless email adress input from form match the <A NAME="6094"></A><TT>negative_regexp</TT> or do not match <A NAME="6097"></A><TT>regexp</TT>. 
+ <A NAME="6100"></A><TT>negative_regexp</TT> and <A NAME="6103"></A><TT>regexp</TT> can be defined for earch ldap or user_table authentication service so
+administrator can block some authentication methode for class of users.
+
+<P>
+The segond form in login page contain the list of CAS server so user can choose explicitely his CAS service.
+
+<P>
+Each paragraph start with one of the keyword cas, ldap or user_table  
+
+<P>
+The <A NAME="6106"></A><TT>/home/sympa/etc/auth.conf</TT> file contains directives in the following format:
+
+<P>
+<P>
+<BLOCKQUOTE><I>paragraphs</I>
+<BR>    <I>keyword    value</I>
+</BLOCKQUOTE>
+<P>
+<BLOCKQUOTE><I>paragraphs</I>
+<BR>    <I>keyword    value</I> 
+</BLOCKQUOTE>
+<P>
+
+<P>
+Comments start with the <TT>#</TT> character at the beginning of a line.
+
+<P>
+Empty lines are also considered as comments and are ignored at the beginning. After the first paragraph they are considered as paragraphs separators.
+There should only be one directive per line, but their order in the paragraph is of no importance.
+
+<P>
+Example :
+
+<P><PRE>
+#Configuration file auth.conf for the LDAP authentification
+#Description of parameters for each directory
+
+
+cas
+	base_url			https://sso-cas.cru.fr
+	non_blocking_redirection        on
+	auth_service_name		cas-cru
+	ldap_host			ldap.cru.fr:389
+        ldap_get_email_by_uid_filter    (uid=[uid])
+	ldap_timeout			7
+	ldap_suffix			dc=cru,dc=fr
+	ldap_scope			sub
+	ldap_email_attribute		mail
+
+## The URL corresponding to the service_id should be protected by the SSO (Shibboleth in the exampl)
+## The URL would look like http://yourhost.yourdomain/wws/sso_login/inqueue in the following example
+generic_sso
+        service_name       InQueue Federation
+        service_id         inqueue
+        http_header_prefix HTTP_SHIB
+        email_http_header  HTTP_SHIB_EP_AFFILIATION
+
+ldap
+	regexp				univ-rennes1\.fr
+	host				ldap.univ-rennes1.fr:389
+	timeout				30
+	suffix				dc=univ-rennes1,dc=fr
+	get_dn_by_uid_filter		(uid=[sender])
+	get_dn_by_email_filter		(|(mail=[sender])(mailalternateaddress=[sender]))
+	email_attribute			mail
+	alternative_email_attribute	mailalternateaddress,ur1mail
+	scope				sub
+	use_ssl                         1
+	ssl_version                     sslv3
+	ssl_ciphers                     MEDIUM:HIGH
+
+ldap
+	
+	host				ldap.univ-nancy2.fr:392,ldap1.univ-nancy2.fr:392,ldap2.univ-nancy2.fr:392
+	timeout				20
+	bind_dn                         cn=sympa,ou=people,dc=cru,dc=fr
+	bind_password                   sympaPASSWD
+	suffix				dc=univ-nancy2,dc=fr
+	get_dn_by_uid_filter		(uid=[sender])
+	get_dn_by_email_filter			(|(mail=[sender])(n2atraliasmail=[sender]))
+	alternative_email_attribute	n2atrmaildrop
+	email_attribute			mail
+	scope				sub
+        authentication_info_url         http://sso.univ-nancy2.fr/
+	
+
+user_table
+	negative_regexp 		((univ-rennes1)|(univ-nancy2))\.fr
+</PRE>
+
+<P>
+
+<H2><A NAME="SECTION001051000000000000000">
+9.5.1 user_table paragraph</A>
 </H2>
 
 <P>
-Because Sympa and WWSympa share a lot of files, <A NAME="9189"></A><TT>wwsympa.fcgi</TT>,
-     must run with the same 
-     uid/gid as <A NAME="9192"></A><TT>archived.pl</TT>, <A NAME="9195"></A><TT>bounced.pl</TT> and <A NAME="9198"></A><TT>sympa.pl</TT>.
-     There are different ways to achieve this :
+The user_table paragraph is related to sympa internal authentication by email and password. It is the simplest one the only parameters
+are <A NAME="6109"></A><TT>regexp</TT> or <A NAME="6112"></A><TT>negative_regexp</TT> which are perl regular expressions applied on a provided email address to select or block this authentication method for a subset of email addresses. 
+
+<P>
+
+<H2><A NAME="SECTION001052000000000000000">
+9.5.2 ldap paragraph</A>
+</H2>
+
+<P>
 
 <UL>
-<LI>SetuidPerl : this is the default method but might be insecure. If you don't set the <B>- -enable_secure</B> configure option,
-      <A NAME="9201"></A><TT>wwsympa.fcgi</TT> is installed with the SetUID bit set. On most systems you will need to install the suidperl package.
+<LI><A NAME="6115"></A><TT>regexp</TT> and <A NAME="6118"></A><TT>negative_regexp</TT>
+	Same as in user_table paragraph : if a provided email address (does not apply to an uid), then the
+	regular expression will be applied to find out if this LDAP directory can be used to authenticate a
+	subset of users.
 
 <P>
 </LI>
-<LI>Sudo : use <B>sudo</B> to run <A NAME="9204"></A><TT>wwsympa.fcgi</TT> as user sympa. Your Apache configuration should use <A NAME="9207"></A><TT>wwsympa_sudo_wrapper.pl</TT> instead 
-       of <A NAME="9210"></A><TT>wwsympa.fcgi</TT>. You should edit your <A NAME="9213"></A><TT>/etc/sudoers</TT> file (with visudo command) as follows :<PRE>
-apache ALL = (sympa)  NOPASSWD: /usr/local/sympa-os/bin/wwsympa.fcgi
+<LI>host
+<BR>
+<P>
+This keyword is <B>mandatory</B>. It is the domain name
+	used in order to bind to the directory and then to extract informations.
+	You must mention the port number after the server name.
+	Server replication is supported by listing several servers separated by commas.
+
+<P>
+Example :
+	<PRE>
+	host ldap.univ-rennes1.fr:389
+	host ldap0.university.com:389,ldap1.university.com:389,ldap2.university.com:389
 </PRE>
 
 <P>
 </LI>
-<LI>Dedicated Apache server : run a dedicated Apache server with sympa.sympa as uid.gid (The Apache default
-      is apache.apache).
+<LI>timeout
+<BR>
+<P>
+It corresponds to the timelimit in the Search fonction. A timelimit that restricts the maximum 
+	time (in seconds) allowed for a search. A value of 0 (the default), means that no timelimit
+        will be requested.
 
 <P>
 </LI>
-<LI>Apache suExec : use an Apache virtual host with sympa.sympa as uid.gid ; Apache
-      needs to be compiled with suexec. Be aware that the Apache suexec usually define a lowest
-      UID/GID allowed to be a target user for suEXEC. For most systems including binaries
-      distribution of Apache, the default value 100 is common.
-      So Sympa UID (and Sympa GID) must be higher then 100 or suexec must be tuned in order to allow
-      lower UID/GID. Check http://httpd.apache.org/docs/suexec.html#install for details
+<LI>suffix
+<BR>
+<P>
+The root of the DIT (Directory Information Tree). The DN that is the base object entry relative 
+	to which the search is to be performed. 
 
 <P>
-The User and Group directive have to be set before the FastCgiServer directive
-      is encountered.
+Example: <TT>dc=university,dc=fr</TT>
 
 <P>
 </LI>
-<LI>C wrapper : otherwise, you can overcome restrictions on the execution of suid scripts
-      by using a short C program, owned by sympa and with the suid bit set, to start
-      <A NAME="9216"></A><TT>wwsympa.fcgi</TT>. Here is an example (with no guarantee attached) :<PRE>
-#include &lt;unistd.h&gt;
+<LI>bind_dn
+<BR>
+<P>
+If anonymous bind is not allowed on the LDAP server, a DN and password can be used.
 
-#define WWSYMPA "/usr/local/sympa-os/bin/wwsympa.fcgi"
+<P>
+</LI>
+<LI>bind_password
+<BR>
+<P>
+This password is used, combined with the bind_dn above.
 
-int main(int argn, char **argv, char **envp) {
-    argv[0] = WWSYMPA;
-    execve(WWSYMPA,argv,envp);
-}
+<P>
+</LI>
+<LI>get_dn_by_uid_filter
+<BR>
+<P>
+Defines the search filter corresponding to the ldap_uid. (RFC 2254 compliant).
+	If you want to apply the filter on the user, use the variable ' [sender] '. It will work with every
+	type of authentication (uid, alternate_email..). 
+
+<P>
+Example :
+	<PRE>
+	(Login = [sender])
+	(|(ID = [sender])(UID = [sender]))
 </PRE>
+
+<P>
+</LI>
+<LI>get_dn_by_email_filter
+<BR>
+<P>
+Defines the search filter corresponding to the email addresses (canonic and alternative).(RFC 2254 compliant). 
+	If you want to apply the filter on the user, use the variable ' [sender] '. It will work with every
+	type of authentication (uid, alternate_email..). 
+
+<P>
+Example: a person is described by
+
+<P><PRE>
+                 Dn:cn=Fabrice Rafart,
+                 ou=Siege ,
+                 o=MaSociete ,
+                 c=FR Objectclass:
+                 person Cn: Fabrice Rafart
+                 Title: Network Responsible
+                 O: Siege
+                 Or: Data processing
+                 Telephonenumber: 01-00-00-00-00
+                 Facsimiletelephonenumber:01-00-00-00-00
+                 L:Paris
+                 Country: France
+
+		 uid: frafart
+ 		 mail: Fabrice.Rafart@MaSociete.fr
+                 alternate_email: frafart@MaSociete.fr
+                 alternate:rafart@MaSociete.fr
+</PRE>
+
+<P>
+The filters can be :
+
+<P><PRE>
+	
+	(mail = [sender])
+	(| (mail = [sender])(alternate_email = [sender]) )
+	(| (mail = [sender])(alternate_email = [sender])(alternate  = [sender]) )
+</PRE>
+
+<P>
+</LI>
+<LI>email_attribute
+<BR>
+<P>
+The name of the attribute for the canonic email in your directory : for instance mail, canonic_email, canonic_address ...
+	In the previous example the canonic email is 'mail'.
+
+<P>
+</LI>
+<LI>alternate_email_attribute
+<BR>
+<P>
+The name of the attribute for the alternate email in your directory : for instance alternate_email, mailalternateaddress, ...
+	You make a list of these attributes separated by commas.
+
+<P>
+With this list <I>Sympa</I> creates a cookie which contains various information : the user is authenticated via Ldap or not, his alternate email. To store the alternate email is interesting when you want to canonify your preferences and subscriptions. 
+	That is to say you want to use a unique address in User_table and Subscriber_table which is the canonic email.
+
+<P>
+</LI>
+<LI>scope
+<BR>
+<P>
+(Default value: <TT>sub</TT>)
+	By default the search is performed on the whole tree below the specified base object. This may be changed by 
+	specifying a scope :
+
+<P>
+
+<UL>
+<LI>base
+<BR>
+Search only the base object.
+
+<P>
+</LI>
+<LI>one
+<BR>
+Search the entries immediately below the base object. 
+
+<P>
+</LI>
+<LI>sub
+<BR>
+Search the whole tree below the base object. This is the default. 
+
+<P>
+</LI>
+</UL>
+
+<P>
+</LI>
+<LI>authentication_info_url
+<BR>
+<P>
+Defines the URL of a document describing LDAP password management. When hitting Sympa's 
+	<I>Send me a password</I> button, LDAP users will be redirected to this URL.
+
+<P>
+</LI>
+<LI>use_ssl
+
+<P>
+If set to <TT>1</TT>, connection to the LDAP server will use SSL (LDAPS).
+
+<P>
+</LI>
+<LI>ssl_version
+
+<P>
+This defines the version of the SSL/TLS protocol to use. Defaults of <A NAME="6124"></A>Net::LDAPS to <TT>sslv2/3</TT>, 
+	other possible values are <TT>sslv2</TT>, <TT>sslv3</TT>, and <TT>tlsv1</TT>.
+
+<P>
+</LI>
+<LI>ssl_ciphers
+
+<P>
+Specify which subset of cipher suites are permissible for this connection, using the standard 
+	OpenSSL string format. The default value of <A NAME="6125"></A>Net::LDAPS for ciphers is <TT>ALL</TT>, 
+	which permits all ciphers, even those that don't encrypt!
+
+<P>
 </LI>
 </UL>
 
 <P>
 
-<H2><A NAME="SECTION001022000000000000000">
-9.2.2 Installing wwsympa.fcgi in your Apache server</A>
+<H2><A NAME="SECTION001053000000000000000">
+9.5.3 generic_sso paragraph</A>
 </H2>
 
 <P>
-You first need to set an alias to the directory where Sympa stores static contents (CSS, members pictures, documentation) directly delivered by Apache
-
-<P><PRE>
-     Example :
-       	Alias /static-sympa /usr/local/sympa-os/static_content
-</PRE>
-
-<P>
-If you chose to run <A NAME="9219"></A><TT>wwsympa.fcgi</TT> as a simple CGI, you simply need to
-     script alias it. 
-
-<P><PRE>
-     Example :
-       	ScriptAlias /sympa /usr/local/sympa-os/bin/wwsympa.fcgi
-</PRE>
-
-<P>
-Running  FastCGI will provide much faster responses from your server and 
-     reduce load (to understand why, read 
-     <A NAME="tex2html21"
-  HREF="http://www.fastcgi.com/fcgi-devkit-2.1/doc/fcgi-perf.htm">http://www.fastcgi.com/fcgi-devkit-2.1/doc/fcgi-perf.htm</A>)
-
-<P><PRE>
-     Example :
-	FastCgiServer /usr/local/sympa-os/bin/wwsympa.fcgi -processes 2
-	&lt;Location /sympa&gt;
-   	  SetHandler fastcgi-script
-	&lt;/Location&gt;
-
-	ScriptAlias /sympa /usr/local/sympa-os/bin/wwsympa.fcgi
-</PRE>
-
-<P>
-If you are using <B>sudo</B> (see evious subsection), then replace <A NAME="9222"></A><TT>wwsympa.fcgi</TT> calls with <A NAME="9225"></A><TT>wwsympa_sudo_wrapper.pl</TT>.
-
-<P>
-If you run virtual hosts, then each FastCgiServer(s) can serve multiple hosts. 
-Therefore you need to define it in the common section of your Apache configuration file.
-
-<P>
-
-<H2><A NAME="SECTION001023000000000000000">
-9.2.3 Using FastCGI</A>
-</H2>
-
-<P>
-<A NAME="tex2html22"
-  HREF="http://www.fastcgi.com/">FastCGI</A>
-is an extention to CGI that provides persistency for CGI programs. It is extemely useful
-with <A NAME="9228"></A><I>WWSympa</I> since source code interpretation and all initialisation tasks are performed only once, at server startup ; then
-file wwsympa.fcgi instances are waiting for clients requests. 
-
-<P>
-<A NAME="9231"></A><I>WWSympa</I> can also work without FastCGI, depending on the <B>use_fast_cgi</B> parameter 
-(see <A HREF="#use-fastcgi">9.3.15</A>, page&nbsp;<A HREF="node10.html#use-fastcgi"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
-
-<P>
-To run <A NAME="9234"></A><I>WWSympa</I> with FastCGI, you need to install :
 
 <UL>
-<LI><A NAME="9237"></A>mod_fastcgi  : the Apache module that provides <A NAME="9238"></A>FastCGI features
+<LI>service_name 
+<BR>
+This is the SSO service name that will be proposed to the user in the login banner menu.
 
 <P>
 </LI>
-<LI><A NAME="9239"></A><TT>FCGI</TT> : the Perl module used by <A NAME="9242"></A><I>WWSympa</I> 
+<LI>service_id 
+<BR>
+This service ID is used as a parameter by sympa to refer to the SSO service (instead of the service name). 
+
+<P>
+A corresponding URL on the local web server should be protected by the SSO system ; this URL would look like textbf http://yourhost.yourdomain/wws/sso_login/inqueue if the service_id is <B>inqueue</B>.
+
+<P>
+</LI>
+<LI>http_header_prefix 
+<BR>
+Sympa gets user attributes from environment variables comming from the web server. These variables are then stored in the user_table DB table for later use in authorization scenarios (in  structure). Only environment variables starting with the defined prefix will kept.
+
+<P>
+</LI>
+<LI>email_http_header 
+<BR>
+This parameter defines the environment variable that will contain the authenticated user's email address.
 
 <P>
 </LI>
@@ -339,375 +610,262 @@ To run <A NAME="9234"></A><I>WWSympa</I> with FastCGI, you need to install :
 
 <P>
 
-<H1><A NAME="SECTION001030000000000000000">
-9.3 wwsympa.conf parameters</A>
+<H2><A NAME="SECTION001054000000000000000">
+9.5.4 cas paragraph</A>
+</H2>
+
+<P>
+
+<UL>
+<LI>auth_service_name
+<BR>
+The friendly user service name as shown by <I>Sympa</I> in the login page.
+
+<P>
+</LI>
+<LI>host (OBSOLETE) 
+<BR>
+This parameter has been replaced by <B>base_url</B> parameter
+
+<P>
+</LI>
+<LI>base_url 
+<BR>
+<P>
+The base URL of the CAS server.
+
+<P>
+</LI>
+<LI>non_blocking_redirection
+<BR>
+<P>
+This parameter concern only the first access to Sympa services by a user, it activate or not the non blocking
+redirection to the related cas server to check automatically if the user as been previously authenticated with  this CAS server.
+Possible values are <B>on</B>  <B>off</B>, default is  <B>on</B>. The redirection to CAS is use with
+the cgi parameter <B>gateway=1</B> that specify to CAS server to always redirect the user to the origine
+URL but just check if the user is logged. If active, the SSO service is effective and transparent, but in case
+the CAS server is out of order the access to Sympa services is impossible.
+
+<P>
+</LI>
+<LI>login_uri (OBSOLETE) 
+<BR>
+This parameter has been replaced by <B>login_path</B> parameter.
+
+<P>
+</LI>
+<LI>login_path (OPTIONAL)
+<BR>
+The login service path
+
+<P>
+</LI>
+<LI>check_uri (OBSOLETE) 
+<BR>
+This parameter has been replaced by <B>service_validate_path</B> parameter
+
+<P>
+</LI>
+<LI>service_validate_path (OPTIONAL)
+<BR>
+The ticket validation service path
+
+<P>
+</LI>
+<LI>logout_uri (OBSOLETE) 
+<BR>
+This parameter has been replaced by <B>logout_path</B> parameter
+
+<P>
+</LI>
+<LI>logout_path (OPTIONAL)
+<BR>
+The logout service path
+
+<P>
+</LI>
+<LI>proxy_path (OPTIONAL)
+<BR>
+The proxy service path, used by Sympa SOAP server only.
+
+<P>
+</LI>
+<LI>proxy_validate_path (OPTIONAL)
+<BR>
+The proxy validate service path, used by Sympa SOAP server only.
+
+<P>
+</LI>
+<LI>ldap_host
+<BR>
+The LDAP host Sympa will connect to fetch user email when user uid is return by CAS service. The ldap_host include the
+        port number and it may be a comma separated list of redondant host.   
+
+<P>
+</LI>
+<LI>ldap_bind_dn
+<BR>
+The DN used to bind to this server. Anonymous bind is used if this parameter is not defined.
+
+<P>
+</LI>
+<LI>ldap_bind_password
+<BR>
+The password used unless anonymous bind is used.
+
+<P>
+</LI>
+<LI>ldap_suffix
+<BR>
+The LDAP suffix use when seraching user email
+
+<P>
+</LI>
+<LI>ldap_scope
+<BR>
+The scope use when seraching user email, possible values are <TT>sub</TT>, <TT>base</TT>, and <TT>one</TT>.
+
+<P>
+</LI>
+<LI>ldap_get_email_by_uid_filter
+<BR>
+The filter to perform the email search.
+
+<P>
+</LI>
+<LI>ldap_email_attribute
+<BR>
+The attribut name to be use as user canonical email. In the current version of sympa only the first value returned by the LDAP server is used.
+
+<P>
+</LI>
+<LI>ldap_timeout
+<BR>
+The time out for the search.
+
+<P>
+</LI>
+<LI>ldap_use_ssl
+
+<P>
+If set to <TT>1</TT>, connection to the LDAP server will use SSL (LDAPS).
+
+<P>
+</LI>
+<LI>ldap_ssl_version
+
+<P>
+This defines the version of the SSL/TLS protocol to use. Defaults of <A NAME="6127"></A>Net::LDAPS to <TT>sslv2/3</TT>, 
+	other possible values are <TT>sslv2</TT>, <TT>sslv3</TT>, and <TT>tlsv1</TT>.
+
+<P>
+</LI>
+<LI>ldap_ssl_ciphers
+
+<P>
+Specify which subset of cipher suites are permissible for this connection, using the  
+	OpenSSL string format. The default value of <A NAME="6128"></A>Net::LDAPS for ciphers is <TT>ALL</TT>, 
+	which permits all ciphers, even those that don't encrypt!
+
+<P>
+</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION001060000000000000000"></A><A NAME="6129"></A>
+<A NAME="sharing-auth"></A>
+<BR>
+9.6 Sharing <I>WWSympa</I> authentication with other applications
 </H1>
 
 <P>
-
-<H2><A NAME="SECTION001031000000000000000">
-9.3.1 arc_path</A>
-</H2>
+If your are not using a web Single SignOn system you might want to make other web applications collaborate with <I>Sympa</I>,
+and share the same authentication system. <I>Sympa</I> uses
+HTTP cookies to carry users' auth information from page to page.
+This cookie carries no information concerning privileges. To make your application
+work with <I>Sympa</I>, you have two possibilities :
 
 <P>
-(Default value: <TT>/home/httpd/html/arc</TT>) 
+
+<UL>
+<LI>Delegating authentication operations to <A NAME="6135"></A><I>WWSympa</I> 
 <BR>
-Where to store html archives. This parameter is used
-        by the <A NAME="9246"></A><TT>archived.pl</TT> daemon. It is a good idea to install the archive
-        outside the web hierarchy to prevent possible back doors in the access control
-        powered by WWSympa. However, if Apache is configured with a chroot, you may
-	have to install the archive in the Apache directory tree.
-
-<P>
-
-<H2><A NAME="SECTION001032000000000000000">
-9.3.2 archive_default_index thrd | mail</A>
-</H2>
-
-<P>
-(Default value: <TT>thrd</TT>) 
-<BR>
-The default index organization when entering web archives : either threaded or	
-	chronological order.
-
-<P>
-
-<H2><A NAME="SECTION001033000000000000000">
-9.3.3 archived_pidfile</A>
-</H2>
-	(Default value: <TT>archived.pid</TT>) 
-<BR>
-The file containing the PID of <A NAME="9251"></A><TT>archived.pl</TT>.
-
-<P>
-
-<H2><A NAME="SECTION001034000000000000000">
-9.3.4 bounce_path</A>
-</H2>
-	(Default value: <TT>/var/bounce</TT>) 
-<BR>
-Root directory for storing bounces (non-delivery reports). This parameter
-	is used mainly by the <A NAME="9255"></A><TT>bounced.pl</TT> daemon.
-
-<P>
-
-<H2><A NAME="SECTION001035000000000000000">
-9.3.5 bounced_pidfile</A>
-</H2>
-	(Default value: <TT>bounced.pid</TT>) 
-<BR>
-The file containing the PID of <A NAME="9259"></A><TT>bounced.pl</TT>.
-
-<P>
-
-<H2><A NAME="SECTION001036000000000000000">
-9.3.6 cookie_expire</A>
-</H2>
-	(Default value: <TT>0</TT>)
-	Lifetime (in minutes) of HTTP cookies. This is the default value
-	when not set explicitly by users.
-
-<P>
-
-<H2><A NAME="SECTION001037000000000000000">
-9.3.7 cookie_domain</A>
-</H2>
-	(Default value: <TT>localhost</TT>) 
-<BR>
-Domain for the HTTP cookies. If beginning with a dot ('.'),
-	the cookie is available within the specified internet domain.
-	Otherwise, for the specified host. Example : 
-		<PRE>
-		   cookie_domain cru.fr
-		   cookie is available for host 'cru.fr'
-
-		   cookie_domain .cru.fr
-		   cookie is available for any host within 'cru.fr' domain
+If you want to avoid spending a lot of time programming a CGI to do Login, Logout
+and Remindpassword, you can copy <A NAME="6138"></A><I>WWSympa</I>'s login page to your 
+application, and then make use of the cookie information within your application. 
+The cookie format is :
+<PRE>
+sympauser=&lt;user_email&gt;:&lt;checksum&gt;
 </PRE>
-	The only reason for replacing the default value would be where
-	<A NAME="9264"></A><I>WWSympa</I>'s authentication process is shared with an application
-	running on another host.
+where <TT>&lt;</TT>user_email<TT>&gt;</TT> is the user's complete e-mail address, and
+<TT>&lt;</TT>checksum<TT>&gt;</TT> are the 8 first bytes of the a MD5 checksum of the <TT>&lt;</TT>user_email<TT>&gt;</TT>+<I>Sympa</I> <A NAME="6142"></A><TT>cookie</TT>
+configuration parameter.
+Your application needs to know what the <A NAME="6145"></A><TT>cookie</TT> parameter
+is, so it can check the HTTP cookie validity ; this is a secret shared
+between <A NAME="6148"></A><I>WWSympa</I> and your application.
+<A NAME="6151"></A><I>WWSympa</I>'s <I>loginrequest</I> page can be called to return to the
+referer URL when an action is performed. Here is a sample HTML anchor :
 
 <P>
-
-<H2><A NAME="SECTION001038000000000000000">
-9.3.8 default_home</A>
-</H2>
-	(Default value: <TT>home</TT>) 
-<BR>
-Organization of the WWSympa home page. If you have only a few lists,
-	the default value `home' (presenting a list of lists organized by topic)
-	should be replaced by `lists' (a simple alphabetical list of lists).
-
-<P>
-
-<H2><A NAME="SECTION001039000000000000000">
-9.3.9 icons_url</A>
-</H2>
-	(Default value: <TT>/icons</TT>) 
-<BR>
-URL of WWSympa's icons directory.
-
-<P>
-
-<H2><A NAME="SECTION0010310000000000000000">
-9.3.10 log_facility</A>
-</H2>
-
-<P>
-WWSympa will log using this facility. Defaults to <I>Sympa</I>'s syslog
-        facility.
-	Configure your syslog according to this parameter.
-
-<P>
-
-<H2><A NAME="SECTION0010311000000000000000">
-9.3.11 mhonarc</A>
-</H2>
-	(Default value: <TT>/usr/bin/mhonarc</TT>) 
-<BR>
-Path to the (superb) MhOnArc program. Required for html archives
-	http://www.oac.uci.edu/indiv/ehood/mhonarc.html
-
-<P>
-
-<H2><A NAME="SECTION0010312000000000000000">
-9.3.12 htmlarea_url</A>
-</H2>
-	(Default value: <TT>undefined</TT>) 
-<BR>
-Relative URL to the (superb) online html editor HTMLarea. If you have installed javascript application you can use it
-        when editing html document in the shared document repository. In order to activate this pluggin the value of this
-        parameter should point to the root directory where HTMLarea is installed.  HTMLarea is a free opensource software you can download
-        here : http://sf.net/projects/itools-htmlarea/
-
-<P>
-
-<H2><A NAME="SECTION0010313000000000000000">
-9.3.13 password_case sensitive | insensitive</A>
-</H2>
-	(Default value: <TT>insensitive</TT>) 
-<BR>
-If set to <B>insensitive</B>, WWSympa's password check will be insensitive.
-	This only concerns passwords stored in Sympa database, not the ones in <A NAME="9273"></A>LDAP.
-
-<P>
-<B>Be careful :</B> in previous 3.xx versions of Sympa, passwords were 
-	lowercased before database insertion. Therefore changing to case-sensitive 
-	password checking could bring you some password checking problems.
-
-<P>
-
-<H2><A NAME="SECTION0010314000000000000000">
-9.3.14 title</A>
-</H2>
-	(Default value: <TT>Mailing List Service</TT>) 
-<BR>
-The name of your mailing list service. It will appear in
-	the Title section of WWSympa.
-
-<P>
-
-<H2><A NAME="SECTION0010315000000000000000"></A>
-	<A NAME="use-fastcgi"></A>
-<BR>
-9.3.15 use_fast_cgi   0 | 1
-</H2>
-	(Default value: <TT>1</TT>) 
-<BR>
-Choice of whether or not to use FastCGI. On listes.cru.fr, using FastCGI 
-        increases WWSympa performance by as much as a factor of 10. Refer to 
-       	<A NAME="tex2html23"
-  HREF="http://www.fastcgi.com/">http://www.fastcgi.com/</A>
-and the Apache config section of this document for details about 
-	FastCGI.
-
-<P>
-
-<H1><A NAME="SECTION001040000000000000000">
-9.4 MhOnArc</A>
-</H1>
-
-<P>
-MhOnArc is a neat little converter from mime messages to html. Refer to
-<A NAME="tex2html24"
-  HREF="http://www.oac.uci.edu/indiv/ehood/mhonarc.html">http://www.oac.uci.edu/indiv/ehood/mhonarc.html</A>.
-
-<P>
-The long mhonarc resource file is used by <A NAME="9276"></A><I>WWSympa</I> in a particular way.
-MhOnArc is called to produce not a complete html document, but only a part of it
-to be included in a complete document (starting with <TT>&lt;</TT>HTML<TT>&gt;</TT> and terminating
-with <TT>&lt;</TT>/HTML<TT>&gt;</TT> ;-) ).
-The best way is to use the MhOnArc resource file 
-provided in the <A NAME="9279"></A><I>WWSympa</I> distribution and to modify it for your needs.
-
-<P>
-The mhonarc resource file is named <A NAME="9282"></A><TT>mhonarc-ressources</TT>. 
-You may locate this file either in 
-<OL>
-<LI><A NAME="9285"></A><TT>/usr/local/sympa-os/expl/mylist/mhonarc-ressources</TT>
-	in order to create a specific archive look for a particular list
-
-<P>
-</LI>
-<LI>or <A NAME="9288"></A><TT>/usr/local/sympa-os/etc/mhonarc-ressources</TT>
-
-<P>
-</LI>
-</OL>
-
-<P>
-
-<H1><A NAME="SECTION001050000000000000000">
-9.5 Archiving daemon</A>
-</H1>
-<A NAME="9291"></A><TT>archived.pl</TT> converts messages from <I>Sympa</I>'s spools 
-and calls <A NAME="9295"></A><TT>mhonarc</TT> to create html versions (whose location is defined by the 
-"arc_path" WWSympa parameter). You should probably install these archives 
-outside the <I>Sympa</I> home_dir (<I>Sympa</I>'s initial choice for storing mail archives : 
-<A NAME="9300"></A><TT>/usr/local/sympa-os/expl/mylist</TT>). Note that the html archive 
-contains a text version of each message and is totally separate from <I>Sympa</I>'s
-main archive.
-
-<OL>
-<LI>create a directory according to the WWSympa "arc_path" parameter
-    (must be owned by sympa, does not have to be in Apache space unless
-    your server uses chroot)
-
-<P>
-</LI>
-<LI>for each list, if you need a web archive, create a new web archive paragraph
-    in the list configuration. Example :<PRE>
-     web_archive
-     access public|private|owner|listmaster|closed
-     quota 10000
+<PRE>
+&lt;A HREF="/wws/loginrequest/referer"&gt;Login page&lt;/A&gt;
 </PRE>
 
 <P>
-If web_archive is defined for a list, every message distributed by this list is copied
-     to <A NAME="9304"></A><TT>/usr/local/sympa-os/spool/outgoing/</TT>. (No need to create nonexistent subscribers to receive
-     copies of messages). In this example disk quota (expressed in Kbytes) for the archive is limited to 10 Mo.
+You can also have your own HTML page submitting data to <A NAME="6154"></A><TT>wwsympa.fcgi</TT> CGI. If you're
+doing so, you can set the <TT>referer</TT> variable to another URI. You can also
+set the <TT>failure_referer</TT> to make WWSympa redirect the client to a different
+URI if login fails.
 
 <P>
 </LI>
-<LI>start <A NAME="9307"></A><TT>archived.pl</TT>.
-<I>Sympa</I> and Apache
+<LI>Using <A NAME="6157"></A><I>WWSympa</I>'s HTTP cookie format within your auth module 
+<BR>
+To cooperate with <A NAME="6160"></A><I>WWSympa</I>, you simply need to adopt its HTTP
+cookie format and share the secret it uses to generate MD5 checksums,
+i.e. the <A NAME="6163"></A><TT>cookie</TT> configuration parameter. In this way, <A NAME="6166"></A><I>WWSympa</I> 
+will accept users authenticated through your application without
+further authentication.
 
 <P>
 </LI>
-<LI>check <A NAME="9311"></A><I>WWSympa</I> logs, or alternatively, start <A NAME="9314"></A><TT>archived.pl</TT> in debug mode (-d). 
-
-<P>
-</LI>
-<LI>If you change mhonarc resources and wish to rebuild the entire archive 
-using the new look defined for mhonarc, simply create an empty file named
-".rebuild.mylist@myhost" in <A NAME="9317"></A><TT>/usr/local/sympa-os/spool/outgoing</TT>, and make sure that
-the owner of this file is <I>Sympa</I>. 
-
-<P><PRE>
-     example : su sympa -c "touch /usr/local/sympa-os/spool/outgoing/.rebuild.sympa-fr@cru.fr"
-</PRE>
-You can also rebuild web archives from within the admin page of the list.
-
-<P>
-Furthermore, if you want to get list's archives, you can do it via the <A NAME="9321"></A><TT> List-admin menu-&gt; Archive Management</TT>
-</LI>
-</OL>
-
-<P>
-
-<H1><A NAME="SECTION001060000000000000000">
-9.6 Database configuration</A>
-</H1>
-
-<P>
-<A NAME="9324"></A><I>WWSympa</I> needs an RDBMS (Relational Database Management System) in order to
-run. All database access is performed via the <I>Sympa</I> API. <I>Sympa</I> 
-currently interfaces with <A NAME="tex2html25"
-  HREF="http://www.mysql.net/">MySQL</A>, 
-<A NAME="tex2html26"
-  HREF="http://sqlite.org/">SQLite</A>,
-<A NAME="tex2html27"
-  HREF="http://www.postgresql.pyrenet.fr/">PostgreSQL</A>, 
-<A NAME="tex2html28"
-  HREF="http://www.oracle.com/database/">Oracle</A>
-and <A NAME="tex2html29"
-  HREF="http://www.sybase.com/index_sybase.html">Sybase</A>.
-
-<P>
-A database is needed to store user passwords and preferences.
-The database structure is documented in the <I>Sympa</I> documentation ;
-scripts for creating it are also provided with the <I>Sympa</I> distribution
-(in <A NAME="9331"></A><TT>script</TT>). 
-
-<P>
-User information (password and preferences) are stored in the ``User'' table.
-User passwords stored in the database are encrypted using reversible
-RC4 encryption controlled with the <A NAME="9334"></A><TT>cookie</TT> parameter,
-since <A NAME="9337"></A><I>WWSympa</I> might need to remind users of their passwords. 
-The security of <A NAME="9340"></A><I>WWSympa</I> rests on the security of your database. 
-
-<P>
-
-<H1><A NAME="SECTION001070000000000000000">
-9.7 Logging in as listmaster</A>
-</H1>
-
-<P>
-Once <I>Sympa</I> is running you should log in on the web interface as a privileged user (listmaster)
-to explore the admin interface, create mailing lists.
-
-<P>
-Multiple email addresses can be declared as listmaster via the <A NAME="9344"></A><TT>sympa.conf</TT> (or <A NAME="9347"></A><TT>robot.conf</TT>)
-<A NAME="9350"></A><TT>listmaster</TT> configuration parameter (see <A HREF="node8.html#exp-admin">7</A>,  page&nbsp;<A HREF="node8.html#exp-admin"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>). Note
-that listmasters on the main robot (declared in  <A NAME="9353"></A><TT>sympa.conf</TT>) also have listmaster privileges on
-the virtual hosts but they will not receive the various mail notifications (list creation, warnings,...)
-regarding these virtual hosts.
-
-<P>
-The listmasters should log in with their canonical email address as an identifier (not <I>listmaster@my.host</I>).
-The associated password is not declared in sympa.conf ; it will be allocated by <I>Sympa</I> when first hitting
-the <B>Send me a password</B> button on the web interface. As for any user, the password can then be modified via the 
-<B>Preferenced</B> menu.
-
-<P>
-Note that you must start the <A NAME="9357"></A><TT>sympa.pl</TT> process with the web interface ; it is in responsible for delivering 
-mail messages including password reminders.
+</UL>
 
 <P>
 
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html1114"
+<A NAME="tex2html910"
   HREF="node11.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1108"
+<A NAME="tex2html904"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1102"
+<A NAME="tex2html898"
   HREF="node9.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1110"
+<A NAME="tex2html906"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1112"
-  HREF="node31.html">
+<A NAME="tex2html908"
+  HREF="node23.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1115"
-  HREF="node11.html">10. Sympa Internationalization</A>
-<B> Up:</B> <A NAME="tex2html1109"
+<B> Next:</B> <A NAME="tex2html911"
+  HREF="node11.html">10. Authorization scenarios</A>
+<B> Up:</B> <A NAME="tex2html905"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1103"
-  HREF="node9.html">8. Sympa and its database</A>
- &nbsp; <B>  <A NAME="tex2html1111"
+<B> Previous:</B> <A NAME="tex2html899"
+  HREF="node9.html">8. Sympa SOAP server</A>
+ &nbsp <B>  <A NAME="tex2html907"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1113"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html909"
+  HREF="node23.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2004-08-31
 </ADDRESS>
 </BODY>
 </HTML>
