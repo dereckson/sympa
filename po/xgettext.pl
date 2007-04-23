@@ -68,7 +68,7 @@ C<E<lt>&|/locE<gt>I<...>E<lt>/&E<gt>> will be extracted.
 
 =item Template Toolkit
 
-Texts inside C<[%|l%]...[%END%]>, C<[%|loc%]...[%END%]> or C<[%|locdt%]...[%END%]>
+Texts inside C<[%|l%]...[%END%]> or C<[%|loc%]...[%END%]>
 are extracted.
 
 =item Text::Template
@@ -78,7 +78,7 @@ extracted.
 
 =cut
 
-my (%file, %type_of_entries, %Lexicon, %opts);
+my (%file, %Lexicon, %opts);
 my ($PO, $out);
 
 # options as above. Values in %opts
@@ -170,34 +170,30 @@ foreach my $file (@ARGV) {
 
     # Template Toolkit
     $line = 1; pos($_) = 0;
-    while (m!\G.*?\[%\s*\|(locdt|loc)(.*?)\s*%\](.*?)\[%\-?\s*END\s*\-?%\]!sg) {
-	my ($this_tag, $vars, $str) = ($1, $2, $3);
+    while (m!\G.*?\[%\s*\|l(?:oc)?(.*?)\s*%\](.*?)\[%\-?\s*END\s*\-?%\]!sg) {
+	my ($vars, $str) = ($1, $2);
 	$line += ( () = ($& =~ /\n/g) ); # cryptocontext!
 	$str =~ s/\\\'/\'/g; 
 	$vars =~ s/^\s*\(//;
 	$vars =~ s/\)\s*$//;
-	my $expression = {'expression' => $str,
-			  'filename' => $filename,
-			  'line' => $line,
-			  'vars' => $vars};       
-	$expression->{'type'} = 'date' if ($this_tag eq 'locdt');
-	&add_expression($expression);
+	&add_expression({'expression' => $str,
+			 'filename' => $filename,
+			 'line' => $line,
+			 'vars' => $vars});
     }
 	    
     # Template Toolkit with ($tag$%|loc%$tag$)...($tag$%END%$tag$) in archives
     $line = 1; pos($_) = 0;
-    while (m!\G.*?\(\$tag\$%\s*\|(locdt|loc)(.*?)\s*%\$tag\$\)(.*?)\(\$tag\$%\s*END\s*%\$tag\$\)!sg) {
-	my ($this_tag, $vars, $str) = ($1, $2, $3);
+    while (m!\G.*?\(\$tag\$%\s*\|l(?:oc)?(.*?)\s*%\$tag\$\)(.*?)\(\$tag\$%\s*END\s*%\$tag\$\)!sg) {
+	my ($vars, $str) = ($1, $2);
 	$line += ( () = ($& =~ /\n/g) ); # cryptocontext!
 	$str =~ s/\\\'/\'/g; 
 	$vars =~ s/^\s*\(//;
 	$vars =~ s/\)\s*$//;
-	my $expression = {'expression' => $str,
-			  'filename' => $filename,
-			  'line' => $line,
-			  'vars' => $vars};       
-	$expression->{'type'} = 'date' if ($this_tag eq 'locdt');
-	&add_expression($expression);
+	&add_expression({'expression' => $str,
+			 'filename' => $filename,
+			 'line' => $line,
+			 'vars' => $vars});
     }	    
 
 	    # Sympa variables (gettext_id)
@@ -230,7 +226,7 @@ foreach my $file (@ARGV) {
 	    }
 
     # Perl source file
-	    my ($state,$str,$vars)=(0); my $is_date = 0;
+    my ($state,$str,$vars)=(0);
     pos($_) = 0;
     my $orig = 1 + (() = ((my $__ = $_) =~ /\n/g));
   PARSER: {
@@ -238,13 +234,11 @@ foreach my $file (@ARGV) {
       my $line = $orig - (() = ((my $__ = $_) =~ /\n/g));
       # maketext or loc or _
       $state == NUL &&
-        m/\b(translate|gettext(?:_strftime)?|maketext|__?|loc|x)/gcx && do {
+        m/\b(translate|gettext?|maketext|__?|loc|x)/gcx && do {
           if ($& eq 'gettext_strftime') {
             $state = BEGM;
-	    $is_date = 1;
           } else {
             $state = BEG;
-	    $is_date = 0;
           }
           redo;
         };
@@ -285,13 +279,10 @@ foreach my $file (@ARGV) {
 	  $state = NUL;	
 	  $vars =~ s/[\n\r]//g if ($vars);
 	  if ($str) {
-	      my $expression = {'expression' => $str,
-				'filename' => $filename,
-				'line' => $line - (() = $str =~ /\n/g),
-				'vars' => $vars};
-	      $expression->{'type'} = 'date' if ($is_date);
-
-	      &add_expression($expression);
+	      &add_expression({'expression' => $str,
+			       'filename' => $filename,
+			       'line' => $line - (() = $str =~ /\n/g),
+			       'vars' => $vars});
 	  }
 	  undef $str; undef $vars;
 	  redo;
@@ -366,21 +357,11 @@ foreach my $entry (sort keys %Lexicon) {
     }
 
     my %seen;
-
-    ## Print code/templates references
     print "\n#:$f\n";
-
-    ## Print variables if any
     foreach my $entry ( grep { $_->[2] } @{$file{$entry}} ) {
 	my ($file, $line, $var) = @{$entry};
 	$var =~ s/^\s*,\s*//; $var =~ s/\s*$//;
 	print "#. ($var)\n" unless !length($var) or $seen{$var}++;
-    }
-
-    ## If the entry is a date format, add a developper comment to help translators
-    if ($type_of_entries{$entry} eq 'date') {
-	print "#. This entry is a date/time format\n";
-	print "#. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html\n";
     }
 
     print "#, maketext-format" if $opts{g} and /%(?:\d|\w+\([^\)]*\))/;
@@ -394,7 +375,6 @@ sub add_expression {
     my $param = shift;
 
     push @{$file{$param->{'expression'}}}, [ $param->{'filename'}, $param->{'line'}, $param->{'vars'} ];
-    $type_of_entries{$param->{'expression'}} = $param->{'type'} if ($param->{'type'});
 
 }
 

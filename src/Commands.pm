@@ -1170,9 +1170,7 @@ sub add {
 
     do_log('debug', 'Commands::add(%s,%s)', $what,$sign_mod );
 
-    my $email_regexp = &tools::get_regexp('email');    
-
-    $what =~ /^(\S+)\s+($email_regexp)(\s+(.+))?\s*$/;
+    $what =~ /^(\S+)\s+($tools::regexp{'email'})(\s+(.+))?\s*$/;
     my($which, $email, $comment) = ($1, $2, $6);
     my $auth_method ;
 
@@ -1695,9 +1693,7 @@ sub del {
 
     &do_log('debug', 'Commands::del(%s,%s)', $what,$sign_mod);
 
-    my $email_regexp = &tools::get_regexp('email');    
-
-    $what =~ /^(\S+)\s+($email_regexp)\s*/;
+    $what =~ /^(\S+)\s+($tools::regexp{'email'})\s*/;
     my($which, $who) = ($1, $2);
     my $auth_method;
     

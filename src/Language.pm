@@ -60,7 +60,6 @@ my %lang2locale = ('cz' => 'cs_CZ',
 		   'el' => 'el_GR',
 		   'es' => 'es_ES',
 		   'et' => 'et_EE',
-		   'eu' => 'eu_ES',
 		   'fi' => 'fi_FI',
 		   'fr' => 'fr_FR',
 		   'hu' => 'hu_HU',
@@ -82,23 +81,23 @@ my %lang2locale = ('cz' => 'cs_CZ',
 ## Also used to perform setlocale on FreeBSD / Solaris
 my %locale2charset = ('bg_BG' => 'utf-8',
 		      'cs_CZ' => 'utf-8',
-		      'de_DE' => 'iso-8859-1',
+		      'de_DE' => 'iso8859-1',
 		      'el_GR' => 'utf-8',
 		      'en_US' => 'utf-8',
-		      'es_ES' => 'iso-8859-1',
-		      'et_EE' => 'iso-8859-4',
-		      'fi_FI' => 'iso-8859-1',
-		      'fr_FR' => 'iso-8859-1',
-		      'hu_HU' => 'iso-8859-2',
-		      'it_IT' => 'iso-8859-1',
+		      'es_ES' => 'iso8859-1',
+		      'et_EE' => 'iso8859-4',
+		      'fi_FI' => 'iso8859-1',
+		      'fr_FR' => 'iso8859-1',
+		      'hu_HU' => 'iso8859-2',
+		      'it_IT' => 'iso8859-1',
 		      'ja_JP' => 'eucJP', # Case sensitive.
 		      'nb_NO' => 'utf-8',
-		      'nl_NL' => 'iso-8859-1',
-		      'oc_FR' => 'iso-8859-1',		      
-		      'pl_PL' => 'iso-8859-2',
+		      'nl_NL' => 'iso8859-1',
+		      'oc_FR' => 'iso8859-1',		      
+		      'pl_PL' => 'iso8859-2',
 		      'pt_BR' => 'utf-8',
-		      'pt_PT' => 'iso-8859-1',
-		      'ro_RO' => 'iso-8859-2',
+		      'pt_PT' => 'iso8859-1',
+		      'ro_RO' => 'iso8859-2',
 		      'ru_RU' => 'utf-8',
 		      'sv_SE' => 'utf-8',
 		      'tr_TR' => 'utf-8',
@@ -214,19 +213,6 @@ sub SetLang {
 
     return $locale;
 }#SetLang
-
-
-## Get the name of the language, ie the one defined in the catalog
-sub GetLangName {
-    my $lang = shift;
-
-    my $saved_lang = $current_lang;
-    &SetLang($lang);
-    my $name = gettext('_language_');
-    &SetLang($saved_lang);
-    
-    return $name;
-}
 
 sub GetLang {
 ############

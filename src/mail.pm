@@ -179,7 +179,7 @@ sub mail_file {
 	    $to = $rcpt;
 	}   
 	$headers .= "To: ".MIME::EncWords::encode_mimewords(
-	    Encode::decode('utf8', $to),
+	    Encode::decode_utf8($to),
 	    'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'To'
 	    )."\n"; 
     }     
@@ -191,27 +191,27 @@ sub mail_file {
 		)."\n";
 	} else {
 	    $headers .= "From: ".MIME::EncWords::encode_mimewords(
-		Encode::decode('utf8', $data->{'from'}),
+		Encode::decode_utf8($data->{'from'}),
 		'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'From'
 		)."\n"; 
 	}
    }
     unless ($header_ok{'subject'}) {
 	$headers .= "Subject: ".MIME::EncWords::encode_mimewords(
-	    Encode::decode('utf8', $data->{'subject'}),
+	    Encode::decode_utf8($data->{'subject'}),
 	    'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'Subject'
 	    )."\n";
    }
     unless ($header_ok{'reply-to'}) { 
 	$headers .= "Reply-to: ".MIME::EncWords::encode_mimewords(
-	    Encode::decode('utf8', $data->{'replyto'}),
+	    Encode::decode_utf8($data->{'replyto'}),
 	    'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => 'Reply-to'
 	    )."\n" if ($data->{'replyto'})
     }
     if ($data->{'headers'}) {
 	foreach my $field (keys %{$data->{'headers'}}) {
 	    $headers .= $field.': '.MIME::EncWords::encode_mimewords(
-		Encode::decode('utf8', $data->{'headers'}{$field}),
+		Encode::decode_utf8($data->{'headers'}{$field}),
 		'Encoding' => 'A', 'Charset' => $data->{'charset'}, 'Field' => $field
 		)."\n";
 	}
@@ -220,29 +220,29 @@ sub mail_file {
 	$headers .= "MIME-Version: 1.0\n";
     }
     unless ($header_ok{'content-type'}) {
-	$headers .= "Content-Type: text/plain; charset=UTF-8\n";
+	$headers .= "Content-Type: text/plain; charset=$data->{'charset'}\n";
     }
     unless ($header_ok{'content-transfer-encoding'}) {
-	$headers .= "Content-Transfer-Encoding: 8bit\n"; 
+	$headers .= "Content-Transfer-Encoding:"; 
+        $headers .= gettext("_encoding_");
+	$headers .= "\n";
     }
     unless ($existing_headers) {
 	$headers .= "\n";
    }
    
-    ## All these data provide mail attachements in service messages
     my @msgs = ();
     if (ref($data->{'msg_list'}) eq 'ARRAY') {
 	@msgs = map {$_->{'msg'} || $_->{'full_msg'}} @{$data->{'msg_list'}};
-    } elsif ($data->{'spool'}) {
-	@msgs = @{$data->{'spool'}};
-    } elsif ($data->{'msg'}) {
-	push @msgs, $data->{'msg'};
-    } elsif ($data->{'msg_path'} and open IN, '<'.$data->{'msg_path'}) {
+    } elsif ($data->{'msg'} and open IN, '<'.$data->{'msg'}) {
 	push @msgs, join('', <IN>);
 	close IN;
     } elsif ($data->{'file'} and open IN, '<'.$data->{'file'}) {
 	push @msgs, join('', <IN>);
 	close IN;
+    }
+    unless ($message = &reformat_message("$headers"."$message", \@msgs)) {
+	&do_log('err', "mail::mail_file: Failed to reformat message");
     }
 
     my $listname = '';
@@ -251,14 +251,7 @@ sub mail_file {
     } elsif ($data->{'list'}) {
 	$listname = $data->{'list'};
     }
-     
-    unless ($message = &reformat_message("$headers"."$message", \@msgs)) {
-	&do_log('err', "mail::mail_file: Failed to reformat message");
-    }
-
-    ## Set it in case it was not set
-    $data->{'return_path'} ||= &Conf::get_robot_conf($robot, 'request');
-  
+       
     ## SENDING
     if (ref($rcpt)) {
 	unless (defined &sending($message,$rcpt,$data->{'return_path'},$robot,$listname,$sign_mode)) {
@@ -543,7 +536,7 @@ sub sending {
     my $sympa_file;
     my $fh;
     my $signed_msg; # if signing
-
+    
  
     ## FILE HANDLER
     ## Don't fork if used by a CGI (FastCGI problem)
@@ -561,11 +554,6 @@ sub sending {
 	    $all_rcpt = $$rcpt;
 	}
 	
-	unless ($all_rcpt && $from) {
-	    &do_log('err', 'mail::sending: missing required parameter, cannot send message');
-	    return undef;
-	}
-
 	unless (open TMP, ">$sympa_file") {
 	    &do_log('notice', 'mail::sending : Cannot create %s : %s', $sympa_file, $!);
 	    return undef;
@@ -881,7 +869,7 @@ sub fix_part($$$) {
 	my $charset = $head->mime_attr("Content-Type.Charset");
 
 	my ($newbody, $newcharset, $newenc) = 
-	    MIME::Charset::body_encode(Encode::decode('utf8', $body), $charset,
+	    MIME::Charset::body_encode(Encode::decode_utf8($body), $charset,
 				       Replacement => 'FALLBACK');
 	if ($newenc eq $enc and $newcharset eq $charset and
 	    $newbody eq $body) {

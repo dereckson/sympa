@@ -118,7 +118,7 @@ sub qencode {
     my $string = shift;
     # We are not able to determine the name of header field, so assume
     # longest (maybe) one.    
-    return MIME::EncWords::encode_mimewords(Encode::decode('utf8', $string),
+    return MIME::EncWords::encode_mimewords(Encode::decode_utf8($string),
 					    Encoding=>'A',
 					    Charset=>&Language::GetCharset(),
 					    Field=>"message-id");
@@ -128,15 +128,7 @@ sub escape_url {
 
     my $string = shift;
     
-    $string =~ s/[\s+]/sprintf('%%%02x', ord($&))/eg;
-    # Some MUAs aren't able to decode ``%40'' (escaped ``@'') in e-mail 
-    # address of mailto: URL, or take ``@'' in query component for a 
-    # delimiter to separate URL from the rest.
-    my ($body, $query) = split(/\?/, $string, 2);
-    if (defined $query) {
-	$query =~ s/\@/sprintf('%%%02x', ord($&))/eg;
-	$string = $body.'?'.$query;
-    }
+    $string =~ s/ /%20/g;
     
     return $string;
 }
@@ -182,7 +174,7 @@ sub decode_utf8 {
 	## Wrapped with eval to prevent Sympa process from dying
 	## FB_CROAK is used instead of FB_WARN to pass $string intact to succeeding processes it operation fails
 	eval {
-	    $string = &Encode::decode('utf8', $string, Encode::FB_CROAK);
+	    $string = &Encode::decode_utf8($string, Encode::FB_CROAK);
 	};
 	$@ = '';
     }
@@ -210,22 +202,6 @@ sub maketext {
     return sub {
 	&Language::maketext($template_name, $_[0],  @arg);
     }	
-}
-
-# IN:
-#    $fmt: strftime() style format string.
-#    $arg: a string representing date/time:
-#          "YYYY/MM", "YYYY/MM/DD", "YYYY/MM/DD/HH/MM", "YYYY/MM/DD/HH/MM/SS"
-# OUT:
-#    Subref to generate formatted (i18n'ized) date/time.
-sub locdatetime {
-    my ($fmt, $arg) = @_;
-    if ($arg !~ /^(\d{4})\D(\d\d?)(?:\D(\d\d?)(?:\D(\d\d?)\D(\d\d?)(?:\D(\d\d?))?)?)?/) {
-	return sub { gettext("(unknown date)"); };
-    } else {
-	my @arg = ($6+0, $5+0, $4+0, $3+0 || 1, $2-1, $1-1900, 0,0,0);
-        return sub { gettext_strftime($_[0], @arg); };
-    }
 }
 
 ## To add a directory to the TT2 include_path
@@ -290,7 +266,6 @@ sub parse_tt2 {
 	    unescape => \&CGI::Util::unescape,
 	    l => [\&tt2::maketext, 1],
 	    loc => [\&tt2::maketext, 1],
-	    locdt => [\&tt2::locdatetime, 1],
 	    qencode => [\&qencode, 0],
  	    escape_xml => [\&escape_xml, 0],
 	    escape_url => [\&escape_url, 0],

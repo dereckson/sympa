@@ -23,8 +23,6 @@
 
 package tools;
 
-use strict;
-
 use POSIX;
 use Mail::Internet;
 use Mail::Header;
@@ -44,12 +42,12 @@ use Encode::MIME::Header;
 ## global var to store a CipherSaber object 
 my $cipher;
 
-my $separator="------- CUT --- CUT --- CUT --- CUT --- CUT --- CUT --- CUT -------";
+$separator="------- CUT --- CUT --- CUT --- CUT --- CUT --- CUT --- CUT -------";
 
 ## Regexps for list params
 ## Caution : if this regexp changes (more/less parenthesis), then regexp using it should 
 ## also be changed
-my %regexp = ('email' => '([\w\-\_\.\/\+\=\']+|\".*\")\@[\w\-]+(\.[\w\-]+)+',
+%regexp = ('email' => '([\w\-\_\.\/\+\=\']+|\".*\")\@[\w\-]+(\.[\w\-]+)+',
 	   'family_name' => '[a-z0-9][a-z0-9\-\.\+_]*', 
 	   'host' => '[\w\.\-]+',
 	   'multiple_host_with_port' => '[\w\.\-]+(:\d+)?(,[\w\.\-]+(:\d+)?)*',
@@ -174,7 +172,7 @@ sub load_edit_list_conf {
     }
 
     my $error_in_conf;
-    my $roles_regexp = 'listmaster|privileged_owner|owner|editor|subscriber|default';
+    $roles_regexp = 'listmaster|privileged_owner|owner|editor|subscriber|default';
     while (<FILE>) {
 	next if /^\s*(\#.*|\s*)$/;
 
@@ -447,7 +445,7 @@ sub get_template_path {
     my $lang = shift || 'default';
     my $list = shift;
 
-    do_log('debug', "get_templates_path ($type,$robot,$scope,$tpl,$lang,%s)", $list->{'name'});
+    do_log('debug', "get_templates_path ($type,$robot,$scope,$tpl,$lang,$listname)");
 
     my $listdir;
     if (defined $list) {
@@ -1005,19 +1003,6 @@ sub as_singlepart {
     return $done;
 }
 
-## Escape characters before using a string within a regexp parameter
-## Escaped characters are : @ $ [ ] ( ) ' ! '\' * . + ?
-sub escape_regexp {
-    my $s = shift;
-    my @escaped = ("\\",'@','$','[',']','(',')',"'",'!','*','.','+','?');
-    my $backslash = "\\"; ## required in regexp
-
-    foreach my $escaped_char (@escaped) {
-	$s =~ s/$backslash$escaped_char/\\$escaped_char/g;
-    }
-
-    return $s;
-}
 
 ## Escape weird characters
 sub escape_chars {
@@ -1468,7 +1453,7 @@ sub virus_infected {
 
     ## F-Secure
     } elsif($Conf{'antivirus_path'} =~  /\/fsav$/) {
-	my $dbdir=$` ;
+	$dbdir=$` ;
 
 	# impossible to look for viruses with no option set
 	unless ($Conf{'antivirus_args'}) {
@@ -1754,8 +1739,8 @@ sub get_filename {
  	$list = $object;
  	if ($list->{'admin'}{'family_name'}) {
  	    unless ($family = $list->get_family()) {
- 		&do_log('err', 'Impossible to get list %s family : %s. The list is set in status error_config',$list->{'name'},$list->{'admin'}{'family_name'});
- 		$list->set_status_error_config('no_list_family',$list->{'name'}, $list->{'admin'}{'family_name'});
+ 		&do_log('err', 'Impossible to get list %s family : %s. The list is set in status error_config',$self->{'name'},$self->{'admin'}{'family_name'});
+ 		$list->set_status_error_config('no_list_family',$self->{'name'}, $admin->{'family_name'});
  		return undef;
  	    }  
  	}
@@ -1802,7 +1787,7 @@ sub get_filename {
 	}
 	my @result;
 	foreach my $f (@try) {
-	    &do_log('debug3','get_filename : name: %s ; dir %s', $name, $f  );
+	    &do_log('debug3','get_filname : name: %s ; dir %s', $name, $f  );
 	    if (-r $f) {
 		if ($options->{'order'} eq 'all') {
 		    push @result, $f;
@@ -1838,8 +1823,8 @@ sub make_tt2_include_path {
 
     my @include_path;
 
-    my $path_etcbindir;
-    my $path_etcdir;
+    my $path_etcbin;
+    my $path_etc;
     my $path_robot;  ## optional
     my $path_list;   ## optional
     my $path_family; ## optional
@@ -1991,34 +1976,6 @@ sub qencode_hierarchy {
     return $count;
 }
 
-## Dumps the value of each character of the inuput string
-sub dump_encoding {
-    my $out = shift;
-
-    $out =~ s/./sprintf('%02x', ord($&)).' '/eg;
-    return $out;
-}
-
-## Remove PID file and STDERR output
-sub remove_pid {
-    my ($pidfile, $pid) = @_;
-
-    unless (unlink $pidfile) {
-	&do_log('err', "Failed to remove $pidfile: %s", $!);
-	return undef;
-    }
-    
-    my $err_file = $Conf{'tmpdir'}.'/'.$pid.'.stderr';
-    if (-f $err_file) {
-	unless (unlink $err_file) {
-	    &do_log('err', "Failed to remove $err_file: %s", $!);
-	    return undef;
-	}
-    }
-
-    return 1;
-}
-
 sub write_pid {
     my ($pidfile, $pid) = @_;
 
@@ -2035,14 +1992,6 @@ sub write_pid {
     
     chown $uid, $gid, $piddir;
 
-    ## If pidfile exists, read the PID and get date
-    my ($other_pid);
-    if (-f $pidfile) {
-	open PFILE, $pidfile;
-	$other_pid = <PFILE>; chomp $other_pid;
-	close PFILE;	
-    }
-
     ## Create and write the pidfile
     unless (open(LOCK, "+>> $pidfile")) {
 	 fatal_err('Could not open %s, exiting', $pidfile);
@@ -2050,25 +1999,6 @@ sub write_pid {
     unless (flock(LOCK, 6)) {
 	fatal_err('Could not lock %s, process is probably already running : %s', $pidfile, $!);
     }
-
-    ## The previous process died suddenly, without pidfile cleanup
-    ## Send a notice to listmaster with STDERR of the previous process
-    if ($other_pid) {
-	&do_log('notice', "Previous process $other_pid died suddenly ; notifying listmaster");
-	my $err_file = $Conf{'tmpdir'}.'/'.$other_pid.'.stderr';
-	my (@err_output, $err_date);
-	if (-f $err_file) {
-	    open ERR, $err_file;
-	    @err_output = <ERR>;
-	    close ERR;
-
-	    $err_date = &POSIX::strftime("%d %b %Y  %H:%M", localtime( (stat($err_file))[9]));
-	}
-
-	&List::send_notify_to_listmaster('crash', $Conf::Conf{'domain'},
-					 {'crash_err' => \@err_output, 'crash_date' => $err_date});
-    }
-
     unless (open(LCK, "> $pidfile")) {
 	fatal_err('Could not open %s, exiting', $pidfile);
     }
@@ -2080,11 +2010,6 @@ sub write_pid {
     close(LCK);
     
     chown $uid, $gid, $pidfile;
-
-    ## Error output is stored in a file with PID-based name
-    ## Usefull if process crashes
-    open(STDERR, '>>',  $Conf{'tmpdir'}.'/'.$pid.'.stderr') unless ($main::options{'foreground'});
-    chown $uid, $gid, $Conf{'tmpdir'}.'/'.$pid.'.stderr';
 
     return 1;
 }
@@ -2123,7 +2048,7 @@ sub get_dir_size {
 sub valid_email {
     my $email = shift;
     
-    unless ($email =~ /^$regexp{'email'}$/) {
+    unless ($email =~ /^$tools::regexp{'email'}$/) {
 	do_log('err', "Invalid email address '%s'", $email);
 	return undef;
     }
@@ -2288,7 +2213,7 @@ sub smime_parse_cert {
 	@cert = ($arg->{'text'});
     }elsif ($arg->{file}) {
 	unless (open(PSC, "$arg->{file}")) {
-	    &Log::do_log('err', "smime_parse_cert: open %s: $!", $arg->{file});
+	    &Log::do_log('err', "smime_parse_cert: open $file: $!");
 	    return undef;
 	}
 	@cert = <PSC>;
@@ -2608,7 +2533,7 @@ sub higher_version {
     my $max = $#tab1;
     $max = $#tab2 if ($#tab2 > $#tab1);
 
-    for my $i (0..$max) {
+    for $i (0..$max) {
     
         if ($tab1[0] =~ /^(\d*)a$/) {
             $tab1[0] = $1 - 0.5;
@@ -2645,7 +2570,7 @@ sub lower_version {
     my $max = $#tab1;
     $max = $#tab2 if ($#tab2 > $#tab1);
 
-    for my $i (0..$max) {
+    for $i (0..$max) {
     
         if ($tab1[0] =~ /^(\d*)a$/) {
             $tab1[0] = $1 - 0.5;
@@ -2829,20 +2754,5 @@ sub md5_fingerprint {
     return (unpack("H*", $digestmd5->digest));
 }
 
-sub get_separator {
-    return $separator;
-}
-
-## Return the Sympa regexp corresponding to the input param
-sub get_regexp {
-    my $type = shift;
-
-    if (defined $regexp{$type}) {
-	return $regexp{$type};
-    }else {
-	return '\w+'; ## default is a very strict regexp
-    }
-
-}
 
 1;

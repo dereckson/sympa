@@ -93,14 +93,7 @@ sub upgrade {
     ## Always update config.bin files while upgrading
     ## This is especially useful for character encoding reasons
     &do_log('notice','Rebuilding config.bin files for ALL lists...it may take a while...');
-    my $all_lists = &List::get_lists('*',{'reload_config' => 1});
-
-    ## Empty the admin_table entries and recreate them
-    &do_log('notice','Rebuilding the admin_table...');
-    &List::delete_admin_all();
-    foreach my $list (@$all_lists) {
-	$list->sync_include_admin();
-    }
+    &List::get_lists('*',{'reload_config' => 1});
 
     ## Set 'subscribed' data field to '1' is none of 'subscribed' and 'included' is set
     if (&tools::lower_version($previous_version, '4.2a')) {
@@ -495,101 +488,6 @@ sub upgrade {
 
     }    
 
-    ## We now support UTF-8 only for custom templates, config files, headers and footers, info files
-    ## + web_tt2, scenari, create_list_templatee, families
-    if (&tools::lower_version($previous_version, '5.3b.3')) {
-	&do_log('notice','Encoding all custom files to UTF-8...');
-
-	my (@directories, @files);
-
-	## Site level
-	foreach my $type ('mail_tt2','web_tt2','scenari','create_list_templates','families') {
-	    if (-d $Conf{'etc'}.'/'.$type) {
-		push @directories, [$Conf{'etc'}.'/'.$type, $Conf{'lang'}];
-	    }
-	}
-	foreach my $f ('topics.conf','auth.conf') {
-	    if (-f $Conf{'etc'}.'/'.$f) {
-		push @files, [$Conf{'etc'}.'/'.$f, $Conf{'lang'}];
-	    }
-	}
-
-	## Go through Virtual Robots
-	foreach my $vr (keys %{$Conf{'robots'}}) {
-	    foreach my $type ('mail_tt2','web_tt2','scenari','create_list_templates','families') {
-		if (-d $Conf{'etc'}.'/'.$vr.'/'.$type) {
-		    push @directories, [$Conf{'etc'}.'/'.$vr.'/'.$type, &Conf::get_robot_conf($vr, 'lang')];
-		}
-	    }
-
-	    foreach my $f ('topics.conf','auth.conf') {
-		if (-f $Conf{'etc'}.'/'.$vr.'/'.$f) {
-		    push @files, [$Conf{'etc'}.'/'.$vr.'/'.$f, $Conf{'lang'}];
-		}
-	    }
-	}
-
-	## Search in Lists
-	my $all_lists = &List::get_lists('*');
-	foreach my $list ( @$all_lists ) {
-	    foreach my $f ('config','info','homepage','message.header','message.footer') {
-		if (-f $list->{'dir'}.'/'.$f){
-		    push @files, [$list->{'dir'}.'/'.$f, $list->{'admin'}{'lang'}];
-		}
-	    }
-
-	    foreach my $type ('mail_tt2','web_tt2','scenari') {
-		my $directory = $list->{'dir'}.'/'.$type;
-		if (-d $directory) {
-		    push @directories, [$directory, $list->{'admin'}{'lang'}];
-		}	    
-	    }
-	}
-
-	## Search language directories
-	foreach my $pair (@directories) {
-	    my ($d, $lang) = @$pair;
-	    unless (opendir DIR, $d) {
-		next;
-	    }
-
-	    if ($d =~ /(mail_tt2|web_tt2)$/) {
-		foreach my $subdir (grep(/^[a-z]{2}(_[A-Z]{2})?$/, readdir DIR)) {
-		    if (-d "$d/$subdir") {
-			push @directories, ["$d/$subdir", $subdir];
-		    }
-		}
-		closedir DIR;
-
-	    }elsif ($d =~ /(create_list_templates|families)$/) {
-		foreach my $subdir (grep(/^\w+$/, readdir DIR)) {
-		    if (-d "$d/$subdir") {
-			push @directories, ["$d/$subdir", $subdir];
-		    }
-		}
-		closedir DIR;
-	    }
-	}
-
-	foreach my $pair (@directories) {
-	    my ($d, $lang) = @$pair;
-	    unless (opendir DIR, $d) {
-		next;
-	    }
-	    foreach my $file (readdir DIR) {
-		next unless (($d =~ /mail_tt2|web_tt2|create_list_templates|families/ && $file =~ /\.tt2$/) ||
-			     ($d =~ /scenari$/ && $file =~ /\w+\.\w+$/));
-		push @files, [$d.'/'.$file, $lang];
-	    }
-	    closedir DIR;
-	}
-
-	## Do the encoding modifications
-	## Previous versions of files are backed up with the date extension
-	my $total = &to_utf8(\@files);
-	&do_log('notice','%d files have been modified', $total);
-    }
-
     return 1;
 }
 
@@ -798,14 +696,13 @@ sub probe_db {
 
 	    #	    unless ($sth = $dbh->table_info) {
 	    #	    unless ($sth = $dbh->prepare("LISTFIELDS $t")) {
-	    my $sql_query = "SHOW FIELDS FROM $t";
-	    unless ($sth = $dbh->prepare($sql_query)) {
-		do_log('err','Unable to prepare SQL query %s : %s', $sql_query, $dbh->errstr);
+	    unless ($sth = $dbh->prepare("SHOW FIELDS FROM $t")) {
+		do_log('err','Unable to prepare SQL query : %s', $dbh->errstr);
 		return undef;
 	    }
 	    
 	    unless ($sth->execute) {
-		do_log('err','Unable to execute SQL query %s : %s', $sql_query, $dbh->errstr);
+		do_log('err','Unable to execute SQL query : %s', $dbh->errstr);
 		return undef;
 	    }
 	    
@@ -1112,106 +1009,6 @@ sub data_structure_uptodate {
 
      return 1;
  }
-
-## used to encode files to UTF-8
-## also add X-Attach header field if template requires it
-## IN : - arrayref with list of filepath/lang pairs
-sub to_utf8 {
-    my $files = shift;
-
-    my $with_attachments = qr{ archive.tt2 | digest.tt2 | get_archive.tt2 | listmaster_notification.tt2 | 
-				   message_report.tt2 | moderate.tt2 |  modindex.tt2 | send_auth.tt2 }x;
-    my $uid = (getpwnam('--USER--'))[2];
-    my $gid = (getgrnam('--GROUP--'))[2];        
-    my $total;
-    
-    foreach my $pair (@{$files}) {
-	my ($file, $lang) = @$pair;
-	unless (open(TEMPLATE, $file)) {
-	    &do_log('err', "Cannot open template %s", $file);
-	    next;
-	}
-	
-	my $text = '';
-	my $modified = 0;
-
-	## If filesystem_encoding is set, files are supposed to be encoded according to it
-	my $charset;
-	if ($Conf::Ignored_Conf{'filesystem_encoding'} ne 'utf-8') {
-	    $charset = $Conf::Ignored_Conf{'filesystem_encoding'};
-	}else {	    
-	    &Language::PushLang($lang);
-	    $charset = &Language::GetCharset;
-	    &Language::PopLang;
-	}
-	
-	# Add X-Sympa-Attach: headers if required.
-	if (($file =~ /mail_tt2/) && ($file =~ /\/($with_attachments)$/)) {
-	    while (<TEMPLATE>) {
-		$text .= $_;
-		if (m/^Content-Type:\s*message\/rfc822/i) {
-		    while (<TEMPLATE>) {
-			if (m{^X-Sympa-Attach:}i) {
-			    $text .= $_;
-			    last;
-			}
-			if (m/^[\r\n]+$/) {
-			    $text .= "X-Sympa-Attach: yes\n";
-			    $modified = 1;
-			    $text .= $_;
-			    last;
-			}
-			$text .= $_;
-		    }
-		}
-	    }
-	} else {
-	    $text = join('', <TEMPLATE>);
-	}
-	close TEMPLATE;
-	
-	# Check if template is encoded by UTF-8.
-	if ($text =~ /[^\x20-\x7E]/) {
-	    my $t = $text;
-	    eval {
-		&Encode::decode('UTF-8', $t, Encode::FB_CROAK);
-	      };
-	    if ($@) {
-		eval {
-		    $t = $text;
-		    &Encode::from_to($t, $charset, "UTF-8", Encode::FB_CROAK);
-		};
-		if ($@) {
-		    &do_log('err',"Template %s cannot be converted to UTF-8", $file);
-		} else {
-		    $text = $t;
-		    $modified = 1;
-		}
-	    }
-	}
-	
-	next unless $modified;
-	
-	my $date = &POSIX::strftime("%Y.%m.%d-%H.%M.%S", localtime(time));
-	unless (rename $file, $file.'@'.$date) {
-	    do_log('err', "Cannot rename old template %s", $file);
-	    next;
-	}
-	unless (open(TEMPLATE, ">$file")) {
-	    do_log('err', "Cannot open new template %s", $file);
-	    next;
-	}
-	print TEMPLATE $text;
-	close TEMPLATE;
-	chown $uid, $gid, $file;
-	chmod 0644, $file;
-	&do_log('notice','Modified file %s ; original file kept as %s', $file, $file.'@'.$date);
-	
-	$total++;
-    }
-
-    return $total;
-}
 
 ## Packages must return true.
 1;
