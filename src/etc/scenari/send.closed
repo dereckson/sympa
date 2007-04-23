@@ -1,6 +1,9 @@
-title.gettext closed
+title.us restricted to author
+title.fr réservé à l'auteur
+title.de restricted to author
+title.es restringido al autor
 
-true()				          smtp,smime,md5    -> reject(reason='send_closed')
+true()				          smtp,smime,md5    -> reject
 
 
 
