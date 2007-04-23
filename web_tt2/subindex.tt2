@@ -1,37 +1,40 @@
-<h2>[%|loc%]Listing subscriptions to validate[%END%]</h2>
-<form action="[% path_cgi %]" method="post"> 
-<fieldset>
-<input type="hidden" name="list" value="[% list %]" />
-    <table summary="[%|loc%]Listing subscription to moderate[%END%]" class="listOfItems">
-      <tr>
-          <th>X</th>
-          <th colspan="2">[%|loc%]Email[%END%]</th>
-          <th>[%|loc%]Name[%END%]</th>
-          <th>[%|loc%]Date[%END%]</th>
-      </tr>
+<FORM ACTION="[% path_cgi %]" METHOD="POST"> 
+<INPUT TYPE="hidden" NAME="list" VALUE="[% list %]">
+
+    <TABLE WIDTH="100%" BORDER="1">
+      <TR BGCOLOR="[% dark_color %]">
+        <TH><FONT SIZE="-1" COLOR="[% bg_color %]"><B>X</B></FONT></TH>
+        <TH NOWRAP COLSPAN=2 >
+	<FONT COLOR="[% bg_color %]" SIZE="-1"><b>[%|loc%]Email[%END%]</b></FONT></TH>
+        <TH><FONT COLOR="[% bg_color %]" SIZE="-1"><B>[%|loc%]Name[%END%]</B></FONT></TH>
+        <TH NOWRAP>
+	<FONT COLOR="[% bg_color %]" SIZE="-1"><b>[%|loc%]Date[%END%]</b></FONT></TH>
+      </TR>
       
       [% IF subscriptions %]
 
       [% FOREACH sub = subscriptions %]
 
 	[% IF dark == '1' %]
-	  <tr>
+	  <TR BGCOLOR="[% shaded_color %]">
 	[% ELSE %]
-          <tr class="color0">
+          <TR>
 	[% END %]
-	    <td>
-           <input type="checkbox" name="pending_email" value="[% sub.key %],[% sub.value.gecos %]" />
-	    </td>
-	  <td colspan="2">
+	    <TD>
+           <INPUT TYPE=checkbox name="pending_email" value="[% sub.key %],[% sub.value.gecos %]">
+	    </TD>
+	  <TD COLSPAN=2 NOWRAP><FONT SIZE=-1>
 	        [% sub.key %]
-	  </td>
-	  <td>
+	  </FONT></TD>
+	  <TD>
+             <FONT SIZE=-1>
 	        [% sub.value.gecos %]&nbsp;
-          </td>
-	  <td class="text_center">
+	     </FONT>
+          </TD>
+	    <TD ALIGN="center"NOWRAP><FONT SIZE=-1>
 	      [% sub.value.date %]
-	  </td>
-        </tr>
+	    </FONT></TD>
+        </TR>
 
         [% IF dark == '1' %]
 	  [% SET dark = 0 %]
@@ -42,12 +45,11 @@
         [% END %]
 
         [% ELSE %]
-         <tr colspan="4"><th>[%|loc%]No subscription requests[%END%]</th></TR>
+         <TR COLSPAN="4"><TH>[%|loc%]No subscription requests[%END%]</TH></TR>
         [% END %]
-      </table>
-<input type="hidden" name="previous_action" value="subindex" />
-<input type="hidden" name="previous_list" value="[% list %]" />
-<input class="MainMenuLinks" type="submit" name="action_add" value="[%|loc%]Add selected addresses[%END%]" />
-<input class="MainMenuLinks" type="submit" name="action_ignoresub" value="[%|loc%]Reject selected addresses[%END%]" />
-</fieldset>
-</form>
+      </TABLE>
+<INPUT TYPE="hidden" NAME="previous_action" VALUE="subindex">
+<INPUT TYPE="hidden" NAME="previous_list" VALUE="[% list %]">
+<INPUT TYPE="submit" NAME="action_add" VALUE="[%|loc%]Add selected addresses[%END%]">
+<INPUT TYPE="submit" NAME="action_ignoresub" VALUE="[%|loc%]Reject selected addresses[%END%]">
+</FORM>
