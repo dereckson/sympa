@@ -1,20 +1,20 @@
 <!-- $Id$ -->
 
-<h2>[%|loc%]Template edition system[%END%]</h2><br />
+<h2>Template edition system</h2><br />
 <p>
 
 <ul>
-<li>[%|loc%]Template name : [%END%] <strong> [% template_name %] </strong></li>
-<li>[%|loc%]Type : [%END%]<strong> [% webormail %] </strong></li>
-<li>[%|loc%]Path : [%END%]<strong> [% template_path %] </strong></li>
-<li>[%|loc%]Scope : [%END%]<strong> [% scope %] </strong>.
+<li>Template name :  <strong> [% template_name %] </strong></li>
+<li>Type : <strong> [% webormail %] </strong></li>
+<li>Path : <strong> [% template_path %] </strong></li>
+<li>Scope : <strong> [% scope %] </strong>.
 [% IF scope == 'list' %]
-  [%|loc(list,robot)%]( this template is defined for list %1@%2 )[%END%]
+  ( this template is defined for list [% list %]@[%robot %] )
 [% ELSE %]
   [% IF scope == 'robot' %]
-     [%|loc(robot)%]( this template is the default for all lists of robot %1 unless it is redefined for a specific list )[%END%]
+     ( this template is defined for all lists of robot [%robot %] unless it is redefined for some particular list )
   [% ELSE %]
-     [%|loc%]( this template is the default used by all robots unless redefined for a specific robot )[%END%]
+     ( this template is defined for all robots unless  it is redefined for some particular robot )
   [% END %]
 [% END %]
 </li>
