@@ -1,3 +1,10 @@
-title.gettext impossible
+title.fr impossible
+title.us impossible
+title.et võimatu
+title.de unmoeglich
+title.es imposible
+title.cz zakázáno
+title.hu senkisem
+title.nl onmogelijk
 
-true()                              smtp,md5,smime -> reject(reason='unsub_closed')
+true()                              smtp,md5,smime -> reject

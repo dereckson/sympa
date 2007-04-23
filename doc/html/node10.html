@@ -1,20 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002 (1.62) JA patch-1.4
+patched version by:  Kenshi Muto, Debian Project.
+LaTeX2HTML 2002 (1.62),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>9. WWSympa, Sympa's web interface</TITLE>
-<META NAME="description" CONTENT="9. WWSympa, Sympa's web interface">
+<TITLE>9. Sympa with S/MIME and HTTPS</TITLE>
+<META NAME="description" CONTENT="9. Sympa with S/MIME and HTTPS">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002 JA patch-1.4">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,32 +29,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html1114"
+<A NAME="tex2html833"
   HREF="node11.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1108"
+<A NAME="tex2html827"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1102"
+<A NAME="tex2html821"
   HREF="node9.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1110"
+<A NAME="tex2html829"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1112"
-  HREF="node31.html">
+<A NAME="tex2html831"
+  HREF="node20.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1115"
-  HREF="node11.html">10. Sympa Internationalization</A>
-<B> Up:</B> <A NAME="tex2html1109"
+<B> Next:</B> <A NAME="tex2html834"
+  HREF="node11.html">10. Virtual robot</A>
+<B> Up:</B> <A NAME="tex2html828"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1103"
-  HREF="node9.html">8. Sympa and its database</A>
- &nbsp; <B>  <A NAME="tex2html1111"
+<B> Previous:</B> <A NAME="tex2html822"
+  HREF="node9.html">8. Using Sympa with LDAP</A>
+ &nbsp <B>  <A NAME="tex2html830"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1113"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html832"
+  HREF="node20.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,654 +62,387 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html1116"
-  HREF="node10.html#SECTION001010000000000000000">9.1 Organization</A>
-<LI><A NAME="tex2html1117"
-  HREF="node10.html#SECTION001020000000000000000">9.2 Web server setup</A>
+<LI><A NAME="tex2html835"
+  HREF="node10.html#SECTION001010000000000000000">9.1 Signed message distribution</A>
+<LI><A NAME="tex2html836"
+  HREF="node10.html#SECTION001020000000000000000">9.2 Use of S/MIME signature by Sympa itself</A>
+<LI><A NAME="tex2html837"
+  HREF="node10.html#SECTION001030000000000000000">9.3 Use of S/MIME encryption</A>
+<LI><A NAME="tex2html838"
+  HREF="node10.html#SECTION001040000000000000000">9.4 S/Sympa configuration</A>
 <UL>
-<LI><A NAME="tex2html1118"
-  HREF="node10.html#SECTION001021000000000000000">9.2.1 wwsympa.fcgi access permissions</A>
-<LI><A NAME="tex2html1119"
-  HREF="node10.html#SECTION001022000000000000000">9.2.2 Installing wwsympa.fcgi in your Apache server</A>
-<LI><A NAME="tex2html1120"
-  HREF="node10.html#SECTION001023000000000000000">9.2.3 Using FastCGI</A>
+<LI><A NAME="tex2html839"
+  HREF="node10.html#SECTION001041000000000000000">9.4.1 Installation</A>
+<LI><A NAME="tex2html840"
+  HREF="node10.html#SECTION001042000000000000000">9.4.2 configuration in sympa.conf</A>
+<LI><A NAME="tex2html841"
+  HREF="node10.html#SECTION001043000000000000000">9.4.3 configuration to recognize S/MIME signatures</A>
+<LI><A NAME="tex2html842"
+  HREF="node10.html#SECTION001044000000000000000">9.4.4 distributing encrypted messages</A>
 </UL>
 <BR>
-<LI><A NAME="tex2html1121"
-  HREF="node10.html#SECTION001030000000000000000">9.3 wwsympa.conf parameters</A>
+<LI><A NAME="tex2html843"
+  HREF="node10.html#SECTION001050000000000000000">9.5 Managing certificates with tasks</A>
 <UL>
-<LI><A NAME="tex2html1122"
-  HREF="node10.html#SECTION001031000000000000000">9.3.1 arc_path</A>
-<LI><A NAME="tex2html1123"
-  HREF="node10.html#SECTION001032000000000000000">9.3.2 archive_default_index thrd | mail</A>
-<LI><A NAME="tex2html1124"
-  HREF="node10.html#SECTION001033000000000000000">9.3.3 archived_pidfile</A>
-<LI><A NAME="tex2html1125"
-  HREF="node10.html#SECTION001034000000000000000">9.3.4 bounce_path</A>
-<LI><A NAME="tex2html1126"
-  HREF="node10.html#SECTION001035000000000000000">9.3.5 bounced_pidfile</A>
-<LI><A NAME="tex2html1127"
-  HREF="node10.html#SECTION001036000000000000000">9.3.6 cookie_expire</A>
-<LI><A NAME="tex2html1128"
-  HREF="node10.html#SECTION001037000000000000000">9.3.7 cookie_domain</A>
-<LI><A NAME="tex2html1129"
-  HREF="node10.html#SECTION001038000000000000000">9.3.8 default_home</A>
-<LI><A NAME="tex2html1130"
-  HREF="node10.html#SECTION001039000000000000000">9.3.9 icons_url</A>
-<LI><A NAME="tex2html1131"
-  HREF="node10.html#SECTION0010310000000000000000">9.3.10 log_facility</A>
-<LI><A NAME="tex2html1132"
-  HREF="node10.html#SECTION0010311000000000000000">9.3.11 mhonarc</A>
-<LI><A NAME="tex2html1133"
-  HREF="node10.html#SECTION0010312000000000000000">9.3.12 htmlarea_url</A>
-<LI><A NAME="tex2html1134"
-  HREF="node10.html#SECTION0010313000000000000000">9.3.13 password_case sensitive | insensitive</A>
-<LI><A NAME="tex2html1135"
-  HREF="node10.html#SECTION0010314000000000000000">9.3.14 title</A>
-<LI><A NAME="tex2html1136"
-  HREF="node10.html#SECTION0010315000000000000000">9.3.15 use_fast_cgi   0 | 1</A>
-</UL>
-<BR>
-<LI><A NAME="tex2html1137"
-  HREF="node10.html#SECTION001040000000000000000">9.4 MhOnArc</A>
-<LI><A NAME="tex2html1138"
-  HREF="node10.html#SECTION001050000000000000000">9.5 Archiving daemon</A>
-<LI><A NAME="tex2html1139"
-  HREF="node10.html#SECTION001060000000000000000">9.6 Database configuration</A>
-<LI><A NAME="tex2html1140"
-  HREF="node10.html#SECTION001070000000000000000">9.7 Logging in as listmaster</A>
-</UL>
+<LI><A NAME="tex2html844"
+  HREF="node10.html#SECTION001051000000000000000">9.5.1 chk_cert_expiration.daily.task model</A>
+<LI><A NAME="tex2html845"
+  HREF="node10.html#SECTION001052000000000000000">9.5.2 crl_update.daily.task model</A>
+</UL></UL>
 <!--End of Table of Child-Links-->
 <HR>
 
-<H1><A NAME="SECTION001000000000000000000">
-9. WWSympa, Sympa's web interface</A>
+<H1><A NAME="SECTION001000000000000000000"></A>
+    <A NAME="smime"></A>
+<BR>
+9. <I>Sympa</I> with S/MIME and HTTPS
 </H1>
 
 <P>
-WWSympa is <I>Sympa</I>'s web interface.
+S/MIME is a cryptographic method for Mime messages based on X509 certificates.
+Before installing <I>Sympa</I> S/Mime features (which we call S/Sympa), you should be
+under no illusion about what the S stands for : ``S/MIME'' means ``Secure MIME''.
+That S certainly does not stand for ``Simple''.
+
+<P>
+The aim of this chapter is simply to describe what security level is provided
+by <I>Sympa</I> while
+using S/MIME messages, and how to configure <I>Sympa</I> for it. It is not intended
+to teach anyone what S/Mime is and why it is so complex ! RFCs numbers 2311,
+2312, 2632, 2633 and 2634, along with a lot of literature about S/MIME, PKCS#7
+and PKI is available on the Internet. <I>Sympa</I> 2.7 is the first version of
+<I>Sympa</I> to include S/MIME features as beta-testing features.
 
 <P>
 
-<H1><A NAME="SECTION001010000000000000000"></A>
-<A NAME="WWSympa"></A>
-<BR>
-9.1 Organization
+<H1><A NAME="SECTION001010000000000000000">
+9.1 Signed message distribution</A>
 </H1>
 
 <P>
-<A NAME="9162"></A><I>WWSympa</I> is fully integrated with <I>Sympa</I>. It uses <A NAME="9166"></A><TT>sympa.conf</TT>
-and <I>Sympa</I>'s libraries. The default <I>Sympa</I> installation will also
-install WWSympa.
-
-<P>
-Every single piece of HTML in <A NAME="9171"></A><I>WWSympa</I> is generated by the CGI code
-using template files (See <A HREF="node18.html#tpl-format">17.1</A>, page&nbsp;<A HREF="node18.html#tpl-format"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
-This facilitates internationalization of pages, as well as per-site
-customization. 
-
-<P>
-The code consists of one single PERL CGI script, <A NAME="9174"></A><TT>WWSympa.fcgi</TT>.
-To enhance performance you can configure <A NAME="9177"></A><I>WWSympa</I> to use
-FastCGI ; the CGI will be persistent in memory.
-<BR>
-All data will be accessed through the CGI, including web archives.
-This is required to allow the authentication scheme to be applied
-systematically.
-
-<P>
-Authentication is based on passwords stored in the database table
-user_table ; if the appropriate <A NAME="9180"></A><TT>Crypt::CipherSaber</TT> is
-installed, password are encrypted in the database using reversible
-encryption based on RC4. Otherwise they are stored in clear text.
-In both cases reminding of passwords is possible.
- To keep track of authentication information <A NAME="9183"></A><I>WWSympa</I> 
-uses HTTP cookies stored on the client side. The HTTP cookie only 
-indicates that a specified e-mail address has been authenticated ;
-permissions are evaluated when an action is requested.
-
-<P>
-The same web interface is used by the listmaster, list owners, subscribers and
-others. Depending on permissions, the same URL may generate a different view.
-
-<P>
-<A NAME="9186"></A><I>WWSympa</I>'s main loop algorithm is roughly the following : 
-
-<OL>
-<LI>Check authentication information returned by 
-	the HTTP cookie
-
-<P>
-</LI>
-<LI>Evaluate user's permissions for the
-        requested action 
-
-<P>
-</LI>
-<LI>Process the requested action 
-
-<P>
-</LI>
-<LI>Set up variables resulting from the action 
-
-<P>
-</LI>
-<LI>Parse the HTML template files
-</LI>
-</OL>
+No action required.
+You probably imagine that any mailing list manager (or any mail forwarder)
+is compatible with S/MIME signatures, as long as it respects the MIME structure of
+incoming messages. You are right. Even Majordomo can distribute a signed message!
+As <I>Sympa</I> provides MIME compatibility, you don't need to do
+anything in order to allow subscribers to verify signed messages distributed
+through a list. This is not an issue at all, since any processe that
+distributes messages  is compatible with end user
+signing processes. Sympa simply skips the message footer attachment
+(ref <A HREF="node13.html#messagefooter">12.10</A>, page&nbsp;<A HREF="node13.html#messagefooter"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>) to prevent any
+body corruption which would break the signature.
 
 <P>
 
 <H1><A NAME="SECTION001020000000000000000">
-9.2 Web server setup</A>
+9.2 Use of S/MIME signature by Sympa itself</A>
 </H1>
 
 <P>
-
-<H2><A NAME="SECTION001021000000000000000">
-9.2.1 wwsympa.fcgi access permissions</A>
-</H2>
-
-<P>
-Because Sympa and WWSympa share a lot of files, <A NAME="9189"></A><TT>wwsympa.fcgi</TT>,
-     must run with the same 
-     uid/gid as <A NAME="9192"></A><TT>archived.pl</TT>, <A NAME="9195"></A><TT>bounced.pl</TT> and <A NAME="9198"></A><TT>sympa.pl</TT>.
-     There are different ways to achieve this :
-
-<UL>
-<LI>SetuidPerl : this is the default method but might be insecure. If you don't set the <B>- -enable_secure</B> configure option,
-      <A NAME="9201"></A><TT>wwsympa.fcgi</TT> is installed with the SetUID bit set. On most systems you will need to install the suidperl package.
-
-<P>
-</LI>
-<LI>Sudo : use <B>sudo</B> to run <A NAME="9204"></A><TT>wwsympa.fcgi</TT> as user sympa. Your Apache configuration should use <A NAME="9207"></A><TT>wwsympa_sudo_wrapper.pl</TT> instead 
-       of <A NAME="9210"></A><TT>wwsympa.fcgi</TT>. You should edit your <A NAME="9213"></A><TT>/etc/sudoers</TT> file (with visudo command) as follows :<PRE>
-apache ALL = (sympa)  NOPASSWD: /usr/local/sympa-os/bin/wwsympa.fcgi
-</PRE>
+Sympa is able to verify S/MIME signatures in order to apply S/MIME
+authentication methods for message handling. 
+Currently, this feature is limited to the
+distribution process, and to any commands <I>Sympa</I> might find in the message
+body.  The reasons for this restriction are related to current S/MIME
+usage.
+S/MIME signature structure is based on the encryption of a digest of the
+message. Most S/MIME agents do not include any part of the
+message headers in the message digest, so anyone can modify the message
+header without signature corruption! This is easy to do : for example, anyone
+can edit a signed message with their preferred message agent, modify whatever
+header they want (for example <TT>Subject:</TT> , <TT>Date:</TT> and
+<TT>To:</TT>, and redistribute the message to a list or to the robot
+without breaking the signature.
 
 <P>
-</LI>
-<LI>Dedicated Apache server : run a dedicated Apache server with sympa.sympa as uid.gid (The Apache default
-      is apache.apache).
-
-<P>
-</LI>
-<LI>Apache suExec : use an Apache virtual host with sympa.sympa as uid.gid ; Apache
-      needs to be compiled with suexec. Be aware that the Apache suexec usually define a lowest
-      UID/GID allowed to be a target user for suEXEC. For most systems including binaries
-      distribution of Apache, the default value 100 is common.
-      So Sympa UID (and Sympa GID) must be higher then 100 or suexec must be tuned in order to allow
-      lower UID/GID. Check http://httpd.apache.org/docs/suexec.html#install for details
-
-<P>
-The User and Group directive have to be set before the FastCgiServer directive
-      is encountered.
-
-<P>
-</LI>
-<LI>C wrapper : otherwise, you can overcome restrictions on the execution of suid scripts
-      by using a short C program, owned by sympa and with the suid bit set, to start
-      <A NAME="9216"></A><TT>wwsympa.fcgi</TT>. Here is an example (with no guarantee attached) :<PRE>
-#include &lt;unistd.h&gt;
-
-#define WWSYMPA "/usr/local/sympa-os/bin/wwsympa.fcgi"
-
-int main(int argn, char **argv, char **envp) {
-    argv[0] = WWSYMPA;
-    execve(WWSYMPA,argv,envp);
-}
-</PRE>
-</LI>
-</UL>
-
-<P>
-
-<H2><A NAME="SECTION001022000000000000000">
-9.2.2 Installing wwsympa.fcgi in your Apache server</A>
-</H2>
-
-<P>
-You first need to set an alias to the directory where Sympa stores static contents (CSS, members pictures, documentation) directly delivered by Apache
-
-<P><PRE>
-     Example :
-       	Alias /static-sympa /usr/local/sympa-os/static_content
-</PRE>
-
-<P>
-If you chose to run <A NAME="9219"></A><TT>wwsympa.fcgi</TT> as a simple CGI, you simply need to
-     script alias it. 
-
-<P><PRE>
-     Example :
-       	ScriptAlias /sympa /usr/local/sympa-os/bin/wwsympa.fcgi
-</PRE>
-
-<P>
-Running  FastCGI will provide much faster responses from your server and 
-     reduce load (to understand why, read 
-     <A NAME="tex2html21"
-  HREF="http://www.fastcgi.com/fcgi-devkit-2.1/doc/fcgi-perf.htm">http://www.fastcgi.com/fcgi-devkit-2.1/doc/fcgi-perf.htm</A>)
-
-<P><PRE>
-     Example :
-	FastCgiServer /usr/local/sympa-os/bin/wwsympa.fcgi -processes 2
-	&lt;Location /sympa&gt;
-   	  SetHandler fastcgi-script
-	&lt;/Location&gt;
-
-	ScriptAlias /sympa /usr/local/sympa-os/bin/wwsympa.fcgi
-</PRE>
-
-<P>
-If you are using <B>sudo</B> (see evious subsection), then replace <A NAME="9222"></A><TT>wwsympa.fcgi</TT> calls with <A NAME="9225"></A><TT>wwsympa_sudo_wrapper.pl</TT>.
-
-<P>
-If you run virtual hosts, then each FastCgiServer(s) can serve multiple hosts. 
-Therefore you need to define it in the common section of your Apache configuration file.
-
-<P>
-
-<H2><A NAME="SECTION001023000000000000000">
-9.2.3 Using FastCGI</A>
-</H2>
-
-<P>
-<A NAME="tex2html22"
-  HREF="http://www.fastcgi.com/">FastCGI</A>
-is an extention to CGI that provides persistency for CGI programs. It is extemely useful
-with <A NAME="9228"></A><I>WWSympa</I> since source code interpretation and all initialisation tasks are performed only once, at server startup ; then
-file wwsympa.fcgi instances are waiting for clients requests. 
-
-<P>
-<A NAME="9231"></A><I>WWSympa</I> can also work without FastCGI, depending on the <B>use_fast_cgi</B> parameter 
-(see <A HREF="#use-fastcgi">9.3.15</A>, page&nbsp;<A HREF="node10.html#use-fastcgi"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
-
-<P>
-To run <A NAME="9234"></A><I>WWSympa</I> with FastCGI, you need to install :
-
-<UL>
-<LI><A NAME="9237"></A>mod_fastcgi  : the Apache module that provides <A NAME="9238"></A>FastCGI features
-
-<P>
-</LI>
-<LI><A NAME="9239"></A><TT>FCGI</TT> : the Perl module used by <A NAME="9242"></A><I>WWSympa</I> 
-
-<P>
-</LI>
-</UL>
+So Sympa cannot apply the S/MIME
+authentication method to a command parsed in the <TT>Subject:</TT> field of a
+message or via the <TT>-subscribe</TT> or <TT>-unsubscribe</TT> e-mail
+address. 
 
 <P>
 
 <H1><A NAME="SECTION001030000000000000000">
-9.3 wwsympa.conf parameters</A>
-</H1>
+9.3 Use of S/MIME encryption</A>
+</H1> 
 
 <P>
-
-<H2><A NAME="SECTION001031000000000000000">
-9.3.1 arc_path</A>
-</H2>
-
-<P>
-(Default value: <TT>/home/httpd/html/arc</TT>) 
-<BR>
-Where to store html archives. This parameter is used
-        by the <A NAME="9246"></A><TT>archived.pl</TT> daemon. It is a good idea to install the archive
-        outside the web hierarchy to prevent possible back doors in the access control
-        powered by WWSympa. However, if Apache is configured with a chroot, you may
-	have to install the archive in the Apache directory tree.
+S/Sympa is not an implementation of the ``S/MIME Symmetric Key Distribution''
+internet draft. This sophisticated scheme is required for large lists
+with encryption. So, there is still some scope for future developments :) 
 
 <P>
-
-<H2><A NAME="SECTION001032000000000000000">
-9.3.2 archive_default_index thrd | mail</A>
-</H2>
+We assume that S/Sympa distributes message as received, i.e. unencrypted when the
+list receives an unencrypted message, but otherwise encrypted.
 
 <P>
-(Default value: <TT>thrd</TT>) 
-<BR>
-The default index organization when entering web archives : either threaded or	
-	chronological order.
-
-<P>
-
-<H2><A NAME="SECTION001033000000000000000">
-9.3.3 archived_pidfile</A>
-</H2>
-	(Default value: <TT>archived.pid</TT>) 
-<BR>
-The file containing the PID of <A NAME="9251"></A><TT>archived.pl</TT>.
-
-<P>
-
-<H2><A NAME="SECTION001034000000000000000">
-9.3.4 bounce_path</A>
-</H2>
-	(Default value: <TT>/var/bounce</TT>) 
-<BR>
-Root directory for storing bounces (non-delivery reports). This parameter
-	is used mainly by the <A NAME="9255"></A><TT>bounced.pl</TT> daemon.
-
-<P>
-
-<H2><A NAME="SECTION001035000000000000000">
-9.3.5 bounced_pidfile</A>
-</H2>
-	(Default value: <TT>bounced.pid</TT>) 
-<BR>
-The file containing the PID of <A NAME="9259"></A><TT>bounced.pl</TT>.
-
-<P>
-
-<H2><A NAME="SECTION001036000000000000000">
-9.3.6 cookie_expire</A>
-</H2>
-	(Default value: <TT>0</TT>)
-	Lifetime (in minutes) of HTTP cookies. This is the default value
-	when not set explicitly by users.
-
-<P>
-
-<H2><A NAME="SECTION001037000000000000000">
-9.3.7 cookie_domain</A>
-</H2>
-	(Default value: <TT>localhost</TT>) 
-<BR>
-Domain for the HTTP cookies. If beginning with a dot ('.'),
-	the cookie is available within the specified internet domain.
-	Otherwise, for the specified host. Example : 
-		<PRE>
-		   cookie_domain cru.fr
-		   cookie is available for host 'cru.fr'
-
-		   cookie_domain .cru.fr
-		   cookie is available for any host within 'cru.fr' domain
-</PRE>
-	The only reason for replacing the default value would be where
-	<A NAME="9264"></A><I>WWSympa</I>'s authentication process is shared with an application
-	running on another host.
-
-<P>
-
-<H2><A NAME="SECTION001038000000000000000">
-9.3.8 default_home</A>
-</H2>
-	(Default value: <TT>home</TT>) 
-<BR>
-Organization of the WWSympa home page. If you have only a few lists,
-	the default value `home' (presenting a list of lists organized by topic)
-	should be replaced by `lists' (a simple alphabetical list of lists).
-
-<P>
-
-<H2><A NAME="SECTION001039000000000000000">
-9.3.9 icons_url</A>
-</H2>
-	(Default value: <TT>/icons</TT>) 
-<BR>
-URL of WWSympa's icons directory.
-
-<P>
-
-<H2><A NAME="SECTION0010310000000000000000">
-9.3.10 log_facility</A>
-</H2>
-
-<P>
-WWSympa will log using this facility. Defaults to <I>Sympa</I>'s syslog
-        facility.
-	Configure your syslog according to this parameter.
-
-<P>
-
-<H2><A NAME="SECTION0010311000000000000000">
-9.3.11 mhonarc</A>
-</H2>
-	(Default value: <TT>/usr/bin/mhonarc</TT>) 
-<BR>
-Path to the (superb) MhOnArc program. Required for html archives
-	http://www.oac.uci.edu/indiv/ehood/mhonarc.html
-
-<P>
-
-<H2><A NAME="SECTION0010312000000000000000">
-9.3.12 htmlarea_url</A>
-</H2>
-	(Default value: <TT>undefined</TT>) 
-<BR>
-Relative URL to the (superb) online html editor HTMLarea. If you have installed javascript application you can use it
-        when editing html document in the shared document repository. In order to activate this pluggin the value of this
-        parameter should point to the root directory where HTMLarea is installed.  HTMLarea is a free opensource software you can download
-        here : http://sf.net/projects/itools-htmlarea/
-
-<P>
-
-<H2><A NAME="SECTION0010313000000000000000">
-9.3.13 password_case sensitive | insensitive</A>
-</H2>
-	(Default value: <TT>insensitive</TT>) 
-<BR>
-If set to <B>insensitive</B>, WWSympa's password check will be insensitive.
-	This only concerns passwords stored in Sympa database, not the ones in <A NAME="9273"></A>LDAP.
-
-<P>
-<B>Be careful :</B> in previous 3.xx versions of Sympa, passwords were 
-	lowercased before database insertion. Therefore changing to case-sensitive 
-	password checking could bring you some password checking problems.
-
-<P>
-
-<H2><A NAME="SECTION0010314000000000000000">
-9.3.14 title</A>
-</H2>
-	(Default value: <TT>Mailing List Service</TT>) 
-<BR>
-The name of your mailing list service. It will appear in
-	the Title section of WWSympa.
-
-<P>
-
-<H2><A NAME="SECTION0010315000000000000000"></A>
-	<A NAME="use-fastcgi"></A>
-<BR>
-9.3.15 use_fast_cgi   0 | 1
-</H2>
-	(Default value: <TT>1</TT>) 
-<BR>
-Choice of whether or not to use FastCGI. On listes.cru.fr, using FastCGI 
-        increases WWSympa performance by as much as a factor of 10. Refer to 
-       	<A NAME="tex2html23"
-  HREF="http://www.fastcgi.com/">http://www.fastcgi.com/</A>
-and the Apache config section of this document for details about 
-	FastCGI.
+In order to be able to send encrypted messages to a list, the sender needs
+to use the X509 certificate of the list. Sympa will send an encrypted message
+to each subscriber using the subscriber's certificate. To provide this feature,
+<I>Sympa</I> needs to manage one certificate for each list and one for each
+subscriber. This is available in Sympa version 2.8 and above.
 
 <P>
 
 <H1><A NAME="SECTION001040000000000000000">
-9.4 MhOnArc</A>
-</H1>
+9.4 S/Sympa configuration</A>
+</H1> 
 
 <P>
-MhOnArc is a neat little converter from mime messages to html. Refer to
-<A NAME="tex2html24"
-  HREF="http://www.oac.uci.edu/indiv/ehood/mhonarc.html">http://www.oac.uci.edu/indiv/ehood/mhonarc.html</A>.
+
+<H2><A NAME="SECTION001041000000000000000"></A>
+<A NAME="smimeinstall"></A>
+<BR>
+9.4.1 Installation
+</H2>
 
 <P>
-The long mhonarc resource file is used by <A NAME="9276"></A><I>WWSympa</I> in a particular way.
-MhOnArc is called to produce not a complete html document, but only a part of it
-to be included in a complete document (starting with <TT>&lt;</TT>HTML<TT>&gt;</TT> and terminating
-with <TT>&lt;</TT>/HTML<TT>&gt;</TT> ;-) ).
-The best way is to use the MhOnArc resource file 
-provided in the <A NAME="9279"></A><I>WWSympa</I> distribution and to modify it for your needs.
+The only requirement is OpenSSL (http://www.openssl.org) version 0.9.5a and above.
+OpenSSL is used by <I>Sympa</I> as an external plugin
+(like sendmail or postfix), so it must be installed with the appropriate access
+(x for sympa.sympa). 
 
 <P>
-The mhonarc resource file is named <A NAME="9282"></A><TT>mhonarc-ressources</TT>. 
-You may locate this file either in 
+
+<H2><A NAME="SECTION001042000000000000000"></A>
+<A NAME="smimeconf"></A>
+<BR>
+9.4.2 configuration in sympa.conf
+</H2>
+
+<P>
+S/Sympa configuration is very simple. If you are used to Apache SSL,
+you should not feel lost. If you are an OpenSSL guru, you will
+feel at home, and there may even be changes you will wish to suggest to us.
+
+<P>
+The basic requirement is to let <I>Sympa</I> know where to find the binary file for the OpenSSL program
+and the certificates of the trusted certificate authority. 
+This is done using the optional parameters <A NAME="5547"></A><TT>openSSL</TT> and
+<A NAME="5550"></A><TT>capath</TT> and / or <A NAME="5553"></A><TT>cafile</TT>.
+
+<P>
+
+<UL>
+<LI><A NAME="5556"></A><TT>openSSL</TT> : the path for the OpenSSL binary file,
+         usually <TT>/usr/local/ssl/bin/openSSL</TT>
+</LI>
+<LI><A NAME="5559"></A><TT>cafile</TT> : the path of a bundle of trusted ca certificates. 
+        The file <A NAME="5562"></A><TT>~/home/sympa/bin/etc/cabundle.crt</TT> included in Sympa distribution can be used.
+
+<P>
+Both the <A NAME="5567"></A><TT>cafile</TT> file and the <A NAME="5570"></A><TT>capath</TT> directory
+        should be shared with your Apache+mod_ssl configuration. This is useful
+	for the S/Sympa web interface.  Please refer to the OpenSSL documentation for details.
+
+<P>
+</LI>
+<LI><A NAME="5573"></A><TT>key_password</TT> : the password used to protect all list private keys. xxxxxxx	
+</LI>
+</UL>
+
+<P>
+
+<H2><A NAME="SECTION001043000000000000000"></A>
+<A NAME="smimeforsign"></A>
+<BR>
+9.4.3 configuration to recognize S/MIME signatures
+</H2>
+
+<P>
+Once  <TT>OpenSSL</TT> has been installed, and <TT>sympa.conf</TT> configured,
+your S/Sympa is ready to use S/Mime signatures for any authentication operation. You simply need
+to use the appropriate scenario for the operation you want to secure. 
+(see <A HREF="node12.html#scenarii">11.8</A>, page&nbsp;<A HREF="node12.html#scenarii"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+
+<P>
+When receiving a message, <I>Sympa</I> applies
+the scenario with the appropriate authentication method parameter.
+In most cases the authentication method is ``<TT>smtp</TT>'', but in cases
+where the message is signed and the signature has been checked and matches the
+sender e-mail, <I>Sympa</I> applies the ``<TT>smime</TT>'' authentication
+method.
+
+<P>
+It is vital to ensure that if the scenario does not recognize this authentication method, the
+operation requested will be rejected. Consequently, scenarii distributed
+prior to version 2.7 are not compatible with the OpenSSL configuration of Sympa. 
+All
+standard scenarii (those distributed with sympa)
+now include the <TT>smime</TT> method. The following example is
+named <TT>send.private_smime</TT>, and restricts sends to subscribers using an S/mime signature :
+
+<P><PRE>
+title.us restricted to subscribers check smime signature
+title.fr limité aux abonnés, vérif de la signature smime
+
+is_subscriber([listname],[sender])             smime  -&gt; do_it
+is_editor([listname],[sender])                 smime  -&gt; do_it
+is_owner([listname],[sender])                  smime  -&gt; do_it
+</PRE>
+
+<P>
+It as also possible to mix various authentication methods in a single scenario. The following
+example, <TT>send.private_key</TT>, requires either an md5 return key or an S/Mime signature :<PRE>
+title.us restricted to subscribers with previous md5 authentication
+title.fr réservé aux abonnés avec authentification MD5 préalable
+
+is_subscriber([listname],[sender]) smtp          -&gt; request_auth
+true()                             md5,smime     -&gt; do_it
+</PRE>
+
+<P>
+
+<H2><A NAME="SECTION001044000000000000000"></A>
+<A NAME="smimeforencrypt"></A>
+<BR>
+9.4.4 distributing encrypted messages
+</H2>
+
+<P>
+In this section we describe S/Sympa encryption features. The goal is to use
+S/MIME encryption for distribution of a message to subscribers whenever the message has been
+received encrypted from the sender. 
+
+<P>
+Why is S/Sympa concerned by the S/MIME encryption distribution process ?
+It is because encryption is performed using the <B>recipient</B> X509
+certificate, whereas the signature requires the sender's private key. Thus, an encrypted
+message can be read by the recipient only if he or she is the owner of the private
+key associated with the certificate.
+Consequently, the only way to encrypt a message for a list of recipients is
+to encrypt and send the message for each recipient. This is what S/Sympa
+does when distributing an encrypted message.
+
+<P>
+The S/Sympa encryption feature in the distribution process supposes that sympa
+has received an encrypted message for some list. To be able to encrypt a message
+for a list, the sender must have some access to an X509 certificate for the list.
+So the first requirement is to install a certificate and a private key for
+the list.
+The mechanism whereby certificates are obtained and managed is complex. Current versions
+of S/Sympa assume that list certificates and private keys are installed by
+the listmaster using <A NAME="5578"></A><TT>/home/sympa/bin,/p12topem.pl</TT> script. This script allows
+you to install a PKCS#12 bundle file containing a private key and
+a certificate using the appropriate format.
+
+<P>
+It is a good idea to have a look at the OpenCA (http://www.openssl.org)
+documentation and/or PKI providers' web documentation.
+You can use commercial certificates or home-made ones. Of course, the
+certificate must be approved for e-mail applications, and issued by one of
+the trusted CA's described in the <A NAME="5581"></A><TT>cafile</TT> file or the
+<A NAME="5584"></A><TT>capath</TT> Sympa configuration parameter. 
+
+<P>
+The list private key must be installed in a file named
+<A NAME="5587"></A><TT>/home/sympa/expl/mylist/private_key</TT>. All the list private
+keys must be encrypted using a single password defined by the
+<A NAME="5590"></A><TT>password</TT> parameter in <A NAME="5593"></A><TT>sympa.conf</TT>.
+
+<P>
+
+<H3><A NAME="SECTION001044100000000000000">
+9.4.4.1 Use of Netscape navigator to obtain X509 list certificates</A>
+</H3>
+
+<P>
+In many cases e-mail X509 certificates are distributed via a web server and
+loaded into the browser using your mouse :) Netscape allows
+certificates to be exported to a file. So one way to get a list certificate is to obtain an e-mail
+certificate for the canonical list address in your browser, and then to export and install it for Sympa :
+
 <OL>
-<LI><A NAME="9285"></A><TT>/usr/local/sympa-os/expl/mylist/mhonarc-ressources</TT>
-	in order to create a specific archive look for a particular list
-
-<P>
+<LI>browse the net and load a certificate for the list address on some
+PKI provider (your own OpenCa pki server , thawte, verisign, ...). Be
+careful :  the e-mail certificate must be correspond exactly to the canonical address of
+your  list, otherwise, the signature will be incorrect (sender e-mail will
+not match signer e-mail).
 </LI>
-<LI>or <A NAME="9288"></A><TT>/usr/local/sympa-os/etc/mhonarc-ressources</TT>
-
-<P>
+<LI>in the security menu, select the intended certificate and export
+it. Netscape will prompt you for a password and a filename to encrypt
+the output file. The format used by Netscape is  ``pkcs#12''. 
+Copy this file to the list home directory.
 </LI>
-</OL>
+<LI>convert the pkcs#12 file into a pair of pem files :
+<A NAME="5596"></A><TT>cert.pem</TT> and <A NAME="5599"></A><TT>private_key</TT> using
+the <A NAME="5602"></A><TT>/home/sympa/bin,/p12topem.pl</TT> script. Use <A NAME="5605"></A><TT>p12topem.pl -help</TT> for details.
+</LI>
+<LI>be sure that <A NAME="5608"></A><TT>cert.pem</TT> and <A NAME="5611"></A><TT>private_key</TT>
+are owned by sympa with ``r'' access.
+</LI>
+<LI>As soon as a certificate is installed for a list, the list  home page
+includes a new link to load the certificate to the user's browser, and the welcome
+message is signed by the list.
+</LI>
+</OL> 
 
 <P>
 
 <H1><A NAME="SECTION001050000000000000000">
-9.5 Archiving daemon</A>
-</H1>
-<A NAME="9291"></A><TT>archived.pl</TT> converts messages from <I>Sympa</I>'s spools 
-and calls <A NAME="9295"></A><TT>mhonarc</TT> to create html versions (whose location is defined by the 
-"arc_path" WWSympa parameter). You should probably install these archives 
-outside the <I>Sympa</I> home_dir (<I>Sympa</I>'s initial choice for storing mail archives : 
-<A NAME="9300"></A><TT>/usr/local/sympa-os/expl/mylist</TT>). Note that the html archive 
-contains a text version of each message and is totally separate from <I>Sympa</I>'s
-main archive.
-
-<OL>
-<LI>create a directory according to the WWSympa "arc_path" parameter
-    (must be owned by sympa, does not have to be in Apache space unless
-    your server uses chroot)
-
-<P>
-</LI>
-<LI>for each list, if you need a web archive, create a new web archive paragraph
-    in the list configuration. Example :<PRE>
-     web_archive
-     access public|private|owner|listmaster|closed
-     quota 10000
-</PRE>
-
-<P>
-If web_archive is defined for a list, every message distributed by this list is copied
-     to <A NAME="9304"></A><TT>/usr/local/sympa-os/spool/outgoing/</TT>. (No need to create nonexistent subscribers to receive
-     copies of messages). In this example disk quota (expressed in Kbytes) for the archive is limited to 10 Mo.
-
-<P>
-</LI>
-<LI>start <A NAME="9307"></A><TT>archived.pl</TT>.
-<I>Sympa</I> and Apache
-
-<P>
-</LI>
-<LI>check <A NAME="9311"></A><I>WWSympa</I> logs, or alternatively, start <A NAME="9314"></A><TT>archived.pl</TT> in debug mode (-d). 
-
-<P>
-</LI>
-<LI>If you change mhonarc resources and wish to rebuild the entire archive 
-using the new look defined for mhonarc, simply create an empty file named
-".rebuild.mylist@myhost" in <A NAME="9317"></A><TT>/usr/local/sympa-os/spool/outgoing</TT>, and make sure that
-the owner of this file is <I>Sympa</I>. 
-
-<P><PRE>
-     example : su sympa -c "touch /usr/local/sympa-os/spool/outgoing/.rebuild.sympa-fr@cru.fr"
-</PRE>
-You can also rebuild web archives from within the admin page of the list.
-
-<P>
-Furthermore, if you want to get list's archives, you can do it via the <A NAME="9321"></A><TT> List-admin menu-&gt; Archive Management</TT>
-</LI>
-</OL>
-
-<P>
-
-<H1><A NAME="SECTION001060000000000000000">
-9.6 Database configuration</A>
+9.5 Managing certificates with tasks</A>
 </H1>
 
 <P>
-<A NAME="9324"></A><I>WWSympa</I> needs an RDBMS (Relational Database Management System) in order to
-run. All database access is performed via the <I>Sympa</I> API. <I>Sympa</I> 
-currently interfaces with <A NAME="tex2html25"
-  HREF="http://www.mysql.net/">MySQL</A>, 
-<A NAME="tex2html26"
-  HREF="http://sqlite.org/">SQLite</A>,
-<A NAME="tex2html27"
-  HREF="http://www.postgresql.pyrenet.fr/">PostgreSQL</A>, 
-<A NAME="tex2html28"
-  HREF="http://www.oracle.com/database/">Oracle</A>
-and <A NAME="tex2html29"
-  HREF="http://www.sybase.com/index_sybase.html">Sybase</A>.
-
-<P>
-A database is needed to store user passwords and preferences.
-The database structure is documented in the <I>Sympa</I> documentation ;
-scripts for creating it are also provided with the <I>Sympa</I> distribution
-(in <A NAME="9331"></A><TT>script</TT>). 
-
-<P>
-User information (password and preferences) are stored in the ``User'' table.
-User passwords stored in the database are encrypted using reversible
-RC4 encryption controlled with the <A NAME="9334"></A><TT>cookie</TT> parameter,
-since <A NAME="9337"></A><I>WWSympa</I> might need to remind users of their passwords. 
-The security of <A NAME="9340"></A><I>WWSympa</I> rests on the security of your database. 
+You may automate the management of certificates with two global task models provided with
+<I>Sympa</I>. See <A HREF="node12.html#tasks">11.11</A>, page&nbsp;<A HREF="node12.html#tasks"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A> to know more about tasks.
+Report to <A HREF="node6.html#certificate-task-config">5.12.4</A>, page&nbsp;<A HREF="node6.html#certificate-task-config"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A> to configure your <I>Sympa</I> to use these facilities.
 
 <P>
 
-<H1><A NAME="SECTION001070000000000000000">
-9.7 Logging in as listmaster</A>
-</H1>
+<H2><A NAME="SECTION001051000000000000000">
+9.5.1 chk_cert_expiration.daily.task model</A>
+</H2>
 
 <P>
-Once <I>Sympa</I> is running you should log in on the web interface as a privileged user (listmaster)
-to explore the admin interface, create mailing lists.
-
-<P>
-Multiple email addresses can be declared as listmaster via the <A NAME="9344"></A><TT>sympa.conf</TT> (or <A NAME="9347"></A><TT>robot.conf</TT>)
-<A NAME="9350"></A><TT>listmaster</TT> configuration parameter (see <A HREF="node8.html#exp-admin">7</A>,  page&nbsp;<A HREF="node8.html#exp-admin"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>). Note
-that listmasters on the main robot (declared in  <A NAME="9353"></A><TT>sympa.conf</TT>) also have listmaster privileges on
-the virtual hosts but they will not receive the various mail notifications (list creation, warnings,...)
-regarding these virtual hosts.
-
-<P>
-The listmasters should log in with their canonical email address as an identifier (not <I>listmaster@my.host</I>).
-The associated password is not declared in sympa.conf ; it will be allocated by <I>Sympa</I> when first hitting
-the <B>Send me a password</B> button on the web interface. As for any user, the password can then be modified via the 
-<B>Preferenced</B> menu.
-
-<P>
-Note that you must start the <A NAME="9357"></A><TT>sympa.pl</TT> process with the web interface ; it is in responsible for delivering 
-mail messages including password reminders.
+A task created with the model <A NAME="5616"></A><TT>chk_cert_expiration.daily.task</TT> checks every day the expiration date of
+certificates stored in the <A NAME="5619"></A><TT>/home/sympa/expl/X509-user-certs/</TT> directory.
+The user is warned with the <A NAME="5622"></A><TT>daily_cert_expiration</TT> template when his certificate has expired
+or is going to expire within three days.
 
 <P>
 
+<H2><A NAME="SECTION001052000000000000000">
+9.5.2 crl_update.daily.task model</A>
+</H2>
+
+<P>
+You may use the model <A NAME="5625"></A><TT>crl_update.daily.task</TT> to create a task which daily updates the certificate revocation
+lists when needed.
+
+<P>
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html1114"
+<A NAME="tex2html833"
   HREF="node11.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1108"
+<A NAME="tex2html827"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1102"
+<A NAME="tex2html821"
   HREF="node9.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1110"
+<A NAME="tex2html829"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1112"
-  HREF="node31.html">
+<A NAME="tex2html831"
+  HREF="node20.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1115"
-  HREF="node11.html">10. Sympa Internationalization</A>
-<B> Up:</B> <A NAME="tex2html1109"
+<B> Next:</B> <A NAME="tex2html834"
+  HREF="node11.html">10. Virtual robot</A>
+<B> Up:</B> <A NAME="tex2html828"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1103"
-  HREF="node9.html">8. Sympa and its database</A>
- &nbsp; <B>  <A NAME="tex2html1111"
+<B> Previous:</B> <A NAME="tex2html822"
+  HREF="node9.html">8. Using Sympa with LDAP</A>
+ &nbsp <B>  <A NAME="tex2html830"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1113"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html832"
+  HREF="node20.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2003-04-16
 </ADDRESS>
 </BODY>
 </HTML>
