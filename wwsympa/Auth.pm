@@ -1,4 +1,4 @@
-# Auth.pm - This module provides web authentication functions
+# wwslib.pm - This module includes functions used by wwsympa.fcgi
 # RCS Identication ; $Revision$ ; $Date$ 
 #
 # Sympa - SYsteme de Multi-Postage Automatique
@@ -30,17 +30,14 @@ use Exporter;
 use Log;
 use Conf;
 use List;
-use report;
-use Digest::MD5;
 
 # use Net::SSLeay qw(&get_https);
 # use Net::SSLeay;
 
 
 
-## authentication : via email or uid
+ ## authentication : via email or uid
  sub check_auth{
-     my $robot = shift;
      my $auth = shift; ## User email or UID
      my $pwd = shift; ## Password
      &do_log('debug', 'Auth::check_auth(%s)', $auth);
@@ -48,11 +45,11 @@ use Digest::MD5;
      my ($canonic, $user);
 
      if( &tools::valid_email($auth)) {
-	 return &authentication($robot, $auth,$pwd);
+	 return &authentication($auth,$pwd);
 
      }else{
 	 ## This is an UID
-	 if ($canonic = &ldap_authentication($robot, $auth,$pwd,'uid_filter')){
+	 if ($canonic = &ldap_authentication($auth,$pwd,'uid_filter')){
 
 	     unless($user = &List::get_user_db($canonic)){
 		 $user = {'email' => $canonic};
@@ -61,41 +58,20 @@ use Digest::MD5;
 		     'auth' => 'ldap',
 		     'alt_emails' => {$canonic => 'ldap'}
 		 };
-	     
+
 	 }else{
-	     &report::reject_report_web('user','incorrect_passwd',{}) unless ($ENV{'SYMPA_SOAP'});
+	     &main::error_message('incorrect_passwd') unless ($ENV{'SYMPA_SOAP'});
 	     &do_log('err', "Incorrect Ldap password");
 	     return undef;
 	 }
      }
  }
 
-## This subroutine if Sympa may use its native authentication for a given user
-## It might not if no user_table paragraph is found in auth.conf or if the regexp or
-## negative_regexp exclude this user
-## IN : robot, user email
-## OUT : boolean
-sub may_use_sympa_native_auth {
-    my ($robot, $user_email) = @_;
-
-    my $ok = 0;
-    ## check each auth.conf paragrpah
-    foreach my $auth_service (@{$Conf{'auth_services'}{$robot}}){
-	next unless ($auth_service->{'auth_type'} eq 'user_table');
-
-	next if ($auth_service->{'regexp'} && ($user_email !~ /$auth_service->{'regexp'}/i));
-	next if ($auth_service->{'negative_regexp'} && ($user_email =~ /$auth_service->{'negative_regexp'}/i));
-	
-	$ok = 1; last;
-    }
-    
-    return $ok;
-}
 
 sub authentication {
-    my ($robot, $email,$pwd) = @_;
+    my ($email,$pwd) = @_;
     my ($user,$canonic);
-    &do_log('debug', 'Auth::authentication(%s)', $email);
+    &do_log('debug', 'Auth::authentication(%s)', $auth);
 
 
     unless ($user = &List::get_user_db($email)) {
@@ -109,12 +85,12 @@ sub authentication {
     
 
 
-    foreach my $auth_service (@{$Conf{'auth_services'}{$robot}}){
+    foreach my $auth_service (@{$Conf{'auth_services'}}){
 	next if ($email !~ /$auth_service->{'regexp'}/i);
 	next if (($email =~ /$auth_service->{'negative_regexp'}/i)&&($auth_service->{'negative_regexp'}));
 	if ($auth_service->{'auth_type'} eq 'user_table') {
-	    
-	    if(((&Conf::get_robot_conf('*','password_case') eq 'insensitive') && (lc($pwd) eq lc($user->{'password'}))) || 
+     
+	    if((($wwsconf->{'password_case'} eq 'insensitive') && (lc($pwd) eq lc($user->{'password'}))) || 
 	       ($pwd eq $user->{'password'})) {
 		return {'user' => $user,
 			'auth' => 'classic',
@@ -122,7 +98,7 @@ sub authentication {
 			};
 	    }
 	}elsif($auth_service->{'auth_type'} eq 'ldap') {
-	    if ($canonic = &ldap_authentication($robot, $email,$pwd,'email_filter')){
+	    if ($canonic = &ldap_authentication($email,$pwd,'email_filter')){
 		unless($user = &List::get_user_db($canonic)){
 		    $user = {'email' => $canonic};
 		}
@@ -137,19 +113,19 @@ sub authentication {
     ## If web context and password has never been changed
     ## Then prompt user
     unless ($ENV{'SYMPA_SOAP'}) {
-	foreach my $auth_service (@{$Conf{'auth_services'}{$robot}}){
+	foreach my $auth_service (@{$Conf{'auth_services'}}){
 	    next unless ($email !~ /$auth_service->{'regexp'}/i);
 	    next unless (($email =~ /$auth_service->{'negative_regexp'}/i)&&($auth_service->{'negative_regexp'}));
 	    if ($auth_service->{'auth_type'} eq 'user_table') {
 		if ($user->{'password'} =~ /^init/i) {
-		    &report::reject_report_web('user','init_passwd',{});
+		    &main::error_message('init_passwd');
 		    last;
 		}
 	    }
 	}
     }
     
-    &report::reject_report_web('user','incorrect_passwd',{}) unless ($ENV{'SYMPA_SOAP'});
+    &main::error_message('incorrect_passwd') unless ($ENV{'SYMPA_SOAP'});
     &do_log('err','authentication: incorrect password for user %s', $email);
 
     $param->{'init_email'} = $email;
@@ -159,46 +135,43 @@ sub authentication {
 
 
 sub ldap_authentication {
-     my ($robot, $auth,$pwd,$whichfilter) = @_;
-     my ($cnx, $mesg, $host,$ldap_passwd,$ldap_anonymous);
-     &do_log('debug2','Auth::ldap_authentication(%s,%s,%s)', $auth,$pwd,$whichfilter);
 
-     unless (&tools::get_filename('etc',{},'auth.conf', $robot)) {
+     my ($auth,$pwd,$whichfilter) = @_;
+     my ($cnx, $mesg, $host,$ldap_passwd,$ldap_anonymous);
+
+     unless (&tools::get_filename('etc', 'auth.conf', $robot)) {
 	 return undef;
      }
 
      ## No LDAP entry is defined in auth.conf
-     if ($#{$Conf{'auth_services'}{$robot}} < 0) {
+     if ($#{$Conf{'auth_services'}} < 0) {
 	 &do_log('notice', 'Skipping empty auth.conf');
 	 return undef;
      }
 
-     unless (eval "require Net::LDAP") {
+     unless (require Net::LDAP) {
 	 do_log ('err',"Unable to use LDAP library, Net::LDAP required, install perl-ldap (CPAN) first");
 	 return undef;
      }
-     require Net::LDAP;
-
-     unless (eval "require Net::LDAP::Entry") {
+     unless (require Net::LDAP::Entry) {
 	 do_log ('err',"Unable to use LDAP library,Net::LDAP::Entry required install perl-ldap (CPAN) first");
 	 return undef;
      }
-     require Net::LDAP::Entry;
 
-     unless (eval "require Net::LDAP::Message") {
+     unless (require Net::LDAP::Message) {
 	 do_log ('err',"Unable to use LDAP library,Net::LDAP::Entry required install perl-ldap (CPAN) first");
 	 return undef;
      }
-     require Net::LDAP::Message;
      
-     foreach my $ldap (@{$Conf{'auth_services'}{$robot}}){
+     foreach my $ldap (@{$Conf{'auth_services'}}){
 	 # only ldap service are to be applied here
 	 next unless ($ldap->{'auth_type'} eq 'ldap');
 
-	 # skip ldap auth service if the an email address was provided
-	 # and this email address does not match the corresponding regexp 
-	 next if ($auth =~ /@/ && $auth !~ /$ldap->{'regexp'}/i);
+	 # skip ldap auth service if the user id or email do not match regexp auth service parameter
+	 next unless ($auth =~ /$ldap->{'regexp'}/i);
   
+	 foreach $host (split(/,/,$ldap->{'host'})){
+
 	     my @alternative_conf = split(/,/,$ldap->{'alternative_email_attribute'});
 	     my $attrs = $ldap->{'email_attribute'};
 	     my $filter = $ldap->{'get_dn_by_uid_filter'} if($whichfilter eq 'uid_filter');
@@ -207,14 +180,41 @@ sub ldap_authentication {
 
 	     ##anonymous bind in order to have the user's DN
 	     my $ldap_anonymous;
-	 my $param = &tools::dup_var($ldap);
-	 my $ds = new Datasource('LDAP', $param);
+	     if ($ldap->{'use_ssl'}) {
+		 unless (require Net::LDAPS) {
+		     do_log ('err',"Unable to use LDAPS library, Net::LDAPS required");
+		     return undef;
+		 } 
 
-	 unless (defined $ds && ($ldap_anonymous = $ds->connect())) {
-	     &do_log('err',"Unable to connect to the LDAP server '%s'", $ldap->{'host'});
+		 my %param;
+		 $param{'timeout'} = $ldap->{'timeout'} if ($ldap->{'timeout'});
+		 $param{'sslversion'} = $ldap->{'ssl_version'} if ($ldap->{'ssl_version'});
+		 $param{'ciphers'} = $ldap->{'ssl_ciphers'} if ($ldap->{'ssl_ciphers'});
+
+		 $ldap_anonymous = Net::LDAPS->new($host,%param);
+	     }else {
+		 $ldap_anonymous = Net::LDAP->new($host,timeout => $ldap->{'timeout'});
+	     }
+
+	     unless ($ldap_anonymous ){
+		 do_log ('err','Unable to connect to the LDAP server %s',$host);
 		 next;
 	     }
 
+	     my $cnx;
+	     ## Not always anonymous...
+	     if (defined ($ldap->{'bind_dn'}) && defined ($ldap->{'bind_password'})) {
+		 $cnx = $ldap_anonymous->bind($ldap->{'bind_dn'}, password =>$ldap->{'bind_password'});
+	     }else {
+		 $cnx = $ldap_anonymous->bind;
+	     }
+
+	     unless(defined($cnx) && ($cnx->code() == 0)){
+		 do_log('notice',"Can\'t bind to LDAP server $host");
+		 last;
+		 #do_log ('err','Ldap Error : %s, Ldap server error : %s',$cnx->error,$cnx->server_error);
+		 #$ldap_anonymous->unbind;
+	     }
 
 	     $mesg = $ldap_anonymous->search(base => $ldap->{'suffix'},
 					     filter => "$filter",
@@ -222,31 +222,48 @@ sub ldap_authentication {
 					     timeout => $ldap->{'timeout'});
 
 	     if ($mesg->count() == 0) {
-	     do_log('notice','No entry in the Ldap Directory Tree of %s for %s',$ldap->{'host'},$auth);
-	     $ds->disconnect();
+		 do_log('notice','No entry in the Ldap Directory Tree of %s for %s',$host,$auth);
+		 $ldap_anonymous->unbind;
 		 last;
 	     }
 
 	     my $refhash=$mesg->as_struct();
 	     my (@DN) = keys(%$refhash);
-	 $ds->disconnect();
+	     $ldap_anonymous->unbind;
 
 	     ##  bind with the DN and the pwd
 	     my $ldap_passwd;
+	     if ($ldap->{'use_ssl'}) {
+		 unless (require Net::LDAPS) {
+		     do_log ('err',"Unable to use LDAPS library, Net::LDAPS required");
+		     return undef;
+		 } 
 
-	 ## Duplicate structure first
-	 ## Then set the bind_dn and password according to the current user
-	 my $param = &tools::dup_var($ldap);
-	 $param->{'ldap_bind_dn'} = $DN[0];
-	 $param->{'ldap_bind_password'} = $pwd;
+		 my %param;
+		 $param{'timeout'} = $ldap->{'timeout'} if ($ldap->{'timeout'});
+		 $param{'sslversion'} = $ldap->{'ssl_version'} if ($ldap->{'ssl_version'});
+		 $param{'ciphers'} = $ldap->{'ssl_ciphers'} if ($ldap->{'ssl_ciphers'});
 
-	 my $ds = new Datasource('LDAP', $param);
+		 $ldap_passwd = Net::LDAPS->new($host,%param);
+	     }else {
+		 $ldap_passwd = Net::LDAP->new($host,timeout => $ldap->{'timeout'});
+	     }
 
-	 unless (defined $ds && ($ldap_passwd = $ds->connect())) {
-	     do_log('err',"Unable to connect to the LDAP server '%s'", $param->{'host'});
+	     unless ($ldap_passwd) {
+		 do_log('err','Unable to (re) connect to the LDAP server %s', $host);
+		 do_log ('err','Ldap Error : %s, Ldap server error : %s',$ldap_passwd->error,$ldap_passwd->server_error);
 		 next;
 	     }
 
+	     $cnx = $ldap_passwd->bind($DN[0], password => $pwd);
+	     unless(defined($cnx) && ($cnx->code() == 0)){
+		 do_log('notice', 'Incorrect password for user %s ; host: %s',$auth, $host);
+		 #do_log ('err','Ldap Error : %s, Ldap server error : %s',$cnx->error,$cnx->server_error);
+		 $ldap_passwd->unbind;
+		 last;
+	     }
+	     # this bind is anonymous and may return 
+	     # $ldap_passwd->bind($DN[0]);
 	     $mesg= $ldap_passwd->search ( base => $ldap->{'suffix'},
 					   filter => "$filter",
 					   scope => $ldap->{'scope'},
@@ -254,8 +271,8 @@ sub ldap_authentication {
 					   );
 
 	     if ($mesg->count() == 0) {
-	     do_log('notice',"No entry in the Ldap Directory Tree of %s", $ldap->{'host'});
-	     $ds->disconnect();
+		 do_log('notice',"No entry in the Ldap Directory Tree of %s,$host");
+		 $ldap_passwd->unbind;
 		 last;
 	     }
 
@@ -289,55 +306,94 @@ sub ldap_authentication {
 		 $param->{'alt_emails'}{$alt} = $previous->{$alt};
 	     }
 
-	 $ds->disconnect() or &do_log('notice', "unable to unbind");
-	 &do_log('debug3',"canonic: $canonic_email[0]");
+	     $ldap_passwd->unbind or do_log('notice', "unable to unbind");
+	     do_log('debug3',"canonic: $canonic_email[0]");
 	     return lc($canonic_email[0]);
+	 }
 
 	 next unless ($ldap_anonymous);
 	 next unless ($ldap_passwd);
 	 next unless (defined($cnx) && ($cnx->code() == 0));
 	 next if($mesg->count() == 0);
 	 next if($mesg->code() != 0);
+	 next unless ($host);
      }
  }
 
 
 # fetch user email using his cas net_id and the paragrapah number in auth.conf
-sub get_email_by_net_id {
+sub cas_get_email_by_net_id {
     
-    my $robot = shift;
+    my $net_id = shift;   
     my $auth_id = shift;
-    my $attributes = shift;
-    
-    do_log ('debug',"Auth::get_email_by_net_id($auth_id,$attributes->{'uid'})");
-    
-    if (defined $Conf{'auth_services'}{$robot}[$auth_id]{'internal_email_by_netid'}) {
-	my $sso_config = @{$Conf{'auth_services'}{$robot}}[$auth_id];
-	my $netid_cookie = $sso_config->{'netid_http_header'} ;
-	
-	$netid_cookie =~ s/(\w+)/$attributes->{$1}/ig;
-	
-	$email = &List::get_netidtoemail_db($robot, $netid_cookie, $Conf{'auth_services'}{$robot}[$auth_id]{'service_id'});
-	
-	return $email;
-    }
- 
-    my $ldap = @{$Conf{'auth_services'}{$robot}}[$auth_id];
 
-    my $param = &tools::dup_var($ldap);
-    my $ds = new Datasource('LDAP', $param);
-    my $ldap_anonymous;
+    do_log ('info',"Auth::cas_get_email_by_net_id($net_id,$auth_id)");
+
+    unless (require Net::LDAP) {
+	do_log ('err',"Unable to use LDAP library, Net::LDAP required, install perl-ldap (CPAN) first");
+	return undef;
+    }
+    unless (require Net::LDAP::Entry) {
+	do_log ('err',"Unable to use LDAP library,Net::LDAP::Entry required install perl-ldap (CPAN) first");
+	return undef;
+    }
     
-    unless (defined $ds && ($ldap_anonymous = $ds->connect())) {
-	&do_log('err',"Unable to connect to the LDAP server '%s'", $ldap->{'ldap_host'});
+    unless (require Net::LDAP::Message) {
+	do_log ('err',"Unable to use LDAP library,Net::LDAP::Entry required install perl-ldap (CPAN) first");
 	return undef;
     }
 
+
+    my $ldap = @{$Conf{'auth_services'}}[$auth_id];
     my $filter = $ldap->{'ldap_get_email_by_uid_filter'} ;
-    $filter =~ s/\[([\w-]+)\]/$attributes->{$1}/ig;
+    $filter =~ s/\[uid\]/$net_id/ig;
+
+
+    foreach my $host (split(/,/,$ldap->{'ldap_host'})){
 
 #	my @alternative_conf = split(/,/,$ldap->{'alternative_email_attribute'});
 		
+	my $ldap_anonymous;
+
+	my %param;
+	$param{'timeout'} = $ldap->{'ldap_timeout'} || 3;
+	$param{'async'} = 1;
+	
+	if ($ldap->{'ldap_use_ssl'}) {
+	    $param{'sslversion'} = $ldap->{'ldap_ssl_version'} if ($ldap->{'ldap_ssl_version'});
+	    $param{'ciphers'} = $ldap->{'ldap_ssl_ciphers'} if ($ldap->{'ldap_ssl_ciphers'});
+
+	    unless (require Net::LDAPS) {
+		do_log ('err',"Unable to use LDAPS library, Net::LDAPS required");
+		return undef;
+	    } 
+	    
+	    $ldap_anonymous = Net::LDAPS->new($host,%param);
+	}else {
+	    $ldap_anonymous = Net::LDAP->new($host,%param);
+	}
+	
+	unless ($ldap_anonymous ){
+	    do_log ('err','Unable to connect to the LDAP server %s',$host);
+	    next;
+	}
+	
+	my $cnx;
+	## Not always anonymous...
+	if (defined ($ldap->{'bind_dn'}) && defined ($ldap->{'bind_password'})) {
+	    $cnx = $ldap_anonymous->bind($ldap->{'ldap_bind_dn'}, password =>$ldap->{'ldap_bind_password'});
+	}else {
+	    $cnx = $ldap_anonymous->bind;
+	}
+	
+	unless(defined($cnx) && ($cnx->code() == 0)){
+	    do_log('notice',"Can\'t bind to LDAP server $host");
+	    last;
+	    #do_log ('err','Ldap Error : %s, Ldap server error : %s',$cnx->error,$cnx->server_error);
+	    #$ldap_anonymous->unbind;
+	}
+	do_log ('debug',"Binded to LDAP host $host, search base=$ldap->{'ldap_suffix'},filter=$filter,scope=$ldap->{'ldap_scope'},attrs=$ldap->{'ldap_email_attribute'}");
+	
 	my $emails= $ldap_anonymous->search ( base => $ldap->{'ldap_suffix'},
 				      filter => $filter,
 				      scope => $ldap->{'ldap_scope'},
@@ -347,63 +403,29 @@ sub get_email_by_net_id {
 	my $count = $emails->count();
 
 	if ($emails->count() == 0) {
-	    do_log('notice',"No entry in the Ldap Directory Tree of %s", $host);
-	$ds->disconnect();
-	return undef;
+	    do_log('notice',"No entry in the Ldap Directory Tree of %s,$host");
+	    $ldap_anonymous->unbind;
+	    last;
 	}
 
-    $ds->disconnect();
-    
-    ## return only the first attribute
 	my @results = $emails->entries;
 	foreach my $result (@results){
 	    return (lc($result->get_value($ldap->{'ldap_email_attribute'})));
 	}
 
+	
+	## return only the first attribute
+			
+	my $entry = $emails->entry(0);
+	my @canonic_email = $entry->get_value($ldap->{'ldap_email_attribute'},alloptions);
+	foreach my $email (@canonic_email){
+	    return(lc($email));
+	}
+    }
+
  }
 
-# check trusted_application_name et trusted_application_password : return 1 or undef;
-sub remote_app_check_password {
-    
-    my ($trusted_application_name,$password,$robot) = @_;
-    do_log('debug','Auth::remote_app_check_password (%s,%s)',$trusted_application_name,$robot);
-    
-    my $md5 = &tools::md5_fingerprint($password);
-    
-    my $vars;
-    # seach entry for trusted_application in Conf
-    my @trusted_apps ;
-    
-    # select trusted_apps from robot context or symap context
-    if ((defined $robot) &&  (defined $Conf::Conf{'robots'}{$robot}{'trusted_applications'})) {
- 	@trusted_apps = @{$Conf::Conf{'robots'}{$robot}{'trusted_applications'}{'trusted_application'}};
-    }else{
- 	@trusted_apps = @{$Conf::Conf{'trusted_applications'}{'trusted_application'}};
-    }
-    # open TMP2, ">>/tmp/yy"; printf TMP2 "xxxxxxxxxxx\@ trusted_apps \n"; &tools::dump_var(\@trusted_apps, 0, \*TMP2);printf TMP2 "--------\n"; close TMP2;
-    
-    foreach my $application (@trusted_apps){
-	
- 	if ($application->{'name'} eq $trusted_application_name) {
- 	    if ($md5 eq $application->{'md5password'}) {
- 		# &do_log('debug', 'Auth::remote_app_check_password : authentication succeed for %s',$application->{'name'});
- 		my %proxy_for_vars ;
- 		foreach my $varname (@{$application->{'proxy_for_variables'}}) {
- 		    $proxy_for_vars{$varname}=1;
- 		}		
- 		return (\%proxy_for_vars);
- 	    }else{
- 		&do_log('info', 'Auth::remote_app_check_password: bad password from %s', $trusted_application_name);
- 		return undef;
- 	    }
- 	}
-    }				 
-    # no matching application found
-    &do_log('info', 'Auth::remote_app-check_password: unknown application name %s', $trusted_application_name);
-    return undef;
-}
- 
-  
+
 1;
 
 

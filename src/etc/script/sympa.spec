@@ -81,7 +81,7 @@ rm -rf $RPM_BUILD_ROOT
 --with-datadir=--DATADIR-- \
 --with-expldir=--EXPLDIR-- \
 --with-piddir=--PIDDIR-- \
---with-localedir=--LOCALEDIR-- \
+--with-nlsdir=--NLSDIR-- \
 --with-scriptdir=--SCRIPTDIR-- \
 --with-sampledir=--SAMPLEDIR-- \
 --with-spooldir=--SPOOLDIR-- \
@@ -282,7 +282,7 @@ done
 # Documentation
 %doc %attr(-,root,root) INSTALL README AUTHORS COPYING NEWS ChangeLog
 %doc %attr(-,root,root) doc/sympa.tex doc/sympa.ps doc/sympa.pdf
-%doc %attr(-,root,root) --DOCDIR--/*
+%doc %attr(-,root,root) doc/html/
 %attr(-,root,root) %{_mandir}/man8/*
  
 # Spools
@@ -308,8 +308,8 @@ done
 # Config directories populated by the user
 %dir %{etc_s}/create_list_templates
 %dir %{etc_s}/scenari
-%dir %{etc_s}/mail_tt2
-%dir %{etc_s}/web_tt2
+%dir %{etc_s}/templates
+%dir %{etc_s}/wws_templates
 %dir %{etc_s}/general_task_models
 %dir %{etc_s}/task_models
  
@@ -322,10 +322,10 @@ done
 %attr(-,-,-) --LIBEXECDIR--/*
 
 # Locales
-#%dir --LOCALEDIR--
---LOCALEDIR--/
+#%dir --NLSDIR--
+--NLSDIR--/
 
-# ATTENTION A VOIR %{_libdir}/sympa/locale/*.po
+# ATTENTION A VOIR %{_libdir}/sympa/nls/*.msg
  
 # Data
 %{data_s}/
@@ -334,15 +334,15 @@ done
 #%{data_s}/create_list.conf
 #%{data_s}/edit_list.conf
 #%{data_s}/mhonarc-ressources
-#%{data_s}/list_aliases.tt2
+#%{data_s}/list_aliases.tpl
 #%dir %{data_s}/create_list_templates
 #%{data_s}/create_list_templates/*
 #%dir %{data_s}/scenari
 #%{data_s}/scenari/*
-#%dir %{data_s}/tt2s
-#%{data_s}/tt2/*
-#%dir %{data_s}/web_tt2
-#%{data_s}/web_tt2/*
+#%dir %{data_s}/templates
+#%{data_s}/templates/*
+#%dir %{data_s}/wws_templates
+#%{data_s}/wws_templates/*
 #%dir %{data_s}/list_task_models
 #%{data_s}/list_task_models/*
 #%dir %{data_s}/global_task_models
@@ -350,7 +350,6 @@ done
  
 # Icons and binaries for Apache
 --CGIDIR--/wwsympa.fcgi
---CGIDIR--/sympa_soap_server.fcgi
 --ICONSDIR--/
  
 # Init scripts
@@ -358,7 +357,7 @@ done
 
 # Examples
 #%dir --SAMPLEDIR--
-#--SAMPLEDIR--/
+--SAMPLEDIR--/
 
 
 %clean
@@ -398,7 +397,7 @@ rm -rf $RPM_BUILD_ROOT
 --with-mandir=/usr/share/man \
 --with-piddir=/var/run/sympa \
 --with-openssl=/usr/bin/openssl \
---with-localedir=/usr/lib/sympa/locale \
+--with-nlsdir=/usr/lib/sympa/nls \
 --with-scriptdir=/usr/lib/sympa/bin \
 --with-sampledir=/usr/share/sympa/examples \
 --with-spooldir=/var/spool/sympa
