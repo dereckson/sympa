@@ -1,0 +1,19 @@
+[IF lang=fr]
+Configuration type d'un périodique éléctronique <BR>
+<UL><LI>liste modérée et publique<LI>adresses des abonnées protégées</UL>
+[ELSIF lang=es]
+<i>
+Configuración estándar para un periódico electrónico<br>
+<ul>
+<li>Listas públicas y moderadas</li>
+<li>E-mails de los suscriptores protegidos</li>
+</ul>
+</i>
+[ELSIF lang=hu]
+Levelezõlista hírlevelek kézbesítésére<br>
+<ul><li>nyilvános, de moderált a lista
+<li>a tagok email címei nem jelennek meg</ul>
+[ELSE]
+Mailing list configuration to be use for a news letter<BR>
+<UL><LI>public and moderated list <LI>subscribers emails are protected</UL>
+[END]
