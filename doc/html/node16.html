@@ -1,20 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002 (1.62) JA patch-1.4
+patched version by:  Kenshi Muto, Debian Project.
+LaTeX2HTML 2002 (1.62),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>15. virtual host</TITLE>
-<META NAME="description" CONTENT="15. virtual host">
+<TITLE>15. Shared documents</TITLE>
+<META NAME="description" CONTENT="15. Shared documents">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002 JA patch-1.4">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,32 +29,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html1259"
+<A NAME="tex2html1078"
   HREF="node17.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1253"
+<A NAME="tex2html1072"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1247"
+<A NAME="tex2html1066"
   HREF="node15.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1255"
+<A NAME="tex2html1074"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1257"
-  HREF="node31.html">
+<A NAME="tex2html1076"
+  HREF="node22.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1260"
-  HREF="node17.html">16. Interaction between Sympa and other</A>
-<B> Up:</B> <A NAME="tex2html1254"
+<B> Next:</B> <A NAME="tex2html1079"
+  HREF="node17.html">16. Bounce management</A>
+<B> Up:</B> <A NAME="tex2html1073"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1248"
-  HREF="node15.html">14. Authorization scenarios</A>
- &nbsp; <B>  <A NAME="tex2html1256"
+<B> Previous:</B> <A NAME="tex2html1067"
+  HREF="node15.html">14. List configuration parameters</A>
+ &nbsp <B>  <A NAME="tex2html1075"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1258"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html1077"
+  HREF="node22.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,315 +62,526 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html1261"
-  HREF="node16.html#SECTION001610000000000000000">15.1 How to create a virtual host</A>
-<LI><A NAME="tex2html1262"
-  HREF="node16.html#SECTION001620000000000000000">15.2 robot.conf</A>
+<LI><A NAME="tex2html1080"
+  HREF="node16.html#SECTION001610000000000000000">15.1 The three kind of operations on a document</A>
+<LI><A NAME="tex2html1081"
+  HREF="node16.html#SECTION001620000000000000000">15.2 The description file</A>
 <UL>
-<LI><A NAME="tex2html1263"
-  HREF="node16.html#SECTION001621000000000000000">15.2.1 Robot customization</A>
+<LI><A NAME="tex2html1082"
+  HREF="node16.html#SECTION001621000000000000000">15.2.1 Structure of description files</A>
 </UL>
 <BR>
-<LI><A NAME="tex2html1264"
-  HREF="node16.html#SECTION001630000000000000000">15.3 Managing multiple virtual hosts</A>
+<LI><A NAME="tex2html1083"
+  HREF="node16.html#SECTION001630000000000000000">15.3 The predefined authorization scenarios</A>
+<UL>
+<LI><A NAME="tex2html1084"
+  HREF="node16.html#SECTION001631000000000000000">15.3.1 The public scenario</A>
+<LI><A NAME="tex2html1085"
+  HREF="node16.html#SECTION001632000000000000000">15.3.2 The private scenario</A>
+<LI><A NAME="tex2html1086"
+  HREF="node16.html#SECTION001633000000000000000">15.3.3 The scenario owner</A>
 </UL>
+<BR>
+<LI><A NAME="tex2html1087"
+  HREF="node16.html#SECTION001640000000000000000">15.4 Access control</A>
+<UL>
+<LI><A NAME="tex2html1088"
+  HREF="node16.html#SECTION001641000000000000000">15.4.1 Listmaster and privileged owners</A>
+<LI><A NAME="tex2html1089"
+  HREF="node16.html#SECTION001642000000000000000">15.4.2 Special case of the <TT>shared</TT> directory</A>
+<LI><A NAME="tex2html1090"
+  HREF="node16.html#SECTION001643000000000000000">15.4.3 General case</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html1091"
+  HREF="node16.html#SECTION001650000000000000000">15.5 Shared document actions</A>
+<LI><A NAME="tex2html1092"
+  HREF="node16.html#SECTION001660000000000000000">15.6 Template files</A>
+<UL>
+<LI><A NAME="tex2html1093"
+  HREF="node16.html#SECTION001661000000000000000">15.6.1 d_read.tpl</A>
+<LI><A NAME="tex2html1094"
+  HREF="node16.html#SECTION001662000000000000000">15.6.2 d_editfile.tpl</A>
+<LI><A NAME="tex2html1095"
+  HREF="node16.html#SECTION001663000000000000000">15.6.3 d_control.tpl</A>
+</UL></UL>
 <!--End of Table of Child-Links-->
 <HR>
 
 <H1><A NAME="SECTION001600000000000000000"></A>
-    <A NAME="virtual-robot"></A>
+    <A NAME="shared"></A>    <A NAME="3251"></A>
 <BR>
-15. virtual host
+15. Shared documents
 </H1>
 
 <P>
-Sympa is designed to manage multiple distinct mailing list servers on
-a single host with a single Sympa installation. Sympa virtual hosts
-are like Apache virtual hosting. Sympa virtual host definition includes
-a specific email address for the robot itself and its lists and also a virtual
-http server. Each robot provides access to a set of lists, each list is
-related to only one robot.
+Shared documents are documents that different users can manipulate
+on-line via the web interface of <I>Sympa</I>, provided that the are authorized
+to do so. A shared space is associated with a list, and users of the list 
+can upload, download, delete, etc, documents in the shared space.
 
 <P>
-Most configuration parameters can be redefined for each robot except 
-general Sympa installation parameters (binary and spool location, smtp engine,
-antivirus plugging,...).
+<A NAME="7903"></A><I>WWSympa</I> shared web features are fairly rudimentary. It is not our aim to provide
+a sophisticated tool for web publishing, such as are provided by products
+like <I>Rearsite</I>.
+It is nevertheless very useful to be able to define privilege on
+web documents in relation to list attributes such as <I>subscribers</I>,
+<I>list owners</I>, or <I>list editors</I>. 
 
 <P>
-The virtual host name as defined in <I>Sympa</I> documentation and configuration file refers
-to the Internet domaine of the virtual host.
+All file and directory names are lowercased by Sympa. It is consequently
+impossible to create two different documents whose names differ only
+in their case. The reason Sympa does this is to allow correct URL links
+even when using an HTML document generator (typically Powerpoint) which uses 
+random case for file names!
 
 <P>
-Note that the main limitation of virtual hosts in Sympa is that you cannot create 
-2 lists with the same name (local part) among your virtual hosts.
+In order to have better control over the documents and to enforce security in
+the shared space, each document is linked to a set of specific control information : 
+its access rights.
 
 <P>
-
-<H1><A NAME="SECTION001610000000000000000">
-15.1 How to create a virtual host</A>
-</H1>
+A list's shared documents are stored in the <A NAME="7906"></A><TT>/home/sympa/expl/mylist/shared</TT>
+directory. 
 
 <P>
-You don't need to install several Sympa servers. A single <A NAME="9789"></A><TT>sympa.pl</TT> daemon
-and one or more fastcgi servers can serve all virtual host. Just configure the 
-server environment in order to accept the new domain definition.
+This chapter describes how the shared documents are managed, 
+especially as regards their access rights. 
+We shall see :  
+
+<P>
 
 <UL>
-<LI><B>The DNS</B> must be configured to define a new mail exchanger record (MX) 
-to route message to your server. A new host (A record) or alias (CNAME) are mandatory
-to define the new web server.
-</LI>
-<LI>Configure your <B>MTA (sendmail, postfix, exim, ...)</B> to accept incoming 
-messages for the new robot domain. Add mail aliases for the robot :
-
-<P>
-<I>Examples (with sendmail):</I> <PRE>
-sympa@your.virtual.domain:      "| /usr/local/sympa-os/bin/queue sympa@your.virtual.domain"
-listmaster@your.virtual.domain: "| /usr/local/sympa-os/bin/queue listmaster@your.virtual.domain"
-bounce+*@your.virtual.domain:          "| /usr/local/sympa-os/bin/bouncequeue sympa@your.virtual.domain"\\
-</PRE>
+<LI>the kind of operations which can be performed on shared documents 
 
 <P>
 </LI>
-<LI>Define a <B>virtual host in your HTTPD server</B>. The fastcgi servers defined 
-in the common section of you httpd server can be used by each virtual host. You don't 
-need to run dedicated fascgi server for each virtual host.
-
-<P>
-<I>Examples:</I> <PRE>
-FastCgiServer /usr/local/sympa-os/bin/wwsympa.fcgi -processes 3 -idle-timeout 120
-.....
-&lt;VirtualHost 195.215.92.16&gt;
-  ServerAdmin webmaster@your.virtual.domain
-  DocumentRoot /var/www/your.virtual.domain
-  ServerName your.virtual.domain
-
-  &lt;Location /sympa&gt;
-     SetHandler fastcgi-script
-  &lt;/Location&gt;
-
-  ScriptAlias /sympa /usr/local/sympa-os/bin/wwsympa.fcgi
-
-  Alias /static-sympa /usr/local/sympa-os/your.virtual.domain/static_content
-
-&lt;/VirtualHost&gt;
-</PRE>
+<LI>access rights management  
 
 <P>
 </LI>
-<LI>Create a <A NAME="9792"></A><TT>/usr/local/sympa-os/etc/your.virtual.domain/robot.conf</TT> configuration file for the virtual host. Its format is a subset of <A NAME="9795"></A><TT>sympa.conf</TT> and is described in the next section ; a sample <A NAME="9798"></A><TT>robot.conf</TT> is provided.
+<LI>access rights control specifications
 
 <P>
 </LI>
-<LI>Create a <A NAME="9801"></A><TT>/usr/local/sympa-os/expl/your.virtual.domain/</TT> directory that will contain the virtual host mailing lists directories. This directory should have the  <I>sympa</I> user as its owner and must have read and write access for this user.
-
-<P><PRE>
-# su sympa -c 'mkdir /usr/local/sympa-os/expl/your.virtual.domain'
-# chmod 750 /usr/local/sympa-os/expl/your.virtual.domain
-</PRE>
+<LI>actions on shared documents
 
 <P>
+</LI>
+<LI>template files
 </LI>
 </UL>
 
 <P>
 
-<H1><A NAME="SECTION001620000000000000000">
-15.2 robot.conf</A>
+<H1><A NAME="SECTION001610000000000000000"></A>
+    <A NAME="shared-operations"></A>
+<BR>
+15.1 The three kind of operations on a document
 </H1>
-A robot is named by its domain, let's say my.domain.organd defined by a directory 
-<A NAME="9804"></A><TT>/usr/local/sympa-os/etc/my.domain.org</TT>. This directory must contain at least a 
-<A NAME="9807"></A><TT>robot.conf</TT> file. This files has the same format as  <A NAME="9810"></A><TT>/usr/local/sympa-os/etc/sympa.conf</TT>
-(have a look at robot.conf in the sample dir).
-Only the following parameters can be redefined for a particular robot :
-
-<P>
+Where shared documents are concerned, there are three kinds of operation which
+have the same constraints relating to access control :
 
 <UL>
-<LI><A NAME="9813"></A><TT>http_host</TT> 
+<LI>The read operation :
+<BR>	
+<UL>
+<LI>If applied on a directory, opens it and lists its contents (only those
+		sub-documents the user is authorized to ``see'').
+</LI>
+<LI>If applied on a file, downloads it, and in the case of a viewable file (<I>text/plain</I>, <I>text/html</I>,
+		or image), displays it. 
+	
+</LI>
+</UL>
+</LI>
+<LI>The edit operation allows :
+<BR>		
+<UL>
+<LI>Subdirectory creation
+</LI>
+<LI>File uploading
+</LI>
+<LI>Description of a document (title and basic information)
+</LI>
+<LI>On-line editing of a text file
+</LI>
+<LI>Document (file or directory) removal. If on a directory, it must be empty.
+		
+</LI>
+</UL>
+	These different edit actions are equivalent as regards access rights. Users who are
+	authorized to edit a directory can create a subdirectory or upload a file to it,
+	as well as describe or delete it. Users authorized to edit a file can edit
+	it on-line, describe it, replace or remove it.  
+</LI>
+<LI>The control operation :
 <BR>
-This hostname will be compared with 'SERVER_NAME' environment variable in wwsympa.fcgi
-	to determine the current Virtual Host. You can a path at the end of this parameter if
-	you are running multiple virtual hosts on the same host. 
-	<PRE>Examples: \\
-	http_host  myhost.mydom
-	http_host  myhost.mydom/sympa
-</PRE>
-
-<P>
-</LI>
-<LI><A NAME="9816"></A><TT>host</TT> 
+The control operation is directly linked to the notion of access rights. If we wish
+	shared documents to be secure, we have to control the access to them. Not everybody
+	must be authorized to do everything to them. Consequently, each document has
+	specific access rights for reading and editing. Performing a control action on a document
+	involves changing its Read/Edit rights.
 <BR>
-This is the equivalent of the <A NAME="9819"></A><TT>host</TT> sympa.conf parameter.
-	The default for this parameter is the name of the virtual host (ie the name of the subdirectory).
-
-<P>
-</LI>
-<LI><A NAME="9822"></A><TT>wwsympa_url</TT> 
-<BR>
-The base URL of WWSympa
-
-<P>
-</LI>
-<LI><A NAME="9825"></A><TT>soap_url</TT> 
-<BR>
-The base URL of Sympa's SOAP server (if it is running ; see&nbsp;<A HREF="node13.html#soap">12</A>, page&nbsp;<A HREF="node13.html#soap"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
-
-<P>
-</LI>
-<LI><A NAME="9828"></A><TT>cookie_domain</TT>
-
-<P>
-</LI>
-<LI><A NAME="9831"></A><TT>email</TT>
-
-<P>
-</LI>
-<LI><A NAME="9834"></A><TT>title</TT>
-
-<P>
-</LI>
-<LI><A NAME="9837"></A><TT>default_home</TT>
-
-<P>
-</LI>
-<LI><A NAME="9840"></A><TT>create_list</TT>
-
-<P>
-</LI>
-<LI><A NAME="9843"></A><TT>lang</TT>
-
-<P>
-</LI>
-<LI><A NAME="9846"></A><TT>supported_lang</TT>
-
-<P>
-</LI>
-<LI><A NAME="9849"></A><TT>log_smtp</TT>
-
-<P>
-</LI>
-<LI><A NAME="9852"></A><TT>listmaster</TT>
-
-<P>
-</LI>
-<LI><A NAME="9855"></A><TT>max_size</TT>
-
-<P>
-</LI>
-<LI><A NAME="9858"></A><TT>css_path</TT>
-
-<P>
-</LI>
-<LI><A NAME="9861"></A><TT>css_url</TT>
-
-<P>
-</LI>
-<LI><A NAME="9864"></A><TT>static_content_path</TT>
-
-<P>
-</LI>
-<LI><A NAME="9867"></A><TT>static_content_url</TT>
-
-<P>
-</LI>
-<LI><A NAME="9870"></A><TT>pictures_feature</TT>
-
-<P>
-</LI>
-<LI><A NAME="9873"></A><TT>pictures_max_size</TT>
-
-<P>
-</LI>
-<LI><A NAME="9876"></A><TT>logo_html_definition</TT>
-
-<P>
-</LI>
-<LI><A NAME="9879"></A><TT>color_0</TT>, color_1 ... color_15
-
-<P>
-</LI>
-<LI>deprecated color definition <A NAME="9882"></A><TT>dark_color</TT>, <A NAME="9885"></A><TT>light_color</TT>, <A NAME="9888"></A><TT>text_color</TT>, <A NAME="9891"></A><TT>bg_color</TT>, <A NAME="9894"></A><TT>error_color</TT>, <A NAME="9897"></A><TT>selected_color</TT>, <A NAME="9900"></A><TT>shaded_color</TT>
-
-<P>
+The control operation has more restrictive access rights than the other two operations.
+	Only the owner of a document, the privileged owner of the list and the listmaster have
+	control rights on a document. Another possible control action on a document is therefore
+	specifying who owns it.  
 </LI>
 </UL>
 
 <P>
-These settings overwrite the equivalent global parameter defined in <A NAME="9903"></A><TT>/usr/local/sympa-os/etc/sympa.conf</TT>
-for my.domain.orgrobot ; the main <A NAME="9906"></A><TT>listmaster</TT> still has privileges on Virtual
-Robots though. The http_host parameter is compared by wwsympa with the SERVER_NAME
-environment variable to recognize which robot is in used. 
+
+<H1><A NAME="SECTION001620000000000000000"></A>
+<A NAME="shared-desc-file"></A>
+<BR>
+15.2 The description file
+</H1>
+The information (title, owner, access rights...) relative to each document must be stored, and so
+each shared document is linked to a special file called a description file, whose name includes
+the <A NAME="7909"></A><TT>.desc</TT> prefix.
+
+<P>
+The description file of a directory having the path <A NAME="7912"></A><TT>mydirectory/mysubdirectory</TT> has the path
+<A NAME="7915"></A><TT>mydirectory/mysubdirectory/.desc</TT> .
+The description file of a file having the path <A NAME="7918"></A><TT>mydirectory/mysubdirectory/myfile.myextension</TT> has the path
+<A NAME="7921"></A><TT>mydirectory/mysubdirectory/.desc.myfile.myextension</TT> .
 
 <P>
 
 <H2><A NAME="SECTION001621000000000000000">
-15.2.1 Robot customization</A>
+15.2.1 Structure of description files</A>
 </H2>
 
 <P>
-In order to customize the web look and feel, you may edit the CSS definition. CSS are defined in a template named css.tt2. Any robot can use static css file for making Sympa web interface faster. Then you can edit this static definition and change web style. Please refer to  <A NAME="9909"></A><TT>css_path</TT> <A NAME="9912"></A><TT>css_url</TT>. You can also quickly introduce a logo in left top corner of all pages configuring <A NAME="9915"></A><TT>logo_html_definition</TT> parameter in robot.conf file. 
+The structure of a document (file or directory) description file is given below.
+You should <I>never</I> have to edit a description file.
+
+<P><PRE>
+title
+  &lt;description of the file in a few words&gt;
+
+creation
+  email        &lt;e-mail of the owner of the document&gt; 
+  date_epoch   &lt;date_epoch of the creation of the document&gt;
+
+access
+ read &lt;access rights for read&gt;
+ edit &lt;access rights for edit&gt;
+</PRE>
 
 <P>
-In addition, if needed, you can customize each virtual host using its set of templates and authorization scenarios. 
+The following example is for a document that subscribers can read, but which only the owner of the document
+and the owner of the list can edit.<PRE>
+title
+  module C++ which uses the class List
+
+creation
+  email foo@some.domain.com
+  date_epoch 998698638
+
+access
+ read  private
+ edit  owner
+</PRE>
 
 <P>
-<A NAME="9918"></A><TT>/usr/local/sympa-os/etc/my.domain.org/web_tt2/</TT>,
-<A NAME="9921"></A><TT>/usr/local/sympa-os/etc/my.domain.org/mail_tt2/</TT>, 
-<A NAME="9924"></A><TT>/usr/local/sympa-os/etc/my.domain.org/scenari/</TT> directories are searched when
-loading templates or scenari before searching into <A NAME="9927"></A><TT>/usr/local/sympa-os/etc</TT> and  <A NAME="9930"></A><TT>/usr/local/sympa-os/bin/etc</TT>. This allows to define different privileges and a different GUI for a Virtual Host.
 
-<P>
-
-<H1><A NAME="SECTION001630000000000000000">
-15.3 Managing multiple virtual hosts</A>
+<H1><A NAME="SECTION001630000000000000000"></A>
+    <A NAME="shared-scenarios"></A>
+<BR>
+15.3 The predefined authorization scenarios
 </H1>
 
 <P>
-If you are managing more than 2 virtual hosts, then you might cinsider moving all the mailing lists in the default
-robot to a dedicated virtual host located in the <A NAME="9933"></A><TT>/usr/local/sympa-os/expl/my.domain.org/</TT> directory. The main benefit of 
-this organisation is the ability to define default configuration elements (templates or authorization scenarios) 
-for this robot without inheriting them within other virtual hosts.
+
+<H2><A NAME="SECTION001631000000000000000">
+15.3.1 The public scenario</A>
+</H2>
+The <B>public</B> scenario is the most permissive scenario. It enables anyone (including
+unknown users) to perform the corresponding action.
 
 <P>
-To create such a virtual host, you need to create <A NAME="9936"></A><TT>/usr/local/sympa-os/expl/my.domain.org/</TT> and <A NAME="9939"></A><TT>/usr/local/sympa-os/etc/my.domain.org/</TT> directories ; 
-customize <A NAME="9942"></A><TT>host</TT>, <A NAME="9945"></A><TT>http_host</TT> and <A NAME="9948"></A><TT>wwsympa_url</TT> parameters in the <A NAME="9951"></A><TT>/usr/local/sympa-os/etc/my.domain.org/robot.conf</TT> 
-with the same values as the default robot (as defined in <A NAME="9954"></A><TT>sympa.conf</TT> and <A NAME="9957"></A><TT>wwsympa.conf</TT> files).
+
+<H2><A NAME="SECTION001632000000000000000">
+15.3.2 The private scenario</A>
+</H2>
+The <B>private</B> scenario is the basic scenario for a shared space. Every subscriber of
+the list is authorized to perform the corresponding action. The <B>private</B> scenario is the default
+read scenario for <A NAME="7924"></A><TT>shared</TT> when this shared space is created. This can be modified by editing
+the list configuration file.
+
+<P>
+
+<H2><A NAME="SECTION001633000000000000000">
+15.3.3 The scenario owner</A>
+</H2>
+The scenario <B>owner</B> is the most restrictive scenario for a shared space.
+Only the listmaster, list owners and the owner of the document
+(or those of a parent document) are allowed to perform the corresponding action.
+The <B>owner</B> scenario is the default scenario for editing. 
+
+<P>
+
+<H1><A NAME="SECTION001640000000000000000"></A>
+    <A NAME="shared-access"></A>
+<BR>
+15.4 Access control
+</H1>
+Access control is an important operation performed
+every time a document within the shared space is accessed.
+
+<P>
+The access control relative to a document in the hierarchy involves an iterative
+operation on all its parent directories. 
+
+<P>
+
+<H2><A NAME="SECTION001641000000000000000">
+15.4.1 Listmaster and privileged owners</A>
+</H2>
+The listmaster and privileged list owners are special users in the shared
+web. They are allowed to perform every action on every document in
+the shared space. This privilege enables control over
+the shared space to be maintained. It is impossible to prevent the listmaster and
+privileged owners from performing whatever action they please on any document
+in the shared space.
+
+<P>
+
+<H2><A NAME="SECTION001642000000000000000"></A><A NAME="7927"></A>
+<BR>
+15.4.2 Special case of the <TT>shared</TT> directory
+</H2>
+In order to allow access to a root directory to be more restrictive than
+that of its subdirectories, the <A NAME="7930"></A><TT>shared</TT> directory (root directory) is
+a special case as regards access control.
+The access rights for read and edit are those specified in the list configuration file.
+Control of the root directory is specific. 
+Only those users authorized to edit a list's configuration may change access rights on
+its <A NAME="7933"></A><TT>shared</TT> directory. 
+
+<P>
+
+<H2><A NAME="SECTION001643000000000000000">
+15.4.3 General case</A>
+</H2>
+<A NAME="7936"></A><TT>mydirectory/mysubdirectory/myfile</TT> is an arbitrary document in the shared space,
+but not in the <I>root</I> directory. A user <B>X</B> wishes to perform one
+of the three operations (read, edit, control) on this document.
+The access control will proceed as follows :
+
+<UL>
+<LI>Read operation
+<BR>
+To be authorized to perform a read action on
+	<A NAME="7939"></A><TT>mydirectory/mysubdirectory/myfile</TT>, <B>X</B> must be
+	authorized to read every document making up the path; in other words, she
+	must be allowed to read <A NAME="7942"></A><TT>myfile</TT> (the authorization scenario of the description file
+	of <A NAME="7945"></A><TT>myfile</TT> must return <I>do_it</I> for user <B>X</B>), and the
+	same goes for <A NAME="7948"></A><TT>mysubdirectory</TT> and <A NAME="7951"></A><TT>mydirectory</TT>).
+<BR>
+In addition, given that the owner of a document or one of its parent directories
+	is allowed to perform <B>all actions on that document</B>,
+	<A NAME="7954"></A><TT>mydirectory/mysubdirectory/myfile</TT> may also have read operations performed
+	on it by the owners of <A NAME="7957"></A><TT>myfile</TT>, <A NAME="7960"></A><TT>mysubdirectory</TT>,
+	and <A NAME="7963"></A><TT>mydirectory</TT>.
+
+<P>
+This can be schematized as follows :<PRE>
+	X can read &lt;a/b/c&gt; 
+
+	if			  
+
+	(X can read &lt;c&gt;
+	AND X can read &lt;b&gt;
+	AND X can read &lt;a&gt;)
+					
+	OR
+
+	(X owner of &lt;c&gt;
+	OR X owner of &lt;b&gt;
+	OR X owner of &lt;a&gt;)
+</PRE>
+
+<P>
+</LI>
+<LI>Edit operation
+<BR>
+The access algorithm for edit is identical to the algorithm for read :<PRE>
+	X can edit &lt;a/b/c&gt; 
+	
+	if 
+		
+	(X can edit &lt;c&gt;
+	AND X can edit &lt;b&gt;				
+	AND X can edit &lt;a&gt;)
+					
+	OR
+
+	(X owner of &lt;c&gt;
+	OR X owner of &lt;b&gt;
+	OR X owner of &lt;a&gt;)
+</PRE>
+
+<P>
+</LI>
+<LI>Control operation
+<BR>
+The access control which precedes a control action (change rights
+	or set the owner of a document) is much more restrictive.
+	Only the owner of a document or the owners of a parent
+	document may perform a control action :<PRE>
+	X can control &lt;a/b/c&gt; 
+
+	if
+					
+	(X owner of &lt;c&gt;
+	OR X owner of &lt;b&gt;
+	OR X owner of &lt;a&gt;)
+</PRE>
+
+<P>
+</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION001650000000000000000">
+15.5 Shared document actions</A>
+</H1>
+
+<P>
+The shared web feature has called for some new actions.
+
+<UL>
+<LI>action D_ADMIN
+<BR>
+Create the shared web, close it or restore it. The d_admin action is accessible
+	from a list's <B>admin</B> page.
+</LI>
+<LI>action D_READ
+<BR>
+Reads the document after read access control. If a folder, lists all the subdocuments that can
+	be read. If a file, displays it if it is viewable, else downloads it to disk.
+	If the document to be read contains a file named <A NAME="7966"></A><TT>index.html</TT> or <A NAME="7969"></A><TT>index.htm</TT>, and if
+	the user has no permissions other than read on all contained subdocuments, the read action will
+	consist in displaying the index.
+	The d_read action is accessible from a list's <B>info</B> page.
+</LI>
+<LI>action D_CREATE_DIR
+<BR>
+Creates a new subdirectory in a directory that can be edited. 
+	The creator is the owner of the directory. The access rights are
+	those of the parent directory.
+</LI>
+<LI>action D_DESCRIBE
+<BR>
+Describes a document that can be edited.
+</LI>
+<LI>action D_DELETE
+<BR>
+Deletes a document after edit access control. If applied to a folder, it has to be empty.
+</LI>
+<LI>action D_UPLOAD
+<BR>
+Uploads a file into a directory that can be edited.  
+</LI>
+<LI>action D_OVERWRITE
+<BR>
+Overwrites a file if it can be edited. The new owner of the file is the one who has done
+	the overwriting operation.
+</LI>
+<LI>actions D_EDIT_FILE and D_SAVE_FILE
+<BR>
+Edits a file and saves it after edit access control. The new owner of the file is the one 
+	who has done the saving operation. 
+</LI>
+<LI>action D_CHANGE_ACCESS
+<BR>
+Changes the access rights of a document (read or edit), provided that control of this document is
+	authorized. 
+</LI>
+<LI>action D_SET_OWNER
+<BR>
+Changes the owner of a directory, provided that control of this document is
+	authorized. The directory must be empty. The new owner can be anyone, but authentication is necessary
+	before any action may be performed on the document.
+
+<P>
+</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION001660000000000000000">
+15.6 Template files</A>
+</H1>
+The following template files have been created for the shared web:
+
+<P>
+
+<H2><A NAME="SECTION001661000000000000000">
+15.6.1 d_read.tpl</A>
+</H2> 
+The default page for reading a document. If for a file, displays it (if 
+viewable) or downloads it. If for a directory, displays all readable
+subdocuments, each of which will feature buttons corresponding
+to the different actions this subdocument allows. If the directory is
+editable, displays buttons to describe it, upload a file to it
+or create a new subdirectory. If access to the document is editable,
+displays a button to edit the access to it. 
+
+<P>
+
+<H2><A NAME="SECTION001662000000000000000">
+15.6.2 d_editfile.tpl</A>
+</H2> 
+The page used to edit a file. If for a text file, allows it to be edited on-line.
+This page also enables the description of the file to be edited, or another file
+to be substituted in its place.
+
+<P>
+
+<H2><A NAME="SECTION001663000000000000000">
+15.6.3 d_control.tpl</A>
+</H2>
+The page to edit the access rights and the owner of a document. 
 
 <P>
 
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html1259"
+<A NAME="tex2html1078"
   HREF="node17.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1253"
+<A NAME="tex2html1072"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1247"
+<A NAME="tex2html1066"
   HREF="node15.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1255"
+<A NAME="tex2html1074"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1257"
-  HREF="node31.html">
+<A NAME="tex2html1076"
+  HREF="node22.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1260"
-  HREF="node17.html">16. Interaction between Sympa and other</A>
-<B> Up:</B> <A NAME="tex2html1254"
+<B> Next:</B> <A NAME="tex2html1079"
+  HREF="node17.html">16. Bounce management</A>
+<B> Up:</B> <A NAME="tex2html1073"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1248"
-  HREF="node15.html">14. Authorization scenarios</A>
- &nbsp; <B>  <A NAME="tex2html1256"
+<B> Previous:</B> <A NAME="tex2html1067"
+  HREF="node15.html">14. List configuration parameters</A>
+ &nbsp <B>  <A NAME="tex2html1075"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1258"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html1077"
+  HREF="node22.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2003-10-15
 </ADDRESS>
 </BODY>
 </HTML>

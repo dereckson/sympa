@@ -1,20 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002 (1.62) JA patch-1.4
+patched version by:  Kenshi Muto, Debian Project.
+LaTeX2HTML 2002 (1.62),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>19. List creation, edition and removal</TITLE>
-<META NAME="description" CONTENT="19. List creation, edition and removal">
+<TITLE>19. Sympa with S/MIME and HTTPS</TITLE>
+<META NAME="description" CONTENT="19. Sympa with S/MIME and HTTPS">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002 JA patch-1.4">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,32 +29,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html1365"
+<A NAME="tex2html1150"
   HREF="node21.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1359"
+<A NAME="tex2html1144"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1353"
+<A NAME="tex2html1138"
   HREF="node19.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1361"
+<A NAME="tex2html1146"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1363"
-  HREF="node31.html">
+<A NAME="tex2html1148"
+  HREF="node22.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1366"
-  HREF="node21.html">20. Lists Families</A>
-<B> Up:</B> <A NAME="tex2html1360"
+<B> Next:</B> <A NAME="tex2html1151"
+  HREF="node21.html">20. Using Sympa commands</A>
+<B> Up:</B> <A NAME="tex2html1145"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1354"
-  HREF="node19.html">18. Mailing list definition</A>
- &nbsp; <B>  <A NAME="tex2html1362"
+<B> Previous:</B> <A NAME="tex2html1139"
+  HREF="node19.html">18. Using Sympa with LDAP</A>
+ &nbsp <B>  <A NAME="tex2html1147"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1364"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html1149"
+  HREF="node22.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,556 +62,390 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html1367"
-  HREF="node20.html#SECTION002010000000000000000">19.1 List creation</A>
+<LI><A NAME="tex2html1152"
+  HREF="node20.html#SECTION002010000000000000000">19.1 Signed message distribution</A>
+<LI><A NAME="tex2html1153"
+  HREF="node20.html#SECTION002020000000000000000">19.2 Use of S/MIME signature by Sympa itself</A>
+<LI><A NAME="tex2html1154"
+  HREF="node20.html#SECTION002030000000000000000">19.3 Use of S/MIME encryption</A>
+<LI><A NAME="tex2html1155"
+  HREF="node20.html#SECTION002040000000000000000">19.4 S/Sympa configuration</A>
 <UL>
-<LI><A NAME="tex2html1368"
-  HREF="node20.html#SECTION002011000000000000000">19.1.1 Data for list creation</A>
-<LI><A NAME="tex2html1369"
-  HREF="node20.html#SECTION002012000000000000000">19.1.2 XML file format</A>
+<LI><A NAME="tex2html1156"
+  HREF="node20.html#SECTION002041000000000000000">19.4.1 Installation</A>
+<LI><A NAME="tex2html1157"
+  HREF="node20.html#SECTION002042000000000000000">19.4.2 configuration in sympa.conf</A>
+<LI><A NAME="tex2html1158"
+  HREF="node20.html#SECTION002043000000000000000">19.4.3 configuration to recognize S/MIME signatures</A>
+<LI><A NAME="tex2html1159"
+  HREF="node20.html#SECTION002044000000000000000">19.4.4 distributing encrypted messages</A>
 </UL>
 <BR>
-<LI><A NAME="tex2html1370"
-  HREF="node20.html#SECTION002020000000000000000">19.2 List families</A>
-<LI><A NAME="tex2html1371"
-  HREF="node20.html#SECTION002030000000000000000">19.3 List creation on command line with <TT>sympa.pl</TT></A>
-<LI><A NAME="tex2html1372"
-  HREF="node20.html#SECTION002040000000000000000">19.4 Creating and editing mailing using the web</A>
+<LI><A NAME="tex2html1160"
+  HREF="node20.html#SECTION002050000000000000000">19.5 Managing certificates with tasks</A>
 <UL>
-<LI><A NAME="tex2html1373"
-  HREF="node20.html#SECTION002041000000000000000">19.4.1 List creation on the Web interface</A>
-<LI><A NAME="tex2html1374"
-  HREF="node20.html#SECTION002042000000000000000">19.4.2 Who can create lists on the Web interface</A>
-<LI><A NAME="tex2html1375"
-  HREF="node20.html#SECTION002043000000000000000">19.4.3 typical list profile and Web interface</A>
-<LI><A NAME="tex2html1376"
-  HREF="node20.html#SECTION002044000000000000000">19.4.4 List edition</A>
-</UL>
-<BR>
-<LI><A NAME="tex2html1377"
-  HREF="node20.html#SECTION002050000000000000000">19.5 Removing a list</A>
-</UL>
+<LI><A NAME="tex2html1161"
+  HREF="node20.html#SECTION002051000000000000000">19.5.1 chk_cert_expiration.daily.task model</A>
+<LI><A NAME="tex2html1162"
+  HREF="node20.html#SECTION002052000000000000000">19.5.2 crl_update.daily.task model</A>
+</UL></UL>
 <!--End of Table of Child-Links-->
 <HR>
 
 <H1><A NAME="SECTION002000000000000000000"></A>
-    <A NAME="ml-creation"></A>
+    <A NAME="smime"></A>
 <BR>
-19. List creation, edition and removal
+19. <I>Sympa</I> with S/MIME and HTTPS
 </H1>
 
 <P>
-The list creation can be done by two ways, according to listmaster 
-needs : 
-
-<UL>
-<LI>instanciation family to create and manage large number of related lists. 
-    In this case, lists are linked to their family all along their life (Moreover
-    you can let sympa automatically create lists when needed.
-    See <A HREF="node21.html#automatic-list-creation">20.3</A>, page&nbsp;<A HREF="node21.html#automatic-list-creation"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).    
-</LI>
-<LI>command line creation of individual list with <A NAME="10781"></A><TT>sympa.pl</TT> or on the Web 
-interface according to privileges defined by listmasters. Here lists are free from 
-their model creation.
-</LI>
-</UL> 
-Management of mailing lists by list owners is usually done via the Web interface : 
-when a list is created, whatever its status (<A NAME="10784"></A><TT>pending</TT> or <A NAME="10787"></A><TT>open</TT>), the owner 
-can use WWSympa admin features to modify list parameters, or to edit the welcome 
-message, and so on.
+S/MIME is a cryptographic method for Mime messages based on X509 certificates.
+Before installing <I>Sympa</I> S/Mime features (which we call S/Sympa), you should be
+under no illusion about what the S stands for : ``S/MIME'' means ``Secure MIME''.
+That S certainly does not stand for ``Simple''.
 
 <P>
-WWSympa keeps logs of the creation and all modifications to a list as part of the list's
-<A NAME="10790"></A><TT>config</TT> file (old configuration files are archived).
-A complete installation requires some careful planning, although default
-values should be acceptable for most sites.
+The aim of this chapter is simply to describe what security level is provided
+by <I>Sympa</I> while
+using S/MIME messages, and how to configure <I>Sympa</I> for it. It is not intended
+to teach anyone what S/Mime is and why it is so complex ! RFCs numbers 2311,
+2312, 2632, 2633 and 2634, along with a lot of literature about S/MIME, PKCS#7
+and PKI is available on the Internet. <I>Sympa</I> 2.7 is the first version of
+<I>Sympa</I> to include S/MIME features as beta-testing features.
 
 <P>
 
-<H1><A NAME="SECTION002010000000000000000"></A>
-    <A NAME="list-creation"></A>
-<BR>
-19.1 List creation
+<H1><A NAME="SECTION002010000000000000000">
+19.1 Signed message distribution</A>
 </H1>
 
 <P>
-Mailing lists can have many different uses. <I>Sympa</I> offers a
-wide choice of parameters to adapt a list behavior
-to different situations. Users might have difficulty selecting all the
-correct parameters to make the list configuration, so instead of selecting each 
-parameters, list configuration is made with a list profile. This is an 
-almost complete list configuration, but with a number of unspecified fields
-(such as owner e-mail) to be replaced by <I>Sympa</I> at list creation time. It is easy to create new list 
-templates by modifying existing ones. (Contributions to the distribution are welcome...)
+No action required.
+You probably imagine that any mailing list manager (or any mail forwarder)
+is compatible with S/MIME signatures, as long as it respects the MIME structure of
+incoming messages. You are right. Even Majordomo can distribute a signed message!
+As <I>Sympa</I> provides MIME compatibility, you don't need to do
+anything in order to allow subscribers to verify signed messages distributed
+through a list. This is not an issue at all, since any processe that
+distributes messages  is compatible with end user
+signing processes. Sympa simply skips the message footer attachment
+(ref <A HREF="node13.html#messagefooter">12.10</A>, page&nbsp;<A HREF="node13.html#messagefooter"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>) to prevent any
+body corruption which would break the signature.
 
 <P>
 
-<H2><A NAME="SECTION002011000000000000000">
-19.1.1 Data for list creation</A>
+<H1><A NAME="SECTION002020000000000000000"></A>
+    <A NAME="smime-sig"></A>
+<BR>
+19.2 Use of S/MIME signature by Sympa itself
+</H1>
+
+<P>
+Sympa is able to verify S/MIME signatures in order to apply S/MIME
+authentication methods for message handling. 
+Currently, this feature is limited to the
+distribution process, and to any commands <I>Sympa</I> might find in the message
+body.  The reasons for this restriction are related to current S/MIME
+usage.
+S/MIME signature structure is based on the encryption of a digest of the
+message. Most S/MIME agents do not include any part of the
+message headers in the message digest, so anyone can modify the message
+header without signature corruption! This is easy to do : for example, anyone
+can edit a signed message with their preferred message agent, modify whatever
+header they want (for example <TT>Subject:</TT> , <TT>Date:</TT> and
+<TT>To:</TT>, and redistribute the message to a list or to the robot
+without breaking the signature.
+
+<P>
+So Sympa cannot apply the S/MIME
+authentication method to a command parsed in the <TT>Subject:</TT> field of a
+message or via the <TT>-subscribe</TT> or <TT>-unsubscribe</TT> e-mail
+address. 
+
+<P>
+
+<H1><A NAME="SECTION002030000000000000000">
+19.3 Use of S/MIME encryption</A>
+</H1> 
+
+<P>
+S/Sympa is not an implementation of the ``S/MIME Symmetric Key Distribution''
+internet draft. This sophisticated scheme is required for large lists
+with encryption. So, there is still some scope for future developments :) 
+
+<P>
+We assume that S/Sympa distributes message as received, i.e. unencrypted when the
+list receives an unencrypted message, but otherwise encrypted.
+
+<P>
+In order to be able to send encrypted messages to a list, the sender needs
+to use the X509 certificate of the list. Sympa will send an encrypted message
+to each subscriber using the subscriber's certificate. To provide this feature,
+<I>Sympa</I> needs to manage one certificate for each list and one for each
+subscriber. This is available in Sympa version 2.8 and above.
+
+<P>
+
+<H1><A NAME="SECTION002040000000000000000">
+19.4 S/Sympa configuration</A>
+</H1> 
+
+<P>
+
+<H2><A NAME="SECTION002041000000000000000"></A>
+<A NAME="smimeinstall"></A>
+<BR>
+19.4.1 Installation
 </H2>
 
 <P>
-To create a list, some data concerning list parameters are required : 
+The only requirement is OpenSSL (http://www.openssl.org) version 0.9.5a and above.
+OpenSSL is used by <I>Sympa</I> as an external plugin
+(like sendmail or postfix), so it must be installed with the appropriate access
+(x for sympa.sympa). 
+
+<P>
+
+<H2><A NAME="SECTION002042000000000000000"></A>
+<A NAME="smimeconf"></A>
+<BR>
+19.4.2 configuration in sympa.conf
+</H2>
+
+<P>
+S/Sympa configuration is very simple. If you are used to Apache SSL,
+you should not feel lost. If you are an OpenSSL guru, you will
+feel at home, and there may even be changes you will wish to suggest to us.
+
+<P>
+The basic requirement is to let <I>Sympa</I> know where to find the binary file for the OpenSSL program
+and the certificates of the trusted certificate authority. 
+This is done using the optional parameters <A NAME="8045"></A><TT>openSSL</TT> and
+<A NAME="8048"></A><TT>capath</TT> and / or <A NAME="8051"></A><TT>cafile</TT>.
+
+<P>
 
 <UL>
-<LI><B>listname </B> : name of the list,
+<LI><A NAME="8054"></A><TT>openSSL</TT> : the path for the OpenSSL binary file,
+         usually <TT>/usr/local/ssl/bin/openSSL</TT>
 </LI>
-<LI><B>subject</B> : subject of the list (a short description),
+<LI><A NAME="8057"></A><TT>cafile</TT> : the path of a bundle of trusted ca certificates. 
+        The file <A NAME="8060"></A><TT>~/home/sympa/bin/etc/cabundle.crt</TT> included in Sympa distribution can be used.
+
+<P>
+Both the <A NAME="8065"></A><TT>cafile</TT> file and the <A NAME="8068"></A><TT>capath</TT> directory
+        should be shared with your Apache+mod_ssl configuration. This is useful
+	for the S/Sympa web interface.  Please refer to the OpenSSL documentation for details.
+
+<P>
 </LI>
-<LI><B>owner(s)</B> : by static definition and/or dynamic definition.
-    In case of static definition, the parameter <B>owner</B> and its subparameter <B>email</B> are required.
-    For dynamic definition, the parameter  <B>owner_include</B> and its subparameter <B>source</B> are required, 
-    indicating source file of data inclusion.
-</LI>
-<LI><B>list creation template</B> : the typical list profile.
+<LI><A NAME="8071"></A><TT>key_password</TT> : the password used to protect all list private keys. xxxxxxx	
 </LI>
 </UL>
 
 <P>
-Moreover of these required data, provided values are assigned to vars being in the list creation template. 
-Then the result is the list configuration file :
-<BR>
-<P>
-On the Web interface, these data are given by the list creator in the web form. On command line these 
-data are given by an xml file.
 
-<P>
-
-<H2><A NAME="SECTION002012000000000000000"></A>
-<A NAME="xml-file-format"></A>
+<H2><A NAME="SECTION002043000000000000000"></A>
+<A NAME="smimeforsign"></A>
 <BR>
-19.1.2 XML file format
+19.4.3 configuration to recognize S/MIME signatures
 </H2>
 
 <P>
-The xml file provides information on :
-<BR>
-<UL>
-<LI>the list name,
-</LI>
-<LI>values to assign vars in the list creation template
-</LI>
-<LI>the list description in order to be written in the list file info
-</LI>
-<LI>the name of the list creation template (only for list creation on command line with sympa.pl, in a family context, the template is specified by the family name)
-</LI>
-</UL>
+Once  <TT>OpenSSL</TT> has been installed, and <TT>sympa.conf</TT> configured,
+your S/Sympa is ready to use S/Mime signatures for any authentication operation. You simply need
+to use the appropriate authorization scenario for the operation you want to secure. 
+(see <A HREF="node10.html#scenarios">9</A>, page&nbsp;<A HREF="node10.html#scenarios"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
 
 <P>
-Here is an example of XML document that you can map with the following example of list creation template.:
+When receiving a message, <I>Sympa</I> applies
+the authorization scenario with the appropriate authentication method parameter.
+In most cases the authentication method is ``<TT>smtp</TT>'', but in cases
+where the message is signed and the signature has been checked and matches the
+sender e-mail, <I>Sympa</I> applies the ``<TT>smime</TT>'' authentication
+method.
+
+<P>
+It is vital to ensure that if the authorization scenario does not recognize this authentication method, the
+operation requested will be rejected. Consequently, authorization scenarios distributed
+prior to version 2.7 are not compatible with the OpenSSL configuration of Sympa. 
+All
+standard authorization scenarios (those distributed with sympa)
+now include the <TT>smime</TT> method. The following example is
+named <TT>send.private_smime</TT>, and restricts sends to subscribers using an S/mime signature :
 
 <P><PRE>
-&lt;?xml version="1.0" ?&gt;
-&lt;list&gt;
-	&lt;listname&gt;example&lt;/listname&gt;
-  	&lt;type&gt;my_profile&lt;/type&gt;
-  	&lt;subject&gt;a list example&lt;/subject&gt;
-  	&lt;description/&gt;
-  	&lt;status&gt;open&lt;/status&gt;
-  	&lt;shared_edit&gt;editor&lt;/shared_edit&gt;
-    	&lt;shared_read&gt;private&lt;/shared_read&gt;
-	&lt;language&gt;fr&lt;/language&gt;
-	&lt;owner multiple="1"&gt; 
-	   &lt;email&gt;serge.aumont@cru.fr&lt;/email&gt;
-	   &lt;gecos&gt;C.R.U.&lt;/gecos&gt;
-	&lt;/owner&gt;
-	&lt;owner multiple="1"&gt; 
-	   &lt;email&gt;olivier.salaun@cru.fr&lt;/email&gt;
-	&lt;/owner&gt;
-	&lt;owner_include multiple="1"&gt;
-	   &lt;source&gt;my_file&lt;/source&gt;
-	&lt;/owner_include&gt;
-	&lt;sql&gt; 
-	   &lt;type&gt;oracle&lt;/type&gt;
-	   &lt;host&gt;sqlserv.admin.univ-x.fr&lt;/host&gt;
-	   &lt;user&gt;stdutilisateur&lt;/user&gt;
-	   &lt;pwd&gt;monsecret&lt;/pwd&gt;
-	   &lt;name&gt;les_etudiants&lt;/name&gt;
-	   &lt;query&gt;SELECT DISTINCT email FROM etudiant&lt;/query&gt;
-	&lt;/sql&gt;
-&lt;/list&gt;
+title.us restricted to subscribers check smime signature
+title.fr limité aux abonnés, vérif de la signature smime
 
-
-
-subject [% subject %]
-
-status [% status %]
-
-[% IF topic %]
-topics [% topic %]
-
-[% END %]
-visibility noconceal
-
-send privateoreditorkey
-
-Web_archive
-  access public
-
-subscribe open_notify
-
-shared_doc
-  d_edit [% shared_edit %]
-  d_read [% shared_read %]
-
-lang [% language %]
-
-[% FOREACH o = owner %]
-owner
-  email [% o.email %]
-  profile privileged
-  [% IF o.gecos %] 
-  gecos [% o.gecos %]
-  [% END %]
-
-[% END %]
-[% IF moderator %]
-   [% FOREACH m = moderator %]
-editor
-  email [% m.email %]
-
-   [% END %]
-[% END %]
- 
-[% IF sql %]
-include_sql_query
-  db_type [% sql.type %]
-  host [% sql.host %]
-  user [% sql.user %]
-  passwd [% sql.pwd %]
-  db_name [% sql.name %]
-  sql_query [% sql.query %]
-    
-[% END %]
-ttl 360
+is_subscriber([listname],[sender])             smime  -&gt; do_it
+is_editor([listname],[sender])                 smime  -&gt; do_it
+is_owner([listname],[sender])                  smime  -&gt; do_it
 </PRE>
 
 <P>
-The XML file format should comply with the following rules : 
+It as also possible to mix various authentication methods in a single authorization scenario. The following
+example, <TT>send.private_key</TT>, requires either an md5 return key or an S/Mime signature :<PRE>
+title.us restricted to subscribers with previous md5 authentication
+title.fr réservé aux abonnés avec authentification MD5 préalable
 
-<UL>
-<LI>The root element is <A NAME="10795"></A><TT>&lt;list&gt;</TT>
-</LI>
-<LI>One XML element is mandatory : <A NAME="10798"></A><TT>&lt;listname&gt;</TT> contains the name of the list.
-        That not excludes mandatory parameters for list creation (<A NAME="10801"></A><TT>listname, subject,owner.email and/or 
-	owner_include.source</TT>).
-</LI>
-<LI><A NAME="10804"></A><TT>&lt;type&gt;</TT> : this element contains the name of template list creation, it is used for list creation on command line with sympa.pl.
-        In a family context, this element is no used.
-</LI>
-<LI><A NAME="10807"></A><TT>&lt;description&gt;</TT> : the text contained in this element is written in list <A NAME="10810"></A><TT>info</TT> file(it can be a CDATA section).
-</LI>
-<LI>For other elements, its name is the name of the var to assign in the list creation template. 
-</LI>
-<LI>Each element concerning multiple parameters must have the <A NAME="10813"></A><TT>multiple</TT> attribute set 
-    to ``1'', example : <A NAME="10816"></A><TT>&lt;owner multiple=''1''></TT>. 
-</LI>
-<LI>For composed and multiple parameters, sub-elements are used. Example for <A NAME="10819"></A><TT>owner</TT> parameter :
-    <A NAME="10822"></A><TT>&lt;email&gt;</TT> and <A NAME="10825"></A><TT>&lt;gecos&gt;</TT> elements are contained in the <A NAME="10828"></A><TT>&lt;owner&gt;</TT>element. 
-    An element can only have homogeneous content.
-</LI>
-<LI>A list requires at least one owner, defined in the XML input file with one of the following elements :
-    
-<UL>
-<LI><A NAME="10831"></A><TT>&lt;owner multiple=''1''> &lt;email&gt; ... &lt;/email&gt; &lt;/owner&gt;</TT>
-</LI>
-<LI><A NAME="10834"></A><TT>&lt;owner_include multiple=''1''> &lt;source&gt; ... &lt;/source&gt; &lt;/owner_include&gt;</TT>
-    
-</LI>
-</UL>
-</LI>
-</UL>
-
-<P>
-
-<H1><A NAME="SECTION002020000000000000000">
-19.2 List families</A>
-</H1>
-
-<P>
-See chapter <A HREF="node21.html#lists-families">20</A>, page&nbsp;<A HREF="node21.html#lists-families"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>
-
-<P>
-
-<H1><A NAME="SECTION002030000000000000000"></A><A NAME="10837"></A>
-    <A NAME="list-creation-sympa"></A>
-<BR>
-19.3 List creation on command line with <TT>sympa.pl</TT>
-</H1>
-
-<P>
-This way to create lists is independent of family. 
-
-<P>
-Here is a sample command to create one list :.
-<BLOCKQUOTE>
-sympa.pl -create_list -robot my.domain.org-input_file /path/to/my_file.xml
-
-</BLOCKQUOTE>
-
-<P>
-The list is created under the <A NAME="10840"></A><TT>my_robot</TT> robot and the list 
-is described in the file <A NAME="10843"></A><TT>my_file.xml</TT>. The XML file is 
-described before, see <A HREF="#xml-file-format">19.1.2</A>, page&nbsp;<A HREF="node20.html#xml-file-format"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>.
-
-<P>
-By default, the status of the created list is <A NAME="10846"></A><TT>open</TT>.
-
-<P>
-
-<H3><A NAME="SECTION002030100000000000000"></A>
-    <A NAME="typical-list-profile"></A>
-<BR>
-19.3.0.1 typical list profile (list template creation)
-</H3>
-
-<P>
-The list creator has to choose a profile
-for the list and put its name in the XML element <A NAME="10849"></A><TT>&lt;type&gt;</TT>.
-
-<P>
-List profiles are stored in <A NAME="10852"></A><TT>/usr/local/sympa-os/etc/create_list_templates</TT> or in
-<A NAME="10855"></A><TT>/usr/local/sympa-os/bin/etc/create_list_templates</TT> (default of distrib).
-
-<P>
-You might want to hide or modify profiles (not useful, or dangerous 
-for your site). If a profile exists both in the local site directory
-<A NAME="10858"></A><TT>/usr/local/sympa-os/etc/create_list_templates</TT> and
-<A NAME="10861"></A><TT>/usr/local/sympa-os/bin/etc/create_list_templates</TT> directory, then the local profile 
-will be used by WWSympa. 
-
-<P>
-
-<H1><A NAME="SECTION002040000000000000000"></A>
-    <A NAME="web-ml-creation"></A>
-<BR>
-19.4 Creating and editing mailing using the web
-</H1>
-
-<P>
-The management of mailing lists is based on a strict definition of privileges 
-which pertain respectively to the listmaster, to the main list owner, and to 
-basic list owners. The goal is to allow each listmaster to define who can create 
-lists, and which parameters may be set by owners.
-
-<P>
-
-<H2><A NAME="SECTION002041000000000000000">
-19.4.1 List creation on the Web interface</A>
-</H2>
-
-<P>
-Listmasters are responsible for validating new mailing lists and, depending on the configuration chosen, 
-might be the only ones who can fill out the create list form.The listmaster
-is defined in <A NAME="10864"></A><TT>sympa.conf</TT> and others are defined at the virtual host level. By default, any authenticated user can 
-request a list creation but newly created are then validated by the listmaster. 
-
-<P>
-List rejection message and list creation notification message are both
-templates that you can customize (<A NAME="10867"></A><TT>list_rejected.tt2</TT> and
-<A NAME="10870"></A><TT>list_created.tt2</TT>).
-
-<P>
-
-<H2><A NAME="SECTION002042000000000000000">
-19.4.2 Who can create lists on the Web interface</A>
-</H2>
-
-<P>
-This is defined by the <A NAME="10873"></A><TT>create_list</TT> sympa.conf parameter (see <A HREF="node8.html#create-list">7.1.19</A>,  
-page&nbsp;<A HREF="node8.html#create-list"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>). This parameter refers to a <B>create_list</B> authorization scenario.
-It will determine if the <I>create list</I> button is displayed and if it requires
-a listmaster confirmation.
-
-<P>
-The authorization scenario can accept any condition concerning the [sender]
-(i.e. WWSympa user), and it returns <A NAME="10876"></A><TT>reject</TT>, <A NAME="10879"></A><TT>do_it</TT>
-or <A NAME="10882"></A><TT>listmaster</TT> as an action.
-
-<P>
-Only in cases where a user is authorized by the create_list authorization scenario
-will the "create" button be available in the main menu.
-If the scenario returns <A NAME="10885"></A><TT>do_it</TT>, the list will be created and installed.
-If the scenario returns "listmaster", the user is allowed to create a list, but
-the list is created with the <A NAME="10888"></A><TT>pending</TT> status,
-which means that only the list owner may view or use it.
-The listmaster will need to open the list of pending lists
-using the "pending list" button in the "server admin"
-menu in order to install or refuse a pending list.
-
-<P>
-
-<H2><A NAME="SECTION002043000000000000000">
-19.4.3 typical list profile and Web interface</A>
-</H2>
-As on command line creation, the list creator has to choose a list profile and to fill in the owner's e-mail 
-and the list subject together with a short description. But in this case, you don't need any XML file. Concerning
-these typical list profiles, they are described before, see <A HREF="#typical-list-profile">19.3</A>, page&nbsp;<A HREF="node20.html#typical-list-profile"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>. 
-You can check available profile. On the Web interface, another way 
-to control publicly available profiles is to
-edit the <A NAME="10891"></A><TT>create_list.conf</TT> file (the default for this file is in
-the <A NAME="10894"></A><TT>/usr/local/sympa-os/bin/etc</TT> directory, and you may create your own customized
-version in <A NAME="10897"></A><TT>/usr/local/sympa-os/etc</TT>).
-This file controls which of the available list templates are to be displayed. Example :<PRE>
-# Do not allow the public_anonymous profile
-public_anonymous hidden
-* read
+is_subscriber([listname],[sender]) smtp          -&gt; request_auth
+true()                             md5,smime     -&gt; do_it
 </PRE>
 
 <P>
 
 <H2><A NAME="SECTION002044000000000000000"></A>
-<A NAME="list-edition"></A>
+<A NAME="smimeforencrypt"></A>
 <BR>
-19.4.4 List edition
+19.4.4 distributing encrypted messages
 </H2>
 
 <P>
-For each parameter, you may specify (via the <A NAME="10900"></A><TT>/usr/local/sympa-os/etc/edit_list.conf</TT>
-configuration file) who has the right to edit the parameter concerned ; the default 
-<A NAME="10903"></A><TT>/usr/local/sympa-os/bin/etc/edit_list.conf</TT> is reasonably safe.
+In this section we describe S/Sympa encryption features. The goal is to use
+S/MIME encryption for distribution of a message to subscribers whenever the message has been
+received encrypted from the sender. 
 
 <P>
-<PRE>
-Each line is a set of 3 field
-&lt;Parameter&gt; &lt;Population&gt; &lt;Privilege&gt;
-&lt;Population&gt; : &lt;listmaster|privileged_owner|owner&gt; 
-&lt;Privilege&gt; : &lt;write|read|hidden&gt;
-parameter named "default" means any other parameter
-</PRE>
+Why is S/Sympa concerned by the S/MIME encryption distribution process ?
+It is because encryption is performed using the <B>recipient</B> X509
+certificate, whereas the signature requires the sender's private key. Thus, an encrypted
+message can be read by the recipient only if he or she is the owner of the private
+key associated with the certificate.
+Consequently, the only way to encrypt a message for a list of recipients is
+to encrypt and send the message for each recipient. This is what S/Sympa
+does when distributing an encrypted message.
 
 <P>
-There is no hierarchical relation between  populations in this
-configuration file. You need to explicitely list populations.
+The S/Sympa encryption feature in the distribution process supposes that sympa
+has received an encrypted message for some list. To be able to encrypt a message
+for a list, the sender must have some access to an X509 certificate for the list.
+So the first requirement is to install a certificate and a private key for
+the list.
+The mechanism whereby certificates are obtained and managed is complex. Current versions
+of S/Sympa assume that list certificates and private keys are installed by
+the listmaster using <A NAME="8076"></A><TT>/home/sympa/bin/p12topem.pl</TT> script. This script allows
+you to install a PKCS#12 bundle file containing a private key and
+a certificate using the appropriate format.
 
 <P>
-Eg: listmaster will not match rules refering to owner or privileged_owner
-
-<P><PRE>
-     examples :
-
-	# only listmaster can edit user_data_source, priority, ...
-	user_data_source listmaster write  
-
-	priority 	owner,privileged_owner 		read
-	priority 	listmaster 			write
-      
-	# only privileged owner can modify  editor parameter, send, ...
-	editor privileged_owner write
-	
-	send 		owner 				read
-	send 		privileged_owner,listmaster 	write
-
-	# other parameters can be changed by simple owners
-	default 	owner 				write
-</PRE>
+It is a good idea to have a look at the OpenCA (http://www.openssl.org)
+documentation and/or PKI providers' web documentation.
+You can use commercial certificates or home-made ones. Of course, the
+certificate must be approved for e-mail applications, and issued by one of
+the trusted CA's described in the <A NAME="8079"></A><TT>cafile</TT> file or the
+<A NAME="8082"></A><TT>capath</TT> Sympa configuration parameter. 
 
 <P>
-Privileged owners are defined in the list's <A NAME="10906"></A><TT>config</TT> file as follows :
-	<PRE>
-	owner
-	email owners.email@foo.bar
-	profile privileged
-</PRE>
+The list private key must be installed in a file named
+<A NAME="8085"></A><TT>/home/sympa/expl/mylist/private_key</TT>. All the list private
+keys must be encrypted using a single password defined by the
+<A NAME="8088"></A><TT>password</TT> parameter in <A NAME="8091"></A><TT>sympa.conf</TT>.
 
 <P>
-The following rules are hard coded in WWSympa :
 
-<UL>
-<LI>only listmaster can edit the "profile privileged"
-      owner attribute 
+<H3><A NAME="SECTION002044100000000000000">
+19.4.4.1 Use of Netscape navigator to obtain X509 list certificates</A>
+</H3>
 
 <P>
+In many cases e-mail X509 certificates are distributed via a web server and
+loaded into the browser using your mouse :) Netscape allows
+certificates to be exported to a file. So one way to get a list certificate is to obtain an e-mail
+certificate for the canonical list address in your browser, and then to export and install it for Sympa :
+
+<OL>
+<LI>browse the net and load a certificate for the list address on some
+PKI provider (your own OpenCa pki server , thawte, verisign, ...). Be
+careful :  the e-mail certificate must be correspond exactly to the canonical address of
+your  list, otherwise, the signature will be incorrect (sender e-mail will
+not match signer e-mail).
 </LI>
-<LI>owners can edit their own attributes (except profile and e-mail)
-
-<P>
+<LI>in the security menu, select the intended certificate and export
+it. Netscape will prompt you for a password and a filename to encrypt
+the output file. The format used by Netscape is  ``pkcs#12''. 
+Copy this file to the list home directory.
 </LI>
-<LI>the requestor creating a new list becomes a privileged owner
-
-<P>
+<LI>convert the pkcs#12 file into a pair of pem files :
+<A NAME="8094"></A><TT>cert.pem</TT> and <A NAME="8097"></A><TT>private_key</TT> using
+the <A NAME="8100"></A><TT>/home/sympa/bin/p12topem.pl</TT> script. Use <A NAME="8103"></A><TT>p12topem.pl -help</TT> for details.
 </LI>
-<LI>privileged owners can edit any gecos/reception/info attribute
-of any owner
-
-<P>
+<LI>be sure that <A NAME="8106"></A><TT>cert.pem</TT> and <A NAME="8109"></A><TT>private_key</TT>
+are owned by sympa with ``r'' access.
 </LI>
-<LI>privileged owners can edit owners' e-mail addresses (but not privileged owners' e-mail addresses)
-
-<P>
+<LI>As soon as a certificate is installed for a list, the list  home page
+includes a new link to load the certificate to the user's browser, and the welcome
+message is signed by the list.
 </LI>
-</UL>
-
-<P>
-Sympa aims to define two levels of trust for owners (some being entitled 
-      simply to edit secondary parameters such as "custom_subject", others having
-      the right to manage more important parameters), while leaving control of
-      crucial parameters (such as the list of privileged owners and user_data_sources)
-      in the hands of the listmaster.
-      Consequently, privileged owners can change owners' e-mails,
-      but they cannot grant the responsibility of list management to others without
-      referring to the listmaster.
-
-<P>
-Concerning list edition in a family context, see <A HREF="node21.html#list-param-edit-family">20.2.8</A>, page&nbsp;<A HREF="node21.html#list-param-edit-family"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>
+</OL> 
 
 <P>
 
-<H1><A NAME="SECTION002050000000000000000"></A>
-    <A NAME="ml-removal"></A>
-<BR>
-19.5 Removing a list
+<H1><A NAME="SECTION002050000000000000000">
+19.5 Managing certificates with tasks</A>
 </H1>
 
 <P>
-You can remove a list either from the command line or using the web interface.
+You may automate the management of certificates with two global task models provided with
+<I>Sympa</I>. See <A HREF="node12.html#tasks">11.10</A>, page&nbsp;<A HREF="node12.html#tasks"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A> to know more about tasks.
+Report to <A HREF="node6.html#certificate-task-config">5.12.4</A>, page&nbsp;<A HREF="node6.html#certificate-task-config"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A> to configure your <I>Sympa</I> to use these facilities.
 
 <P>
-<A NAME="10909"></A><TT>sympa.pl</TT> provides an option to remove a mailing list, see the example below :
-<BLOCKQUOTE>
-sympa.pl -remove_list=mylist@mydomain
 
-</BLOCKQUOTE>
+<H2><A NAME="SECTION002051000000000000000">
+19.5.1 chk_cert_expiration.daily.task model</A>
+</H2>
 
 <P>
-Privileged owners can remove a mailing list through the list admin part of the web interface. Removing the mailing list
-consists in removing its subscribers from the database and setting its status to <I>closed</I>.Once removed, the list 
-can still be restored by the listmaster ; list members are saved in a <A NAME="10912"></A><TT>subscribers.closed.dump</TT> file.
+A task created with the model <A NAME="8114"></A><TT>chk_cert_expiration.daily.task</TT> checks every day the expiration date of
+certificates stored in the <A NAME="8117"></A><TT>/home/sympa/expl/X509-user-certs/</TT> directory.
+The user is warned with the <A NAME="8120"></A><TT>daily_cert_expiration</TT> template when his certificate has expired
+or is going to expire within three days.
+
+<P>
+
+<H2><A NAME="SECTION002052000000000000000">
+19.5.2 crl_update.daily.task model</A>
+</H2>
+
+<P>
+You may use the model <A NAME="8123"></A><TT>crl_update.daily.task</TT> to create a task which daily updates the certificate revocation
+lists when needed.
 
 <P>
 
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html1365"
+<A NAME="tex2html1150"
   HREF="node21.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1359"
+<A NAME="tex2html1144"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1353"
+<A NAME="tex2html1138"
   HREF="node19.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1361"
+<A NAME="tex2html1146"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1363"
-  HREF="node31.html">
+<A NAME="tex2html1148"
+  HREF="node22.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1366"
-  HREF="node21.html">20. Lists Families</A>
-<B> Up:</B> <A NAME="tex2html1360"
+<B> Next:</B> <A NAME="tex2html1151"
+  HREF="node21.html">20. Using Sympa commands</A>
+<B> Up:</B> <A NAME="tex2html1145"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1354"
-  HREF="node19.html">18. Mailing list definition</A>
- &nbsp; <B>  <A NAME="tex2html1362"
+<B> Previous:</B> <A NAME="tex2html1139"
+  HREF="node19.html">18. Using Sympa with LDAP</A>
+ &nbsp <B>  <A NAME="tex2html1147"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1364"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html1149"
+  HREF="node22.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2003-10-15
 </ADDRESS>
 </BODY>
 </HTML>

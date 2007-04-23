@@ -96,24 +96,6 @@ sub check_lang_cookie {
     return undef;
 }
 
-## Check cookie for expert_page mode in the shared
-sub check_expertpage_cookie {
-    my $http_cookie = shift;
-    
-    my %cookies = parse CGI::Cookie($http_cookie);
-    
-    ## Scan parameters
-    foreach (sort keys %cookies) {
-	my $cookie = $cookies{$_};
-	
-	next unless ($cookie->name eq 'sympaexpertpage');
-
-	return $cookie->value;
-    }
-
-    return undef;
-}
-
 ## Set user $email cookie, ckecksum use $secret, expire=(now|session|#sec) domain=(localhost|<a domain>)
 sub set_cookie {
     my ($email, $secret, $http_domain, $expires, $auth) = @_ ;
@@ -199,45 +181,18 @@ sub set_lang_cookie {
     return 1;
 }
     
-## Sets an HTTP cookie to be sent to a SOAP client
-sub set_cookie_soap {
-    my ($email,$secret,$http_domain,$expire) = @_ ;
-    my $cookie;
-    my $value;
-    &do_log('debug', 'cookielib::set_cookie_soap(%s,%s,%s,%s)', $email, $secret, $http_domain, $expire);
-
-    # WARNING : to check the cookie the SOAP services does not gives
-    # all the cookie, only it's value so we need ':'
-    $value = sprintf '%s:%s',$email,&get_mac($email,$secret);
-  
-    ## With set-cookie2 max-age of 0 means removing the cookie
-    ## Maximum cookie lifetime is the session
-    $expire ||= 600; ## 10 minutes
-
-    if ($http_domain eq 'localhost') {
-	$cookie = sprintf "%s=%s; Path=/; Max-Age=%s", 'sympauser', $value, $expire;
-    }else {
-	$cookie = sprintf "%s=%s; Domain=%s; Path=/; Max-Age=%s", 'sympauser', $value, $http_domain, $expire;;
-    }
-
-    $ENV{'SOAP_COOKIE_sympauser'} = $cookie;
-
-    ## Send cookie to the client
-    return 1;
-}
-
 ## returns Message Authentication Check code
 sub get_mac {
         my $email = shift ;
 	my $secret = shift ;	
-	&do_log('debug4', "get_mac($email, $secret)");
+	&main::wwslog('debug4', "get_mac($email, $secret)");
 
 	unless ($secret) {
-	    &do_log('err', 'get_mac : failure missing server secret for cookie MD5 digest');
+	    &main::wwslog('err', 'get_mac : failure missing server secret for cookie MD5 digest');
 	    return undef;
 	}
 	unless ($email) {
-	    &do_log('err', 'get_mac : failure missing email adresse or cookie MD5 digest');
+	    &main::wwslog('err', 'get_mac : failure missing email adresse or cookie MD5 digest');
 	    return undef;
 	}
 
@@ -318,7 +273,7 @@ sub set_cookie_extern {
 sub get_which_cookie {
     
     my $http_cookie = shift;
-    &do_log('debug2',"get_which_cookie ($http_cookie)");    
+    &main::wwslog('debug2',"get_which_cookie ($http_cookie)");    
 
     my %cookies = parse CGI::Cookie($http_cookie);
         
@@ -335,50 +290,17 @@ sub get_which_cookie {
     return undef;
 }
 
-## Set cookie for expert_page mode in the shared
-sub set_expertpage_cookie {
-    my ($put,$domain) = @_;
-    
-    if ($domain eq 'localhost') {
-	$domain="";
-    }
-    
-    my $expire;
-    if ($put == 1) {
-	$expire = '+1y';
-    } else {
-	$expire = '-10y';
-    }
-    
-    my $cookie = new CGI::Cookie (-name    => 'sympaexpertpage',
-				  -value   => '1',
-				  -expires => $expire,
-				  -domain  => $domain,
-				  -path    => '/'
-				  );
-    
-    ## Send cookie to the client
-    printf "Set-Cookie:  %s\n", $cookie->as_string;
-    
-    return 1;
-}
-
 ## Set cookie for accessing web archives
 sub set_which_cookie {
     my $domain = shift ;
     my @which = @_;
-
-    my @listnames;
-    foreach my $list (@which) {
-	push @listnames, $list->{'name'};
-    }
 
     my $commawhich = join ',', @which;
     
     if ($domain eq 'localhost') {
 	$domain="";
     }
-    &do_log('debug2',"set_which_cookie ($domain,$commawhich)");
+    &main::wwslog('debug2',"set_which_cookie ($domain,$commawhich)");
 
     my $cookie = new CGI::Cookie (-name    => 'your_subscriptions',
 				  -value   => $commawhich ,
