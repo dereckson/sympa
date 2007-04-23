@@ -1,4 +1,4 @@
-From: [% fromlist %]
+From: [% conf.email %]@[% conf.host %]
 Subject: [% FILTER qencode %][%|loc%]Your document has been installed.[%END%][%END%]
 
 [%|loc(filename,list.name,list.host,installed_by)%]Your document %1 for list %2@%3
