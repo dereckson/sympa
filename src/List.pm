@@ -25,20 +25,14 @@ use strict;
 use Datasource;
 use SQLSource qw(create_db %date_format);
 use Upgrade;
-use Lock;
 require Fetch;
 require Exporter;
-require Encode;
+#require Encode;
 require 'tools.pl';
 require "--LIBDIR--/tt2.pl";
 
 my @ISA = qw(Exporter);
 my @EXPORT = qw(%list_of_lists);
-
-sub LOCK_SH {1};
-sub LOCK_EX {2};
-sub LOCK_NB {4};
-sub LOCK_UN {8};
 
 =head1 CONSTRUCTOR
 
@@ -224,7 +218,6 @@ currently selected descriptor.
 
 use Carp;
 
-use IO::Scalar;
 use Storable;
 use Mail::Header;
 use Archive;
@@ -235,7 +228,7 @@ use mail;
 use Ldap;
 use Time::Local;
 use MIME::Entity;
-use MIME::EncWords;
+use MIME::Words;
 use MIME::WordDecoder;
 use MIME::Parser;
 use Message;
@@ -243,7 +236,7 @@ use Family;
 use PlainDigest;
 
 ## Database and SQL statement handlers
-my ($dbh, $sth, $db_connected, @sth_stack, $use_db);
+my ($dbh, $sth, $db_connected, @sth_stack, $use_db, $include_lock_count, $include_admin_user_lock_count);
 
 my %list_cache;
 my %persistent_cache;
@@ -344,12 +337,12 @@ my %alias = ('reply-to' => 'reply_to',
 				    'group' => 'archives'
 				    },
            'available_user_options' => {'format' => {'reception' => {'format' => ['mail','notice','digest','digestplain','summary','nomail','txt','html','urlize','not_me'],
-								     'occurrence' => '1-n',
-								     'split_char' => ',',
-								     'default' => 'mail,notice,digest,digestplain,summary,nomail,txt,html,urlize,not_me',
-								     'gettext_id' => "reception mode"
-								     },
-						     },
+								      'occurrence' => '1-n',
+								      'split_char' => ',',
+                                      'default' => 'mail,notice,digest,digestplain,summary,nomail,txt,html,urlize,not_me',
+								      'gettext_id' => "reception mode"
+								      }
+						  },
 					 'gettext_id' => "Available subscription options",
 					 'group' => 'sending'
 				     },
@@ -436,7 +429,7 @@ my %alias = ('reply-to' => 'reply_to',
 						   'gettext_id' => "",
 						   'order' => 2
 						   },
-					'email' => {'format' => &tools::get_regexp('email'),
+					'email' => {'format' => $tools::regexp{'email'},
 						    'occurrence' => '1',
 						    'gettext_id' => "",
 						    'order' => 1
@@ -508,7 +501,7 @@ my %alias = ('reply-to' => 'reply_to',
 				  'gettext_id' => "Digest maximum number of messages",
 				  'group' => 'sending'
 		       },	    
-	    'editor' => {'format' => {'email' => {'format' => &tools::get_regexp('email'),
+	    'editor' => {'format' => {'email' => {'format' => $tools::regexp{'email'},
 						  'length' => 30,
 						  'occurrence' => '1',
 						  'gettext_id' => "email address",
@@ -559,7 +552,7 @@ my %alias = ('reply-to' => 'reply_to',
 			      'gettext_id' => "Periodical subscription expiration task",
 			      'group' => 'other'
 			 },
- 	    'family_name' => {'format' => &tools::get_regexp('family_name'),
+ 	    'family_name' => {'format' => $tools::regexp{'family_name'},
  			      'occurrence' => '0-1',
  			      'gettext_id' => 'Family name',
 			      'internal' => 1,
@@ -574,7 +567,7 @@ my %alias = ('reply-to' => 'reply_to',
 				  'gettext_id' => "Forced reply address",
 				  'obsolete' => 1
 			 },
-	    'host' => {'format' => &tools::get_regexp('host'),
+	    'host' => {'format' => $tools::regexp{'host'},
 		       'length' => 20,
 		       'default' => {'conf' => 'host'},
 		       'gettext_id' => "Internet domain",
@@ -614,7 +607,7 @@ my %alias = ('reply-to' => 'reply_to',
 				      'occurrence' => '0-n',
 				      'group' => 'data_source'
 				      },				  
-	    'include_ldap_query' => {'format' => {'host' => {'format' => &tools::get_regexp('multiple_host_with_port'),
+	    'include_ldap_query' => {'format' => {'host' => {'format' => $tools::regexp{'multiple_host_with_port'},
 							     'occurrence' => '1',
 							     'gettext_id' => "remote host",
 							     'order' => 2
@@ -696,7 +689,7 @@ my %alias = ('reply-to' => 'reply_to',
 				     'gettext_id' => "LDAP query inclusion",
 				     'group' => 'data_source'
 				     },
-	    'include_ldap_2level_query' => {'format' => {'host' => {'format' => &tools::get_regexp('multiple_host_with_port'),
+	    'include_ldap_2level_query' => {'format' => {'host' => {'format' => $tools::regexp{'multiple_host_with_port'},
 							     'occurrence' => '1',
 							     'gettext_id' => "remote host",
 							     'order' => 1
@@ -819,12 +812,12 @@ my %alias = ('reply-to' => 'reply_to',
 				     'gettext_id' => "LDAP 2-level query inclusion",
 				     'group' => 'data_source'
 				     },
-	    'include_list' => {'format' => &tools::get_regexp('listname').'(\@'.&tools::get_regexp('host').')?',
+	    'include_list' => {'format' => "$tools::regexp{'listname'}(\@$tools::regexp{'host'})?",
 			       'occurrence' => '0-n',
 			       'gettext_id' => "List inclusion",
 			       'group' => 'data_source'
 			       },
-	    'include_remote_sympa_list' => {'format' => {'host' => {'format' => &tools::get_regexp('host'),
+	    'include_remote_sympa_list' => {'format' => {'host' => {'format' => $tools::regexp{'host'},
 							    'occurrence' => '1',
 							    'gettext_id' => "remote host",
 							    'order' => 1
@@ -863,7 +856,7 @@ my %alias = ('reply-to' => 'reply_to',
 							       'gettext_id' => "database type",
 							       'order' => 1
 							       },
-						 'host' => {'format' => &tools::get_regexp('host'),
+						 'host' => {'format' => $tools::regexp{'host'},
 							    'occurrence' => '1',
 							    'gettext_id' => "remote host",
 							    'order' => 2
@@ -895,7 +888,7 @@ my %alias = ('reply-to' => 'reply_to',
 							      'gettext_id' => "remote password",
 							      'order' => 7
 							      },
-						 'sql_query' => {'format' => &tools::get_regexp('sql_query'),
+						 'sql_query' => {'format' => $tools::regexp{'sql_query'},
 								 'length' => 50,
 								 'occurrence' => '1',
 								 'gettext_id' => "SQL query",
@@ -939,7 +932,7 @@ my %alias = ('reply-to' => 'reply_to',
  							       'gettext_id' => 'date',
  							       'order' => 2
  							       },
- 						    'email' => {'format' => &tools::get_regexp('email'),
+ 						    'email' => {'format' => $tools::regexp{'email'},
  								'occurrence' => '0-1',
  								'gettext_id' => 'who ran the instantiation',
  								'order' => 1
@@ -987,18 +980,18 @@ my %alias = ('reply-to' => 'reply_to',
 	    'msg_topic_keywords_apply_on' => { 'format' => ['subject','body','subject_and_body'],
 					       'occurrence' => '0-1',
 					       'default' => 'subject',
-					       'gettext_id' => "Defines to which part of messages topic keywords are applied",
+					       'gettext_id' => "On which part of messages, topic keywords are applied",
 					       'group' => 'sending'
 					     },    
 
-	    'msg_topic_tagging' => { 'format' => ['required_sender','required_moderator','optional'],
+	    'msg_topic_tagging' => { 'format' => ['required','optional'],
 				      'occurrence' => '0-1',
 				      'default' => 'optional',
 				      'gettext_id' => "Message tagging",
 				      'group' => 'sending'
 				      },    
 						   
-	    'owner' => {'format' => {'email' => {'format' => &tools::get_regexp('email'),
+	    'owner' => {'format' => {'email' => {'format' => $tools::regexp{'email'},
 						 'length' =>30,
 						 'occurrence' => '1',
 						 'gettext_id' => "email address",
@@ -1086,7 +1079,7 @@ my %alias = ('reply-to' => 'reply_to',
 							   'occurrence' => '1',
 							   'order' => 1
 							   },
-					       'other_email' => {'format' => &tools::get_regexp('email'),
+					       'other_email' => {'format' => $tools::regexp{'email'},
 								 'gettext_id' => "other email address",
 								 'order' => 2
 								 },
@@ -1197,7 +1190,7 @@ my %alias = ('reply-to' => 'reply_to',
 						 'gettext_id' => 'date',
 						 'order' => 2
 						 },
-				      'email' => {'format' => &tools::get_regexp('email'),
+				      'email' => {'format' => $tools::regexp{'email'},
 						  'length' => 30,
 						  'occurrence' => '1',
 						  'gettext_id' => 'who updated the config',
@@ -1216,7 +1209,7 @@ my %alias = ('reply-to' => 'reply_to',
 	    'pictures_feature' => {'format' => ['on','off'],
 			       'occurence' => '0-1',
 			       'default' => {'conf' => 'pictures_feature'},
-			       'gettext_id' => "Allow picture display ? (must be enabled for the current robot)",
+			       'gettext_id' => "Allow pictures display ? (require to be enabled for the current robot)",
 			       'group' => 'other'
 			       },	    
 	    'visibility' => {'scenario' => 'visibility',
@@ -1258,6 +1251,13 @@ my %alias = ('reply-to' => 'reply_to',
 			     'group' => 'bounces'
 			     },
 
+	    'export' => {'format' => '\w+',
+			 'split_char' => ',',
+			 'occurrence' => '0-n',
+			 'default' =>'',
+			 'group' => 'data_source'
+		     }
+	    
 	    );
 
 ## This is the generic hash which keeps all lists in memory.
@@ -1265,6 +1265,7 @@ my %list_of_lists = ();
 my %list_of_robots = ();
 my %list_of_topics = ();
 my %edit_list_conf = ();
+my %list_of_fh = ();
 
 ## Last modification times
 my %mtime;
@@ -1273,6 +1274,11 @@ use Fcntl;
 use DB_File;
 
 $DB_BTREE->{compare} = \&_compare_addresses;
+
+sub LOCK_SH {1};
+sub LOCK_EX {2};
+sub LOCK_NB {4};
+sub LOCK_UN {8};
 
 ## Connect to Database
 sub db_connect {
@@ -1341,8 +1347,7 @@ sub new {
     $options = {} unless (defined $options);
 
     ## Only process the list if the name is valid.
-    my $listname_regexp = &tools::get_regexp('listname');
-    unless ($name and ($name =~ /^$listname_regexp$/io) ) {
+    unless ($name and ($name =~ /^$tools::regexp{'listname'}$/io) ) {
 	&do_log('err', 'Incorrect listname "%s"',  $name) unless ($options->{'just_try'});
 	return undef;
     }
@@ -1464,20 +1469,8 @@ sub savestats {
     my $dir = $self->{'dir'};
     return undef unless ($list_of_lists{$self->{'domain'}}{$name});
     
-    ## Lock file
-    my $lock = new Lock ($dir.'/stats');
-    $lock->set_timeout(2); 
-    unless ($lock->lock('write')) {
-	return undef;
-    }   
-
    _save_stats_file("$dir/stats", $self->{'stats'}, $self->{'total'}, $self->{'last_sync'}, $self->{'last_sync_admin_user'});
     
-    ## Release the lock
-    unless ($lock->unlock()) {
-	return undef;
-    }
-
     ## Changed on disk
     $self->{'mtime'}[2] = time;
 
@@ -1664,32 +1657,23 @@ sub save_config {
     my ($self, $email) = @_;
     do_log('debug3', 'List::save_config(%s,%s)', $self->{'name'}, $email);
 
-    return undef 
-	unless ($self);
-
-    my $config_file_name = "$self->{'dir'}/config";
-
-    ## Lock file
-    my $lock = new Lock ($self->{'dir'}.'/config');
-    $lock->set_timeout(5); 
-    unless ($lock->lock('write')) {
-	return undef;
-    }
-
     my $name = $self->{'name'};    
     my $old_serial = $self->{'admin'}{'serial'};
+    my $config_file_name = "$self->{'dir'}/config";
     my $old_config_file_name = "$self->{'dir'}/config.$old_serial";
+
+    return undef 
+	unless ($self);
 
     ## Update management info
     $self->{'admin'}{'serial'}++;
     $self->{'admin'}{'update'} = {'email' => $email,
 				  'date_epoch' => time,
-				  'date' => (gettext_strftime "%d %b %Y at %H:%M:%S", localtime(time)),
+				  'date' => &POSIX::strftime("%d %b %Y at %H:%M:%S", localtime(time))
 				  };
 
     unless (&_save_admin_file($config_file_name, $old_config_file_name, $self->{'admin'})) {
 	&do_log('info', 'unable to save config file %s', $config_file_name);
-	$lock->unlock();
 	return undef;
     }
     
@@ -1702,11 +1686,6 @@ sub save_config {
 
 #    $self->{'mtime'}[0] = (stat("$list->{'dir'}/config"))[9];
     
-    ## Release the lock
-    unless ($lock->unlock()) {
-	return undef;
-    }
-
     return 1;
 }
 
@@ -1754,13 +1733,6 @@ sub load {
     my ($m1, $m2, $m3) = (0, 0, 0);
     ($m1, $m2, $m3) = @{$self->{'mtime'}} if (defined $self->{'mtime'});
 
-    ## Get a shared lock on config file first 
-    my $lock = new Lock ($self->{'dir'}.'/config');
-    $lock->set_timeout(5); 
-    unless ($lock->lock('read')) {
-	return undef;
-    }
-
     my $time_config = (stat("$self->{'dir'}/config"))[9];
     my $time_config_bin = (stat("$self->{'dir'}/config.bin"))[9];
     my $time_subscribers; 
@@ -1776,7 +1748,6 @@ sub load {
 	## unless config is more recent than config.bin
 	unless ($admin = &Storable::retrieve("$self->{'dir'}/config.bin")) {
 	    &do_log('err', 'Failed to load the binary config %s', "$self->{'dir'}/config.bin");
-	    $lock->unlock();
 	    return undef;
 	}
 
@@ -1797,18 +1768,12 @@ sub load {
  	unless (defined $admin) {
  	    &do_log('err', 'Impossible to load list config file for list % set in status error_config',$self->{'name'});
  	    $self->set_status_error_config('load_admin_file_error',$self->{'name'});
-	    $lock->unlock();
  	    return undef;	    
  	}
 
 	$m1 = $time_config;
     }
     
-    ## Release lock
-    unless ($lock->unlock()) {
-	return undef;
-    }
-
      if ($admin) {
  	$self->{'admin'} = $admin;
  	
@@ -2073,7 +2038,6 @@ sub get_family {
 }
 
 ## return the config_changes hash
-## Used ONLY with lists belonging to a family.
 sub get_config_changes {
     my $self = shift;
     &do_log('debug3', 'List::get_config_changes(%s)', $self->{'name'});
@@ -2381,11 +2345,9 @@ sub distribute_msg {
 	$subject_field =~ s/^\s*(.*)\s*$/$1/; ## Remove leading and trailing blanks
 	
 	## Search previous subject tagging in Subject
-	my $custom_subject = $self->{'admin'}{'custom_subject'};
-	my $tag_regexp = $custom_subject;
+	my $tag_regexp = $self->{'admin'}{'custom_subject'};
 	$tag_regexp =~ s/([\[\]\*\-\(\)\+\{\}\?])/\\$1/g;  ## cleanup, just in case dangerous chars were left
 	$tag_regexp =~ s/\[\S+\]/\.\+/g;
-	$tag_regexp =~ s/\s+/\\s+/g; ## consider folding
 	
 	## Add subject tag
 	$message->{'msg'}->head->delete('Subject');
@@ -2393,23 +2355,16 @@ sub distribute_msg {
 	&parser::parse_tpl({'list' => {'name' => $self->{'name'},
 				       'sequence' => $self->{'stats'}->[0]
 				       }},
-			   [$custom_subject], \@parsed_tag);
+			   [$self->{'admin'}{'custom_subject'}], \@parsed_tag);
 	
 	## If subject is tagged, replace it with new tag
-	$subject_field =~ s/\s*\[$tag_regexp\]//;
- 	## Encode subject using initial charset
-
-	## Don't try to encode the subject if it was not originaly encoded non-ASCII.
-	if ($message->{'subject_charset'} or $subject_field !~ /[^\x00-\x7E]/) {
-	    $subject_field = MIME::EncWords::encode_mimewords([
-							       [Encode::decode('utf8', '['.$parsed_tag[0].'] '), &Language::GetCharset()],
-							       [Encode::decode('utf8', $subject_field), $message->{'subject_charset'}]
-							       ], Encoding=>'A', Field=>'Subject');
+	if ($subject_field =~ /\[$tag_regexp\]/) {
+	    $subject_field =~ s/\[$tag_regexp\]/\[$parsed_tag[0]\]/;
 	}else {
-	    $subject_field = MIME::EncWords::encode_mimewords([
-							       [Encode::decode('utf8', '['.$parsed_tag[0].']'), &Language::GetCharset()]
-							       ], Encoding=>'A', Field=>'Subject') . ' ' . $subject_field;
+	    $subject_field = '['.$parsed_tag[0].'] '.$subject_field;
 	}
+ 	## Encode subject using initial charset
+ 	$subject_field = MIME::Words::encode_mimewords($subject_field, ('Encode' => 'Q', 'Charset' => $message->{'subject_charset'}));
 
 	$message->{'msg'}->head->add('Subject', $subject_field);
     }
@@ -2490,15 +2445,7 @@ sub distribute_msg {
     if (($self->is_digest()) and ($message->{'smime_crypted'} ne 'smime_crypted')) {
 	$self->archive_msg_digest($msgtostore);
     }
-
-    ## Synchronize list members, required if list uses include sources
-    ## unless sync_include has been performed withi last 5 minutes
-    if ($self->has_include_data_sources() &&
-	($self->{'last_sync'} < time - 60*5)) { 
-	&do_log('notice', "Synchronizing list members...");
-	$self->sync_include();
-    }
-
+    
     ## Blindly send the message to all users.
     my $numsmtp = $self->send_msg($message);
     unless (defined ($numsmtp)) {
@@ -2652,7 +2599,7 @@ sub send_msg {
 	} else {
 	    @selected_tabrcpt = @tabrcpt;
 	}
-	
+
 	my @verp_selected_tabrcpt = &extract_verp_rcpt($verp_rate, $xsequence,\@selected_tabrcpt, \@tabrcpt_verp);
 
 
@@ -2894,7 +2841,7 @@ sub send_msg_digest {
     }
 
     my $old = $/;
-    $/ = "\n\n" . &tools::get_separator() . "\n\n";
+    $/ = "\n\n" . $tools::separator . "\n\n";
     
     ## Digest split in individual messages
     open DIGEST, $filename or return undef;
@@ -2929,18 +2876,17 @@ sub send_msg_digest {
     my @all_msg;
     foreach $i (0 .. $#list_of_mail){
 	my $mail = $list_of_mail[$i];
-	my $subject = &MIME::EncWords::decode_mimewords($mail->head->get('Subject'), Charset=>'utf8');
+	my $subject = &MIME::Words::decode_mimewords($mail->head->get('Subject'));
 	chomp $subject;
-	my $from = &MIME::EncWords::decode_mimewords($mail->head->get('From'), Charset=>'utf8');
+	my $from = &MIME::Words::decode_mimewords($mail->head->get('From'));
 	chomp $from;    
-	my $date = &MIME::EncWords::decode_mimewords($mail->head->get('Date'), Charset=>'utf8');
-	chomp $date;    
 	
         my $msg = {};
 	$msg->{'id'} = $i+1;
         $msg->{'subject'} = $subject;	
 	$msg->{'from'} = $from;
-	$msg->{'date'} = $date;
+	$msg->{'date'} = $mail->head->get('Date');
+	chomp $msg->{'date'};
 	
 	#$mail->tidy_body;
 	
@@ -2963,8 +2909,8 @@ sub send_msg_digest {
     }
     
     my @now  = localtime(time);
-    $param->{'datetime'} = gettext_strftime "%a, %d %b %Y %H:%M:%S", @now;
-    $param->{'date'} = gettext_strftime "%a, %d %b %Y", @now;
+    $param->{'datetime'} = sprintf "%s", POSIX::strftime("%a, %d %b %Y %H:%M:%S", @now);
+    $param->{'date'} = sprintf "%s", POSIX::strftime("%a, %d %b %Y", @now);
 
     ## Split messages into groups of digest_max_size size
     my @group_of_msg;
@@ -3147,12 +3093,12 @@ sub send_file {
 	$data->{'subscriber'} = $self->get_subscriber($who);
 	
 	if ($data->{'subscriber'}) {
-	    $data->{'subscriber'}{'date'} = gettext_strftime "%d %b %Y", localtime($data->{'subscriber'}{'date'});
-	    $data->{'subscriber'}{'update_date'} = gettext_strftime "%d %b %Y", localtime($data->{'subscriber'}{'update_date'});
+	    $data->{'subscriber'}{'date'} = &POSIX::strftime("%d %b %Y", localtime($data->{'subscriber'}{'date'}));
+	    $data->{'subscriber'}{'update_date'} = &POSIX::strftime("%d %b %Y", localtime($data->{'subscriber'}{'update_date'}));
 	    if ($data->{'subscriber'}{'bounce'}) {
 		$data->{'subscriber'}{'bounce'} =~ /^(\d+)\s+(\d+)\s+(\d+)(\s+(.*))?$/;
 		
-		$data->{'subscriber'}{'first_bounce'} = gettext_strftime "%d %b %Y", localtime($1);
+		$data->{'subscriber'}{'first_bounce'} =  &POSIX::strftime("%d %b %Y",localtime($1));
 	    }
 	}
 	
@@ -3644,7 +3590,6 @@ sub send_to_editor {
    @rcpt = $self->get_editors_email();
    unless (@rcpt) {
        do_log('notice','Warning : no editor defined for list %s, contacting owners', $name );
-       @rcpt = $self->get_owners_email();
    }
 
    my $param = {'modkey' => $modkey,
@@ -3679,7 +3624,7 @@ sub send_to_editor {
 	   close CRYPTED;
 	   
 
-	   $param->{'msg_path'} = $crypted_file;
+	   $param->{'msg'} = $crypted_file;
 
 	   &tt2::allow_absolute_path();
 	   unless ($self->send_file('moderate', $recipient, $self->{'domain'}, $param)) {
@@ -3688,7 +3633,7 @@ sub send_to_editor {
 	   }
        }
    }else{
-       $param->{'msg_path'} = $file;
+       $param->{'msg'} = $file;
 
        &tt2::allow_absolute_path();
        unless ($self->send_file('moderate', \@rcpt, $self->{'domain'}, $param)) {
@@ -3937,11 +3882,11 @@ sub archive_send_last {
    my $msg = {};
    $msg->{'id'} = 1;
    
-   $msg->{'subject'} = &MIME::EncWords::decode_mimewords($mail->{'msg'}->head->get('Subject'), Charset=>'utf8');
+   $msg->{'subject'}  = &MIME::Words::decode_mimewords($mail->{'msg'}->head->get('Subject'));
    chomp $msg->{'subject'};   
-   $msg->{'from'} = &MIME::EncWords::decode_mimewords($mail->{'msg'}->head->get('From'), Charset=>'utf8');
+   $msg->{'from'}= &MIME::Words::decode_mimewords($mail->{'msg'}->head->get('From'));
    chomp $msg->{'from'};    	        	
-   $msg->{'date'} = &MIME::EncWords::decode_mimewords($mail->{'msg'}->head->get('Date'), Charset=>'utf8');
+   $msg->{'date'} = $mail->{'msg'}->head->get('Date');
    chomp $msg->{'date'};
    
    $msg->{'full_msg'} = $mail->{'msg'}->as_string;
@@ -3951,7 +3896,7 @@ sub archive_send_last {
    my $subject = 'File '.$self->{'name'}.'.last_message' ;
    my $param = {'to' => $who,
 		'subject' => $subject,
-		'msg_list' => \@msglist } ;
+		'msg_list' => @msglist } ;
 
 
    $param->{'boundary1'} = &tools::get_message_id($self->{'domain'});
@@ -4097,8 +4042,8 @@ sub send_notify_to_owner {
     my $robot = $self->{'domain'};
 
     unless (@to) {
-	do_log('warn', 'No owner defined or all of them use nomail option in list %s ; using listmasters as default', $self->{'name'} );
-	@to = split /,/, &Conf::get_robot_conf($robot, 'listmaster');
+	do_log('notice', 'Warning : no owner defined or all of them use nomail option in list %s', $self->{'name'} );
+	return undef;
     }
     unless (defined $operation) {
 	&do_log('err','List::send_notify_to_owner(%s) : missing incoming parameter "$operation"', $self->{'name'});
@@ -4480,8 +4425,7 @@ sub add_parts {
 		my $header_part = build MIME::Entity Path        => $header,
 		Type        => "text/plain",
 		Filename    => "message-header.txt",
-		Encoding    => "8bit",
-		Charset     => "UTF-8";
+		Encoding    => "8bit";
 		$msg->add_part($header_part, 0);
 	    }
 	}
@@ -4499,8 +4443,7 @@ sub add_parts {
 		$msg->attach(Path        => $footer,
 			     Type        => "text/plain",
 			     Filename    => "message-footer.txt",
-			     Encoding    => "8bit",
-			     Charset     => "UTF-8"
+			     Encoding    => "8bit"
 			     );
 	    }
 	}
@@ -4568,7 +4511,6 @@ sub delete_user {
 	    my $statement;
 	    
 	    $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who} = undef;    
-	    $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$who} = undef;    
 	    
 	    ## Delete record in SUBSCRIBER
 	    $statement = sprintf "DELETE FROM subscriber_table WHERE (user_subscriber=%s AND list_subscriber=%s AND robot_subscriber=%s)",
@@ -4644,29 +4586,6 @@ sub delete_admin_user {
     return (-1 * $total);
 }
 
-## Delete all admin_table entries
-sub delete_admin_all {
-    &do_log('debug2', 'List::delete_admin_all()'); 
-	    
-    my $total = 0;
-    
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &db_connect();
-    }
-    
-    my $statement;
-    
-    ## Delete record in ADMIN
-    $statement = sprintf "DELETE FROM admin_table";
-    
-    unless ($dbh->do($statement)) {
-	do_log('err','Unable to execute SQL statement %s : %s', $statement, $dbh->errstr);
-	return undef;
-    }   
-    
-    return 1;
-}
 
 
 ## Returns the cookie for a list, if any.
@@ -5082,9 +5001,6 @@ sub get_first_user {
     $offset = $data->{'offset'};
     $rows = $data->{'rows'};
     $sql_regexp = $data->{'sql_regexp'};
-    
-    my $lock = new Lock ($self->{'dir'}.'/include');
-    $lock->set_timeout(10*60); 
 
     do_log('debug2', 'List::get_first_user(%s,%s,%d,%d)', $self->{'name'},$sortby, $offset, $rows);
         
@@ -5092,10 +5008,25 @@ sub get_first_user {
 	($self->{'admin'}{'user_data_source'} eq 'include2')){
 
 	if ($self->{'admin'}{'user_data_source'} eq 'include2') {
+	    ## Get an Shared lock
+	    $include_lock_count++;
 
-	    ## Get an Shared lock	    
-	    unless ($lock->lock('read')) {
-		return undef;
+	    ## first lock
+	    if ($include_lock_count == 1) {
+		my $lock_file = $self->{'dir'}.'/include.lock';
+		
+		## Create include.lock if needed
+		unless (-f $lock_file) {
+		    unless (open FH, ">>$lock_file") {
+			&do_log('err', 'Cannot open %s: %s', $lock_file, $!);
+			return undef;
+		    }
+		}
+		close FH;
+
+		unless ($list_of_fh{$lock_file} = &tools::lock($lock_file,'read')) {
+		    return undef;
+		}
 	    }
 	}
 
@@ -5302,7 +5233,7 @@ sub get_first_user {
 	    }elsif ($sortby eq 'sources') {
 		$statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
 
-	    }elsif ($sortby eq 'name') {
+	    }elsif ($sortby eq 'email') {
 		$statement .= ' ORDER BY gecos';
 	    }
 	    
@@ -5341,10 +5272,16 @@ sub get_first_user {
 	    $sth = pop @sth_stack;
 	    	    
 	    if ($self->{'admin'}{'user_data_source'} eq 'include2') {
-
 		## Release the Shared lock
-		unless ($lock->unlock()) {
-		    return undef;
+		$include_lock_count--;
+
+		## Last lock
+		if ($include_lock_count == 0) {
+		    my $lock_file = $self->{'dir'}.'/include.lock';
+		    unless (&tools::unlock($lock_file, $list_of_fh{$lock_file})) {
+			return undef;
+		    }
+		    delete $list_of_fh{$lock_file};
 		}
 	    }
 	}
@@ -5389,7 +5326,6 @@ sub get_first_admin_user {
     $offset = $data->{'offset'};
     $rows = $data->{'rows'};
     $sql_regexp = $data->{'sql_regexp'};
-    my $fh;
 
     &do_log('debug2', 'List::get_first_admin_user(%s,%s,%s,%d,%d)', $self->{'name'},$role, $sortby, $offset, $rows);
 
@@ -5399,13 +5335,28 @@ sub get_first_admin_user {
 	return undef;
     }
    
-    my $lock = new Lock ($self->{'dir'}.'/include_admin_user');
-    $lock->set_timeout(20); 
-
-    ## Get a shared lock
-    unless ($fh = $lock->lock('read')) {
-	return undef;
-    }
+  
+    ## Get an Shared lock
+    $include_admin_user_lock_count++;
+    
+    ## first lock
+    if ($include_admin_user_lock_count == 1) {
+	my $lock_file = $self->{'dir'}.'/include_admin_user.lock';
+	
+	## Create include_admin_user.lock if needed
+	unless (-f $lock_file) {
+	    unless (open FH, ">>$lock_file") {
+		&do_log('err', 'Cannot open %s: %s', $lock_file, $!);
+		return undef;
+	    }
+	}
+	
+	close FH;
+	
+	unless ($list_of_fh{$lock_file} = &tools::lock($lock_file,'read')) {
+		return undef;
+	    }
+	}
           
     my $name = $self->{'name'};
     my $statement;
@@ -5641,13 +5592,6 @@ sub get_first_admin_user {
     }else {
 	$sth->finish;
         $sth = pop @sth_stack;
-
-	## Release the Shared lock
-	my $lock = new Lock($self->{'dir'}.'/include_admin_user');
-	
-	unless ($lock->unlock()) {
-	    return undef;
-	}
     }
 
     return $admin_user;
@@ -5686,11 +5630,16 @@ sub get_next_user {
 	    $sth = pop @sth_stack;
 	    	    
 	    if ($self->{'admin'}{'user_data_source'} eq 'include2') {
+		## Release the Shared lock
+		$include_lock_count--;
 
-		## Release lock
-		my $lock = new Lock ($self->{'dir'}.'/include');
-		unless ($lock->unlock()) {
-		    return undef;
+		## Last lock
+		if ($include_lock_count == 0) {
+		    my $lock_file = $self->{'dir'}.'/include.lock';
+		    unless (&tools::unlock($lock_file, $list_of_fh{$lock_file})) {
+			return undef;
+		    }
+		    delete $list_of_fh{$lock_file};
 		}
 	    }
 	}
@@ -5755,13 +5704,18 @@ sub get_next_admin_user {
 	$sth = pop @sth_stack;
 	
 	## Release the Shared lock
-	my $lock = new Lock($self->{'dir'}.'/include_admin_user');
+	$include_admin_user_lock_count--;
 	
-	unless ($lock->unlock()) {
-	    return undef;
+	## Last lock
+	if ($include_admin_user_lock_count == 0) {
+	    my $lock_file = $self->{'dir'}.'/include_admin_user.lock';
+	    unless (&tools::unlock($lock_file, $list_of_fh{$lock_file})) {
+		return undef;
+	    }
+	    delete $list_of_fh{$lock_file};
 	}
     }
-    return $admin_user;
+   return $admin_user;
 }
 
 
@@ -5772,9 +5726,6 @@ sub get_first_bouncing_user {
     my $self = shift;
     do_log('debug2', 'List::get_first_bouncing_user');
 
-    my $lock = new Lock ($self->{'dir'}.'/include');
-    $lock->set_timeout(10*60); 
-
     unless (($self->{'admin'}{'user_data_source'} eq 'database') ||
 	    ($self->{'admin'}{'user_data_source'} eq 'include2')){
 	&do_log('info', "Function get_first_bouncing_user not available for list  $self->{'name'} because not in database mode");
@@ -5783,8 +5734,25 @@ sub get_first_bouncing_user {
     
     if ($self->{'admin'}{'user_data_source'} eq 'include2') {
 	## Get an Shared lock
-	unless ($lock->lock('read')) {
-	    return undef;
+	$include_lock_count++;
+	
+	## first lock
+	if ($include_lock_count == 1) {
+	    my $lock_file = $self->{'dir'}.'/include.lock';
+
+	    ## Create include.lock if needed
+	    unless (-f $lock_file) {
+		unless (open FH, ">>$lock_file") {
+		    &do_log('err', 'Cannot open %s: %s', $lock_file, $!);
+		    return undef;
+		}
+	    }
+	    close FH;
+	    
+
+	    unless ($list_of_fh{$lock_file} = &tools::lock($lock_file,'read')) {
+		return undef;
+	    }
 	}
     }
 
@@ -5849,8 +5817,15 @@ sub get_first_bouncing_user {
 	
 	if ($self->{'admin'}{'user_data_source'} eq 'include2') {
 	    ## Release the Shared lock
-	    unless ($lock->unlock()) {
-		return undef;
+	    $include_lock_count--;
+	    
+	    ## Last lock
+	    if ($include_lock_count == 0) {
+		my $lock_file = $self->{'dir'}.'/include.lock';
+		unless (&tools::unlock($lock_file, $list_of_fh{$lock_file})) {
+		    return undef;
+		}
+		delete $list_of_fh{$lock_file};
 	    }
 	}
     }
@@ -5889,9 +5864,15 @@ sub get_next_bouncing_user {
 	
 	if ($self->{'admin'}{'user_data_source'} eq 'include2') {
 	    ## Release the Shared lock
-	    my $lock = new Lock ($self->{'dir'}.'/include');
-	    unless ($lock->unlock()) {
-		return undef;
+	    $include_lock_count--;
+	    
+	    ## Last lock
+	    if ($include_lock_count == 0) {
+		my $lock_file = $self->{'dir'}.'/include.lock';
+		unless (&tools::unlock($lock_file, $list_of_fh{$lock_file})) {
+		    return undef;
+		}
+		delete $list_of_fh{$lock_file};
 	    }
 	}
     }
@@ -6360,6 +6341,7 @@ sub update_admin_user {
 
 
 
+
 ## Sets new values for the given user in the Database
 sub update_user_db {
     my($who, $values) = @_;
@@ -6392,11 +6374,6 @@ sub update_user_db {
 	return undef unless &db_connect();
     }	   
     
-    ## Crypt password if it was not crypted
-    if ($values->{'password'} && ($values->{'password'} !~ /^crypt/)) {
-	$values->{'password'} = &tools::crypt_password($values->{'password'});
-    }
-
     ## Update each table
     my @set_list;
     while (($field, $value) = each %{$values}) {
@@ -6522,11 +6499,6 @@ sub add_user {
 	    my $date_field = sprintf $date_format{'write'}{$Conf{'db_type'}}, $new_user->{'date'}, $new_user->{'date'};
 	    my $update_field = sprintf $date_format{'write'}{$Conf{'db_type'}}, $new_user->{'update_date'}, $new_user->{'update_date'};
 	    
-	    ## Crypt password if it was not crypted
-	    unless ($new_user->{'password'} =~ /^crypt/) {
-		$new_user->{'password'} = &tools::crypt_password($new_user->{'password'});
-	    }
-
 	    $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who} = undef;
 	    
 	    my $statement;
@@ -6955,7 +6927,6 @@ sub request_action {
     my $debug = shift;
     do_log('debug', 'List::request_action %s,%s,%s',$operation,$auth_method,$robot);
 
-    ## Defining default values for parameters.
     $context->{'sender'} ||= 'nobody' ;
     $context->{'email'} ||= $context->{'sender'};
     $context->{'remote_host'} ||= 'unknown_host' ;
@@ -6964,16 +6935,12 @@ sub request_action {
     $context->{'msg_encrypted'} = 'smime' if (defined $context->{'message'} && 
 					      $context->{'message'}->{'smime_crypted'} eq 'smime_crypted');
 
-    # do_log('info',"xxxxxxxxxxxxxxxxxx  auth_method='$auth_method'");
-    ## Check that authorization method is one of those known by Sympa
     unless ( $auth_method =~ /^(smtp|md5|pgp|smime)/) {
 	do_log('info',"fatal error : unknown auth method $auth_method in List::get_action");
 	return undef;
     }
     my (@rules, $name) ;
     my $list;
-
-    ## if we know which list we're working on
     if ($context->{'listname'}) {
         unless ( $list = new List ($context->{'listname'}, $robot) ){
 	    do_log('info',"request_action :  unable to create object $context->{'listname'}");
@@ -6981,7 +6948,6 @@ sub request_action {
 	}
     
 	my @operations = split /\./, $operation;
-	# do_log('info',"xxxxxxxxxxxxxxxxxx  operation='$operation'");
 	my $data_ref;
 	if ($#operations == 0) {
 	    $data_ref = $list->{'admin'}{$operation};
@@ -7023,7 +6989,6 @@ sub request_action {
 	$name = $data_ref->{'name'};
 
     }elsif ($context->{'topicname'}) {
-	# do_log('info',"xxxxxxxxxxxxxxxxxx topicname defined");
 	my $scenario = $list_of_topics{$robot}{$context->{'topicname'}}{'visibility'};
 	@rules = @{$scenario->{'rules'}};
 	$name = $scenario->{'name'};
@@ -7033,7 +6998,7 @@ sub request_action {
 	my $p;
 	
 	$p = &Conf::get_robot_conf($robot, $operation);
-	# do_log('info',"xxxxxxxxxxxxxxxxxx  _load_scenario_file ($operation, $robot, $p)");
+
 	return undef 
 	    unless ($scenario = &_load_scenario_file ($operation, $robot, $p));
         @rules = @{$scenario->{'rules'}};
@@ -7041,19 +7006,16 @@ sub request_action {
     }
 
     unless ($name) {
-	# do_log('err',"internal error : configuration for operation $operation is not yet performed by scenario");
+	do_log('err',"internal error : configuration for operation $operation is not yet performed by scenario");
 	return undef;
     }
 
     my $return = {};
     foreach my $rule (@rules) {
-	# do_log('info',"xxxxxxxxxxxxxxx   new rule");
 	next if ($rule eq 'scenario');
 	# &do_log('info', 'List::request_action : verify rule %s',$rule->{'condition'});
 
 	if ($auth_method eq $rule->{'auth_method'}) {
-	    # do_log('info',"xxxxxxxxxxxxxxx   authmethod match : $auth_method ");
-	    # do_log('info',"xxxxxxxxxxxxxxx   check condition : $rule->{'condition'}");
 	    my $result =  &verify ($context,$rule->{'condition'});
 	    if (! defined ($result)) {
 		do_log('info',"error in $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'}" );
@@ -7076,13 +7038,11 @@ sub request_action {
 		return undef;
 	    }
 	    if ($result == -1) {
-		# do_log('info',"xxxxxxxxxxxxxxxxxxxxxxxxxx rule $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'} rejected");
-		# do_log('debug3',"rule $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'} rejected");
+		do_log('debug3',"rule $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'} rejected");
 		next;
 	    }
 	    
 	    my $action = $rule->{'action'};
-	    # do_log('info',"xxxxxxxxxxxxxx action: $action");
 
             ## reject : get parameters
 	    if ($action =~/^reject(\((.+)\))?(\s?,\s?(quiet))?/) {
@@ -7336,14 +7296,9 @@ sub verify {
 	     do_log('err',"error rule syntaxe : incorrect argument number for condition $condition_key") ; 
 	    return undef ;
 	}
-	# condition that require 1 or 2 args (search : historical reasons)
-    }elsif ($condition_key =~ /^search$/o) {
-	unless ($#args == 1 || $#args == 0) {
-	    do_log('err',"error rule syntaxe : Incorrect argument number for condition $condition_key") ; 
-	    return undef ;
-	}
 	# condition that require 2 args
-    }elsif ($condition_key =~ /^is_owner|is_editor|is_subscriber|match|equal|message|newer|older$/o) {
+#
+    }elsif ($condition_key =~ /^is_owner|is_editor|is_subscriber|match|equal|message|newer|older|search$/o) {
 	unless ($#args == 1) {
 	    do_log('err',"error rule syntaxe : incorrect argument number for condition $condition_key") ; 
 	    return undef ;
@@ -7465,9 +7420,10 @@ sub verify {
 	my $val_search;
  	# we could search in the family if we got ref on Family object
  	if (defined $list){
- 	    $val_search = &search($args[0],$context,$robot,$list);
+            do_log('debug3',"appel de search($args[0],$args[1],$robot,$list)");
+ 	    $val_search = &search($args[0],$args[1],$robot,$list);
  	}else {
- 	    $val_search = &search($args[0],$context,$robot);
+ 	    $val_search = &search($args[0],$args[1],$robot);
  	}
 	return undef unless defined $val_search;
 	if($val_search == 1) { 
@@ -7547,11 +7503,9 @@ sub verify_custom {
 ## Verify if a given user is part of an LDAP, SQL or TXT search filter
 sub search{
     my $filter_file = shift;
-    my $context = shift;
+    my $sender = shift;
     my $robot = shift;
     my $list = shift;
-
-    my $sender = $context->{'sender'};
 
     &do_log('debug2', 'List::search(%s,%s,%s)', $filter_file, $sender, $robot);
     
@@ -7571,38 +7525,8 @@ sub search{
 	
         my $statement = $sql_conf->{'sql_named_filter_query'}->{'statement'};
         my $filter = $statement;
-	my @statement_args; ## Useful to later quote parameters
-	
-	## Minimalist variable parser ; only parse [x] or [x->y]
-	## should be extended with the code from verify()
-	while ($filter =~ /\[(\w+(\-\>[\w\-]+)?)\]/x) {
-	    my ($full_var) = ($1);
-	    my ($var, $key) = split /\-\>/, $full_var;
-	    
-	    unless (defined $context->{$var}) {
-		&do_log('err', "Failed to parse variable '%s' in filter '%s'", $var, $file);
-		return undef;
-	    }
-
-	    if (defined $key) { ## Should be a hash
-		unless (defined $context->{$var}{$key}) {
-		    &do_log('err', "Failed to parse variable '%s.%s' in filter '%s'", $var, $key, $file);
-		    return undef;
-		}
-
-		$filter =~ s/\[$full_var\]/$context->{$var}{$key}/;
-		$statement =~ s/\[$full_var\]/\%s/;
-		push @statement_args, $context->{$var}{$key};
-	    }else { ## Scalar
-		$filter =~ s/\[$full_var\]/$context->{$var}/;
-		$statement =~ s/\[$full_var\]/\%s/;
-		push @statement_args, $context->{$var};
-
-	    }
-	}
-
-#        $statement =~ s/\[sender\]/%s/g;
-#        $filter =~ s/\[sender\]/$sender/g;
+        $statement =~ s/\[sender\]/%s/g;
+        $filter =~ s/\[sender\]/$sender/g;
  
         if (defined ($persistent_cache{'named_filter'}{$filter_file}{$filter}) &&
             (time <= $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} + $timeout)){ ## Cache has 1hour lifetime
@@ -7610,18 +7534,13 @@ sub search{
             return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
         }
 	
-	my $ds = new Datasource('SQL', $sql_conf->{'sql_named_filter_query'});
-	unless ($ds->connect() && $ds->ping) {
+        my $ds = new Datasource('SQL', $sql_conf->{'sql_named_filter_query'});
+        unless ($ds->connect() && $ds->ping) {
             do_log('notice','Unable to connect to the SQL server %s:%d',$sql_conf->{'db_host'}, $sql_conf->{'db_port'});
             return undef;
         }
 	
-	## Quote parameters
-	foreach (@statement_args) {
-	    $_ = $ds->quote($_);
-	}
-
-        $statement = sprintf $statement, @statement_args;
+        $statement = sprintf $statement, $ds->quote($sender);
         unless ($ds->query($statement)) {
             do_log('debug','%s named filter cancelled', $file);
             return undef;
@@ -7655,32 +7574,7 @@ sub search{
 	return undef unless (%ldap_conf = &Ldap::load($file));
 
 	my $filter = $ldap_conf{'filter'};	
-
-	## Minimalist variable parser ; only parse [x] or [x->y]
-	## should be extended with the code from verify()
-	while ($filter =~ /\[(\w+(\-\>[\w\-]+)?)\]/x) {
-	    my ($full_var) = ($1);
-	    my ($var, $key) = split /\-\>/, $full_var;
-	    
-	    unless (defined $context->{$var}) {
-		&do_log('err', "Failed to parse variable '%s' in filter '%s'", $var, $file);
-		return undef;
-	    }
-
-	    if (defined $key) { ## Should be a hash
-		unless (defined $context->{$var}{$key}) {
-		    &do_log('err', "Failed to parse variable '%s.%s' in filter '%s'", $var, $key, $file);
-		    return undef;
-		}
-
-		$filter =~ s/\[$full_var\]/$context->{$var}{$key}/;
-	    }else { ## Scalar
-		$filter =~ s/\[$full_var\]/$context->{$var}/;
-
-	    }
-	}
-
-#	$filter =~ s/\[sender\]/$sender/g;
+	$filter =~ s/\[sender\]/$sender/g;
 	
 	if (defined ($persistent_cache{'named_filter'}{$filter_file}{$filter}) &&
 	    (time <= $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} + $timeout)){ ## Cache has 1hour lifetime
@@ -7688,21 +7582,40 @@ sub search{
 	    return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
 	}
 	
-	my $ldap;
-	my $param = &tools::dup_var(\%ldap_conf);
-	my $ds = new Datasource('LDAP', $param);
-	    
-	unless (defined $ds && ($ldap = $ds->connect())) {
-	    &do_log('err',"Unable to connect to the LDAP server '%s'", $param->{'ldap_host'});
+	unless (eval "require Net::LDAP") {
+	    do_log('err',"Unable to use LDAP library, Net::LDAP required, install perl-ldap (CPAN) first");
 	    return undef;
+	}
+	require Net::LDAP;
+	
+	## There can be replicates
+	foreach my $host_entry (split(/,/,$ldap_conf{'host'})) {
+	    
+	    $host_entry =~ s/^\s*(\S.*\S)\s*$/$1/;
+	    my ($host,$port) = split(/:/,$host_entry);	    
+	    ## If port a 'port' entry was defined, use it as default
+	    $port = $port || $ldap_conf{'port'} || 389;	    
+	    my $ldap = Net::LDAP->new($host, port => $port );	    
+	    unless ($ldap) {	
+		do_log('notice','Unable to connect to the LDAP server %s:%d',$host, $port);
+		next;
+	    }	    
+	    my $status; 
+
+	    if (defined $ldap_conf{'bind_dn'} && defined $ldap_conf{'bind_password'}) {
+		$status = $ldap->bind($ldap_conf{'bind_dn'}, password =>$ldap_conf{'bind_password'});
+	    }else {
+		$status = $ldap->bind();
 	    }
 	    
-	## The 1.1 OID correponds to DNs ; it prevents the LDAP server from 
-	## preparing/providing too much data
+	    unless ($status && ($status->code == 0)) {
+		do_log('notice','Unable to bind to the LDAP server %s:%d',$host, $port);
+		next;
+	    }
+	    
 	    my $mesg = $ldap->search(base => "$ldap_conf{'suffix'}" ,
 				     filter => "$filter",
-				 scope => "$ldap_conf{'scope'}",
-				 attrs => ['1.1']);
+				     scope => "$ldap_conf{'scope'}");
 	    unless ($mesg) {
 		do_log('err',"Unable to perform LDAP search");
 		return undef;
@@ -7719,20 +7632,18 @@ sub search{
 		$persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'} = 1;
 	    }
 	    
-	$ds->disconnect() or do_log('notice','List::search_ldap.Unbind impossible');
+	    $ldap->unbind or do_log('notice','List::search_ldap.Unbind impossible');
 	    $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} = time;
 	    
 	    return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
-
+	}
     }elsif($filter_file =~ /\.txt$/){ 
 	# &do_log('info', 'List::search: eval %s', $filter_file);
 	my @files = &tools::get_filename('etc',{'order'=>'all'},"search_filters/$filter_file", $robot, $list); 
 
 	## Raise an error except for blacklist.txt
-	unless (@files) {
-	    if ($filter_file eq 'blacklist.txt') {
-		return -1;
-	    }else {
+	unless ($filter_file eq 'blacklist.txt') {
+	    unless (@files) {
 		&do_log('err', 'Could not find search filter %s', $filter_file);
 		return undef;
 	    }
@@ -7742,7 +7653,7 @@ sub search{
 	foreach my $file (@files) {
 	    &do_log('debug3', 'List::search: found file  %s', $file);
 	    unless (open FILE, $file) {
-		&do_log('err', 'Could not open file %s', $file);
+		&do_log('err', 'Could not openfile %s', $file);
 		return undef;
 	    } 
 	    while (<FILE>) {
@@ -8203,18 +8114,16 @@ sub load_scenario_list {
     foreach my $dir ("$directory/scenari", "$Conf{'etc'}/$robot/scenari", "$Conf{'etc'}/scenari", "--ETCBINDIR--/scenari") {
 
 	next unless (-d $dir);
-	
-	my $scenario_regexp = &tools::get_regexp('scenario');
 
 	while (<$dir/$action.*:ignore>) {
-	    if (/$action\.($scenario_regexp):ignore$/) {
+	    if (/$action\.($tools::regexp{'scenario'}):ignore$/) {
 		my $name = $1;
 		$skip_scenario{$name} = 1;
 	    }
 	}
 
 	while (<$dir/$action.*>) {
-	    next unless (/$action\.($scenario_regexp)$/);
+	    next unless (/$action\.($tools::regexp{'scenario'})$/);
 	    my $name = $1;
 	    
 	    next if (defined $list_of_scenario{$name});
@@ -8359,7 +8268,7 @@ sub _load_stats_file {
    }
 
    ## Return the array.
-   return ($stats, $total, $last_sync, $last_sync_admin_user);
+   return ($stats, $total);
 }
 
 ## Loads the list of subscribers as a tied hash
@@ -8647,8 +8556,7 @@ sub _include_users_file {
 	next if /^\s*$/;
 	next if /^\s*\#/;
 
-	my $email_regexp = &tools::get_regexp('email');
-	unless (/^\s*($email_regexp)(\s*(\S.*))?\s*$/) {
+	unless (/^\s*($tools::regexp{'email'})(\s*(\S.*))?\s*$/) {
 	    &do_log('notice', 'Not an email address: %s', $_);
 	}
 
@@ -8723,8 +8631,7 @@ sub _include_users_remote_file {
 	    next if ($line =~ /^\s*$/);
 	    next if ($line =~ /^\s*\#/);
 
-	    my $email_regexp = &tools::get_regexp('email');
-	    unless ( $line =~ /^\s*($email_regexp)(\s*(\S.*))?\s*$/) {
+	    unless ( $line =~ /^\s*($tools::regexp{'email'})(\s*(\S.*))?\s*$/) {
 		&do_log('err', 'Not an email address: %s', $_);
 	    }     
 	    my $email = &tools::clean_email($1);
@@ -8763,7 +8670,7 @@ sub _include_users_remote_file {
 	}
     }
     else {
-	do_log ('err',"List::include_users_remote_file: Unable to fetch remote file $url : %s", $res->message());
+	do_log ('err',"List::include_users_remote_file: Unable to fetch remote file $url");
 	return undef; 
     }
 
@@ -8780,8 +8687,17 @@ sub _include_users_ldap {
     my ($users, $param, $default_user_options, $tied) = @_;
     do_log('debug2', 'List::_include_users_ldap');
     
+    unless (eval "require Net::LDAP") {
+	do_log('err',"Unable to use LDAP library, install perl-ldap (CPAN) first");
+	return undef;
+    }
+    require Net::LDAP;
+    
     my $id = Datasource::_get_datasource_id($param);
 
+    my $host;
+    @{$host} = split(/,/, $param->{'host'});
+    my $port = $param->{'port'} || '389';
     my $user = $param->{'user'};
     my $passwd = $param->{'passwd'};
     my $ldap_suffix = $param->{'suffix'};
@@ -8798,19 +8714,51 @@ sub _include_users_ldap {
     ## Connection timeout (default is 120)
     #my $timeout = 30; 
     
-    my $param2 = &tools::dup_var($param);
-    my $ds = new Datasource('LDAP', $param2);
-    if (defined $user) {
-	$param2->{'bind_dn'} = $user;
-	$param2->{'bind_password'} = $passwd;
-    }
-    
-    unless (defined $ds && ($ldaph = $ds->connect())) {
-	&do_log('err',"Unable to connect to the LDAP server '%s'", $param2->{'host'});
+    if ($param->{'use_ssl'} eq 'yes' ) {
+	unless (eval "require Net::LDAPS") {
+	    do_log ('err',"Unable to use LDAPS library, Net::LDAPS required");
+	    return undef;
+	} 
+	
+	my %new_param = (async => 1);
+	$new_param{'timeout'} = $param->{'timeout'} if ($param->{'timeout'});
+	$new_param{'sslversion'} = $param->{'ssl_version'} if ($param->{'ssl_version'});
+	$new_param{'ciphers'} = $param->{'ssl_ciphers'} if ($param->{'ssl_ciphers'});
+
+	unless ($ldaph = Net::LDAPS->new($host, %new_param)) {
+	    
+	    do_log('notice',"Can\'t connect to LDAP server '%s' : $@", join(',',@{$host}));
+	    return undef;
+	}	
+	
+    }else { 
+	unless ($ldaph = Net::LDAP->new($host, timeout => $param->{'timeout'}, async => 1)) {
+	    
+	    do_log('notice',"Can\'t connect to LDAP server '%s' : $@", join(',',@{$host}));
 	    return undef;
 	}
+	
+    }
+    do_log('debug2', "Connected to LDAP server %s", join(',',@{$host}));
+    my $status;
     
-    do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $param->{'host'}, $ldap_suffix, $ldap_filter, $ldap_attrs);
+    if ( defined $user ) {
+	$status = $ldaph->bind ($user, password => "$passwd");
+	unless (defined($status) && ($status->code == 0)) {
+	    do_log('notice',"Can\'t bind with server %s as user '$user' : $@", join(',',@{$host}));
+	    return undef;
+	}
+    }else {
+	$status = $ldaph->bind;
+	unless (defined($status) && ($status->code == 0)) {
+	    do_log('notice',"Can\'t do anonymous bind with server %s : $@", join(',',@{$host}));
+	    return undef;
+	}
+    }
+
+    do_log('debug2', "Binded to LDAP server %s ; user : '$user'", join(',',@{$host})) ;
+    
+    do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', join(',',@{$host}), $ldap_suffix, $ldap_filter, $ldap_attrs);
     $fetch = $ldaph->search ( base => "$ldap_suffix",
                                       filter => "$ldap_filter",
 				      attrs => "$ldap_attrs",
@@ -8822,7 +8770,7 @@ sub _include_users_ldap {
     
     unless ($fetch->code == 0) {
 	do_log('err','Ldap search failed : %s (searching on server %s ; suffix %s ; filter %s ; attrs: %s)', 
-	       $fetch->error(), $param->{'host'}, $ldap_suffix, $ldap_filter, $ldap_attrs);
+	       $fetch->error(), join(',',@{$host}), $ldap_suffix, $ldap_filter, $ldap_attrs);
         return undef;
     }
     
@@ -8846,8 +8794,8 @@ sub _include_users_ldap {
 	}
     }
     
-    unless ($ds->disconnect()) {
-	do_log('notice','Can\'t unbind from  LDAP server %s', $param->{'host'});
+    unless ($ldaph->unbind) {
+	do_log('notice','Can\'t unbind from  LDAP server %s', join(',',@{$host}));
 	return undef;
     }
     
@@ -8886,7 +8834,7 @@ sub _include_users_ldap {
 	}
     }
 
-    do_log('debug2',"unbinded from LDAP server %s ", $param->{'host'});
+    do_log('debug2',"unbinded from LDAP server %s ", join(',',@{$host}));
     do_log('debug2','%d new users included from LDAP query',$total);
 
     return $total;
@@ -8906,6 +8854,9 @@ sub _include_users_ldap_2level {
 
     my $id = Datasource::_get_datasource_id($param);
 
+    my $host;
+    @{$host} = split(/,/, $param->{'host'});
+    my $port = $param->{'port'} || '389';
     my $user = $param->{'user'};
     my $passwd = $param->{'passwd'};
     my $ldap_suffix1 = $param->{'suffix1'};
@@ -8927,19 +8878,53 @@ sub _include_users_ldap_2level {
     ## LDAP and query handler
     my ($ldaph, $fetch);
 
-    my $param2 = &tools::dup_var($param);
-    my $ds = new Datasource('LDAP', $param2);
-    if (defined $user) {
-	$param2->{'bind_dn'} = $user;
-	$param2->{'bind_password'} = $passwd;
-    }
+    ## Connection timeout (default is 120)
+    #my $timeout = 30; 
     
-    unless (defined $ds && ($ldaph = $ds->connect())) {
-	&do_log('err',"Unable to connect to the LDAP server '%s'", $param2->{'host'});
+    if ($param->{'use_ssl'} eq 'yes' ) {
+	unless (eval "require Net::LDAPS") {
+	    do_log ('err',"Unable to use LDAPS library, Net::LDAPS required");
+	    return undef;
+	} 
+	
+	my %new_param = (async => 1);
+	$new_param{'timeout'} = $param->{'timeout'} if ($param->{'timeout'});
+	$new_param{'sslversion'} = $param->{'ssl_version'} if ($param->{'ssl_version'});
+	$new_param{'ciphers'} = $param->{'ssl_ciphers'} if ($param->{'ssl_ciphers'});
+
+	unless ($ldaph = Net::LDAPS->new($host, %new_param)) {
+	    
+	    do_log('notice',"Can\'t connect to LDAP server '%s' : $@", join(',',@{$host}));
+	    return undef;
+	}	
+	
+    }else { 
+	unless ($ldaph = Net::LDAP->new($host, timeout => $param->{'timeout'}, async => 1)) {
+	    do_log('notice',"Can\'t connect to LDAP server '%s' : $@",join(',',@{$host}) );
 	    return undef;
 	}
+    }
     
-    do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $param->{'host'}, $ldap_suffix1, $ldap_filter1, $ldap_attrs1) ;
+    do_log('debug2', "Connected to LDAP server %s", join(',',@{$host}));
+    my $status;
+    
+    if ( defined $user ) {
+	$status = $ldaph->bind ($user, password => "$passwd");
+	unless (defined($status) && ($status->code == 0)) {
+	    do_log('err',"Can\'t bind with server %s as user '$user' : $@", join(',',@{$host}));
+	    return undef;
+	}
+    }else {
+	$status = $ldaph->bind;
+	unless (defined($status) && ($status->code == 0)) {
+	    do_log('err',"Can\'t do anonymous bind with server %s : $@", join(',',@{$host}));
+	    return undef;
+	}
+    }
+
+    do_log('debug2', "Binded to LDAP server %s ; user : '$user'", join(',',@{$host})) ;
+    
+    do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', join(',',@{$host}), $ldap_suffix1, $ldap_filter1, $ldap_attrs1) ;
     unless ($fetch = $ldaph->search ( base => "$ldap_suffix1",
                                       filter => "$ldap_filter1",
 				      attrs => "$ldap_attrs1",
@@ -8978,7 +8963,7 @@ sub _include_users_ldap_2level {
 	($suffix2 = $ldap_suffix2) =~ s/\[attrs1\]/$attr/g;
 	($filter2 = $ldap_filter2) =~ s/\[attrs1\]/$attr/g;
 
-	do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $param->{'host'}, $suffix2, $filter2, $ldap_attrs2);
+	do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', join(',',@{$host}), $suffix2, $filter2, $ldap_attrs2);
 	unless ($fetch = $ldaph->search ( base => "$suffix2",
 					filter => "$filter2",
 					attrs => "$ldap_attrs2",
@@ -9007,8 +8992,8 @@ sub _include_users_ldap_2level {
 	}
     }
     
-    unless ($ds->disconnect()) {
-	do_log('err','Can\'t unbind from  LDAP server %s', $param->{'host'});
+    unless ($ldaph->unbind) {
+	do_log('err','Can\'t unbind from  LDAP server %s',join(',',@{$host}));
 	return undef;
     }
     
@@ -9047,7 +9032,7 @@ sub _include_users_ldap_2level {
 	}
     }
 
-    do_log('debug2',"unbinded from LDAP server %s ", $param->{'host'}) ;
+    do_log('debug2',"unbinded from LDAP server %s ",join(',',@{$host})) ;
     do_log('debug2','%d new users included from LDAP query',$total);
 
     return $total;
@@ -9061,7 +9046,7 @@ sub _include_users_sql {
 
     my $id = Datasource::_get_datasource_id($param);
     my $ds = new Datasource('SQL', $param);
-    unless ($ds->connect && ($ds->query($param->{'sql_query'}))) {
+    unless ($ds->connect && $ds->query($param->{'sql_query'})) {
         return undef;
     }
     ## Counters.
@@ -9653,10 +9638,8 @@ sub sync_include {
     my $users_updated = 0;
 
     ## Get an Exclusive lock
-    my $lock = new Lock ($self->{'dir'}.'/include');
-    $lock->set_timeout(10*60); 
-
-    unless ($lock->lock('write')) {
+    my $lock_file = $self->{'dir'}.'/include.lock';
+    unless ($list_of_fh{$lock_file} = &tools::lock($lock_file,'write')) {
 	return undef;
     }
 
@@ -9757,9 +9740,10 @@ sub sync_include {
     &do_log('notice', 'List:sync_include(%s): %d users updated', $name, $users_updated);
 
     ## Release lock
-    unless ($lock->unlock()) {
+    unless (&tools::unlock($lock_file, $list_of_fh{$lock_file})) {
 	return undef;
     }
+    delete $list_of_fh{$lock_file};
 
     ## Get and save total of subscribers
     $self->{'total'} = $self->_load_total_db('nocache');
@@ -9822,11 +9806,15 @@ sub sync_include_admin {
 	my $admin_users_updated = 0;
 	
 	## Get an Exclusive lock
-	my $lock = new Lock ($self->{'dir'}.'/include_admin_user');
-	$lock->set_timeout(20); 
-	unless ($lock->lock('write')) {
+	
+	my $lock_file = $self->{'dir'}.'/include_admin_user.lock';
+	unless (open FH, ">>$lock_file") {
+	    &do_log('err', 'Cannot open %s: %s', $lock_file, $!);
 	    return undef;
 	}
+	unless ($list_of_fh{$lock_file} = &tools::lock($lock_file,'write')) {
+		return undef;
+	    }
 	
 	## Go through new admin_users_include
 	foreach my $email (keys %{$new_admin_users_include}) {
@@ -9993,9 +9981,10 @@ sub sync_include_admin {
 	}
 
 	## Release lock
-	unless ($lock->unlock()) {
+	unless (&tools::unlock($lock_file, $list_of_fh{$lock_file})) {
 	    return undef;
 	}
+	delete $list_of_fh{$lock_file};
     }	
    
     $self->{'last_sync_admin_user'} = time;
@@ -10192,7 +10181,7 @@ sub store_digest {
     do_log('debug3', 'List::store_digest');
 
     my($filename, $newfile);
-    my $separator = &tools::get_separator();  
+    my $separator = $tools::separator;  
 
     unless ( -d "$Conf{'queuedigest'}") {
 	return;
@@ -10216,13 +10205,13 @@ sub store_digest {
 	printf OUT "\nThis digest for list has been created on %s\n\n",
       POSIX::strftime("%a %b %e %H:%M:%S %Y", @now);
 	print OUT "------- THIS IS A RFC934 COMPLIANT DIGEST, YOU CAN BURST IT -------\n\n";
-	printf OUT "\n%s\n\n", &tools::get_separator();
+	printf OUT "\n%s\n\n", $tools::separator;
 
        # send the date of the next digest to the users
     }
     #$msg->head->delete('Received') if ($msg->head->get('received'));
     $msg->print(\*OUT);
-    printf OUT "\n%s\n\n", &tools::get_separator();
+    printf OUT "\n%s\n\n", $tools::separator;
     close(OUT);
     
     #replace the old time
@@ -10755,7 +10744,7 @@ sub load_topics {
 	    return undef;
 	}
 	
-	unless (open (FILE, "<", $conf_file)) {
+	unless (open (FILE, $conf_file)) {
 	    &do_log('err',"Unable to open config file $conf_file");
 	    return undef;
 	}
@@ -10764,7 +10753,6 @@ sub load_topics {
 	my $index = 0;
 	my (@raugh_data, $topic);
 	while (<FILE>) {
-	    Encode::from_to($_, $Conf{'filesystem_encoding'}, 'utf8');
 	    if (/^([\w\/]+)\s*$/) {
 		$index++;
 		$topic = {'name' => $1,
@@ -10901,18 +10889,18 @@ sub _apply_defaults {
 
 	## Scenario format
 	if ($::pinfo{$p}{'scenario'}) {
-	    $::pinfo{$p}{'format'} = &tools::get_regexp('scenario');
+	    $::pinfo{$p}{'format'} = $tools::regexp{'scenario'};
 	    $::pinfo{$p}{'default'} = 'default';
 	}
 
 	## Task format
 	if ($::pinfo{$p}{'task'}) {
-	    $::pinfo{$p}{'format'} = &tools::get_regexp('task');
+	    $::pinfo{$p}{'format'} = $tools::regexp{'task'};
 	}
 
 	## Datasource format
 	if ($::pinfo{$p}{'datasource'}) {
-	    $::pinfo{$p}{'format'} = &tools::get_regexp('datasource');
+	    $::pinfo{$p}{'format'} = $tools::regexp{'datasource'};
 	}
 
 	## Enumeration
@@ -10946,18 +10934,18 @@ sub _apply_defaults {
 	    
 	    ## Scenario format
 	    if (ref($::pinfo{$p}{'format'}{$k}) && $::pinfo{$p}{'format'}{$k}{'scenario'}) {
-		$::pinfo{$p}{'format'}{$k}{'format'} = &tools::get_regexp('scenario');
+		$::pinfo{$p}{'format'}{$k}{'format'} = $tools::regexp{'scenario'};
 		$::pinfo{$p}{'format'}{$k}{'default'} = 'default' unless (($p eq 'web_archive') && ($k eq 'access'));
 	    }
 
 	    ## Task format
 	    if (ref($::pinfo{$p}{'format'}{$k}) && $::pinfo{$p}{'format'}{$k}{'task'}) {
-		$::pinfo{$p}{'format'}{$k}{'format'} = &tools::get_regexp('task');
+		$::pinfo{$p}{'format'}{$k}{'format'} = $tools::regexp{'task'};
 	    }
 
 	    ## Datasource format
 	    if (ref($::pinfo{$p}{'format'}{$k}) && $::pinfo{$p}{'format'}{$k}{'datasource'}) {
-		$::pinfo{$p}{'format'}{$k}{'format'} = &tools::get_regexp('datasource');
+		$::pinfo{$p}{'format'}{$k}{'format'} = $tools::regexp{'datasource'};
 	    }
 
 	    ## Enumeration
@@ -11010,31 +10998,31 @@ sub _save_list_param {
         defined ($::pinfo{$key}{'task'}) ) {
 	return 1 if ($p->{'name'} eq 'default');
 
-	$fd->print(sprintf "%s %s\n", $key, $p->{'name'});
-	$fd->print("\n");
+	printf $fd "%s %s\n", $key, $p->{'name'};
+	print $fd "\n";
 
     }elsif (ref($::pinfo{$key}{'file_format'})) {
-	$fd->print(sprintf "%s\n", $key);
+	printf $fd "%s\n", $key;
 	foreach my $k (keys %{$p}) {
 
 	    if (defined ($::pinfo{$key}{'file_format'}{$k}{'scenario'}) ) {
 		## Skip if empty value
 		next if ($p->{$k}{'name'} =~ /^\s*$/);
 
-		$fd->print(sprintf "%s %s\n", $k, $p->{$k}{'name'});
+		printf $fd "%s %s\n", $k, $p->{$k}{'name'};
 
 	    }elsif (($::pinfo{$key}{'file_format'}{$k}{'occurrence'} =~ /n$/)
 		    && $::pinfo{$key}{'file_format'}{$k}{'split_char'}) {
 		
-		$fd->print(sprintf "%s %s\n", $k, join($::pinfo{$key}{'file_format'}{$k}{'split_char'}, @{$p->{$k}}));
+		printf $fd "%s %s\n", $k, join($::pinfo{$key}{'file_format'}{$k}{'split_char'}, @{$p->{$k}});
 	    }else {
 		## Skip if empty value
 		next if ($p->{$k} =~ /^\s*$/);
 
-		$fd->print(sprintf "%s %s\n", $k, $p->{$k});
+		printf $fd "%s %s\n", $k, $p->{$k};
 	    }
 	}
-	$fd->print("\n");
+	print $fd "\n";
 
     }else {
 	if (($::pinfo{$key}{'occurrence'} =~ /n$/)
@@ -11043,15 +11031,15 @@ sub _save_list_param {
  	    my $string = join($::pinfo{$key}{'split_char'}, @{$p});
  	    $string =~ s/\,\s*$//;
 	    
- 	    $fd->print(sprintf "%s %s\n\n", $key, $string);
+ 	    printf $fd "%s %s\n\n", $key, $string;
 	}elsif ($key eq 'digest') {
 	    my $value = sprintf '%s %d:%d', join(',', @{$p->{'days'}})
 		,$p->{'hour'}, $p->{'minute'};
-	    $fd->print(sprintf "%s %s\n\n", $key, $value);
+	    printf $fd "%s %s\n\n", $key, $value;
 ##	}elsif (($key eq 'user_data_source') && $defaults && $List::use_db) {
 ##	    printf $fd "%s %s\n\n", $key,  'database';
 	}else {
-	    $fd->print(sprintf "%s %s\n\n", $key, $p);
+	    printf $fd "%s %s\n\n", $key, $p;
 	}
     }
     
@@ -11082,13 +11070,7 @@ sub _load_list_param {
     if (defined $p->{'synonym'}{$value}) {
 	$value = $p->{'synonym'}{$value};
     }
-
-    ## Include mode should not be used anymore
-    ## Change value to include2 to shift to new behavior
-    if ($key eq 'user_data_source' && $value eq 'include') {
-	$value = 'include2';
-    }
-
+    
     ## Scenario
     if ($p->{'scenario'}) {
 	$value =~ y/,/_/;
@@ -11189,14 +11171,13 @@ sub _load_admin_file {
 	$admin{'defaults'}{$pname} = 1 unless ($::pinfo{$pname}{'internal'});
     }
 
-    unless (open CONFIG, "<", $config_file) {
+    unless (open CONFIG, "<:encoding($Conf{'filesystem_encoding'})", $config_file) {
 	&do_log('info', 'Cannot open %s', $config_file);
     }
 
     ## Split in paragraphs
     my $i = 0;
     while (<CONFIG>) {
-	Encode::from_to($_, $Conf{'filesystem_encoding'}, 'utf8');
 	if (/^\s*$/) {
 	    $i++ if $paragraphs[$i];
 	}else {
@@ -11358,22 +11339,22 @@ sub _load_admin_file {
 		$admin{$p} = &_load_list_param($robot,$p, $::pinfo{$p}{'default'}, $::pinfo{$p}, $directory);
 
 	    }elsif ((ref $::pinfo{$p}{'format'} eq 'HASH')
-		    && ($::pinfo{$p}{'occurrence'} =~ /1$/)) {
+		    && ($::pinfo{$p}{'occurrence'} !~ /n$/)) {
 		## If the paragraph is not defined, try to apply defaults
 		my $hash = {};
 		
 		foreach my $key (keys %{$::pinfo{$p}{'format'}}) {
 
-		    ## Skip keys without default value.
+		    ## Only if all keys have defaults
 		    unless (defined $::pinfo{$p}{'format'}{$key}{'default'}) {
-			next;
+			undef $hash;
+			last;
 		    }
 		    
 		    $hash->{$key} = &_load_list_param($robot,$key, $::pinfo{$p}{'format'}{$key}{'default'}, $::pinfo{$p}{'format'}{$key}, $directory);
 		}
 
 		$admin{$p} = $hash if (defined $hash);
-
 	    }
 
 #	    $admin{'defaults'}{$p} = 1;
@@ -11487,17 +11468,15 @@ sub _save_admin_file {
 	return undef;
     }
 
-    unless (open CONFIG, ">", $config_file) {
+    unless (open CONFIG, , ">:encoding($Conf{'filesystem_encoding'})", "$config_file") {
 	&do_log('info', 'Cannot open %s', $config_file);
 	return undef;
     }
-    my $config = '';
-    my $fd = new IO::Scalar \$config;
     
     foreach my $c (@{$admin->{'comment'}}) {
-	$fd->print(sprintf "%s\n", $c);
+	printf CONFIG "%s\n", $c;
     }
-    $fd->print("\n");
+    print CONFIG "\n";
 
     foreach my $key (sort by_order keys %{$admin}) {
 
@@ -11508,15 +11487,13 @@ sub _save_admin_file {
 	if ((ref ($admin->{$key}) eq 'ARRAY') &&
 	    ! $::pinfo{$key}{'split_char'}) {
 	    foreach my $elt (@{$admin->{$key}}) {
-		&_save_list_param($key, $elt, $admin->{'defaults'}{$key}, $fd);
+		&_save_list_param($key, $elt, $admin->{'defaults'}{$key}, \*CONFIG);
 	    }
 	}else {
-	    &_save_list_param($key, $admin->{$key}, $admin->{'defaults'}{$key}, $fd);
+	    &_save_list_param($key, $admin->{$key}, $admin->{'defaults'}{$key}, \*CONFIG);
 	}
 
     }
-    Encode::from_to($config, 'utf8', $Conf{'filesystem_encoding'});
-    print CONFIG $config;
     close CONFIG;
 
     return 1;
@@ -11637,7 +11614,7 @@ sub get_available_msg_topic {
 sub is_msg_topic_tagging_required {
     my ($self) = @_;
     
-    if ($self->{'admin'}{'msg_topic_tagging'} =~ /required/) {
+    if ($self->{'admin'}{'msg_topic_tagging'} eq 'required') {
 	return 1;
     } else {
 	return 0;
@@ -11738,8 +11715,6 @@ sub compute_topic {
 	if (defined $msg->bodyhandle) {
 	    $mail_string = $msg->bodyhandle->as_string();
 	}
-
-	## Default : search in both subject and message body
     }else {
 	$mail_string = $msg->head->get('subject');
 
@@ -11748,9 +11723,12 @@ sub compute_topic {
 	}
     }
 
+    $mail_string =~ s/\-/\\-/;
+    $mail_string =~ s/\./\\./;
+
     # parsing
+
     foreach my $keyw (keys %keywords) {
-	$keyw = &tools::escape_regexp($keyw);
 	if ($mail_string =~ /$keyw/i){
 	    my $k = $keywords{$keyw};
 	    $topic_hash{$k} = 1;
@@ -11840,7 +11818,7 @@ sub load_msg_topic_file {
     my $file = "$list_id.$msg_id";
     
     unless (open (FILE, "$queuetopic/$file")) {
-	&do_log('debug','No topic define ; unable to open %s/%s : %s', $queuetopic,$file, $!);
+	&do_log('info','Unable to open info msg_topic file %s/%s : %s', $queuetopic,$file, $!);
 	return undef;
     }
     
@@ -12077,8 +12055,7 @@ sub _urlize_part {
 
     &tt2::parse_tt2({'file_name' => $file_name,
 		     'file_url'  => $file_url,
-		     'file_size' => $size ,
-		     'charset' => &Language::GetCharset()},
+		     'file_size' => $size },
 		    'urlized_part.tt2',
 		    \$new_part,
 		    $tt2_include_path);
@@ -12181,8 +12158,7 @@ sub delete_subscription_request {
 	    return undef;
 	}
 	my $line = <REQUEST>;
-	my $email_regexp = &tools::get_regexp('email');
-	unless ($line =~ /^($email_regexp)\s*/ &&
+	unless ($line =~ /^($tools::regexp{'email'})\s*/ &&
 		($1 eq $email)) {
 	    next;
 	}
@@ -12276,10 +12252,8 @@ sub close {
     return undef 
 	unless ($self && ($list_of_lists{$self->{'domain'}}{$self->{'name'}}));
     
-    ## Dump subscribers, unless list is already closed
-    unless ($self->{'admin'}{'status'} eq 'closed') {
-	$self->_save_users_file("$self->{'dir'}/subscribers.closed.dump");
-    }
+    ## Dump subscribers
+    $self->_save_users_file("$self->{'dir'}/subscribers.closed.dump");
 
     ## Delete users
     my @users;
@@ -12326,22 +12300,30 @@ sub purge {
     return undef 
 	unless ($self && ($list_of_lists{$self->{'domain'}}{$self->{'name'}}));
     
-    ## Remove tasks for this list
-    &Task::list_tasks($Conf{'queuetask'});
-    foreach my $task (&Task::get_tasks_by_list($self->get_list_id())) {
-	unlink $task->{'filepath'};
-    }
-    
-    ## Close the list first, just in case...
-    $self->close();
+    &tools::remove_dir($self->{'dir'});
 
     if ($self->{'name'}) {
 	my $arc_dir = &Conf::get_robot_conf($self->{'domain'},'arc_path');
 	&tools::remove_dir($arc_dir.'/'.$self->get_list_id());
 	&tools::remove_dir($self->get_bounce_dir());
     }
+    my @users;
+    for ( my $user = $self->get_first_user(); $user; $user = $self->get_next_user() ){
+	push @users, $user->{'email'};
+    }
+    $self->delete_user(@users);
+    
+    ## Remove entries from admin_table
+    foreach my $role ('owner','editor') {
+	my @admin_users;
+	for ( my $user = $self->get_first_admin_user($role); $user; $user = $self->get_next_admin_user() ){
+	    push @admin_users, $user->{'email'};
+	}
+	$self->delete_admin_user($role, @admin_users);
+    }
 
-    &tools::remove_dir($self->{'dir'});
+   # purge should remove alias but in most case aliases of thoses lists are undefined
+   # $self->remove_aliases();    
     
     return 1;
 }
@@ -12438,9 +12420,7 @@ sub has_include_data_sources {
 
     foreach my $type ('include_file','include_list','include_remote_sympa_list','include_sql_query','include_remote_file',
 		      'include_ldap_query','include_ldap_2level_query','include_admin','owner_include','editor_include') {
-	if (ref($self->{'admin'}{$type}) eq 'ARRAY' && $#{$self->{'admin'}{$type}} >= 0) {
-	    return 1;
-	}
+	return 1 if (defined $self->{'admin'}{$type});
     }
     
     return 0

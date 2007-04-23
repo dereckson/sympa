@@ -34,8 +34,6 @@ use Carp;
 @ISA = qw(Exporter);
 @EXPORT = qw(%Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
 
-require 'tools.pl';
-
 sub DAEMON_MESSAGE {1};
 sub DAEMON_COMMAND {2};
 sub DAEMON_CREATION {4};
@@ -52,7 +50,7 @@ my @valid_options = qw(
 		       logo_html_definition misaddressed_commands misaddressed_commands_regexp max_size maxsmtp nrcpt 
 		       owner_priority pidfile pidfile_distribute pidfile_creation
 		       spool queue queuedistribute queueauth queuetask queuebounce queuedigest queueautomatic
-		       queuemod queuetopic queuesubscribe queueoutgoing tmpdir lock_method
+		       queuemod queuetopic queuesubscribe queueoutgoing tmpdir
 		       loop_command_max loop_command_sampling_delay loop_command_decrease_factor loop_prevention_regex
 		       purge_user_table_task purge_logs_table_task purge_orphan_bounces_task eval_bouncers_task process_bouncers_task
 		       minimum_bouncing_count minimum_bouncing_period bounce_delay 
@@ -73,12 +71,7 @@ my @valid_options = qw(
 my %old_options = ('trusted_ca_options' => 'capath,cafile',
 		   'msgcat' => 'localedir',
 		   'queueexpire' => '',
-		   'web_recode_to' => 'filesystem_encoding',
-		   );
-## These parameters now have a hard-coded value
-## Customized value can be accessed though as %Ignored_Conf
-%Ignored_Conf;
-my %hardcoded_options = ('filesystem_encoding' => 'utf8');
+		   'web_recode_to' => 'filesystem_encoding');
 
 my %valid_options = ();
 map { $valid_options{$_}++; } @valid_options;
@@ -243,7 +236,6 @@ my %Default_Conf =
      'static_content_path' => '--DIR--/static_content',
      'filesystem_encoding' => 'utf-8',
      'cache_list_config' => 'none', ## none | binary_file
-     'lock_method' => 'flock' ## flock | nfs
      );
    
 
@@ -302,12 +294,6 @@ sub load {
 	}
     }
     close(IN);
-
-    ## Hardcoded values
-    foreach my $p (keys %hardcoded_options) {
-	$Ignored_Conf{$p} = $o{$p}[0] if (defined $o{$p});
-	$o{$p}[0] = $hardcoded_options{$p};
-    }
 
     ## Defaults
     unless (defined $o{'wwsympa_url'}) {
@@ -390,16 +376,6 @@ sub load {
     
     unless ($Conf{'css_path'}) {
 	$Conf{'css_path'} = $Conf{'static_content_path'}.'/css';
-    }
-
-    ## Some parameters require CPAN modules
-    if ($Conf{'lock_method'} eq 'nfs') {
-	if (eval "require File::NFSLock") {
-	    require File::NFSLock;
-	}else {
-	    &do_log('err', "Failed to load File::NFSLock perl module ; setting 'lock_method' to 'flock'");
-	    $Conf{'lock_method'} = 'flock';
-	}
     }
 
     ## Load robot.conf files
@@ -565,7 +541,6 @@ sub load_robots {
 				  default_shared_quota => 1,
 				  verp_rate => 1,
 				  loop_prevention_regex => 1,
-				  max_size => 1,
 				  );
 
     ## Load wwsympa.conf
@@ -939,7 +914,7 @@ sub _load_auth {
     
     my $robot = shift;
     my $config = shift;
-    &do_log('debug', 'Conf::_load_auth(%s)', $config);
+    &do_log('notice', 'Conf::_load_auth(%s)', $config);
 
     my $line_num = 0;
     my $config_err = 0;

@@ -404,7 +404,7 @@ Our thanks to all contributors, including:
 
 \begin {itemize}
 
-  \item Virginie Paitrault,Universit\'e de Rennes 2, who wrote the excellent online user documentation.
+  \item Virginie Paitrault,Université de Rennes 2, who wrote the excellent online user documentation.
 
   \item John-Paul Robinson, University of Alabama at Birmingham, who added to email verification procedure to the Shibboleth support.
 
@@ -416,7 +416,7 @@ Our thanks to all contributors, including:
 
   \item David Lewis who corrected this documentation
 
-  \item Philippe Rivi\`ere for his persevering in tuning \Sympa for Postfix.
+  \item Philippe Rivière for his persevering in tuning \Sympa for Postfix.
 
   \item Rapha\"el Hertzog (debian), Jerome Marant (debian) and St\'ephane Poirey (redhat) for
       Linux packages.
@@ -1948,7 +1948,7 @@ see a  nice mailto adresses where others have nothing.
  show every colors in use.
  
  
- \subsection {\cfkeyword {dark\_color}, \cfkeyword {light\_color}, \cfkeyword {text\_color}, \cfkeyword {bg\_color}, \cfkeyword {error\_color}, \cfkeyword {selected\_color}, \cfkeyword {shaded\_color}}
+ \subsection {\cfkeyword {dark\_color} \cfkeyword {light\_color} \cfkeyword {text\_color} \cfkeyword {bg\_color} \cfkeyword {error\_color} \cfkeyword {selected\_color} \cfkeyword {shaded\_color}}
  
  
  	Deprecated. They are the color definition for previous web interface. These parameters are unused in 5.1 and higher 
@@ -2054,9 +2054,9 @@ The maximum size of the uploaded picture file (bytes)
 \subsection {\cfkeyword {automatic\_list\_removal}}
 
  \default {}
- \example {automatic\_list\_feature       if\_empty}
+ \example {automatic\_list\_feature       if_empty}
 
-        If set to \texttt {if\_empty}, then Sympa will remove automatically created mailing lists just after their creartion, if they contain no list
+        If set to \texttt {if_empty}, then Sympa will remove automatically created mailing lists just after their creartion, if they contain no list
 	membe (see \ref {automatic-list-creation}, page~\pageref {automatic-list-creation}.
 
 
@@ -3664,7 +3664,7 @@ The database structure is documented in the \Sympa documentation ;
 scripts for creating it are also provided with the \Sympa distribution
 (in \dir {script}). 
 
-User information (password and preferences) are stored in the ``User'' table.
+User information (password and preferences) are stored in the «User» table.
 User passwords stored in the database are encrypted using reversible
 RC4 encryption controlled with the \cfkeyword {cookie} parameter,
 since \WWSympa might need to remind users of their passwords. 
@@ -3912,8 +3912,6 @@ of the important implementation constraint is to provide services for proxy appl
 processus where authentication may differ from classic web method. The following cases can be used to access to the service :
 \begin{itemize}
    \item The client first ask for a login and later service request provide the \texttt{sympa-user} cookie.
-   \item The client authenticate the end user providing the \texttt{sympa-user} http cookie. This can be used in order to share the an authenticated session betwing Sympa
-and some other application running on the same server as wwsympa. The soap method used is \texttt{getUserEmailByCookieRequest}.
    \item The client provide user email and password and request a service in a single soap access using the \texttt{authenticateAndRun} soap service.
    \item The client is a trusted by Sympa as a proxy application and is authorized to set some variables that will be used by 
          Sympa during the authorization scenario evaluation. Trusted application have there own password and the variables they can set are listed in
@@ -4025,7 +4023,7 @@ Note : the \textbf {login()} function maintains a login session using HTTP cooki
 to maintain this session by analysing and sending appropriate cookies under SOAP, then you
 should use the \textbf {authenticateAndRun()} function that does not require cookies to authenticate.
 
-\subsection {Writing a Java client with Axis}
+\subsection {Writting a Java client with Axis}
 
 First, download jakarta-axis (http://ws.apache.org/axis/)\\
 
@@ -4752,7 +4750,7 @@ You can easily trigger a Sympa login from within another web page. The login for
 \begin{verbatim}
 <FORM ACTION="http://listes.cru.fr/sympa" method="post">
       <input type="hidden" name="previous_action" value="arc" />
-      Access web archives of list
+      Accès web archives of list
       <select name="previous_list">
       <option value="sympa-users" >sympa-users</option>
       </select><br/>
@@ -4813,7 +4811,7 @@ Example
 del.auth
 \begin{verbatim}
 title.us deletion performed only by list owners, need authentication
-title.fr suppression r\'eserv\'ee au propri\'etaire avec authentification
+title.fr suppression réservée au propriétaire avec authentification
 title.es eliminacin reservada slo para el propietario, necesita autentificacin
 
 
@@ -4837,7 +4835,7 @@ Rules are defined as follows :
                 | all ()
                 | equal (<var>, <var>)
                 | match (<var>, /perl_regexp/)
-		| search (<named_filter_file>)
+		| search (<named_filter_file>,<var>)
                 | is_subscriber (<listname>, <var>)
                 | is_owner (<listname>, <var>)
                 | is_editor (<listname>, <var>)
@@ -4891,8 +4889,8 @@ Check http://perldoc.perl.org/perlre.html for regular expression syntax.
 
 <action> ::=   do_it [,notify]
              | do_it [,quiet]
-	     | reject(reason=<reason_key>) [,quiet]
-	     | reject(tt2=<tpl_name>) [,quiet]
+	     | reject(reason=<reason_key>)
+	     | reject(tt2=<tpl_name>)
              | request_auth
              | owner
 	     | editor
@@ -4980,7 +4978,7 @@ At the moment Named Filters are only used in authorization scenarios. They enabl
 	
 As a consequence, you can grant privileges in a list to people belonging to an \textindex {LDAP} directory, an \textindex {SQL} database or an flat text file, thanks to an authorization scenario.
 	
-Note that the only a subset of variable available in the scenario context are available here (including [sender] and [listname]).
+Note that the only variable available in named filters is [sender] and is set to the email address of the acting user.
 
 \subsection {LDAP Named Filters Definition}
 
@@ -5103,12 +5101,17 @@ The search condition is used in authorization scenarios which are defined and de
 The syntax of this rule is:
 \begin {quote}
 \begin{verbatim}
-	search(example.ldap)      smtp,smime,md5    -> do_it
-	search(blacklist.txt)     smtp,smime,md5    -> do_it
+	search(example.ldap,[sender])      smtp,smime,md5    -> do_it
+	search(blacklist.txt,[sender])     smtp,smime,md5    -> do_it
 \end{verbatim}
 \end {quote}
 
-The variable used by 'search' is the name of the LDAP Configuration file or a txt matching enumeration
+The variables used by 'search' are :
+\begin{itemize}
+	\item{the name of the LDAP Configuration file or a txt matching enumeration}\\
+	\item{the [sender]}\\
+	That is to say the sender email address.
+\end{itemize}
  
 +Note that \Sympa processes maintain a cache of processed search conditions to limit access to the LDAP directory or SQL server; each entry has a lifetime of 1 hour in the cache.
 
@@ -5145,7 +5148,7 @@ Note that you will need to restart Sympa processes to force reloading of list co
 For each service listed in parameter \cfkeyword {use\_blacklist} (see~\ref {useblacklist}), the following implicit scenario rule is added at the beginning of the scenario :
 \begin {quote}
 \begin{verbatim}
-search(blacklist.txt)  smtp,md5,pgp,smime -> reject,quiet
+search(blacklist.txt,[sender])  smtp,md5,pgp,smime -> reject,quiet
 \end{verbatim}
 \end {quote}
 	    
@@ -5483,7 +5486,7 @@ Here are some aspects regarding templates that are specific to \Sympa :
    use the INCLUDE\_PATH provided by \Sympa to find the relevant file to insert/parse.
 
   \item The \textbf {qencode} filter should be used if a template includes SMTP header fields
-  that should be Q-encoded. \example {[\% FILTER qencode \%]Message \`a mod\'erer[\%END\%]}
+  that should be Q-encoded. \example {[\% FILTER qencode \%]Message à modérer[\%END\%]}
 
   \item You can write different versions of a template file in different language, each of them 
   being located in a subdirectory of the \textbf {tt2} directory. \example {[ETC_DIR]/mail\_tt2/fr\_FR/helpfile.tt2}
@@ -7342,16 +7345,15 @@ Now we need to enable automatic list creation in Sympa. To do so, we have to
 \end {itemize}
 
 You can make Sympa delete automatic lists that were created with zero list members ; to do so
-you shoukd set the \cfkeyword {automatic\_list\_removal} parameter to \texttt {if\_empty}.
+you shoukd set the \cfkeyword {automatic\_list\_removal} parameter to \texttt {if_empty}.
 
  \begin {quote}
  \begin{verbatim}
 /home/sympa/etc/sympa.conf
     ...
-    automatic_list_feature  on
     automatic_list_creation public
     queueautomatic          [SPOOLDIR]/automatic
-    automatic_list_removal    if_empty
+    automatic_list_empty    delete
 \end{verbatim}
 \end {quote} 
 
@@ -10046,13 +10048,14 @@ This is done using the optional parameters \unixcmd {openSSL} and
 
 \begin{itemize}
 
-  \item \cfkeyword {openssl} : the path for the OpenSSL binary file,
+  \item \cfkeyword {openSSL} : the path for the OpenSSL binary file,
          usually \texttt {/usr/local/ssl/bin/openSSL}
-  \item \cfkeyword {cafile} (or \cfkeyword {capath}) : the path of a bundle (or path of the directory) of trusted CA certificates 
+  \item \cfkeyword {cafile} : the path of a bundle of trusted ca certificates. 
         The file \tildefile {[ETCBINDIR]/ca\-bundle.crt} included in Sympa distribution can be used.
 
-	The \cfkeyword  {cafile} file (or the \cfkeyword {capath} directory) should be shared with your Apache+mod\_ssl configuration. 
-	This is required because Sympa's web interface gets user certificates information from Apache mod\_ssl module.
+	Both the \cfkeyword  {cafile} file and the \cfkeyword {capath} directory
+        should be shared with your Apache+mod\_ssl configuration. This is useful
+	for the S/Sympa web interface.  Please refer to the OpenSSL documentation for details.
 
   \item \cfkeyword {key\_password} : the password used to protect all list private keys. xxxxxxx	
 \end{itemize}
@@ -10085,7 +10088,7 @@ named \texttt {send.private\_smime}, and restricts sends to subscribers using an
 \begin{verbatim}
 [STOPPARSE]
 title.us restricted to subscribers check smime signature
-title.fr limit\'e aux abonn\'es, v\'erif de la signature smime
+title.fr limité aux abonnés, vérif de la signature smime
 
 is_subscriber([listname],[sender])             smime  -> do_is_editor([listname],[sender])                 smime  -> do_it
 is_owner([listname],[sender])                  smime  -> do_it
@@ -10099,7 +10102,7 @@ example, \texttt {send.private\_key}, requires either an md5 return key or an S/
 \begin{verbatim}
 [STOPPARSE]
 title.us restricted to subscribers with previous md5 authentication
-title.fr r\'serv\'e aux abonn\'es avec authentification MD5 pr\'ealable
+title.fr réservé aux abonnés avec authentification MD5 préalable
 
 is_subscriber([listname],[sender]) smtp          -> request_auth
 true()                             md5,smime     -> do_it
@@ -10675,7 +10678,7 @@ For sending, a call to sendmail is done or the message is pushed in a spool acco
 \index{mail::set\_send\_spool()}
 
    Used by other processes than sympa.pl to indicate to send message by 
-   writing message in spool instead of calling mail::smtpto() function (see \ref {mail-smtpto}, page~\pageref {mail-smtpto}). 
+   writting message in spool instead of calling mail::smtpto() function (see \ref {mail-smtpto}, page~\pageref {mail-smtpto}). 
    The concerned spool is set in \lparam{\$send\_spool} global variable, used by mail::sending() function
   (see \ref {mail-sending}, page~\pageref {mail-sending}).
 

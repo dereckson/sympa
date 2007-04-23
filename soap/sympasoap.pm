@@ -163,7 +163,7 @@ sub login {
     ## Set an env var to find out if in a SOAP context
     $ENV{'SYMPA_SOAP'} = 1;
 
-    &do_log('debug', 'call check_auth(%s,%s)',$robot,$email);
+    &do_log('notice', 'call check_auth(%s,%s,%s)',$robot,$email,$passwd);
     my $user = &Auth::check_auth($robot,$email,$passwd);
 
     unless($user){
@@ -265,67 +265,22 @@ sub authenticateAndRun {
 
     &do_log('notice','authenticateAndRun(%s,%s,%s,%s)', $email, $cookie, $service, join(',',@$parameters));
 
-    unless ($cookie and $service) {
+    unless ($email and $cookie and $service) {
 	die SOAP::Fault->faultcode('Client')
 	    ->faultstring('Incorrect number of parameters')
 	    ->faultdetail('Use : <email> <cookie> <service>');
     }
-    my $auth ;
-    
-    if ($email eq 'unkown') {
-	($email,$auth) = &wwslib::get_email_from_cookie($cookie,$Conf::Conf{'cookie'});
-	do_log('debug','get email from cookie : %s',$email);
-	unless ($email or ($email eq 'unkown')  ) {
-	    die SOAP::Fault->faultcode('Client')
-		->faultstring('Could not get email from cookie')
-		->faultdetail('');
-	}
-    }
 
-    my $checksum=&cookielib::get_mac($email, $Conf::Conf{'cookie'});
-#    unless (&cookielib::get_mac($email, $Conf::Conf{'cookie'}) eq $cookie) {
-    unless ($cookie =~ /$checksum/) {
+    unless (&cookielib::get_mac($email, $Conf::Conf{'cookie'}) eq $cookie) {
 	&do_log('notice', "authenticateAndRun(): authentication failed");
 	die SOAP::Fault->faultcode('Server')
 	    ->faultstring('Authentification failed')
-	    ->faultdetail("Incorrect cookie $cookie for user $email (checksum : $checksum)");
+	    ->faultdetail("Incorrect cookie $cookie for user $email");
     }
 
     $ENV{'USER_EMAIL'} = $email;
 
     &{$service}($self,@$parameters);
-}
-## request user email from http cookie
-##
-sub getUserEmailByCookie {
-    my ($self, $cookie) = @_;
-
-    &do_log('notice','xxxx getUserEmailByCookie(%s)', $cookie);
-    
-    unless ($cookie) {
-	die SOAP::Fault->faultcode('Client')
-	    ->faultstring('Incorrect  parameter')
-	    ->faultdetail('Use : <cookie>');
-    }
-    my $auth,$email ;
-    
-    ($email,$auth) = &wwslib::get_email_from_cookie($cookie,$Conf::Conf{'cookie'});
-    do_log('debug','getUserEmailByCookie : %s',$email);
-    unless ($email or ($email eq 'unkown')  ) {
-	die SOAP::Fault->faultcode('Client')
-	    ->faultstring('Could not get email from cookie')
-	    ->faultdetail('');
-    }
-    
-    my $checksum=&cookielib::get_mac($email, $Conf::Conf{'cookie'});
-    unless ($cookie =~ /$checksum/) {
-	&do_log('notice', "getUserEmailByCookie(): invalid cookie");
-	die SOAP::Fault->faultcode('Server')
-	    ->faultstring('Authentification failed')
-	    ->faultdetail("Incorrect cookie $cookie for user $email");
-    }
-    return SOAP::Data->name('result')->type('string')->value($email);
-    
 }
 ## Used to call a service from a remote proxy application
 ## First parameter is the application name as defined in the trusted_applications.conf file
@@ -338,7 +293,7 @@ sub authenticateRemoteAppAndRun {
     my $robot = $ENV{'SYMPA_ROBOT'};
 
 #    open TMP2, ">>/tmp/yy"; printf TMP2 "xxxxxxxxxx  parameters \n"; &tools::dump_var($proxy_vs, 0, \*TMP2);printf TMP2 "--------\n"; close TMP2;
-    &do_log('notice','authenticateRemoteAppAndRun(%s,%s,%s,%s)', $appname, $vars, $service, join(',',@$parameters));
+    &do_log('notice','authenticateRemoteAppAndRun(%s,%s,%s,%s,%s)', $appname, $apppassword, $vars, $service, join(',',@$parameters));
 
     unless ($appname and $apppassword and $service) {
 	die SOAP::Fault->faultcode('Client')
@@ -589,7 +544,6 @@ sub createList {
     $parameters->{'listname'} = $listname;
     $parameters->{'subject'} = $subject;
     $parameters->{'description'} = $description;
-    $parameters->{'topics'} = $topics;
     
     if ($r_action =~ /listmaster/i) {
 	$param->{'status'} = 'pending' ;
@@ -1271,7 +1225,6 @@ sub subscribe {
       
       return SOAP::Data->name('result')->type('boolean')->value(1);
   }
-
   
   &Log::do_log('info', 'SOAP subscribe : %s from %s aborted, unknown requested action in scenario',$listname,$sender);
   die SOAP::Fault->faultcode('Server')
@@ -1369,7 +1322,9 @@ sub which {
 	}else {
 	    $listInfo = struct_to_soap($result_item, 'as_string');
 	}
-	push @result, $listInfo;	
+
+	push @result, $listInfo;
+	
     }
     
 #    return SOAP::Data->name('return')->type->('ArrayOfString')->value(\@result);
@@ -1395,7 +1350,7 @@ sub struct_to_soap {
 	    ## Decode from the current charset to perl internal charset
 	    ## Then encode strings to UTF-8
 	    if (require "Encode.pm") {
-		# $one_data = &Encode::decode(&Language::GetCharset(), $one_data);
+		$one_data = &Encode::decode(gettext("_charset_"), $one_data);
 		$one_data = &Encode::encode('utf-8', $one_data);
 	    }
 

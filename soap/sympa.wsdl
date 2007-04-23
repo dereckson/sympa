@@ -159,14 +159,6 @@
 	<part name="return" type="xsd:string"/>	
 </message>
 
-<message name="getUserEmailByCookieRequest">
-	<part name="cookie" type="xsd:string"/>
-</message>
-
-<message name="getUserEmailByCookieResponse">
-	<part name="return" type="xsd:string"/>
-</message>
-
 <message name="authenticateAndRunRequest">
 	<part name="email" type="xsd:string"/>
 	<part name="cookie" type="xsd:string"/>
@@ -175,7 +167,7 @@
 </message>
 
 <message name="authenticateAndRunResponse">
-	<part name="return" type="tns:ArrayOfString" xsd:minOccurs="0"/>
+	<part name="return" type="tns:ArrayOfString" xsd:minOccurs="0"/>	
 </message>
 
 <message name="authenticateRemoteAppAndRunRequest">
@@ -277,10 +269,6 @@
 		<input message="tns:casLoginRequest" />
 		<output message="tns:casLoginResponse" />
 	</operation>
-	<operation name="getUserEmailByCookie">
-		<input message="tns:getUserEmailByCookieRequest" />
-		<output message="tns:getUserEmailByCookieResponse" />
-	</operation>
 	<operation name="authenticateAndRun">
 		<input message="tns:authenticateAndRunRequest" />
 		<output message="tns:authenticateAndRunResponse" />
@@ -360,47 +348,8 @@
 					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
 			</output>
 	</operation>
-	<operation name="add">
-		<soap:operation soapAction="urn:sympasoap#add"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="del">
-		<soap:operation soapAction="urn:sympasoap#del"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
 	<operation name="createList">
 		<soap:operation soapAction="urn:sympasoap#createList"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="closeList">
-		<soap:operation soapAction="urn:sympasoap#closeList"/>
 			<input>
 				<soap:body use="encoded" 
 					namespace="urn:sympasoap" 
@@ -466,19 +415,6 @@
 	</operation>
 	<operation name="casLogin">
 		<soap:operation soapAction="urn:sympasoap#casLogin"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="getUserEmailByCookie">
-		<soap:operation soapAction="urn:sympasoap#getUserEmailByCookie"/>
 			<input>
 				<soap:body use="encoded" 
 					namespace="urn:sympasoap" 

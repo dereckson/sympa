@@ -23,8 +23,6 @@
 
 package tools;
 
-use strict;
-
 use POSIX;
 use Mail::Internet;
 use Mail::Header;
@@ -44,12 +42,12 @@ use Encode::MIME::Header;
 ## global var to store a CipherSaber object 
 my $cipher;
 
-my $separator="------- CUT --- CUT --- CUT --- CUT --- CUT --- CUT --- CUT -------";
+$separator="------- CUT --- CUT --- CUT --- CUT --- CUT --- CUT --- CUT -------";
 
 ## Regexps for list params
 ## Caution : if this regexp changes (more/less parenthesis), then regexp using it should 
 ## also be changed
-my %regexp = ('email' => '([\w\-\_\.\/\+\=\']+|\".*\")\@[\w\-]+(\.[\w\-]+)+',
+%regexp = ('email' => '([\w\-\_\.\/\+\=\']+|\".*\")\@[\w\-]+(\.[\w\-]+)+',
 	   'family_name' => '[a-z0-9][a-z0-9\-\.\+_]*', 
 	   'host' => '[\w\.\-]+',
 	   'multiple_host_with_port' => '[\w\.\-]+(:\d+)?(,[\w\.\-]+(:\d+)?)*',
@@ -76,19 +74,6 @@ sub sortbydomain {
    $y = join('.', reverse(split(/[@\.]/, $y)));
    #print "$x $y\n";
    $x cmp $y;
-}
-
-## Sort subroutine to order files in sympa spool by date
-sub by_date {
-    my @a_tokens = split /\./, $a;
-    my @b_tokens = split /\./, $b;
-
-    ## File format : list@dom.date.pid
-    my $a_time = $a_tokens[$#a_tokens -1];
-    my $b_time = $b_tokens[$#b_tokens -1];
-
-    return $a_time <=> $b_time;
-
 }
 
 ## Safefork does several tries before it gives up.
@@ -174,7 +159,7 @@ sub load_edit_list_conf {
     }
 
     my $error_in_conf;
-    my $roles_regexp = 'listmaster|privileged_owner|owner|editor|subscriber|default';
+    $roles_regexp = 'listmaster|privileged_owner|owner|editor|subscriber|default';
     while (<FILE>) {
 	next if /^\s*(\#.*|\s*)$/;
 
@@ -447,7 +432,7 @@ sub get_template_path {
     my $lang = shift || 'default';
     my $list = shift;
 
-    do_log('debug', "get_templates_path ($type,$robot,$scope,$tpl,$lang,%s)", $list->{'name'});
+    do_log('debug', "get_templates_path ($type,$robot,$scope,$tpl,$lang,$listname)");
 
     my $listdir;
     if (defined $list) {
@@ -1005,19 +990,6 @@ sub as_singlepart {
     return $done;
 }
 
-## Escape characters before using a string within a regexp parameter
-## Escaped characters are : @ $ [ ] ( ) ' ! '\' * . + ?
-sub escape_regexp {
-    my $s = shift;
-    my @escaped = ("\\",'@','$','[',']','(',')',"'",'!','*','.','+','?');
-    my $backslash = "\\"; ## required in regexp
-
-    foreach my $escaped_char (@escaped) {
-	$s =~ s/$backslash$escaped_char/\\$escaped_char/g;
-    }
-
-    return $s;
-}
 
 ## Escape weird characters
 sub escape_chars {
@@ -1045,52 +1017,13 @@ sub escape_docname {
     my $except = shift; ## Exceptions
 
     ## Q-decode
-    $filename = MIME::EncWords::decode_mimewords($filename);
+    $filename = MIME::Words::decode_mimewords($filename);
 
     ## Decode from FS encoding to utf-8
     #$filename = &Encode::decode($Conf::Conf{'filesystem_encoding'}, $filename);
 
     ## escapesome chars for use in URL
     return &escape_chars($filename, $except);
-}
-
-## Convert from Perl unicode encoding to UTF8
-sub unicode_to_utf8 {
-    my $s = shift;
-    
-    if (&Encode::is_utf8($s)) {
-	return &Encode::encode_utf8($s);
-    }
-
-    return $s;
-}
-
-## This applies recursively to a data structure
-## The transformation subroutine is passed as a ref
-sub recursive_transformation {
-    my ($var, $subref) = @_;
-    
-    return unless (ref($var));
-
-    if (ref($var) eq 'ARRAY') {
-	foreach my $index (0..$#{$var}) {
-	    if (ref($var->[$index])) {
-		&recursive_transformation($var->[$index], $subref);
-	    }else {
-		$var->[$index] = &{$subref}($var->[$index]);
-	    }
-	}
-    }elsif (ref($var) eq 'HASH') {
-	foreach my $key (sort keys %{$var}) {
-	    if (ref($var->{$key})) {
-		&recursive_transformation($var->{$key}, $subref);
-	    }else {
-		$var->{$key} = &{$subref}($var->{$key});
-	    }
-	}    
-    }
-    
-    return;
 }
 
 ## Q-Encode web file name
@@ -1111,7 +1044,7 @@ sub qencode_filename {
 
 	## We use low-level subroutine instead of to prevent Encode::encode('MIME-Q')
 	## Otherwise \n are inserted
-	my $encoded_part = &Encode::encode_utf8(&Encode::MIME::Header::_encode_q($part));
+	my $encoded_part = &Encode::MIME::Header::_encode_q($part);
 
 	$filename = $leading.$encoded_part.$trailing;
     }
@@ -1126,7 +1059,7 @@ sub qdecode_filename {
     ## We don't use MIME::Words here because it does not encode properly Unicode
     ## Check if string is already Q-encoded first
     #if ($filename =~ /\=\?UTF-8\?/) {
-    $filename = Encode::encode_utf8(&Encode::decode('MIME-Q', $filename));
+    $filename = &Encode::decode('MIME-Q', $filename);
     #}
     
     return $filename;
@@ -1468,7 +1401,7 @@ sub virus_infected {
 
     ## F-Secure
     } elsif($Conf{'antivirus_path'} =~  /\/fsav$/) {
-	my $dbdir=$` ;
+	$dbdir=$` ;
 
 	# impossible to look for viruses with no option set
 	unless ($Conf{'antivirus_args'}) {
@@ -1742,7 +1675,6 @@ sub duration_conv {
 }
 
 ## Look for a file in the list > robot > server > default locations
-## Possible values for $options : order=all
 sub get_filename {
     my ($type, $options, $name, $robot, $object) = @_;
     my $list;
@@ -1754,8 +1686,8 @@ sub get_filename {
  	$list = $object;
  	if ($list->{'admin'}{'family_name'}) {
  	    unless ($family = $list->get_family()) {
- 		&do_log('err', 'Impossible to get list %s family : %s. The list is set in status error_config',$list->{'name'},$list->{'admin'}{'family_name'});
- 		$list->set_status_error_config('no_list_family',$list->{'name'}, $list->{'admin'}{'family_name'});
+ 		&do_log('err', 'Impossible to get list %s family : %s. The list is set in status error_config',$self->{'name'},$self->{'admin'}{'family_name'});
+ 		$list->set_status_error_config('no_list_family',$self->{'name'}, $admin->{'family_name'});
  		return undef;
  	    }  
  	}
@@ -1802,21 +1734,18 @@ sub get_filename {
 	}
 	my @result;
 	foreach my $f (@try) {
-	    &do_log('debug3','get_filename : name: %s ; dir %s', $name, $f  );
+	    &do_log('debug3','get_filname : name: %s ; dir %s', $name, $f  );
 	    if (-r $f) {
 		if ($options->{'order'} eq 'all') {
 		    push @result, $f;
-		}else {
-		    return $f;
 		}
+		return $f;
 	    }
 	}
-	if ($options->{'order'} eq 'all') {
-	    return @result ;
-	}
+	return (@result) ;
     }
     
-    #&do_log('notice','tools::get_filename: Cannot find %s in %s', $name, join(',',@try));
+    &do_log('notice','tools::get_filename: Cannot find %s in %s', $name, join(',',@try));
     return undef;
 }
 ####################################################
@@ -1838,8 +1767,8 @@ sub make_tt2_include_path {
 
     my @include_path;
 
-    my $path_etcbindir;
-    my $path_etcdir;
+    my $path_etcbin;
+    my $path_etc;
     my $path_robot;  ## optional
     my $path_list;   ## optional
     my $path_family; ## optional
@@ -1970,8 +1899,8 @@ sub qencode_hierarchy {
 	next unless ($f_struct->{'filename'} =~ /[^\x00-\x7f]/); ## At least one 8bit char
 
 	my $new_filename = $f_struct->{'filename'};
-	my $encoding = $f_struct->{'encoding'};
-	Encode::from_to($new_filename, $encoding, 'utf8') if $encoding;
+	my $encoding = $f_struct->{'encoding'} || 'utf-8';
+	$new_filename = Encode::decode($encoding, $f_struct->{'filename'});
     
 	## Q-encode filename to escape chars with accents
 	$new_filename = &tools::qencode_filename($new_filename);
@@ -1991,34 +1920,6 @@ sub qencode_hierarchy {
     return $count;
 }
 
-## Dumps the value of each character of the inuput string
-sub dump_encoding {
-    my $out = shift;
-
-    $out =~ s/./sprintf('%02x', ord($&)).' '/eg;
-    return $out;
-}
-
-## Remove PID file and STDERR output
-sub remove_pid {
-    my ($pidfile, $pid) = @_;
-
-    unless (unlink $pidfile) {
-	&do_log('err', "Failed to remove $pidfile: %s", $!);
-	return undef;
-    }
-    
-    my $err_file = $Conf{'tmpdir'}.'/'.$pid.'.stderr';
-    if (-f $err_file) {
-	unless (unlink $err_file) {
-	    &do_log('err', "Failed to remove $err_file: %s", $!);
-	    return undef;
-	}
-    }
-
-    return 1;
-}
-
 sub write_pid {
     my ($pidfile, $pid) = @_;
 
@@ -2035,14 +1936,6 @@ sub write_pid {
     
     chown $uid, $gid, $piddir;
 
-    ## If pidfile exists, read the PID and get date
-    my ($other_pid);
-    if (-f $pidfile) {
-	open PFILE, $pidfile;
-	$other_pid = <PFILE>; chomp $other_pid;
-	close PFILE;	
-    }
-
     ## Create and write the pidfile
     unless (open(LOCK, "+>> $pidfile")) {
 	 fatal_err('Could not open %s, exiting', $pidfile);
@@ -2050,25 +1943,6 @@ sub write_pid {
     unless (flock(LOCK, 6)) {
 	fatal_err('Could not lock %s, process is probably already running : %s', $pidfile, $!);
     }
-
-    ## The previous process died suddenly, without pidfile cleanup
-    ## Send a notice to listmaster with STDERR of the previous process
-    if ($other_pid) {
-	&do_log('notice', "Previous process $other_pid died suddenly ; notifying listmaster");
-	my $err_file = $Conf{'tmpdir'}.'/'.$other_pid.'.stderr';
-	my (@err_output, $err_date);
-	if (-f $err_file) {
-	    open ERR, $err_file;
-	    @err_output = <ERR>;
-	    close ERR;
-
-	    $err_date = &POSIX::strftime("%d %b %Y  %H:%M", localtime( (stat($err_file))[9]));
-	}
-
-	&List::send_notify_to_listmaster('crash', $Conf::Conf{'domain'},
-					 {'crash_err' => \@err_output, 'crash_date' => $err_date});
-    }
-
     unless (open(LCK, "> $pidfile")) {
 	fatal_err('Could not open %s, exiting', $pidfile);
     }
@@ -2080,11 +1954,6 @@ sub write_pid {
     close(LCK);
     
     chown $uid, $gid, $pidfile;
-
-    ## Error output is stored in a file with PID-based name
-    ## Usefull if process crashes
-    open(STDERR, '>>',  $Conf{'tmpdir'}.'/'.$pid.'.stderr') unless ($main::options{'foreground'});
-    chown $uid, $gid, $Conf{'tmpdir'}.'/'.$pid.'.stderr';
 
     return 1;
 }
@@ -2123,7 +1992,7 @@ sub get_dir_size {
 sub valid_email {
     my $email = shift;
     
-    unless ($email =~ /^$regexp{'email'}$/) {
+    unless ($email =~ /^$tools::regexp{'email'}$/) {
 	do_log('err', "Invalid email address '%s'", $email);
 	return undef;
     }
@@ -2288,7 +2157,7 @@ sub smime_parse_cert {
 	@cert = ($arg->{'text'});
     }elsif ($arg->{file}) {
 	unless (open(PSC, "$arg->{file}")) {
-	    &Log::do_log('err', "smime_parse_cert: open %s: $!", $arg->{file});
+	    &Log::do_log('err', "smime_parse_cert: open $file: $!");
 	    return undef;
 	}
 	@cert = <PSC>;
@@ -2608,7 +2477,7 @@ sub higher_version {
     my $max = $#tab1;
     $max = $#tab2 if ($#tab2 > $#tab1);
 
-    for my $i (0..$max) {
+    for $i (0..$max) {
     
         if ($tab1[0] =~ /^(\d*)a$/) {
             $tab1[0] = $1 - 0.5;
@@ -2645,7 +2514,7 @@ sub lower_version {
     my $max = $#tab1;
     $max = $#tab2 if ($#tab2 > $#tab1);
 
-    for my $i (0..$max) {
+    for $i (0..$max) {
     
         if ($tab1[0] =~ /^(\d*)a$/) {
             $tab1[0] = $1 - 0.5;
@@ -2829,20 +2698,5 @@ sub md5_fingerprint {
     return (unpack("H*", $digestmd5->digest));
 }
 
-sub get_separator {
-    return $separator;
-}
-
-## Return the Sympa regexp corresponding to the input param
-sub get_regexp {
-    my $type = shift;
-
-    if (defined $regexp{$type}) {
-	return $regexp{$type};
-    }else {
-	return '\w+'; ## default is a very strict regexp
-    }
-
-}
 
 1;

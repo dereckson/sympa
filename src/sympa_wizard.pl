@@ -192,7 +192,7 @@ my @params = ({'title' => 'Directories and file location'},
 	      {'title' => 'Tuning'},
 	      	      
 
-	      {'name' => 'cache_list_config',
+	      {'name' => 'cache\_list\_config',
 	       'default' => 'none',
 	       'query' => 'Use of binary version of the list config structure on disk: none | binary_file',
 	       'file' => 'sympa.conf','edit' => '1',
@@ -264,6 +264,12 @@ my @params = ({'title' => 'Directories and file location'},
 	       'query' => 'Supported languages',
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>'This is the set of language that will be proposed to your users for the Sympa GUI. Don\'t select a language if you don\'t have the proper locale packages installed.'},
+
+	      {'name' => 'filesystem_encoding',
+	       'default' => 'utf-8',
+	       'query' => 'The character encoding used on your file system (utf-8 | iso-8859-1 | iso-8859-2 | ...)',
+	       'file' => 'sympa.conf','edit' => '1',
+	       'advice' =>'If your server is not configured to use utf-8, Sympa can still use it, but you need to declare the charset used.'},
 
 	      {'title' => 'Errors management'},
 

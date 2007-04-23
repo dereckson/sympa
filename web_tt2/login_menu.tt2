@@ -43,12 +43,12 @@
         <input type="hidden" name="list" value="[% list %]" />
 	  <input type="hidden" name="action" value="sso_login" />
           [% IF sso_number == 1 %]
-     	    <div class="menuInactive2"><strong>[%|loc%]Magic authentication[%END%]</strong></div>
+     	    <strong><div class="menuInactive2">[%|loc%]Magic authentification[%END%]</div></strong>
             [% FOREACH server = sso %]
               <input type="hidden" name="auth_service_name" value="[% server.key %]" />
             [% END %]
           [% ELSE %]
-     	    <div class="menuInactive2"><strong><label for="auth_service_name">[%|loc%]Choose your authentication server[%END%]</label></strong></div>
+     	    <strong><div class="menuInactive2"><label for="auth_service_name">[%|loc%]Choose your authentication server[%END%]</label></div></strong>
             <select id="auth_service_name" name="auth_service_name" onchange="this.form.submit();">
             [% FOREACH server = sso %]
                <option value="[% server.key %]">[% server.value %]</option>
@@ -77,10 +77,8 @@
       </form>
   </div>
   <br />
-[% IF use_passwd == '1' %]
   <a class="menuLinks" href="[% path_cgi %]/sendpasswd/[% escaped_init_email %]">[%|loc%]First login ?[%END%]</a><br />
   <a class="menuLinks" href="[% path_cgi %]/remindpasswd">[%|loc%]Lost password ?[%END%]</a>
-[% END %]
 [% END %]
 
 </div><!-- end div=MenuBlock -->

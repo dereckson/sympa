@@ -4,10 +4,10 @@
   [%|loc%]You can choose below a subset of parameters to edit :[%END%] 
   <ul>
     <li><a href="[% path_cgi %]/edit_list_request/[% list %]/description" >[%|loc%]List definition[%END%]</a></li>
-    <li><a href="[% path_cgi %]/edit_list_request/[% list %]/sending" >[%|loc%]Sending/receiving setup[%END%]</a></li>
+    <li><a href="[% path_cgi %]/edit_list_request/[% list %]/sending" >[%|loc%]Sending/reception setup[%END%]</a></li>
     <li><a href="[% path_cgi %]/edit_list_request/[% list %]/command" >[%|loc%]Privileges[%END%]</a></li>
     <li><a href="[% path_cgi %]/edit_list_request/[% list %]/archives" >[%|loc%]Archives[%END%]</a></li>
-    <li><a href="[% path_cgi %]/edit_list_request/[% list %]/bounces" >[%|loc%]Bounce management[%END%]</a></li>
+    <li><a href="[% path_cgi %]/edit_list_request/[% list %]/bounces" >[%|loc%]Bounces management[%END%]</a></li>
     <li><a href="[% path_cgi %]/edit_list_request/[% list %]/data_source" >[%|loc%]Data sources setup[%END%]</a></li>
     <li><a href="[% path_cgi %]/edit_list_request/[% list %]/other" >[%|loc%]Miscellaneous[%END%]</a></li>
   </ul>
@@ -15,6 +15,7 @@
   <form class="bold_label"  action="[% path_cgi %]" method="post">
   <fieldset>
     <input type="hidden" name="serial" value="[% serial %]" />
+
         [% FOREACH p = param %]
 
         [% IF p.may_edit != 'hidden' %]
@@ -106,11 +107,10 @@
                                           <select name="single_param.[% p.name %].[% o_INDEX %].[% key.name %]" id="single_param.[% p.name %].[% o_INDEX %].[% key.name %]">
                                             [% FOREACH enum = key.value %]
                                               <option value="[% enum.key %]"
-                                              [%- IF enum.value.selected == '1' -%]
+                                              [% IF enum.value.selected == '1' %]
                                                 selected="selected"
-                                              [%- END -%]
+                                              [% END %]
                                               >[% enum.key %]
-                                              </option>
                                             [% END %]
                                           </select>
                                         [% ELSIF key.may_edit == 'read' %]
@@ -188,7 +188,7 @@
                           [% IF p.type == 'scenario' %]
                             <!-- Scenario -->
                             [% IF p.may_edit == 'write' %]
-                              <select name="single_param.[% p.name %].name" id="single_param.[% p.name %].name" OnChange="this.form.submit();">
+                              <select name="single_param.[% p.name %].name" id="single_param.[% p.name %].name">
                                 [% FOREACH scenario = p.value %]
                                   <option value="[% scenario.value.name %]"
                                   [% IF scenario.value.selected == '1' %]
@@ -320,7 +320,7 @@
                                         <!-- Enum -->
                                         [% IF key.may_edit == 'write' %]
                                           [% IF key.occurrence == 'multiple' %]
-                                            <select name="multiple_param.[% p.name %].[% key.name %]" id="single_param.[% p.name %].[% key.name %].name" multiple="multiple">
+                                            <select name="multiple_param.[% p.name %].[% key.name %]" id="single_param.[% p.name %].[% key.name %].name">
                                           [% ELSE %]
                                             <select name="single_param.[% p.name %].[% key.name %]" id="single_param.[% p.name %].[% key.name %].name">
                                           [% END %]
@@ -409,11 +409,7 @@
         [% END %]
 
     <input type="hidden" name="list" value="[% list %]" />
-    <input type="hidden" name="group" value="[% group %]" />
-    <input type="hidden" name="action" value="edit_list" />
-    [% IF is_form_editable == '1' %]
-	<input class="MainMenuLinks" type="submit" name="action_edit_list" value="[%|loc%]Update[%END%]" />
-    [% END %]
+    <input class="MainMenuLinks" type="submit" name="action_edit_list" value="[%|loc%]Update[%END%]" />
   </fieldset>
   </form>
 [% END %]

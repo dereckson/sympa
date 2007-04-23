@@ -87,7 +87,6 @@ if ($main::options{'debug'}) {
 }
 
 $main::options{'foreground'} = 1 if ($main::options{'debug'});
-$main::options{'log_to_stderr'} = 1 if ($main::options{'debug'} || $main::options{'foreground'});
 
 
 my $wwsympa_conf = "--WWSCONFIG--";
@@ -166,7 +165,8 @@ umask(oct($Conf{'umask'}));
 
 ## Change to list root
 unless (chdir($Conf{'home'})) {
-     &do_log('info','Unable to change directory');
+    &report::reject_report_web('intern','chdir_error',{},'','','',$Conf{'host'});
+    &do_log('info','Unable to change directory');
     exit (-1);
 }
 
@@ -270,11 +270,7 @@ while (!$end) {
 		    if ($list->is_user($who)) {
 			my $u = $list->delete_user($who);
 			$list->save();
-			do_log ('notice',"$who has been removed from $listname because welcome message bounced");
-			&Log::db_log({'robot' => $list->{'domain'},'list' => $list->{'name'},'action' => 'del',
-				      'target_email' => $who,'status' => 'error','error_type' => 'welcome_bounced',
-				      'daemon' => 'bounced'});
-
+			do_log ('notice',"$who has been removed from $listname because welcome message bounced");			
 			if ($action =~ /notify/) {
 			    unless ($list->send_notify_to_owner('automatic_del',
 								{'who' => $who,
@@ -310,8 +306,7 @@ while (!$end) {
 			    $feedback_type = $1;
 			}
 
-			my $email_regexp = &tools::get_regexp('email');
-			if ($line =~ /Original\-Rcpt\-To\:\s*($email_regexp)\s*$/i) {
+			if ($line =~ /Original\-Rcpt\-To\:\s*($tools::regexp{'email'})\s*$/i) {
 			    $original_rcpt = $1;
 			    chomp $original_rcpt;
 			}
@@ -491,7 +486,7 @@ while (!$end) {
 
 }
 do_log('notice', 'bounced exited normally due to signal');
-&tools::remove_pid($wwsconf->{'bounced_pidfile'}, $$);
+unlink("$wwsconf->{'bounced_pidfile'}");
 
 exit(0);
 
@@ -584,7 +579,6 @@ sub update_subscriber_bounce_history {
 		      'daemon' => 'bounced'});
     }else{
 	$list->update_user($bouncefor,{'bounce' => "$first $last $count $status"});
-	&do_log('notice','Received bounce for email address %s, list %s', $bouncefor, $list->{'name'});
 	&Log::db_log({'robot' => $list->{'domain'},'list' => $list->{'name'},'action' => 'get_bounce',
 		      'target_email' => $bouncefor,'msg_id' => '','status' => 'error','error_type' => $status,
 		      'daemon' => 'bounced'});

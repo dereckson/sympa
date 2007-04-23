@@ -85,19 +85,16 @@
 [% END %]
 <br />
 [% END %]
-
-   <input class="MainMenuLinks" type="button" value="[%|loc%]Toggle Selection[%END%]" onclick="toggle_selection(document.moderate_mails.id)" /><br />
-
 </fieldset>
 </form>
 [%END%]
 <br />
 <!-- moderation of document shared -->
 [% IF mod_total_shared %]
-<form action="[% path_cgi %]" method="post" name="moderate_shared">
+<form action="[% path_cgi %]" method="post">
 <fieldset>
   <input type="hidden" name="list" value="[% list %]" />
-  <h2>[%|loc%]Listing of shared documents to moderate[%END%]</h2> 
+  <h2>[%|loc%]Listing of documents shared to moderate[%END%]</h2> 
 
   <input class="MainMenuLinks" type="submit" name="action_d_install_shared" value="[%|loc%]Install[%END%]" />
   <input class="MainMenuLinks" type="submit" name="action_d_reject_shared.quiet" value="[%|loc%]Reject[%END%]" />
@@ -133,8 +130,6 @@
     </table>
 
 <br />
-  <input class="MainMenuLinks" type="button" value="[%|loc%]Toggle Selection[%END%]" onclick="toggle_selection(document.moderate_shared.id)" /><br />
-
   <input class="MainMenuLinks" type="submit" name="action_d_install_shared" value="[%|loc%]Install[%END%]" />
   <input class="MainMenuLinks" type="submit" name="action_d_reject_shared.quiet" value="[%|loc%]Reject[%END%]" />
   <input class="MainMenuLinks" type="submit" name="action_d_reject_shared" value="[%|loc%]Notified reject[%END%]" />
