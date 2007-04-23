@@ -1,23 +1,8 @@
-# bounce-lib.pl - This module includes functions for analysing non-delivery reports
-# RCS Identication ; $Revision$ ; $Date$ 
-#
-# Sympa - SYsteme de Multi-Postage Automatique
-# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
-# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+####################################################
+## Librairie d'analyse de bounce                  ##
+## Comité Réseau des Universités - Olivier Salaün ##
+## Copyright 1998                                 ##
+####################################################
 
 use MIME::Parser;
 
@@ -76,12 +61,8 @@ sub rfc1891 {
 		    $status = $1;
 		}
 		
-		if (/^Original-Recipient:\s*rfc822\s*;\s*(.*)$/mi ||
-		    /^Final-Recipient:\s*rfc822\s*;\s*(.*)$/mi) {
+		if (/^Final-Recipient:\s*rfc822\s*;\s*(.*)$/mi) {
 		    $recipient = $1;
-		    if ($recipient =~ /\@.+:(.+)$/) {
-			$recipient = $1;
-		    }
 		    $recipient =~ s/^<(.*)>$/$1/;
 		    $recipient =~ y/[A-Z]/[a-z]/;
 		}
@@ -205,21 +186,13 @@ sub anabounce {
 		$info{$2}{error} = $1;
 		$type = 27;
 
-	    }elsif ($champ{subject} =~ /^Returned mail: (message not deliverable): \<(\S+)\>$/) {
-		
-		$info{$2}{error} = $1;
-		$type = 34;
 	    }
 
 	    if ($champ{'x-failed-recipients'} =~ /^\s*(\S+)$/) {
 		$info{$1}{error} = "";
-	    } elsif ($champ{'x-failed-recipients'} =~ /^\s*(\S+),/) {
-		for my $xfr (split (/\s*,\s*/, $champ{'x-failed-recipients'})) {
-		    $info{$xfr}{error} = "";
-		}
 	    }
 
-	    }elsif (/^\s*-+ The following addresses (had permanent fatal errors|had transient non-fatal errors|have delivery notifications) -+/m) {
+	}elsif (/^\s*-+ The following addresses (had permanent fatal errors|had transient non-fatal errors|have delivery notifications) -+/m) {
 	    
 	    my $adr;
 	    
@@ -380,15 +353,10 @@ sub anabounce {
          ## Rapport NTMail
 	 }elsif (/^The requested destination was:\s+(.*)$/m) {
 
-	     $type = 7;
-
-	 }elsif (($type == 7) && (/^\s+(\S+)/)) {
-
-	     undef $type;
 	     my $adr =$1;
 	     $adr =~ s/^[\"\<](.+)[\"\>]$/$1/;
-	     next unless $adr;
-	     $info{$adr}{'error'} = '';
+	     $info{$adr} = 1;
+	     $type = 7;
 
 	 ## Rapport Qmail dans prochain paragraphe
 	 }elsif (/^Hi\. This is the qmail-send program/m) {
@@ -957,8 +925,6 @@ sub anabounce {
     my $count=0;
     ## On met les adresses au clair
     foreach my $a1 (keys %info) {
-
-	next unless ($a1 and ref ($info{$a1}));
 
         $count++;
 	my ($a2, $a3);
