@@ -1,10 +1,11 @@
-From: [% fromlist %]
+From: [% conf.email %]@[% conf.host %]
 Subject: [% FILTER qencode %][%|loc(list.name)%]Moderation spool for list %1[%END%][%END%]
+Mime-version: 1.0
 Content-Type: multipart/mixed; boundary="[% boundary1 %]"
 
 --[% boundary1 %]
-Content-Type: text/plain; charset="UTF-8";
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-transfer-encoding: 8bit
 
 [%|loc(total,list.name,list.host)%]There are %1 messages to be moderated for list %2@%3[%END%]
 
@@ -21,7 +22,6 @@ This is a multi-part message in MIME format...
 Content-Type: message/rfc822
 Content-Transfer-Encoding: 8bit
 Content-Disposition: inline
-X-Sympa-Attach: yes
 
 [% msg %]
 
