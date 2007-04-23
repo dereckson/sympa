@@ -19,9 +19,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-SRC	=	README trusted_applications.conf
+SRC	=	README config.* topics.*.conf
 
-SUBSTSRC	=	robot.conf *.ldap
+SUBSTSRC	=	sympa.conf wwsympa.conf
 
 SAMPLEDIR	=	$(DIR)/sample
 
@@ -65,18 +65,14 @@ installsrc:
 	done
 
 installsamplelist:
-	@if [ ! -d $(DESTDIR)$(SAMPLEDIR)/sample-list ]; then \
+	@if [ ! -d $(DESTDIR)$(SAMPLEDIR) ]; then \
 		echo "Installing sample list ..."; \
+		mkdir -p $(DESTDIR)$(SAMPLEDIR); \
 		mkdir -p $(DESTDIR)$(SAMPLEDIR)/sample-list; \
-		cd test; \
-		for f in * ; do \
+		for f in test/* ; do \
 			cp $$f $(DESTDIR)$(SAMPLEDIR)/sample-list/; \
-			chown $(USER) $(DESTDIR)$(SAMPLEDIR)/sample-list/$$f; \
-			chgrp $(GROUP) $(DESTDIR)$(SAMPLEDIR)/sample-list/$$f; \
+			chown $(USER) $(DESTDIR)$(SAMPLEDIR)/$$f; \
+			chgrp $(GROUP) $(DESTDIR)$(SAMPLEDIR)/$$f; \
 		done; \
-		cd ..; \
 	fi
-
-
-
 

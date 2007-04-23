@@ -1,6 +1,6 @@
 %define name sympa
 %define version --VERSION--
-%define release 8--SUFFIX--
+%define release 7--SUFFIX--
 %define home_s --HOMEDIR--
 %define data_s --DATADIR--
 %define conf_s --CONFDIR--
@@ -16,30 +16,23 @@ Copyright:  GPL
 Group: --APPGROUP--
 Source:  http://www.sympa.org/distribution/%{name}-%{version}.tar.--ZIPEXT--
 URL: http://www.sympa.org/
-Requires: --MTA--
+Requires: MailTransportAgent
 Requires: perl >= 0:5.005
 Requires: perl-MailTools >= 1.14
 Requires: perl-MIME-Base64   >= 1.0
 Requires: perl-IO-stringy    >= 1.0
+Requires: perl-Msgcat        >= 1.03
 Requires: perl-MIME-tools    >= 5.209
 Requires: perl-CGI    >= 2.52
 Requires: perl-DBI    >= 1.06
 Requires: perl-DB_File    >= 1.73
 Requires: perl-ldap >= 0.10
 Requires: perl-CipherSaber >= 0.50
-## Also requires a DBD for the DBMS : we choose MySQL 
+# AJOUTER MySQL (base et DBD)
+## Also requires a DBD for the DBMS 
 ## (perl-DBD-Pg or Perl- Msql-Mysql-modules)
-Requires: MySQL
-Requires: perl-Mysql
 Requires: perl-FCGI    >= 0.48
 Requires: perl-Digest-MD5
-Requires: perl-Convert-ASN1
-Requires: perl-HTML-Parser
-Requires: perl-HTML-Tagset
-Requires: perl-IO-Socket-SSL
-Requires: perl-Net_SSLeay
-Requires: perl-URI
-Requires: perl-libwww-perl
 Requires: MHonArc >= 2.4.6
 Requires: webserver
 Requires: openssl >= 0.9.5a
@@ -67,40 +60,51 @@ rm -rf $RPM_BUILD_ROOT
 
 %build
 
-./configure \
---prefix=--HOMEDIR-- \
---with-confdir=--CONFDIR-- \
---with-etcdir=--ETCDIR-- \
---with-cgidir=--CGIDIR-- \
---with-iconsdir=--ICONSDIR-- \
---with-bindir=--BINDIR-- \
---with-sbindir=--SBINDIR-- \
---with-mandir=%{_mandir} \
---with-libexecdir=--SCRIPTDIR-- \
---with-libdir=--LIBDIR-- \
---with-datadir=--DATADIR-- \
---with-expldir=--EXPLDIR-- \
---with-piddir=--PIDDIR-- \
---with-localedir=--LOCALEDIR-- \
---with-scriptdir=--SCRIPTDIR-- \
---with-sampledir=--SAMPLEDIR-- \
---with-spooldir=--SPOOLDIR-- \
-;make sources 
+make sources languages CONFDIR=%{conf_s}
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-make HOST=MYHOST DESTDIR=$RPM_BUILD_ROOT install
+#make INITDIR=/etc/rc.d/init.d HOST=MYHOST DIR=%{home_s} EXPL_DIR=%{home_s}/expl PIDDIR=--PIDDIR-- BINDIR=%{home_s}/bin SBINDIR=%{home_s}/sbin LIBDIR=%{home_s}/lib MAILERPROGDIR=/etc/smrsh ETCBINDIR=%{home_s}/bin/etc DESTDIR=$RPM_BUILD_ROOT MANDIR=%{_mandir} ICONSDIR=--ICONSDIR-- CGIDIR=%{home_s}/sbin install
+make INITDIR=%{_initrddir} HOST=MYHOST DIR=%{home_s} EXPL_DIR=--EXPLDIR-- PIDDIR=--PIDDIR-- BINDIR=--BINDIR-- SBINDIR=--SBINDIR-- LIBDIR=--LIBDIR-- MAILERPROGDIR=--BINDIR-- ETCDIR=--ETCDIR-- ETCBINDIR=%{data_s} DESTDIR=$RPM_BUILD_ROOT MANDIR=%{_mandir} ICONSDIR=--ICONSDIR-- CGIDIR=--CGIDIR-- CONFDIR=--CONFDIR-- NLSDIR=--NLSDIR-- SCRIPTDIR=--SCRIPTDIR-- SAMPLEDIR=--SAMPLEDIR-- SPOOLDIR=%{spoo_s} install
 
-# Create bounce and archive directories
-for dir in bounce wwsarchives wwsbounce ; do
-  if [ ! -d $RPM_BUILD_ROOT%{spoo_s}/$dir ] ; then
-    mkdir -p $RPM_BUILD_ROOT%{spoo_s}/$dir
-    chown sympa $RPM_BUILD_ROOT%{spoo_s}/$dir
-    chgrp sympa $RPM_BUILD_ROOT%{spoo_s}/$dir
-    chmod 770 $RPM_BUILD_ROOT%{spoo_s}/$dir
-  fi
+## Setting Runlevels
+for I in 0 1 2 6; do
+        mkdir -p $RPM_BUILD_ROOT/etc/rc.d/rc$I.d
+        ln -s %{_initrddir}/%{name} $RPM_BUILD_ROOT/etc/rc.d/rc$I.d/K25%{name}
 done
+for I in 3 5; do
+        mkdir -p $RPM_BUILD_ROOT/etc/rc.d/rc$I.d
+        ln -s %{_initrddir}/%{name} $RPM_BUILD_ROOT/etc/rc.d/rc$I.d/S95%{name}
+done
+
+#echo "See README and INSTALL in %{prefix}/doc/%{name}-%{version}" > $RPM_BUILD_ROOT%{home_s}/README.first
+ 
+## Populate config directory
+#for dir in create_list_templates scenari wws_templates templates; do
+#  mkdir -p $RPM_BUILD_ROOT--ETCDIR--/$dir
+#done
+ 
+## Copy to examples directory
+#mkdir -p $RPM_BUILD_ROOT%{data_s}/examples/config
+#(cd $RPM_BUILD_ROOT%{data_s}/examples/config;
+#  cp -p $RPM_BUILD_ROOT%{conf_s}/sympa.conf .
+#  cp -p $RPM_BUILD_ROOT%{conf_s}/wwsympa.conf .
+#)
+
+## Create a directory for Sympa PIDs
+#mkdir -p $RPM_BUILD_ROOT/var/run/sympa
+
+# Move DB scripts to examples/db
+#mkdir -p $RPM_BUILD_ROOT%{data_s}/examples/db
+#mv $RPM_BUILD_ROOT%{data_s}/examples/script/create_db.* \
+#   $RPM_BUILD_ROOT%{data_s}/examples/db/
+
+## Create Sympa home dir and spools
+#mkdir -p $RPM_BUILD_ROOT%{home_s}/expl
+#for dir in msg bounce wwsarchive wwsbounce; do
+#  mkdir -p $RPM_BUILD_ROOT%{spoo_s}/$dir
+#done
 
 %pre
 
@@ -123,30 +127,33 @@ fi
 home_s_pw=`sed -n -e "/^sympa:[^:]*:[^:]*:[^:]*:[^:]*:\([^:]*\):.*/s//\1/p" /etc/passwd`
 if [ -z "$home_s_pw" ]; then
   echo "Adding system user: sympa."
-  /usr/sbin/useradd -m -g sympa -d %{home_s} sympa -c "Sympa mailing-list manager" -s "/bin/bash"
+  /usr/sbin/useradd -u 89 -m -g sympa -d %{home_s} sympa -c "Sympa mailing-list manager" -s "/bin/false"
 elif [ "$home_s_pw" != "%{home_s}" ]; then
   echo "Problem: user \"sympa\" already exists with a home different from %{home_s}"
   exit 0
 fi
 
 %post
- 
-## Setting Runlevels
-for I in 0 1 2 6; do
-        mkdir -p $RPM_BUILD_ROOT/etc/rc.d/rc$I.d
-        ln -s $RPM_BUILD_ROOT--INITDIR--/%{name} $RPM_BUILD_ROOT/etc/rc.d/rc$I.d/K25%{name}
-done
-for I in 3 5; do
-        mkdir -p $RPM_BUILD_ROOT/etc/rc.d/rc$I.d
-        ln -s $RPM_BUILD_ROOT--INITDIR--/%{name} $RPM_BUILD_ROOT/etc/rc.d/rc$I.d/S95%{name}
-done
+#perl -pi -e "s|MYHOST|${HOSTNAME}|g" /etc/sympa.conf /etc/wwsympa.conf
 
+# Ensure permissions and ownerships are right
+#chown -R root.root %{_libdir}/sympa
+#chown -R sympa.sympa %{spoo_s}
+#chmod -R ug=rwX,o=X %{spoo_s}
+#chown -R sympa.sympa /var/run/sympa
+ 
+#chown -R sympa.sympa %{conf_s}/*
+#chmod 0640 %{conf_s}/sympa.conf
+ 
 if [ -e "/var/log/sympa" ] && [ ! -f "/var/log/sympa" ]; then
   echo "Problem: /var/log/sympa already exists but it is not a file!"
 fi
 touch /var/log/sympa || /bin/true
 chown sympa.sympa /var/log/sympa
 chmod 0640 /var/log/sympa
+ 
+#chown sympa.sympa %{_libdir}/sympa/bin/queue
+#chown sympa.sympa %{_libdir}/sympa/bin/bouncequeue
  
 # Setup log facility for Sympa
 if [ -f /etc/syslog.conf ] ;then
@@ -159,15 +166,14 @@ if [ -f /etc/syslog.conf ] ;then
       echo "local${cntlog}.*       -/var/log/%{name}" >> /etc/syslog.conf
     fi
     perl -pi -e "s|^\*\.info;|\*\.info;local${cntlog}.none;|" /etc/syslog.conf
-
-    # Fix syslog variable for the correct subsystem to use in config files
-    # cntlog=`sed -n -e "/^local.*sympa/s|^local\([0-9][0-9]*\)\.\*[ \t]*/var/log/sympa|\1|p" < /etc/syslog.conf`
-    for conffile in %{conf_s}/sympa.conf; do
-      perl -pi -e "s|syslog(\s+)LOCAL[0-9]+|syslog\1LOCAL${cntlog}|" $conffile
-    done
   fi
 fi
  
+# Fix syslog variable for the correct subsystem to use in config files
+cntlog=`sed -n -e "/^local.*sympa/s|^local\([0-9][0-9]*\)\.\*[ \t]*/var/log/sympa|\1|p" < /etc/syslog.conf`
+for conffile in %{conf_s}/sympa.conf; do
+  perl -pi -e "s|syslog(\s+)LOCAL[0-9]+|syslog\1LOCAL${cntlog}|" $conffile
+done
 
 # rotate log for sympa
 # a inclure dans les fichiers...
@@ -182,12 +188,8 @@ if [ -d /etc/logrotate.d ] ;then
   fi
 fi
 
-#the directory where sendmail can call queue and bouncequeue
-bin_queue=--BINDIR--
-
 # eventually, add queue and bouncequeue to sendmail security shell
 if [ -d /etc/smrsh ]; then
-  bin_queue=/etc/smrsh
   if [ ! -e /etc/smrsh/queue ]; then
     ln -s --BINDIR--/queue /etc/smrsh/queue
   fi
@@ -196,7 +198,7 @@ if [ -d /etc/smrsh ]; then
     ln -s --BINDIR--/bouncequeue /etc/smrsh/bouncequeue
   fi
 fi
-
+ 
 # Try to add some sample entries in /etc/aliases for sympa
 for a_file in /etc/aliases /etc/postfix/aliases; do
   if [ -f ${a_file} ]; then
@@ -205,48 +207,29 @@ for a_file in /etc/aliases /etc/postfix/aliases; do
       echo >> ${a_file}
       echo "# added by %{name}-%{version} rpm " $(date) >> ${a_file}
       if [ `grep -c listmaster ${a_file}` -eq 0 ]; then
-	echo "# listmaster: \"|${bin_queue}/queue listmaster\"" >> ${a_file}
+        echo "# listmaster:     root" >> ${a_file}
       fi
-      echo "# sympa: \"|${bin_queue}/queue sympa\"" >> ${a_file}
-      echo "# bounce+*: \"|${bin_queue}/bouncequeue sympa\"" >> ${a_file}
+      echo "# sympa:          \"|/etc/smrsh/queue 0 sympa\"" >> ${a_file}
       echo "# sympa-request:  listmaster@${HOSTNAME}" >> ${a_file}
       echo "# sympa-owner:    listmaster@${HOSTNAME}" >> ${a_file}
       echo "" >> ${a_file}
       # (gb) The user have to manually comment out the new aliases
       # and then invoke: /usr/bin/newaliases
       echo "Your new aliases have been set up in ${a_file}. Please check them out before running /usr/bin/newaliases"
-      echo "You must configure your MTA (sendmail, postfix,...) for using a second aliases file, the one modified by sympa for his lists : /etc/mail/sympa_aliases"
-      echo "Refer to INSTALL file for more setup information..."
+    else
+      # Possibly fix up bad paths in aliases file
+      perl -pi -e "s|/var/lib/sympa/bin/queue|%{_libdir}/sympa/bin/queue|" ${a_file}
+      /usr/bin/newaliases
     fi
   fi
 done
 
-# create the alias file used by sympa for his lists
-if [ ! -f "/etc/mail/sympa_aliases" ]; then
-  if [ ! -d "/etc/mail" ]; then
-    mkdir -p /etc/mail
-  fi
-  touch /etc/mail/sympa_aliases || /bin/true
-  chown sympa.sympa /etc/mail/sympa_aliases
-  chmod 0640 /etc/mail/sympa_aliases
-fi
-
-# reset the default cookie
-typeset -x secret
-secret=`perl -e "print int(rand(time))"`
-perl -pi -e "s|'cookie',\n|'cookie',|" --SBINDIR--/sympa_wizard.pl
-perl -pi -e "s|'cookie',.*\n|'cookie', 'default' => '${secret}',\n|" --SBINDIR--/sympa_wizard.pl
-
 
 %postun
-
-## user
 if [ ! -d %{home_s} ]; then
   /usr/sbin/userdel sympa
   /usr/sbin/groupdel sympa  
 fi
-
-## links in /etc/smrsh
 if [ $1 = 0 -a -d /etc/smrsh ]; then
   if [ -L /etc/smrsh/queue ]; then
     rm -f /etc/smrsh/queue
@@ -257,17 +240,6 @@ if [ $1 = 0 -a -d /etc/smrsh ]; then
 
 fi
 
-## links in runlevels
-for I in 0 1 2 6; do
-  if [ -L $RPM_BUILD_ROOT/etc/rc.d/rc$I.d/K25%{name} ]; then
-    rm -f $RPM_BUILD_ROOT/etc/rc.d/rc$I.d/K25%{name}
-  fi
-done
-for I in 3 5; do
-  if [ -L $RPM_BUILD_ROOT/etc/rc.d/rc$I.d/S95%{name} ]; then
-    rm -f $RPM_BUILD_ROOT/etc/rc.d/rc$I.d/S95%{name}
-  fi
-done
 
 %files
 
@@ -275,90 +247,83 @@ done
 
 # Home directory
 %dir %{home_s}
-
-# Where to store the data & config files of the lists
 %dir --EXPLDIR--
  
 # Documentation
-%doc %attr(-,root,root) INSTALL README AUTHORS COPYING NEWS ChangeLog
-%doc %attr(-,root,root) doc/sympa.tex doc/sympa.ps doc/sympa.pdf
-%doc %attr(-,root,root) --DOCDIR--/*
+%doc %attr(-,root,root) INSTALL README
+# A VOIR %doc %attr(-,root,root) INSTALL LICENSE README RELEASE_NOTES
+# A VOIR %doc %attr(-,root,root) doc/sympa doc/sympa.ps
 %attr(-,root,root) %{_mandir}/man8/*
  
 # Spools
 %dir %{spoo_s}
 %dir %{spoo_s}/msg
 %dir %{spoo_s}/bounce
-#%dir %{spoo_s}/wwsarchives
-#%dir %{spoo_s}/wwsbounce
-%dir %{spoo_s}/digest
-%dir %{spoo_s}/moderation
-%dir %{spoo_s}/expire
-%dir %{spoo_s}/auth
-%dir %{spoo_s}/outgoing
-%dir %{spoo_s}/tmp
-%dir %{spoo_s}/task
+%dir %{spoo_s}/wwsarchive
+%dir %{spoo_s}/wwsbounce
  
+# PID directory
+%dir --PIDDIR--
  
-# Config file
-#%dir %{conf_s}
-%config(noreplace) %attr(0640,sympa,sympa) %{conf_s}/sympa.conf
-%config(noreplace) %attr(0640,sympa,sympa) %{conf_s}/wwsympa.conf
+# Config file, permissions are reset in %post as (0640,sympa,sympa)
+%dir %{conf_s}
+%config(noreplace) %{conf_s}/sympa.conf
+%config(noreplace) %{conf_s}/wwsympa.conf
  
 # Config directories populated by the user
 %dir %{etc_s}/create_list_templates
 %dir %{etc_s}/scenari
-%dir %{etc_s}/mail_tt2
-%dir %{etc_s}/web_tt2
-%dir %{etc_s}/general_task_models
-%dir %{etc_s}/task_models
+%dir %{etc_s}/templates
+%dir %{etc_s}/wws_templates
  
 # Binaries
-# We use a configure where BINDIR = SBINDIR = LIBDIR = LIBEXECDIR
-# aliaswrapper is owned by root, don't change it
-%attr(-,-,-) --BINDIR--/*
-%attr(-,-,-) --SBINDIR--/*
-%attr(-,-,-) --LIBDIR--/*
-%attr(-,-,-) --LIBEXECDIR--/*
-
+%dir --BINDIR--
+--BINDIR--/*
+# on suppose que BINDIR = SBINDIR = LIBDIR =
+ 
 # Locales
-#%dir --LOCALEDIR--
---LOCALEDIR--/
-
-# ATTENTION A VOIR %{_libdir}/sympa/locale/*.po
+%dir --NLSDIR--
+--NLSDIR--/*.cat
+# ATTENTION A VOIR %{_libdir}/sympa/nls/*.msg
  
 # Data
-%{data_s}/
-#%dir %{data_s}
-#%{data_s}/ca-bundle.crt
-#%{data_s}/create_list.conf
-#%{data_s}/edit_list.conf
-#%{data_s}/mhonarc-ressources
-#%{data_s}/list_aliases.tt2
-#%dir %{data_s}/create_list_templates
-#%{data_s}/create_list_templates/*
-#%dir %{data_s}/scenari
-#%{data_s}/scenari/*
-#%dir %{data_s}/tt2s
-#%{data_s}/tt2/*
-#%dir %{data_s}/web_tt2
-#%{data_s}/web_tt2/*
-#%dir %{data_s}/list_task_models
-#%{data_s}/list_task_models/*
-#%dir %{data_s}/global_task_models
-#%{data_s}/global_task_models/*
+%dir %{data_s}
+%{data_s}/ca-bundle.crt
+%{data_s}/create_list.conf
+%dir %{data_s}/create_list_templates
+%{data_s}/create_list_templates/*
+%{data_s}/edit_list.conf
+%{data_s}/mhonarc-ressources
+%dir %{data_s}/scenari
+%{data_s}/scenari/*
+%dir %{data_s}/templates
+%{data_s}/templates/*
+%dir %{data_s}/wws_templates
+%{data_s}/wws_templates/*
  
 # Icons and binaries for Apache
 --CGIDIR--/wwsympa.fcgi
---CGIDIR--/sympa_soap_server.fcgi
---ICONSDIR--/
+%dir --ICONSDIR--
+--ICONSDIR--/*
  
 # Init scripts
-%config(noreplace) %attr(0755,root,root) --INITDIR--/sympa
+%config(noreplace) %attr(0755,root,root) %{_initrddir}/sympa
 
 # Examples
-#%dir --SAMPLEDIR--
-#--SAMPLEDIR--/
+%dir %{data_s}/examples
+#a remettre !  %dir %{data_s}/examples/config
+#a remettre !  %{data_s}/examples/config/sympa.conf
+#a remettre !  %{data_s}/examples/config/wwsympa.conf
+#a remettre !  %dir %{data_s}/examples/db
+#a remettre !  %{data_s}/examples/db/*
+#a remettre !  %dir %{data_s}/examples/expl
+#a remettre !  %{data_s}/examples/expl/*
+#a remettre !  %dir %{data_s}/examples/sample
+#a remettre !  %{data_s}/examples/sample/*
+#a remettre !  %dir %{data_s}/examples/script
+#a remettre !  %{data_s}/examples/script/*
+#a enlever ! 
+%{data_s}/examples/*
 
 
 %clean
@@ -366,23 +331,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 
-* Mon Feb 17 2003 Guy Paressant - Academie de Nantes - <rpm-sympa@ac-nantes.fr> 3.4.3.1-8
-- Rebuilt for 3.4.3.1
-- Adding doc and sample
-- Fix spool directories and create bounce and archive
-
-* Fri Jan 31 2003 Guy Paressant - Academie de Nantes - <rpm-sympa@ac-nantes.fr> 3.4.2-7.3
-- reset of the default cookie in sympa_wizard.pl
-- keep owner for binaries (user root for aliaswrapper)
-- set /bin/bash as shell for user sympa
-
-* Tue Dec 31 2002 Guy PARESSANT - Academie de Nantes - <rpm-sympa@ac-nantes.fr> 3.4.2-7.2
-- corrections for runlevels + remove in %postun
-
-* Tue Dec 24 2002 Guy PARESSANT - Academie de Nantes - <rpm-sympa@ac-nantes.fr> 3.4.2-7.1
+* Thu Dec 12 2002 Guy PARESSANT <net@ac-nantes.fr> 3.4.2-8
 - Rebuild for sympa 3.4.2
-- cleaning
-- store the files on directories choosed by Mandrake
+- store the files on directory choosed by Mandrake
 - the options used before building the rpm for Mandrake 9 :
 ./configure --prefix=/var/lib/sympa \
 --with-confdir=/etc/sympa \
@@ -398,7 +349,7 @@ rm -rf $RPM_BUILD_ROOT
 --with-mandir=/usr/share/man \
 --with-piddir=/var/run/sympa \
 --with-openssl=/usr/bin/openssl \
---with-localedir=/usr/lib/sympa/locale \
+--with-nlsdir=/usr/lib/sympa/nls \
 --with-scriptdir=/usr/lib/sympa/bin \
 --with-sampledir=/usr/share/sympa/examples \
 --with-spooldir=/var/spool/sympa
