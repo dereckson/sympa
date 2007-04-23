@@ -1,6 +1,9 @@
-title.gettext listmaster only
+title.fr listmaster seulement
+title.us listmaster only
+title.de nur Listmaster
+title.es sólo para el listmaster
+title.cz pouze správce
 
 # only listmaster can perform remind
 is_listmaster([sender])   smtp   -> request_auth
-is_listmaster([sender])   md5,smime    -> do_it
-true()                    smtp,md5,smime -> reject(reason='remind_listmaster')	
+is_listmaster([sender])    md5,smime    -> do_it

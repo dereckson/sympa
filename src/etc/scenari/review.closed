@@ -1,3 +1,7 @@
-title.gettext no one can review
+title.fr pour personne
+title.us nobody can review
+title.de keiner darf "Review" machen
+title.es nadie puede revisar
+title.cz nikdo
 
-true()   smtp,smime,md5 -> reject(reason='review_closed')
+true()   smtp,smime,md5 -> reject
