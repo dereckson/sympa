@@ -2,25 +2,46 @@
 <definitions name="Sympa" 
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
 	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
-	targetNamespace="[% conf.wwsympa_url %]/wsdl" 
-	xmlns:tns="[% conf.wwsympa_url %]/wsdl"
+	targetNamespace="[conf->wwsympa_url]/wsdl" 
+	xmlns:tns="[conf->wwsympa_url]/wsdl"
 	xmlns="http://schemas.xmlsoap.org/wsdl/" 
-	xmlns:xsdl="[% conf.soap_url %]/wsdl">
+	xmlns:xsdl="[conf->soap_url]/SympaFunctions.xsd">
 
 
 <!-- types part -->	
 
 
 <types>
-<schema targetNamespace="[% conf.wwsympa_url %]/wsdl" 
+<schema targetNamespace="[conf->soap_url]/SympaFunctions.xsd" 
 	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
 	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
 	xmlns="http://www.w3.org/2001/XMLSchema">
 	
+	<simpleType name="Reception_type">
+		     <restriction base="string"> 
+		              <enumeration value="digest"/>
+			      <enumeration value="html"/>
+			      <enumeration value="mail"/>
+			      <enumeration value="nomail"/>
+			      <enumeration value="not_me"/>
+			      <enumeration value="notice"/>
+			      <enumeration value="summary"/>      
+			      <enumeration value="txt"/>
+			      <enumeration value="urlize"/>
+		     </restriction> 
+        </simpleType>	
+		
+	<simpleType name="Visibility_type">
+		     <restriction base="string"> 
+		              <enumeration value="conceal"/>
+			      <enumeration value="public"/>
+		     </restriction> 
+        </simpleType>	
+
 	<complexType name="ArrayOfLists">
 		<complexContent>
 			<restriction base="SOAP-ENC:Array">
-				<attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="tns:listType[]"/>
+				<attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="xsdl:List_type[]"/>
 			</restriction>
 		</complexContent>
 	</complexType>
@@ -33,15 +54,15 @@
 		</complexContent>
 	</complexType>
 	
-	<complexType name="listType">
-           <all>
-		<element name="listAddress" minOccurs="1" type="string"/>
-		<element name="homepage" minOccurs="0" type="string"/>
-		<element name="isSubscriber" minOccurs="0" type="boolean"/>
-		<element name="isOwner" minOccurs="0" type="boolean"/>
-		<element name="isEditor" minOccurs="0" type="boolean"/>
+	<complexType name="List_type">
+		<element name="list_address" minOccurs="1" type="string"/>
 		<element name="subject" minOccurs="0" type="string"/>
-           </all>
+		<element name="homepage" minOccurs="0" type="string"/>
+		<element name="is_subscriber" minOccurs="0" type="boolean"/>
+		<element name="is_owner" minOccurs="0" type="boolean"/>
+		<element name="is_editor" minOccurs="0" type="boolean"/>
+		<element name="reception" minOccurs="0" type="xsdl:Reception_type"/>
+		<element name="visibility"  minOccurs="0" type="xsdl:Visibility_type"/>
 	</complexType>
 </schema>
 </types>
@@ -49,26 +70,21 @@
 
 <!-- message part -->
 
-<message name="infoRequest">
-        <part name="listName" type="xsd:string"/>
-</message>
-
-<message name="infoResponse">
-	<part name="return" type="tns:listType"/>
-</message>
-
-<message name="complexWhichRequest">
-</message>
-
-<message name="complexWhichResponse">
-	<part name="return" type="tns:ArrayOfLists"/>
-</message>
-
 <message name="whichRequest">
 </message>
 
 <message name="whichResponse">
-	<part name="return" type="tns:ArrayOfString"/>
+	<part name="return" type="xsdl:ArrayOfLists"/>
+</message>
+
+
+<message name="isSubscriberRequest">
+	<part name="list" type="xsd:string"/>
+	<part name="user" type="xsd:string"/>
+</message>
+
+<message name="isSubscriberResponse">
+	<part name="return" type="xsd:boolean"/>
 </message>
 
 <message name="amIRequest">
@@ -86,7 +102,7 @@
 </message>
 
 <message name="reviewResponse">
-	<part name="return" type="tns:ArrayOfString"/>
+	<part name="return" type="xsdl:ArrayOfString"/>
 </message>
 
 <message name="signoffRequest">
@@ -103,49 +119,6 @@
 	<part name="gecos" type="xsd:string" xsd:minOccurs="0"/>	
 </message>
 
-<message name="addRequest">
-	<part name="list" type="xsd:string"/>		
-	<part name="email" type="xsd:string"/>
-	<part name="gecos" type="xsd:string"  xsd:minOccurs="0"/>	
-	<part name="quiet" type="xsd:boolean"  xsd:minOccurs="0"/>	
-</message>
-
-
-<message name="addResponse">
-	<part name="return" type="xsd:boolean"/>
-</message>
-
-<message name="delRequest">
-	<part name="list" type="xsd:string"/>		
-	<part name="email" type="xsd:string"/>
-	<part name="quiet" type="xsd:boolean"  xsd:minOccurs="0"/>	
-</message>
-
-
-<message name="delResponse">
-	<part name="return" type="xsd:boolean"/>
-</message>
-
-<message name="createListRequest">
-	<part name="list" type="xsd:string"/>
-	<part name="subject" type="xsd:string"/>
-	<part name="template" type="xsd:string"/>
-	<part name="description" type="xsd:string"/>
-	<part name="topics" type="xsd:string"/>
-</message>
-
-<message name="createListResponse">
-	<part name="return" type="xsd:boolean"/>
-</message>
-
-<message name="closeListRequest">
-	<part name="list" type="xsd:string"/>
-</message>
-
-<message name="closeListResponse">
-	<part name="return" type="xsd:boolean"/>
-</message>
-
 <message name="subscribeResponse">
 	<part name="return" type="xsd:boolean"/>
 </message>
@@ -156,68 +129,30 @@
 </message>
 
 <message name="loginResponse">
-	<part name="return" type="xsd:string"/>	
+	<part name="return" type="xsd:boolean"/>	
 </message>
 
-<message name="getUserEmailByCookieRequest">
-	<part name="cookie" type="xsd:string"/>
-</message>
-
-<message name="getUserEmailByCookieResponse">
-	<part name="return" type="xsd:string"/>
-</message>
-
-<message name="authenticateAndRunRequest">
-	<part name="email" type="xsd:string"/>
-	<part name="cookie" type="xsd:string"/>
-	<part name="service" type="xsd:string"/>
-	<part name="parameters" type="tns:ArrayOfString" xsd:minOccurs="0"/>
-</message>
-
-<message name="authenticateAndRunResponse">
-	<part name="return" type="tns:ArrayOfString" xsd:minOccurs="0"/>
-</message>
-
-<message name="authenticateRemoteAppAndRunRequest">
-	<part name="appname" type="xsd:string"/>
-	<part name="apppassword" type="xsd:string"/>
-	<part name="vars" type="xsd:string"/>
-	<part name="service" type="xsd:string"/>
-	<part name="parameters" type="tns:ArrayOfString" xsd:minOccurs="0"/>
-</message>
-
-<message name="authenticateRemoteAppAndRunResponse">
-	<part name="return" type="tns:ArrayOfString" xsd:minOccurs="0"/>	
-</message>
-
-<message name="casLoginRequest">
+<message name="cas_loginRequest">
 	<part name="proxyTicket" type="xsd:string"/>
 </message>
 
-<message name="casLoginResponse">
-	<part name="return" type="xsd:string"/>	
+<message name="cas_loginResponse">
+	<part name="return" type="xsd:boolean"/>	
 </message>
 
 <message name="listsRequest">
 	<part name="topic" type="xsd:string" xsd:minOccurs="0"/>
-	<part name="subtopic" type="xsd:string" xsd:minOccurs="0"/>
+	<part name="subtopic" type="xsd:string"/>
 </message>
 
 <message name="listsResponse">
-	<part name="listInfo" type="xsd:string"/>	
+	<part name="return" type="xsdl:ArrayOfLists"/>	
 </message>
 
-<message name="complexListsRequest">
+<message name="check_cookieRequest">
 </message>
 
-<message name="complexListsResponse">
-	<part name="return" type="tns:ArrayOfLists"/>
-</message>
-
-<message name="checkCookieRequest">
-</message>
-
-<message name="checkCookieResponse">
+<message name="check_cookieResponse">
 	<part name="email" type="xsd:string"/>
 </message>
 
@@ -225,37 +160,17 @@
 <!-- portType part -->
 
 <portType name="SympaPort">
-	<operation name="info">
-		<input message="tns:infoRequest" />
-		<output message="tns:infoResponse" />
-	</operation>
-	<operation name="complexWhich">
-		<input message="tns:complexWhichRequest" />
-		<output message="tns:complexWhichResponse" />
-	</operation>
 	<operation name="which">
 		<input message="tns:whichRequest" />
 		<output message="tns:whichResponse" />
 	</operation>
+	<operation name="isSubscriber">
+		<input message="tns:isSubscriberRequest" />
+		<output message="tns:isSubscriberResponse" />
+	</operation>
 	<operation name="amI">
 		<input message="tns:amIRequest" />
 		<output message="tns:amIResponse" />
-	</operation>
-	<operation name="add">
-		<input message="tns:addRequest" />
-		<output message="tns:addResponse" />
-	</operation>
-	<operation name="del">
-		<input message="tns:delRequest" />
-		<output message="tns:delResponse" />
-	</operation>
-	<operation name="createList">
-		<input message="tns:createListRequest" />
-		<output message="tns:createListResponse" />
-	</operation>
-	<operation name="closeList">
-		<input message="tns:closeListRequest" />
-		<output message="tns:closeListResponse" />
 	</operation>
 	<operation name="review">
 		<input message="tns:reviewRequest" />
@@ -273,33 +188,17 @@
 		<input message="tns:loginRequest" />
 		<output message="tns:loginResponse" />
 	</operation>
-	<operation name="casLogin">
-		<input message="tns:casLoginRequest" />
-		<output message="tns:casLoginResponse" />
-	</operation>
-	<operation name="getUserEmailByCookie">
-		<input message="tns:getUserEmailByCookieRequest" />
-		<output message="tns:getUserEmailByCookieResponse" />
-	</operation>
-	<operation name="authenticateAndRun">
-		<input message="tns:authenticateAndRunRequest" />
-		<output message="tns:authenticateAndRunResponse" />
-	</operation>
-	<operation name="authenticateRemoteAppAndRun">
-		<input message="tns:authenticateRemoteAppAndRunRequest" />
-		<output message="tns:authenticateRemoteAppAndRunResponse" />
+	<operation name="cas_login">
+		<input message="tns:cas_loginRequest" />
+		<output message="tns:cas_loginResponse" />
 	</operation>
 	<operation name="lists">
 		<input message="tns:listsRequest" />
 		<output message="tns:listsResponse" />
 	</operation>
-	<operation name="complexLists">
-		<input message="tns:complexListsRequest" />
-		<output message="tns:complexListsResponse" />
-	</operation>
-	<operation name="checkCookie">
-		<input message="tns:checkCookieRequest" />
-		<output message="tns:checkCookieResponse" />
+	<operation name="check_cookie">
+		<input message="tns:check_cookieRequest" />
+		<output message="tns:check_cookieResponse" />
 	</operation>
 </portType>
 
@@ -308,32 +207,6 @@
 
 <binding name="SOAP" type="tns:SympaPort">
 <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
-	<operation name="info">
-		<soap:operation soapAction="urn:sympasoap#info"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="complexWhich">
-		<soap:operation soapAction="urn:sympasoap#complexWhich"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
 	<operation name="which">
 		<soap:operation soapAction="urn:sympasoap#which"/>
 			<input>
@@ -347,60 +220,21 @@
 					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
 			</output>
 	</operation>
+	<operation name="isSubscriber">
+		<soap:operation soapAction="urn:sympasoap#isSubscriber"/>
+			<input>
+				<soap:body use="encoded" 
+					namespace="urn:sympasoap" 
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded"
+					namespace="urn:sympasoap" 
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+	</operation>
 	<operation name="amI">
 		<soap:operation soapAction="urn:sympasoap#amI"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="add">
-		<soap:operation soapAction="urn:sympasoap#add"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="del">
-		<soap:operation soapAction="urn:sympasoap#del"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="createList">
-		<soap:operation soapAction="urn:sympasoap#createList"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="closeList">
-		<soap:operation soapAction="urn:sympasoap#closeList"/>
 			<input>
 				<soap:body use="encoded" 
 					namespace="urn:sympasoap" 
@@ -464,47 +298,8 @@
 					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
 			</output>
 	</operation>
-	<operation name="casLogin">
-		<soap:operation soapAction="urn:sympasoap#casLogin"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="getUserEmailByCookie">
-		<soap:operation soapAction="urn:sympasoap#getUserEmailByCookie"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="authenticateAndRun">
-		<soap:operation soapAction="urn:sympasoap#authenticateAndRun"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="authenticateRemoteAppAndRun">
-		<soap:operation soapAction="urn:sympasoap#authenticateRemoteAppAndRun"/>
+	<operation name="cas_login">
+		<soap:operation soapAction="urn:sympasoap#cas_login"/>
 			<input>
 				<soap:body use="encoded" 
 					namespace="urn:sympasoap" 
@@ -529,21 +324,8 @@
 					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
 			</output>
 	</operation>
-	<operation name="complexLists">
-		<soap:operation soapAction="urn:sympasoap#complexLists"/>
-			<input>
-				<soap:body use="encoded" 
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</input>
-			<output>
-				<soap:body use="encoded"
-					namespace="urn:sympasoap" 
-					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
-			</output>
-	</operation>
-	<operation name="checkCookie">
-		<soap:operation soapAction="urn:sympasoap#checkCookie"/>
+	<operation name="check_cookie">
+		<soap:operation soapAction="urn:sympasoap#check_cookie"/>
 			<input>
 				<soap:body use="encoded" 
 					namespace="urn:sympasoap" 
@@ -562,7 +344,7 @@
 
 <service name="SympaSOAP">
 	<port name="SympaPort" binding="tns:SOAP">
-		<soap:address location="[% conf.soap_url %]"/>
+		<soap:address location="[conf->soap_url]"/>
 	</port>
 </service>
 

@@ -1,20 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002 (1.62) JA patch-1.4
+patched version by:  Kenshi Muto, Debian Project.
+LaTeX2HTML 2002 (1.62),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>16. Interaction between Sympa and other applications</TITLE>
-<META NAME="description" CONTENT="16. Interaction between Sympa and other applications">
+<TITLE>16. Bounce management</TITLE>
+<META NAME="description" CONTENT="16. Bounce management">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002 JA patch-1.4">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,171 +29,177 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html1277"
+<A NAME="tex2html1111"
   HREF="node18.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1271"
+<A NAME="tex2html1105"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1265"
+<A NAME="tex2html1099"
   HREF="node16.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1273"
+<A NAME="tex2html1107"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1275"
-  HREF="node31.html">
+<A NAME="tex2html1109"
+  HREF="node22.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1278"
-  HREF="node18.html">17. Customizing Sympa/WWSympa</A>
-<B> Up:</B> <A NAME="tex2html1272"
+<B> Next:</B> <A NAME="tex2html1112"
+  HREF="node18.html">17. Antivirus</A>
+<B> Up:</B> <A NAME="tex2html1106"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1266"
-  HREF="node16.html">15. virtual host</A>
- &nbsp; <B>  <A NAME="tex2html1274"
+<B> Previous:</B> <A NAME="tex2html1100"
+  HREF="node16.html">15. Shared documents</A>
+ &nbsp <B>  <A NAME="tex2html1108"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1276"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html1110"
+  HREF="node22.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
-<!--Table of Child-Links-->
-<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<H1><A NAME="SECTION001700000000000000000">
+16. Bounce management</A>
+</H1>
+
+<P>
+<I>Sympa</I> allows bounce (non-delivery report) management. This
+prevents list owners from receiving each bounce (1 per message
+sent to a bouncing subscriber) in their own mailbox. Without
+automatic processing of bounces, list owners either go
+mad, or just delete them without further attention.
+
+<P>
+Bounces are received at mylist-owner address, which should
+be sent to the <A NAME="7989"></A><TT>bouncequeue</TT> program via aliases :
+
+<P><PRE>
+	\samplelist-owner: "|/home/sympa/bin/bouncequeue \samplelist"
+</PRE>
+
+<P>
+<A NAME="7992"></A><TT>bouncequeue</TT> (see <A HREF="node3.html#binaries">2.2</A>, page&nbsp;<A HREF="node3.html#binaries"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>) stores bounces in a
+<A NAME="7995"></A><TT>/home/sympa/spool/bounce/</TT> spool.
+
+<P>
+Bounces are then processed by the <A NAME="7998"></A><TT>bounced.pl</TT> daemon.
+This daemon analyses bounces to find out which
+e-mail addresses are concerned and what kind of error was generated.
+If bouncing addresses match a subscriber's address, information 
+is stored in the <I>Sympa</I> database (in subscriber_table). Moreover, the most recent
+bounce itself is archived in <A NAME="8002"></A><TT>bounce_path/mylist/email</TT>
+(where bounce_path is defined in a <A NAME="8005"></A><TT>wwsympa.conf</TT> parameter and
+email is the user e-mail address).
+
+<P>
+When reviewing a list, bouncing addresses are tagged as bouncing.
+You may access further information such as dates of first and last bounces,
+number of received bounces for the address, the last bounce itself.
+
+<P>
+With these informations, the automatic bounce management is possible:
+
+<P>
 
 <UL>
-<LI><A NAME="tex2html1279"
-  HREF="node17.html#SECTION001710000000000000000">16.1 Soap</A>
-<LI><A NAME="tex2html1280"
-  HREF="node17.html#SECTION001720000000000000000">16.2 RSS channel</A>
-<LI><A NAME="tex2html1281"
-  HREF="node17.html#SECTION001730000000000000000">16.3 Sharing <I>WWSympa</I> authentication with other applications</A>
-<LI><A NAME="tex2html1282"
-  HREF="node17.html#SECTION001740000000000000000">16.4 Sharing data with other applications</A>
-<LI><A NAME="tex2html1283"
-  HREF="node17.html#SECTION001750000000000000000">16.5 Subscriber count</A>
-</UL>
-<!--End of Table of Child-Links-->
-<HR>
-
-<H1><A NAME="SECTION001700000000000000000"></A>
-    <A NAME="interaction"></A>
-<BR>
-16. Interaction between <I>Sympa</I> and other applications
-</H1>
+<LI>The automatic task <A NAME="8008"></A><TT>eval_bouncer</TT> gives a score foreach bouncing user.
+  The score, between 0 to 100, allows the classification of bouncing users in two levels.
+  (Level 1 or 2). 
+  According to the level, automatic actions are executed periodicaly by <A NAME="8011"></A><TT>process_bouncers</TT>
+  task.
 
 <P>
-
-<H1><A NAME="SECTION001710000000000000000">
-16.1 Soap</A>
-</H1>
+</LI>
+<LI>The score evaluation main parameters are: 
 
 <P>
-See&nbsp;<A HREF="node13.html#soap">12</A>, page&nbsp;<A HREF="node13.html#soap"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>.
+<A NAME="8014"></A><TT>Bounces count</TT>: The number of bouncing messages received by sympa for the user.
 
 <P>
-
-<H1><A NAME="SECTION001720000000000000000">
-16.2 RSS channel</A>
-</H1>
-
-<P>
-See <A HREF="node12.html#rss">11</A>, page&nbsp;<A HREF="node12.html#rss"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>. 
+<A NAME="8017"></A><TT>Type rate</TT> : Bounces are classified depending on the type of errors generated on the user
+  side. If the error type is "mailbox is full" (ie a temporary 4.2.2 error type) the type rate will be
+  0.5 whereas permanent errors (5.x.x) have a type rate equal to 1.
 
 <P>
+<A NAME="8020"></A><TT>Regularity rate</TT> : This rate tells if the bounces where received regularly, compared to list
+ traffic. The list traffic is deduced from <A NAME="8023"></A><TT>msg_count</TT> file data.
 
-<H1><A NAME="SECTION001730000000000000000"></A><A NAME="9961"></A>
-<BR>
-16.3 Sharing <I>WWSympa</I> authentication with other applications
-</H1>
-
-<P>
-See <A HREF="node14.html#sharing-auth">13.6</A>, page&nbsp;<A HREF="node14.html#sharing-auth"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>.
-
-<P>
-
-<H1><A NAME="SECTION001740000000000000000">
-16.4 Sharing data with other applications</A>
-</H1>
+<P><PRE>
+      The score formula is  :
+  
+      Score = bounce_count * type_rate * regularity_rate
+</PRE>
 
 <P>
-You may extract subscribers, owners and editors for a list from any of :
+To avoid making decisions (ie defining a score) without enough relevant data, the score is not
+  evaluated if :
+
+<P>
 
 <UL>
-<LI>a text file
+<LI>The number of the number of received bounces is lower than <A NAME="8026"></A><TT>minimum_bouncing_count</TT> 
+	(see <A HREF="node6.html#kw-minimum-bouncing-count">5.8.9</A>, page&nbsp;<A HREF="node6.html#kw-minimum-bouncing-count"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
 
 <P>
 </LI>
-<LI>a Relational database
-
-<P>
-</LI>
-<LI>a LDAP directory
+<LI>The bouncing period is shorter than <A NAME="8029"></A><TT>minimum_bouncing_period</TT> 
+	(see <A HREF="node6.html#kw-minimum-bouncing-period">5.8.10</A>, page&nbsp;<A HREF="node6.html#kw-minimum-bouncing-period"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
 
 <P>
 </LI>
 </UL>
 
 <P>
-See <A NAME="9964"></A><TT>user_data_source</TT> list parameter <A HREF="node22.html#user-data-source">21.2.1</A>, page&nbsp;<A HREF="node22.html#user-data-source"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>.
+</LI>
+<LI>You can define the limit between each level via the <B>List configuration pannel</B>, 
+  in subsection <B>Bounce settings</B>. (see <A HREF="node15.html#rate">14.5.2</A>) The principle consists in
+  associating a score interval with a level.
 
 <P>
-The three tables can have more fields than the one used by <I>Sympa</I>, by defining these additional fields, they will be available
-from within <I>Sympa</I>'s authorization scenarios and templates (see <A HREF="node8.html#db-additional-subscriber-fields">7.10.11</A>, 
-page&nbsp;<A HREF="node8.html#db-additional-subscriber-fields"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A> and <A HREF="node8.html#db-additional-user-fields">7.10.12</A>, page&nbsp;<A HREF="node8.html#db-additional-user-fields"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+</LI>
+<LI>You can also define wich action must be applied on each category of user.(see <A HREF="node15.html#action">14.5.2</A>)
+  Each time an action will be done, a notification email will be send to the person of your choice.
+  (see <A HREF="node15.html#notification">14.5.2</A>)
 
 <P>
-See data inclusion file <A HREF="node19.html#data-inclusion-file">18.7</A>, page&nbsp;<A HREF="node19.html#data-inclusion-file"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>. 
+</LI>
+</UL>
 
-<P>
-
-<H1><A NAME="SECTION001750000000000000000"></A>
- <A NAME="subscriber-count"></A> <A NAME="2334"></A>
-<BR>
-16.5 Subscriber count
-</H1>
-
-<P>
-The number of subscribers of a list can be get from an external application by requesting function 'subscriber_count' on the Web 
-interface.
-
-<P>
-Example: <TT>http://my.server/wws/subscriber_count/mylist</TT>
-<BR>
 <P>
 
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html1277"
+<A NAME="tex2html1111"
   HREF="node18.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1271"
+<A NAME="tex2html1105"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1265"
+<A NAME="tex2html1099"
   HREF="node16.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1273"
+<A NAME="tex2html1107"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1275"
-  HREF="node31.html">
+<A NAME="tex2html1109"
+  HREF="node22.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1278"
-  HREF="node18.html">17. Customizing Sympa/WWSympa</A>
-<B> Up:</B> <A NAME="tex2html1272"
+<B> Next:</B> <A NAME="tex2html1112"
+  HREF="node18.html">17. Antivirus</A>
+<B> Up:</B> <A NAME="tex2html1106"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1266"
-  HREF="node16.html">15. virtual host</A>
- &nbsp; <B>  <A NAME="tex2html1274"
+<B> Previous:</B> <A NAME="tex2html1100"
+  HREF="node16.html">15. Shared documents</A>
+ &nbsp <B>  <A NAME="tex2html1108"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1276"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html1110"
+  HREF="node22.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2003-11-27
 </ADDRESS>
 </BODY>
 </HTML>
