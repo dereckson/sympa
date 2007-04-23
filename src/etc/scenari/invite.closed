@@ -1,3 +1,9 @@
-title.gettext closed
+title.fr fermé
+title.us closed
+title.et suletud
+title.de geschlossen
+title.es cerrado
+title.cz uzavøeno
+title.hu senkisem
 
-true() smtp,md5,smime -> reject(reason='invite_closed')
+true() smtp,md5,smime -> reject
