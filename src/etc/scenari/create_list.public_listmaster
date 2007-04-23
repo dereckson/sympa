@@ -1,4 +1,5 @@
-title.gettext anybody by validation by listmaster required
+title.fr quiconque via le listmaster
+title.us anybody by validation by listmaster requiered
+title.es add ejecutado por el propietario no necesita autentificación (notificación)
 
-is_listmaster([sender])   md5,smime -> do_it
-true()                    smtp,md5,smime -> listmaster,notify
+true()                    md5,smime -> listmaster,notify
