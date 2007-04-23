@@ -76,12 +76,8 @@ sub rfc1891 {
 		    $status = $1;
 		}
 		
-		if (/^Original-Recipient:\s*rfc822\s*;\s*(.*)$/mi ||
-		    /^Final-Recipient:\s*rfc822\s*;\s*(.*)$/mi) {
+		if (/^Final-Recipient:\s*rfc822\s*;\s*(.*)$/mi) {
 		    $recipient = $1;
-		    if ($recipient =~ /\@.+:(.+)$/) {
-			$recipient = $1;
-		    }
 		    $recipient =~ s/^<(.*)>$/$1/;
 		    $recipient =~ y/[A-Z]/[a-z]/;
 		}
@@ -205,21 +201,13 @@ sub anabounce {
 		$info{$2}{error} = $1;
 		$type = 27;
 
-	    }elsif ($champ{subject} =~ /^Returned mail: (message not deliverable): \<(\S+)\>$/) {
-		
-		$info{$2}{error} = $1;
-		$type = 34;
 	    }
 
 	    if ($champ{'x-failed-recipients'} =~ /^\s*(\S+)$/) {
 		$info{$1}{error} = "";
-	    } elsif ($champ{'x-failed-recipients'} =~ /^\s*(\S+),/) {
-		for my $xfr (split (/\s*,\s*/, $champ{'x-failed-recipients'})) {
-		    $info{$xfr}{error} = "";
-		}
 	    }
 
-	    }elsif (/^\s*-+ The following addresses (had permanent fatal errors|had transient non-fatal errors|have delivery notifications) -+/m) {
+	}elsif (/^\s*-+ The following addresses (had permanent fatal errors|had transient non-fatal errors|have delivery notifications) -+/m) {
 	    
 	    my $adr;
 	    

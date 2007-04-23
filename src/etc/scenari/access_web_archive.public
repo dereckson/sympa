@@ -1,4 +1,9 @@
-title.gettext public
+title.fr public
+title.us public
+title.es público
+title.de oeffentlich
+title.cz veøejnì
+title.hu bárki
 
 true()  md5,smime  -> do_it
 
