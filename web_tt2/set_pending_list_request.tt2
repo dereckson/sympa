@@ -1,58 +1,82 @@
 <!-- $Id$ -->
 
-<br />
+<br>
 
- <div class="block">
-  <strong>
-   [%|loc%]Listname :[%END%] [% list %]<br />
-   [%|loc%]Subject :[%END%] [% list_subject %]<br />
-  </strong>
-   [%|loc%]List requested by[%END%] [% list_request_by %] [%|loc(list_request_date)%] on %1[%END%]<br />
- </div>
-
-<br /><br />
+<BR>
+<TABLE BORDER=0 WIDTH=100% >
+<TR BGCOLOR="[% light_color %]">
+<TD>
+<TABLE BORDER=0 WIDTH=100% >
+<TR BGCOLOR="[% light_color %]">
+ <TD><B>[%|loc%]Listname :[%END%]</B></TD><TD WIDTH=100% >[% list %]</TD>
+</TR>
+<TR BGCOLOR="[% light_color %]">
+ <TD><B>[%|loc%]Subject :[%END%] </B></TD><TD WIDTH=100%>[% list_subject %]</TD>
+</TR>
+<TR BGCOLOR="[% light_color %]">
+ <TD NOWRAP><B>[%|loc%]List requested by[%END%] </B></TD><TD WIDTH=100%>[% list_request_by %] [%|loc(list_request_date)%] on %1[%END%]</TD>
+</TR>
+</TABLE>
+</TD>
+</TR>
+</TABLE>
+<BR><BR>
 [% IF is_listmaster %]
 [% IF list_status == 'pending' %]
-<div>
-<form action="[% path_cgi %]" method="post">
-<fieldset>
-<input type="hidden" name="list" value="[% list %]" />
-<input type="hidden" name="serial" value="[% list_serial %]" />
+<TABLE BORDER=0>
+<TR>
+<TD>
+<FORM ACTION="[% path_cgi %]" METHOD=POST>
+<INPUT TYPE="hidden" NAME="list" VALUE="[% list %]">
+<INPUT TYPE="hidden" NAME="serial" VALUE="[% list_serial %]">
 
-<ul id="set_pending_radio">
-<li><input id="status" type="radio" name="status" value="closed" /><label for="status">[%|loc%]Close it[%END%]</label></li>
-<li><input id="status2" type="radio" name="status" value="open" /><label for="status2">[%|loc%]Install it[%END%]</label></li>
-</ul>
-<input class="MainMenuLinks" type="submit" name="action_install_pending_list" value="[%|loc%]submit[%END%]" />
-<input id="notify" type="checkbox" name="notify" checked="checked" /><label for="notify">[%|loc%]notify owner[%END%]</label>
-</fieldset>
-</form>
-</div>
-<br /><hr /><br />
+<MENU>
+<INPUT TYPE="radio" NAME="status" VALUE="closed">[%|loc%]Close it[%END%] &nbsp;&nbsp;
+<INPUT TYPE="radio" NAME="status" VALUE="open">[%|loc%]Install it[%END%] &nbsp;&nbsp;
+</MENU>
+</TD>
+<TD>
+<INPUT TYPE="submit" NAME="action_install_pending_list" VALUE="[%|loc%]submit[%END%]">
+<INPUT TYPE="checkbox" NAME="notify" CHECKED>[%|loc%]notify owner[%END%]
+</FORM>
+</TD>
+</TR>
+</TABLE>
+<BR><HR><BR>
 [% END %]
 [% END %]
-
-<div class="block">
-<strong>[%|loc%]Information file[%END%] : </strong><br /> 
-
+<TABLE BORDER=0 WIDTH=100%>
+<TR>
+ <TD ALIGN=CENTER>
+   <B>[%|loc%]Information file[%END%]</B> 
    [% IF is_listmaster %]
       ([% list_info %])
    [% END %]
-<pre class="code">
+ </TD>
+</TR>
+<TR>
+ <TD>
+     <TABLE WIDTH=100% BORDER=1>
+      <TR><TD><CODE><PRE>
        [% INSERT 'info' %]
-</pre>
-<hr /><br />
-</div>
-<br /><br />
-<div class="block">
-<strong>[%|loc%]Configuration file[%END%]</strong>
+      </PRE></CODE></TD></TR>
+     </TABLE>
+ </TD>
+</TR>
+<TR>
+ <TD ALIGN=CENTER><B>[%|loc%]Configuration file[%END%]</B>
    [% IF is_listmaster %]
       ([% list_config %])
    [% END %]
-
-<hr /><br />
-
-<pre class="code">
+ </TD>
+</TR><TR>
+ <TD><TABLE WIDTH=100% border=1>
+      <TR><TD><CODE><PRE>
         [% INSERT 'config' %]
-</pre>
-</div>
+      </PRE></CODE></TD></TR>
+     </TABLE>
+ </TD>
+</TR>
+</TABLE>
+
+

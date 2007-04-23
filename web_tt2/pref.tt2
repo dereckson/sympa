@@ -1,72 +1,126 @@
 <!-- $Id$ -->
 
-<form action="[% path_cgi %]" method="post">
-  <fieldset>
-    <label>[%|loc%]Email[%END%] :  </label>[% user.email %]<br />
-    <label for="gecos">[%|loc%]Name[%END%] :  </label><input type="text" id="gecos" name="gecos" size="30" value="[% user.gecos %]" /><br />
-    <label for="lang">[%|loc%]Language[%END%] :  </label><select id="lang" name="lang">
+    <TABLE WIDTH="100%" CELLPADDING="1" CELLSPACING="0">
+      <TR VALIGN="top">
+        <TH BGCOLOR="[% dark_color %]" COLSPAN="2">
+          <TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0">
+            <TR>
+             <TH BGCOLOR="[% selected_color %]" WIDTH="50%">
+              <FONT COLOR="[% bg_color %]">
+                [%|loc%]Your environment[%END%]
+              </FONT>
+             </TH>
+            </TR>
+           </TABLE>
+         </TH>
+      </TR>
+      <TR VALIGN="top">
+        <TD>
+          <FORM ACTION="[% path_cgi %]" METHOD=POST>
+         
+            <FONT COLOR="[% dark_color %]">Email  </FONT> [% user.email %]<BR><BR>
+            <FONT COLOR="[% dark_color %]">[%|loc%]Name[%END%]</FONT>
+            <INPUT TYPE="text" NAME="gecos" SIZE=20 VALUE="[% user.gecos %]"><BR><BR>
+            <FONT COLOR="[% dark_color %]">[%|loc%]Language[%END%] </FONT>
+            <SELECT NAME="lang">
               [% FOREACH l = languages %]
-		<option value='[% l.key %]' [% l.value.selected %]>[% l.value.complete %]</option>
+                <OPTION VALUE='[% l.key %]' [% l.value.selected %]>[% l.value.complete %]
               [% END %]
-            					        </select><br />
-    <label for="cookie_delay">[%|loc%]Connection expiration period[%END%] :  </label><select name="cookie_delay" id="cookie_delay">
+            </SELECT>
+            <BR><BR>
+            <FONT COLOR="[% dark_color %]">[%|loc%]Connexion expiration period[%END%] </FONT>
+            <SELECT NAME="cookie_delay">
               [% FOREACH period = cookie_periods %]
-                <option value="[% period.value %]" [% period.selected %]>[% period.desc %]</option>
+                <OPTION VALUE="[% period.value %]" [% period.selected %]>[% period.desc %]
               [% END %]
-									            </select><br />
-            <input class="MainMenuLinks" type="submit" name="action_setpref" value="[%|loc%]Submit[%END%]" />
-  </fieldset>
-</form>
-<br />
+            </SELECT>
+            <BR><BR>
+            <INPUT TYPE="submit" NAME="action_setpref" VALUE="[%|loc%]Submit[%END%]">
+          </FORM>
+        </TD>
+      </TR>
 
+      [% IF auth == 'classic' %]
+      <TR VALIGN="top">
+        <TH BGCOLOR="[% dark_color %]" COLSPAN="2">
+          <TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0">
+            <TR>
+             <TH WIDTH="50%" BGCOLOR="[% selected_color %]">
+              <FONT COLOR="[% bg_color %]">
+                [%|loc%]Changing your email address[%END%]
+              </FONT>
+             </TH><TH WIDTH="50%" BGCOLOR="[% selected_color %]">
+              <FONT COLOR="[% bg_color %]">
+                [%|loc%]Changing your password[%END%]
+              </FONT>
+             </TH>
+            </TR>
+           </TABLE>
+         </TH>
 
- [% IF auth == 'classic' %]
-<h2 class="block">[%|loc%]Changing your email address[%END%]</h2>
+      </TR>
+       
+      <TR VALIGN="top">
+           <TD>
+           <FORM ACTION="[% path_cgi %]" METHOD=POST>
         
-<form action="[% path_cgi %]" method="post">
-<fieldset>
-<label for="email">[%|loc%]New email address :[%END%]  </label><input id="email" name="email" size="15" /><br />
-<input class="MainMenuLinks" type="submit" name="action_change_email" value="[%|loc%]Submit[%END%]" />
-</fieldset>
-</form>
-<br /> 
-
-<h2 class="block">[%|loc%]Changing your password[%END%]</h2>
-  
-<form action="[% path_cgi %]" method="post">
-<fieldset>
-<label for="newpasswd1">[%|loc%]New password :[%END%]  </label><input type="password" name="newpasswd1" id="newpasswd1" size="15" /><br />
-<label for="newpasswd2">[%|loc%]Re-enter your new password :[%END%]  </label><input type="password" name="newpasswd2" id="newpasswd2" size="15" /><br />
-<input class="MainMenuLinks" type="submit" name="action_setpasswd" value="[%|loc%]Submit[%END%]" />
-</fieldset>          
-</form>
-<br />
+            <BR><BR><FONT COLOR="[% dark_color %]">[%|loc%]New email address :[%END%] </FONT>
+            <BR>&nbsp;&nbsp;&nbsp;<INPUT NAME="email" SIZE=15>
+            <BR><BR><INPUT TYPE="submit" NAME="action_change_email" VALUE="[%|loc%]Submit[%END%]">
+            </FORM>
+        </TD>
+        <TD>
+          <FORM ACTION="[% path_cgi %]" METHOD=POST>
+            <BR><BR><FONT COLOR="[% dark_color %]">[%|loc%]New password :[%END%] </FONT>
+            <BR>&nbsp;&nbsp;&nbsp;<INPUT TYPE="password" NAME="newpasswd1" SIZE=15>
+            <BR><FONT COLOR="[% dark_color %]">[%|loc%]Re-enter your new password :[%END%] </FONT>
+            <BR>&nbsp;&nbsp;&nbsp;<INPUT TYPE="password" NAME="newpasswd2" SIZE=15>
+            <BR><BR><INPUT TYPE="submit" NAME="action_setpasswd" VALUE="[%|loc%]Submit[%END%]">
+            </FORM>
 	    [% END %]
 
-
-<h2 class="block">[%|loc%]Your other email addresses[%END%]</h2>
-
+        </TD>
+	<TR VALIGN="top">
+        <TH BGCOLOR="[% dark_color %]" COLSPAN="2">
+          <TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0">
+            <TR>
+             <TH WIDTH="50%" BGCOLOR="[% selected_color %]">
+              <FONT COLOR="[% bg_color %]">
+                [%|loc%]Your other email addresses[%END%]
+              </FONT>
+             </TH>
+            </TR>
+           </TABLE>
+         </TH>
+      </TR>
       [% IF !unique %]
-<form action="[% path_cgi %]" method="post"> 
-<fieldset>
+      <TR VALIGN="top">
+      <TD>  
+            <FORM ACTION="[% path_cgi %]" METHOD=POST> 
    	    [% FOREACH email = alt_emails %]
-	    <a href="[% path_cgi %]/change_identity/[% email.key %]/pref">[% email.key %]</a>
-	    <input name="email" type="hidden" value="[% email.key %]" />
-	    <br />
+	    <A HREF="[% path_cgi %]/change_identity/[% email.key %]/pref">[% email.key %]</A>
+	    <INPUT NAME="email" TYPE=hidden VALUE="[% email.key %]">
+	    <BR>
 	    [% END %]
-</fieldset>
-</form>
-<br />
+	    </FORM>
+      </TD>
+      </TR> 
       [% END %]
-   
-<form action="[% path_cgi %]" method="post"> 
-<fieldset>
-<label for="new_alternative_email">[%|loc%]Other email address :[%END%]  </label><input name="new_alternative_email" id="new_alternative_email" size="15" /><br />
-<label for="new_password">[%|loc%]Password :[%END%]  </label><input type="password" name="new_password" id="new_password" size="15" /><br />
-<input class="MainMenuLinks" type="submit" name="action_record_email" value="[%|loc%]Submit[%END%]" />
-</fieldset>
-</form>
-<br />
-
-<em>[%|loc%]Another email address, that should be known by Sympa and will be recognized by Sympa as an alternate email address for you. All your email addressed will also be grouped by Sympa with your primary email address to unify your subscriptions[%END%]  
-</em>
+      <TR VALIGN="top">
+      <TD>
+	    <FORM ACTION="[% path_cgi %]" METHOD=POST> 
+	    <BR>
+	    <FONT COLOR="[% dark_color %]">[%|loc%]Other email address :[%END%] </FONT>
+	    &nbsp;&nbsp;&nbsp;<INPUT NAME="new_alternative_email" SIZE=15>
+	    &nbsp;&nbsp;&nbsp;<FONT COLOR="[% dark_color %]">[%|loc%]Password :[%END%] </FONT>
+	    &nbsp;&nbsp;&nbsp;<INPUT TYPE = "password" NAME="new_password" SIZE=8>
+            &nbsp;&nbsp;&nbsp &nbsp; <INPUT TYPE="submit" NAME="action_record_email" VALUE="[%|loc%]Submit[%END%]">
+            </FORM>
+      </TD>
+      <TD VALIGN="middle">
+      [%|loc%]This other email address, that should be known by Sympa, will be recognized by Sympa as 
+	an alternate email address. You will also be able to unify your subscriptions with
+	your main email address.[%END%]  
+      </TD>
+      </TR>
+      </TABLE>

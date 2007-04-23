@@ -1,18 +1,20 @@
 <!-- $Id$ -->
 
-<!-- begin remindpasswd.tt2 -->
-      <p>
-      [%|loc%]You have forgotten your password, or you've never had any password related to this server[%END%]<br />
-      [%|loc%]it will be sent to you by email :[%END%]
-      </p>
-      <form class="bold_label" action="[% path_cgi %]" method="post">
-	<fieldset>
-	<input type="hidden" name="referer" value="[% referer %]" />
-	<input type="hidden" name="action" value="sendpasswd" />
-           <label for="email">[%|loc%]Your e-mail address[%END%] : </label>
-           <input id="email" type="text" name="email" size="20" value="[% email %]" />
-          &nbsp;&nbsp;&nbsp;<input class="MainMenuLinks" type="submit" name="action_sendpasswd" value="[%|loc%]Send me my password[%END%]" />
-	</fieldset>
-      </form>
 
-<!-- end remindpasswd.tt2 -->
+      [%|loc%]You have forgotten your password, or you never had any password related to this server[%END%]<BR>
+      [%|loc%]it will be sent to you by email :[%END%]
+
+      <FORM ACTION="[% path_cgi %]" METHOD=POST>
+	  <INPUT TYPE="hidden" NAME="referer" VALUE="[% referer %]">
+	  <INPUT TYPE="hidden" NAME="action" VALUE="sendpasswd">
+  	  <INPUT TYPE="hidden" NAME="nomenu" VALUE="[% nomenu %]">
+
+        <B>[%|loc%]Your e-mail address[%END%]</B> :<BR>
+        [% IF email %]
+	  [% email %]
+          <INPUT TYPE="hidden" NAME="email" VALUE="[% email %]">
+	[% ELSE %]
+	  <INPUT TYPE="text" NAME="email" SIZE="20">
+	[% END %]
+        &nbsp; &nbsp; &nbsp;<INPUT TYPE="submit" NAME="action_sendpasswd" VALUE="[%|loc%]Send me my password[%END%]">
+      </FORM>
