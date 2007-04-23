@@ -25,15 +25,15 @@ use CPAN;
 ## assume version = 1.0 if not specified.
 ## 
 %versions = ('perl' => '5.005',
-             'Net::LDAP' =>, '0.27', 
+             'Net::LDAP' =>, '0.10', 
 	     'perl-ldap' => '0.10',
-	     'Mail::Internet' => '1.51', 
+	     'Mail::Internet' => '1.32', 
 	     'DBI' => '1.06',
 	     'DBD::Pg' => '0.90',
 	     'DBD::Sybase' => '0.90',
 	     'DBD::mysql' => '2.0407',
-	     'FCGI' => '0.67',
-	     'MIME::Tools' => '5.419',
+	     'FCGI' => '0.48',
+	     'MIME::Tools' => '5.209',
 	     'File::Spec' => '0.8',
              'Crypt::CipherSaber' => '0.50',
 	     'CGI' => '2.52',
@@ -41,15 +41,7 @@ use CPAN;
 	     'DB_File' => '1.75',
 	     'IO::Socket::SSL' => '0.90',
 	     'Net::SSLeay' => '1.16',
-	     'Archive::Zip' => '1.05',
-	     'Bundle::LWP' => '1.09',
-	     'SOAP::Lite' => '0.60',
-	     'MHonArc::UTF8' => '2.6.0',
-	     'MIME::Base64' => '3.03',
-	     'Crypt::OpenSSL::X509' => '0.3.1',
-	     'MIME::Charset' => '0.04.1',
-	     'MIME::EncWords' => '0.040',
-	     );
+	     'Bundle::LWP' => '1.09');
 
 ### key:left "module" used by SYMPA, 
 ### right CPAN module.		     
@@ -60,56 +52,35 @@ use CPAN;
 	     'MIME::Tools' => 'MIME-tools',
 	     'MIME::Base64' => 'MIME-Base64',
 	     'CGI' => 'CGI',
-	     'File::Spec' => 'File-Spec',
-	     'Regexp::Common' => 'Regexp-Common',
-	     'Locale::TextDomain' => 'libintl-perl',
-	     'Template' => 'Template-Toolkit',
-	     'Archive::Zip' => 'Archive-Zip',
-	     'LWP' => 'libwww-perl',
-             'XML::LibXML' => 'XML-LibXML',
-	     'MHonArc::UTF8' => 'MHonArc',
-	     'FCGI' => 'FCGI',
-	     'DBI' => 'DBI',
-	     'DBD::mysql' => 'Msql-Mysql-modules',
-	     'Crypt::CipherSaber' => 'CipherSaber',
-	     'Encode' => 'Encode',
-	     'MIME::Charset' => 'MIME-Charset',
-	     'MIME::EncWords' => 'MIME-EncWords',
-	     );
+	     'File::Spec' => 'File-Spec');
 
-%opt_CPAN = ('DBD::Pg' => 'DBD-Pg',
+%opt_CPAN = ('DBI' => 'DBI',
+	     'DBD::mysql' => 'Msql-Mysql-modules',
+	     'DBD::Pg' => 'DBD-Pg',
 	     'DBD::Oracle' => 'DBD-Oracle',
 	     'DBD::Sybase' => 'DBD-Sybase',
-	     'DBD::SQLite' => 'DBD-SQLite',
 	     'Net::LDAP' =>   'perl-ldap',
 	     'CGI::Fast' => 'CGI',
- 	     'Net::SMTP' => 'libnet',
+             'Crypt::CipherSaber' => 'CipherSaber',
+	     'FCGI' => 'FCGI',
+	     'Net::SMTP' => 'libnet',
 	     'IO::Socket::SSL' => 'IO-Socket-SSL',
 	     'Net::SSLeay' => 'NET-SSLeay',
-	     'Bundle::LWP' => 'LWP',
-	     'SOAP::Lite' => 'SOAP-Lite',
-	     'Crypt::OpenSSL::X509' => 'Crypt-OpenSSL-X509',
-	     'File::NFSLock' => 'File-NFSLock');
+	     'Bundle::LWP' => 'LWP');
 
 %opt_features = ('DBI' => 'a generic Database Driver, required by Sympa to access Subscriber information and User preferences. An additional Database Driver is required for each database type you wish to connect to.',
-		 'DBD::mysql' => 'Mysql database driver, required if you connect to a Mysql database.\nYou first need to install the Mysql server and have it started before installing the Perl DBD module.',
+		 'DBD::mysql' => 'Mysql database driver, required if you connect to a Mysql database.',
 		 'DBD::Pg' => 'PostgreSQL database driver, required if you connect to a PostgreSQL database.',
 		 'DBD::Oracle' => 'Oracle database driver, required if you connect to a Oracle database.',
 		 'DBD::Sybase' => 'Sybase database driver, required if you connect to a Sybase database.',
-		 'DBD::SQLite' => 'Sybase database driver, required if you connect to a SQLite database.',
 		 'Net::LDAP' =>   'required to query LDAP directories. Sympa can do LDAP-based authentication ; it can also build mailing lists with LDAP-extracted members.',
 		 'CGI::Fast' => 'WWSympa, Sympa\'s web interface can run as a FastCGI (ie: a persistent CGI). If you install this module, you will also need to install the associated mod_fastcgi for Apache.',
 		 'Crypt::CipherSaber' => 'this module provides reversible encryption of user passwords in the database.',
-		 'Archive::Zip ' => 'this module provides zip/unzip for archive and shared document download/upload',
 		 'FCGI' => 'WSympa, Sympa\'s web interface can run as a FastCGI (ie: a persistent CGI). If you install this module, you will also need to install the associated mod_fastcgi for Apache.',
 		 'Net::SMTP' => 'this is required if you set \'list_check_smtp\' sympa.conf parameter, used to check existing aliases before mailing list creation.',
-		 'IO::Socket::SSL' => 'required by CAS (single sign-on) and the \'include_remote_sympa_list\' feature that includes members of a list on a remote server, using X509 authentication',
+		 'IO::Socket::SSL' => 'required by the \'include_remote_sympa_list\' feature that includes members of a list on a remote server, using X509 authentication',
 		 'Net::SSLeay' => 'required by the \'include_remote_sympa_list\' feature that includes members of a list on a remote server, using X509 authentication',
-		 'Bundle::LWP' => 'required by the \'include_remote_sympa_list\' feature that includes members of a list on a remote server, using X509 authentication',
-		 'SOAP::Lite' => 'required if you want to run the Sympa SOAP server that provides ML services via a "web service"',
-		 'Crypt::OpenSSL::X509' => 'required for HTTP x509 authentication (when using Email in SubjAltName)',
-		 'File::NFSLock' => 'required to perform NFS lock ; see also lock_method sympa.conf parameter'
-		 );
+		 'Bundle::LWP' => 'required by the \'include_remote_sympa_list\' feature that includes members of a list on a remote server, using X509 authentication');
 
 ### main:
 print "******* Check perl for SYMPA ********\n";
@@ -144,13 +115,9 @@ sub check_modules {
 
     foreach $mod (sort keys %todo) {
 	printf ("%-20s %-15s", $mod, $todo{$mod});
-	
 	$status = &test_module($mod);
 	if ($status == 1) {
 	    $vs = "$mod" . "::VERSION";
-
-	    $vs = 'mhonarc::VERSION' if $mod =~ /^mhonarc/i;
-
 	    $v = $$vs;
 	    $rv = $versions{$mod} || "1.0" ;
 	    ### OK: check version
@@ -172,7 +139,7 @@ sub check_modules {
 	    ### doesn't return 1;
 	    print "$mod doesn't return 1 (check it).\n";
 	} else {
-	    print "$status\n";
+	    print "$status";
 	}
     }
 }
@@ -188,10 +155,6 @@ sub install_module {
 	print "Setting FTP Passive mode\n";
     }
 
-    ## This is required on RedHat 9 for DBD::mysql installation
-    my $lang = $ENV{'LANG'};
-    $ENV{'LANG'} = 'C' if ($ENV{'LANG'} =~ /UTF\-8/);
-
     unless ($> == 0) {
 	print "\#\# You need root privileges to install $module module. \#\#\n";
 	print "\#\# Press the Enter key to continue checking modules. \#\#\n";
@@ -204,14 +167,8 @@ sub install_module {
     my $answer = <STDIN>; chomp $answer;
     $answer ||= $default;
     next unless ($answer =~ /^y$/i);
-    $CPAN::Config->{'inactivity_timeout'} = 4;
-    CPAN::Shell->make($module);
-    CPAN::Shell->test($module);
-    CPAN::Shell->install($module); ## Could use CPAN::Shell->force('install') if make test failed
-
-    ## Restore lang
-    $ENV{'LANG'} = $lang if (defined $lang);
-
+  CPAN::Shell->conf('inactivity_timeout', 4);
+    CPAN::Shell->install($module);
 }
 
 ###--------------------------
@@ -224,10 +181,6 @@ sub test_module {
 
     $filename =~ s/::/\//g;
     $filename .= ".pm";
-    
-    ## Exception for mhonarc
-    $filename = 'mhamain.pl' if $filename =~ /^mhonarc/i;
-
     return 1 if $INC{$filename};
     
   ITER: {

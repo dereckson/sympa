@@ -21,6 +21,7 @@ Requires: perl >= 0:5.005
 Requires: perl-MailTools >= 1.14
 Requires: perl-MIME-Base64   >= 1.0
 Requires: perl-IO-stringy    >= 1.0
+Requires: perl-Msgcat        >= 1.03
 Requires: perl-MIME-tools    >= 5.209
 Requires: perl-CGI    >= 2.52
 Requires: perl-DBI    >= 1.06
@@ -81,11 +82,11 @@ rm -rf $RPM_BUILD_ROOT
 --with-datadir=--DATADIR-- \
 --with-expldir=--EXPLDIR-- \
 --with-piddir=--PIDDIR-- \
---with-localedir=--LOCALEDIR-- \
+--with-nlsdir=--NLSDIR-- \
 --with-scriptdir=--SCRIPTDIR-- \
 --with-sampledir=--SAMPLEDIR-- \
 --with-spooldir=--SPOOLDIR-- \
-;make sources 
+;make sources languages
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -216,20 +217,17 @@ for a_file in /etc/aliases /etc/postfix/aliases; do
       # and then invoke: /usr/bin/newaliases
       echo "Your new aliases have been set up in ${a_file}. Please check them out before running /usr/bin/newaliases"
       echo "You must configure your MTA (sendmail, postfix,...) for using a second aliases file, the one modified by sympa for his lists : /etc/mail/sympa_aliases"
-      echo "Refer to INSTALL file for more setup information..."
     fi
   fi
 done
 
 # create the alias file used by sympa for his lists
-if [ ! -f "/etc/mail/sympa_aliases" ]; then
-  if [ ! -d "/etc/mail" ]; then
-    mkdir -p /etc/mail
-  fi
-  touch /etc/mail/sympa_aliases || /bin/true
-  chown sympa.sympa /etc/mail/sympa_aliases
-  chmod 0640 /etc/mail/sympa_aliases
+if [ ! -d "/etc/mail" ]; then
+  mkdir -p /etc/mail
 fi
+touch /etc/mail/sympa_aliases || /bin/true
+chown sympa.sympa /etc/mail/sympa_aliases
+chmod 0640 /etc/mail/sympa_aliases
 
 # reset the default cookie
 typeset -x secret
@@ -282,8 +280,8 @@ done
 # Documentation
 %doc %attr(-,root,root) INSTALL README AUTHORS COPYING NEWS ChangeLog
 %doc %attr(-,root,root) doc/sympa.tex doc/sympa.ps doc/sympa.pdf
-%doc %attr(-,root,root) --DOCDIR--/*
-%attr(-,root,root) %{_mandir}/man8/*
+%doc %attr(-,root,root) doc/html/
+%attr(-,root,root) %{_mandir}/man8/
  
 # Spools
 %dir %{spoo_s}
@@ -308,8 +306,8 @@ done
 # Config directories populated by the user
 %dir %{etc_s}/create_list_templates
 %dir %{etc_s}/scenari
-%dir %{etc_s}/mail_tt2
-%dir %{etc_s}/web_tt2
+%dir %{etc_s}/templates
+%dir %{etc_s}/wws_templates
 %dir %{etc_s}/general_task_models
 %dir %{etc_s}/task_models
  
@@ -322,10 +320,10 @@ done
 %attr(-,-,-) --LIBEXECDIR--/*
 
 # Locales
-#%dir --LOCALEDIR--
---LOCALEDIR--/
+#%dir --NLSDIR--
+--NLSDIR--/
 
-# ATTENTION A VOIR %{_libdir}/sympa/locale/*.po
+# ATTENTION A VOIR %{_libdir}/sympa/nls/*.msg
  
 # Data
 %{data_s}/
@@ -334,15 +332,15 @@ done
 #%{data_s}/create_list.conf
 #%{data_s}/edit_list.conf
 #%{data_s}/mhonarc-ressources
-#%{data_s}/list_aliases.tt2
+#%{data_s}/list_aliases.tpl
 #%dir %{data_s}/create_list_templates
 #%{data_s}/create_list_templates/*
 #%dir %{data_s}/scenari
 #%{data_s}/scenari/*
-#%dir %{data_s}/tt2s
-#%{data_s}/tt2/*
-#%dir %{data_s}/web_tt2
-#%{data_s}/web_tt2/*
+#%dir %{data_s}/templates
+#%{data_s}/templates/*
+#%dir %{data_s}/wws_templates
+#%{data_s}/wws_templates/*
 #%dir %{data_s}/list_task_models
 #%{data_s}/list_task_models/*
 #%dir %{data_s}/global_task_models
@@ -350,7 +348,6 @@ done
  
 # Icons and binaries for Apache
 --CGIDIR--/wwsympa.fcgi
---CGIDIR--/sympa_soap_server.fcgi
 --ICONSDIR--/
  
 # Init scripts
@@ -358,7 +355,7 @@ done
 
 # Examples
 #%dir --SAMPLEDIR--
-#--SAMPLEDIR--/
+--SAMPLEDIR--/
 
 
 %clean
@@ -398,7 +395,7 @@ rm -rf $RPM_BUILD_ROOT
 --with-mandir=/usr/share/man \
 --with-piddir=/var/run/sympa \
 --with-openssl=/usr/bin/openssl \
---with-localedir=/usr/lib/sympa/locale \
+--with-nlsdir=/usr/lib/sympa/nls \
 --with-scriptdir=/usr/lib/sympa/bin \
 --with-sampledir=/usr/share/sympa/examples \
 --with-spooldir=/var/spool/sympa
