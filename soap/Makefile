@@ -35,17 +35,16 @@ clean:
 install: 
 	echo "Please use the main Makefile for installing soapSympa."
 
-newinstall: makedir $(cgi_SUBST) $(lib_SUBST) substcgi substlib substscript installsrc installmod
+newinstall: makedir $(cgi_SUBST) $(lib_SUBST) substcgi substlib installsrc installmod
 
 installmod:
 	@for i in $(SRC) ; do \
 	chown $(USER) $(DESTDIR)$(ETCBINDIR)/$$i; \
 	chgrp $(GROUP) $(DESTDIR)$(ETCBINDIR)/$$i; \
 	done
-	@for i in $(script_SUBST) ; do \
+	@for i in $(script_SRC) ; do \
 	chown $(USER) $(DESTDIR)$(SCRIPTDIR)/$$i; \
 	chgrp $(GROUP) $(DESTDIR)$(SCRIPTDIR)/$$i; \
-	chmod a+x $(DESTDIR)$(SCRIPTDIR)/$$i; \
 	done
 	@for i in $(cgi_SUBST) ; do \
 	chown $(USER) $(DESTDIR)$(CGIDIR)/$$i; \
@@ -104,25 +103,6 @@ substlib:
 		WWSCONFIG=$(WWSCONFIG); export WWSCONFIG; \
 		CONFIG=$(CONFIG); export CONFIG; \
 		$(PERL) ../subst.pl $(lib_SUBST) \
-	)
-
-substscript:
-	@echo "Doing multiple substitutions while installing scripts..."
-	@( \
-		PERL=$(PERL); export PERL; \
-		UMASK=0644; export UMASK; \
-		INSTALLDIR=$(SCRIPTDIR); export INSTALLDIR; \
-		SBINDIR=$(SBINDIR); export SBINDIR; \
-		CGIDIR=$(CGIDIR); export CGIDIR; \
-		PIDDIR=$(PIDDIR); export PIDDIR;\
-		LIBDIR=$(LIBDIR); export LIBDIR; \
-		DESTDIR=$(DESTDIR); export DESDIR; \
-		ETCBINDIR=$(ETCBINDIR); export ETCBINDIR; \
-		MAILERPROGDIR=$(MAILERPROGDIR); export MAILERPROGDIR; \
-		ICONSDIR=$(ICONSDIR); export ICONSDIR; \
-		WWSCONFIG=$(WWSCONFIG); export WWSCONFIG; \
-		CONFIG=$(CONFIG); export CONFIG; \
-		$(PERL) ../subst.pl $(script_SUBST) \
 	)
 
 substcgi:
