@@ -1,20 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002 (1.62) JA patch-1.4
+patched version by:  Kenshi Muto, Debian Project.
+LaTeX2HTML 2002 (1.62),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>6. Mail aliases</TITLE>
-<META NAME="description" CONTENT="6. Mail aliases">
+<TITLE>6. Sympa and its database</TITLE>
+<META NAME="description" CONTENT="6. Sympa and its database">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002 JA patch-1.4">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,32 +29,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html920"
+<A NAME="tex2html816"
   HREF="node8.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html914"
+<A NAME="tex2html810"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html908"
+<A NAME="tex2html804"
   HREF="node6.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html916"
+<A NAME="tex2html812"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html918"
-  HREF="node31.html">
+<A NAME="tex2html814"
+  HREF="node23.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html921"
-  HREF="node8.html">7. sympa.conf parameters</A>
-<B> Up:</B> <A NAME="tex2html915"
+<B> Next:</B> <A NAME="tex2html817"
+  HREF="node8.html">7. WWSympa, Sympa's web interface</A>
+<B> Up:</B> <A NAME="tex2html811"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html909"
-  HREF="node6.html">5. Upgrading Sympa</A>
- &nbsp; <B>  <A NAME="tex2html917"
+<B> Previous:</B> <A NAME="tex2html805"
+  HREF="node6.html">5. sympa.conf parameters</A>
+ &nbsp <B>  <A NAME="tex2html813"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html919"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html815"
+  HREF="node23.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,341 +62,496 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html922"
-  HREF="node7.html#SECTION00710000000000000000">6.1 Robot aliases</A>
-<LI><A NAME="tex2html923"
-  HREF="node7.html#SECTION00720000000000000000">6.2 List aliases</A>
-<LI><A NAME="tex2html924"
-  HREF="node7.html#SECTION00730000000000000000">6.3 Alias manager</A>
-<LI><A NAME="tex2html925"
-  HREF="node7.html#SECTION00740000000000000000">6.4 Virtual domains</A>
+<LI><A NAME="tex2html818"
+  HREF="node7.html#SECTION00710000000000000000">6.1 Prerequisites</A>
+<LI><A NAME="tex2html819"
+  HREF="node7.html#SECTION00720000000000000000">6.2 Installing PERL modules</A>
+<LI><A NAME="tex2html820"
+  HREF="node7.html#SECTION00730000000000000000">6.3 Creating a sympa DataBase</A>
+<UL>
+<LI><A NAME="tex2html821"
+  HREF="node7.html#SECTION00731000000000000000">6.3.1 Database structure</A>
+<LI><A NAME="tex2html822"
+  HREF="node7.html#SECTION00732000000000000000">6.3.2 Database creation</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html823"
+  HREF="node7.html#SECTION00740000000000000000">6.4 Setting database privileges</A>
+<LI><A NAME="tex2html824"
+  HREF="node7.html#SECTION00750000000000000000">6.5 Importing subscribers data</A>
+<UL>
+<LI><A NAME="tex2html825"
+  HREF="node7.html#SECTION00751000000000000000">6.5.1 Importing data from a text file</A>
+<LI><A NAME="tex2html826"
+  HREF="node7.html#SECTION00752000000000000000">6.5.2 Importing data from subscribers files</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html827"
+  HREF="node7.html#SECTION00760000000000000000">6.6 Extending database table format</A>
+<LI><A NAME="tex2html828"
+  HREF="node7.html#SECTION00770000000000000000">6.7 <I>Sympa</I> configuration</A>
 </UL>
 <!--End of Table of Child-Links-->
 <HR>
 
 <H1><A NAME="SECTION00700000000000000000"></A>
-    <A NAME="aliases"></A>    <A NAME="742"></A>
+<A NAME="sec-rdbms"></A>
 <BR>
-6. Mail aliases
+6. <I>Sympa</I> and its database
 </H1>
 
 <P>
-Mail aliases are required in Sympa for <A NAME="8071"></A><TT>sympa.pl</TT> to receive mail commands and 
-list messages. Management of these aliases management will depend on the MTA (<A NAME="8074"></A><TT>sendmail</TT>, <A NAME="8077"></A><TT>qmail</TT>,
-<A NAME="8080"></A><TT>postfix</TT>, <A NAME="8083"></A><TT>exim</TT>) you're using, where you store aliases and whether
-you are managing virtual domains or not.
+Most basic feature of <I>Sympa</I> will work without a RDBMS, but
+WWSympa and bounced require a relational database. 
+Currently you can use one of the following
+RDBMS : MySQL, PostgreSQL, Oracle, Sybase. Interfacing with other RDBMS
+requires only a few changes in the code, since the API used, 
+<A NAME="tex2html18"
+  HREF="http://www.symbolstone.org/technology/perl/DBI/">DBI</A>
+(DataBase Interface), has DBD (DataBase Drivers) for many RDBMS.
 
 <P>
 
-<H1><A NAME="SECTION00710000000000000000"></A>
-   <A NAME="robot-aliases"></A>    <A NAME="750"></A>
-<BR>
-6.1 Robot aliases
+<H1><A NAME="SECTION00710000000000000000">
+6.1 Prerequisites</A>
 </H1>
 
 <P>
-An electronic list manager such as <I>Sympa</I> is built around two processing steps:
+You need to have a DataBase System installed (not necessarily 
+on the same host as <I>Sympa</I>), and the client libraries for that
+Database installed on the <I>Sympa</I> host ; provided, of course, that
+a PERL DBD (DataBase Driver) is available for your chosen RDBMS!
+Check the <A NAME="tex2html19"
+  HREF="http://www.symbolstone.org/technology/perl/DBI/"><TT>DBI</TT> Module Availability</A>.
+
+<P>
+
+<H1><A NAME="SECTION00720000000000000000">
+6.2 Installing PERL modules</A>
+</H1>
+
+<P>
+<I>Sympa</I> will use <A NAME="5692"></A><TT>DBI</TT> to communicate with the database system and
+therefore requires the DBD for your database system. DBI and 
+DBD::YourDB (<A NAME="5695"></A><TT>Msql-Mysql-modules</TT> for MySQL) are distributed as 
+CPAN modules. Refer to&nbsp;<A HREF="node4.html#Install_PERL_and_CPAN_modules">3.2.3</A>, 
+page&nbsp;<A HREF="node4.html#Install_PERL_and_CPAN_modules"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A> for installation
+details of these modules.
+
+<P>
+
+<H1><A NAME="SECTION00730000000000000000">
+6.3 Creating a sympa DataBase</A>
+</H1>
+
+<P>
+
+<H2><A NAME="SECTION00731000000000000000">
+6.3.1 Database structure</A>
+</H2>
+
+<P>
+The sympa database structure is slightly different from the
+structure of a <A NAME="5698"></A><TT>subscribers</TT> file. A <A NAME="5701"></A><TT>subscribers</TT>
+file is a text file based on paragraphs (similar to 
+the <A NAME="5704"></A><TT>config</TT> file) ; each paragraph completely describes 
+a subscriber. If somebody is subscribed to two lists, he/she 
+will appear in both subscribers files.
+
+<P>
+The DataBase distinguishes information relative to a person (e-mail,
+real name, password) and his/her subscription options (list
+concerned, date of subscription, reception option, visibility 
+option). This results in a separation of the data into two tables :
+the user_table and the subscriber_table, linked by a user/subscriber e-mail.
+
+<P>
+
+<H2><A NAME="SECTION00732000000000000000">
+6.3.2 Database creation</A>
+</H2>
+
+<P>
+The <A NAME="5707"></A><TT>create_db</TT> script below will create the sympa database for 
+you. You can find it in the <A NAME="5710"></A><TT>script/</TT> directory of the 
+distribution (currently scripts are available for MySQL, PostgreSQL, Oracle and Sybase).
 
 <P>
 
 <UL>
-<LI>a message sent to a list or to <I>Sympa</I> itself
-        (commands such as subscribe or unsubscribe) is received
-        by the SMTP server. The SMTP server, on reception of this message, runs the
-        <A NAME="8088"></A><TT>queue</TT> program (supplied in this package) to store
-        the message in a spool.
+<LI>MySQL database creation script
+<BR>	<PRE>
+## MySQL Database creation script
+
+CREATE DATABASE sympa;
+
+## Connect to DB 
+\r sympa
+
+CREATE TABLE user_table (
+  	email_user          	varchar (100) NOT NULL,
+  	gecos_user          	varchar (150),
+  	password_user		varchar (40),
+	cookie_delay_user	int,
+	lang_user		varchar (10),
+	attributes_user		text,
+	PRIMARY KEY (email_user)
+);
+
+CREATE TABLE subscriber_table (
+  	list_subscriber       	varchar (50) NOT NULL,
+	user_subscriber		varchar (100) NOT NULL,
+	date_subscriber		datetime NOT NULL,
+	update_subscriber	datetime,
+	visibility_subscriber	varchar (20),
+	reception_subscriber	varchar (20),
+	bounce_subscriber	varchar (35),
+	comment_subscriber	varchar (150),
+	subscribed_subscriber 	enum ('0','1'),
+	included_subscriber 	enum ('0','1'),
+	include_sources_subscriber varchar(50),
+	bounce_score_subscriber smallint (6),
+	PRIMARY KEY (list_subscriber, user_subscriber),
+	INDEX (user_subscriber,list_subscriber)
+);
+
+# CREATE TABLE log_table (
+# 	id			INT UNSIGNED DEFAULT 0 NOT NULL auto_increment,
+# 	date			int NOT NULL,
+# 	pid			int,
+# 	process			enum ('task','archived','sympa','wwsympa','bounced'),
+#   	email_user          	varchar (100),
+# 	auth			enum ('smtp','md5','smime','null'),	
+# 	ip			varchar (15),
+#   	operation		varchar (40),
+# 	list			varchar (50),
+# 	robot			varchar (60),
+# 	arg			varchar (100),
+# 	status			varchar (100),
+# 	subscriber_count	int,
+# 	PRIMARY KEY (id),
+# 	INDEX (date),	
+# 	INDEX (robot),
+# 	INDEX (list),
+# 	INDEX (email_user)
+# );
+</PRE>
 
 <P>
 </LI>
-<LI>the <A NAME="8091"></A><TT>sympa.pl</TT> daemon, set in motion at
-        system startup, scans this spool. As soon as it
-        detects a new message, it processes it and performs the
-        requested action (distribution or processing of a command).
+<LI>PostgreSQL database creation script
+<BR>	<PRE>
+-- PostgreSQL Database creation script
+
+CREATE DATABASE sympa;
+
+-- Connect to DB 
+\connect sympa
+
+DROP TABLE user_table;
+CREATE TABLE user_table (
+  	email_user          	varchar (100) NOT NULL,
+  	gecos_user          	varchar (150),
+	cookie_delay_user       int4,
+        password_user		varchar (40),
+        lang_user               varchar (10),
+	attributes_user		text,
+	CONSTRAINT ind_user PRIMARY KEY (email_user)
+);
+
+DROP TABLE subscriber_table;
+CREATE TABLE subscriber_table (
+  	list_subscriber       	varchar (50) NOT NULL,
+	user_subscriber		varchar (100) NOT NULL,
+	date_subscriber		timestamp with time zone NOT NULL,
+	update_subscriber 	timestamp with time zone,
+	visibility_subscriber	varchar (20),
+	reception_subscriber	varchar (20),
+	bounce_subscriber	varchar (35),
+	bounce_score_subscriber int4,
+	comment_subscriber	varchar (150),
+	subscribed_subscriber 	bit(1),
+	included_subscriber 	bit(1),
+	include_sources_subscriber varchar(50),
+	CONSTRAINT ind_subscriber PRIMARY KEY (list_subscriber, user_subscriber)
+);
+CREATE INDEX subscriber_idx ON subscriber_table (user_subscriber,list_subscriber);
+</PRE>
+
+<P>
+</LI>
+<LI>Sybase database creation script
+<BR>	<PRE>
+/* Sybase Database creation script 2.5.2 */
+/* Thierry Charles &lt;tcharles@electron-libre.com&gt; */
+/* 15/06/01 : extend password_user */
+
+/* sympa database must have been created */
+/* eg: create database sympa on your_device_data=10 log on your_device_log=4 */
+use sympa
+go
+
+create table user_table
+(
+    email_user             varchar(100)           not null,
+    gecos_user             varchar(150)           null    ,
+    password_user          varchar(40)            null    ,
+    cookie_delay_user      numeric                null    ,
+    lang_user              varchar(10)            null    ,
+    attributes_user	   text                   null    ,
+    constraint ind_user primary key (email_user)
+)
+go
+
+create index email_user_fk on user_table (email_user)
+go
+
+
+create table subscriber_table
+(
+    list_subscriber        varchar(50)            not null,
+    user_subscriber        varchar(100)           not null,
+    date_subscriber        datetime               not null,
+    update_subscriber      datetime               null,
+    visibility_subscriber  varchar(20)            null    ,
+    reception_subscriber   varchar(20)            null    ,
+    bounce_subscriber      varchar(35)            null    ,
+    bounce_score_subscriber numeric               null    ,
+    comment_subscriber     varchar(150)           null    ,
+    subscribed_subscriber  numeric		  null    ,
+    included_subscriber    numeric                null    ,
+    include_sources_subscriber varchar(50)        null    ,
+    constraint ind_subscriber primary key (list_subscriber, user_subscriber)
+)
+go
+
+create index list_subscriber_fk on subscriber_table (list_subscriber)
+go
+
+create index user_subscriber_fk on subscriber_table (user_subscriber)
+go
+</PRE>
+
+<P>
+</LI>
+<LI>Oracle database creation script
+<BR>	<PRE>
+## Oracle Database creation script
+## Fabien Marquois &lt;fmarquoi@univ-lr.fr&gt;
+
+/Bases/oracle/product/7.3.4.1/bin/sqlplus loginsystem/passwdoracle &lt;&lt;-!
+ create user SYMPA identified by SYMPA default tablespace TABLESP
+temporary tablespace TEMP;
+ grant create session to SYMPA;
+ grant create table to SYMPA;
+ grant create synonym to SYMPA;
+ grant create view to SYMPA;
+ grant execute any procedure to SYMPA;
+ grant select any table to SYMPA;
+ grant select any sequence to SYMPA;
+ grant resource to SYMPA;
+!
+
+/Bases/oracle/product/7.3.4.1/bin/sqlplus SYMPA/SYMPA &lt;&lt;-!
+CREATE TABLE user_table (
+        email_user              varchar2(100) NOT NULL,
+        gecos_user              varchar2(150),
+        password_user           varchar2(40),
+        cookie_delay_user       number,
+        lang_user               varchar2(10),
+	attributes_user		varchar2(500),
+        CONSTRAINT ind_user PRIMARY KEY (email_user)
+);
+CREATE TABLE subscriber_table (
+        list_subscriber         varchar2(50) NOT NULL,
+        user_subscriber         varchar2(100) NOT NULL,
+        date_subscriber         date NOT NULL,
+	update_subscriber	date,
+        visibility_subscriber   varchar2(20),
+        reception_subscriber    varchar2(20),
+ 	bounce_subscriber       varchar2 (35),
+	bounce_score_subscriber number,
+ 	comment_subscriber      varchar2 (150),
+	subscribed_subscriber 	number(1,0),
+	included_subscriber 	number(1,0),
+	include_sources_subscriber varchar2(50),
+        CONSTRAINT ind_subscriber PRIMARY KEY (list_subscriber,user_subscriber)
+);
+!
+</PRE>
 
 <P>
 </LI>
 </UL>
 
 <P>
-To separate the processing of commands (subscription,
-unsubscription, help requests, etc.) from the processing of messages destined for mailing
-lists, a special mail alias is reserved for administrative requests, so
-that <I>Sympa</I> can be permanently accessible to users. The following
-lines must therefore be added to the <A NAME="8095"></A><TT>sendmail</TT> alias file
-(often <A NAME="8098"></A><TT>/etc/aliases</TT>):
+You can execute the script using a simple SQL shell such as
+mysql, psql or sqlplus.
 
 <P>
-<BLOCKQUOTE>
-sympa:             "| /usr/local/sympa-os/bin/queue sympa@my.domain.org"
-<BR>
-listmaster: 	   "| /usr/local/sympa-os/bin/queue listmaster@my.domain.org"
-<BR>
-bounce+*:          "| /usr/local/sympa-os/bin/bouncequeue sympa@my.domain.org"
-<BR>
-abuse-feedback-report:       "| /usr/local/sympa-os/bin/bouncequeue sympa@my.domain.org"
-<BR>
-sympa-request:     postmaster
-<BR>
-sympa-owner:       postmaster
-<BR>
-</BLOCKQUOTE>
-
-<P>
-Note: if you run <I>Sympa</I> virtual hosts, you will need one <TT>sympa</TT>
-alias entry per virtual host (see virtual hosts section, <A HREF="node16.html#virtual-robot">15</A>,
-page&nbsp;<A HREF="node16.html#virtual-robot"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
-
-<P>
-<TT>sympa-request</TT> should be the address of the robot
-<A NAME="8104"></A>administrator, i.e. a person who looks after
-<I>Sympa</I> (here <TT>postmastercru.fr</TT>).
-
-<P>
-<TT>sympa-owner</TT> is the return address for <I>Sympa</I> error
-messages.
-
-<P>
-The alias bounce+* is dedicated to collect bounces where VERP (variable envelope return path) was actived. It is useful
-if <TT> welcome_return_path unique </TT> or <TT> remind_return_path unique</TT> or the
-<A NAME="8110"></A><TT>verp_rate</TT> parameter is no null for at least one list.
-
-<P>
-The alias abuse-feedback-report is used for processing automatically feedback that respect ARF format (Abuse Report Feedback) which is a draft to specify how end user can complain about spam. It is mainly used by AOL.
-
-<P>
-Don't forget to run <A NAME="8113"></A><TT>newaliases</TT> after any change to
-the <A NAME="8116"></A><TT>/etc/aliases</TT> file!
-
-<P>
-Note: aliases based on <TT>listserv</TT> (in addition to those
-based on <TT>sympa</TT>) can be added for the benefit of users
-accustomed to the <TT>listserv</TT> and <TT>majordomo</TT> names.
-For example:
+Example:
 
 <P><PRE>
-listserv:          sympa
-listserv-request:  sympa-request
-majordomo:         sympa
-listserv-owner:    sympa-owner
+# mysql  &lt; create_db.mysql
 </PRE>
 
 <P>
 
-<H1><A NAME="SECTION00720000000000000000"></A>
-<A NAME="list-aliases"></A>    <A NAME="781"></A>
-    <A NAME="782"></A>
-<BR>
-6.2 List aliases
+<H1><A NAME="SECTION00740000000000000000">
+6.4 Setting database privileges</A>
 </H1>
 
 <P>
-For each new list, it is necessary to create up to six mail aliases (at least three).
-If you managed to setup the alias manager (see next section) then <I>Sympa</I> will
-install automatically the following aliases for you.
+We strongly recommend you restrict access to <I>sympa</I> database. You will
+then set <A NAME="5713"></A><TT>db_user</TT> and <A NAME="5716"></A><TT>db_passwd</TT> in <A NAME="5719"></A><TT>sympa.conf</TT>.
 
 <P>
-For example, to create the <TT>mylist</TT> list, the following
-aliases must be added:
-
-<P>
-<BLOCKQUOTE><TABLE CELLPADDING=3>
-<TR><TD ALIGN="LEFT"><TT>
-        <TT>mylist</TT>:         </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/queue mylist@my.domain.org"
-            </TT></TD>
-</TR>
-<TR><TD ALIGN="LEFT"><TT> 
-        <TT>mylist-request</TT>: </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/queue mylist-request@my.domain.org"
-            </TT></TD>
-</TR>
-<TR><TD ALIGN="LEFT"><TT> 
-        <TT>mylist-editor</TT>:  </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/queue mylist-editor@my.domain.org"
-            </TT></TD>
-</TR>
-<TR><TD ALIGN="LEFT"><TT> 
-        <TT>mylist-owner</TT>:   </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/bouncequeue mylist@my.domain.org
-            </TT></TD>
-</TR>
-<TR><TD ALIGN="LEFT"><TT> 
-        <TT>mylist-subscribe</TT>:   </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/queue mylist-subscribe@my.domain.org"
-            </TT></TD>
-</TR>
-<TR><TD ALIGN="LEFT"><TT> 
-        <TT>mylist-unsubscribe</TT>: </TT></TD>
-<TD ALIGN="LEFT"><TT>
-            "|/usr/local/sympa-os/bin/queue mylist-unsubscribe@my.domain.org"
-            </TT></TD>
-</TR>
-<TR><TD></TD>
-<TD></TD>
-</TR>
-</TABLE></BLOCKQUOTE>
-
-<P>
-The address <TT>mylist-request</TT> should correspond
-to the person responsible for managing <TT>mylist</TT>
-(the <A NAME="8133"></A>owner).  <I>Sympa</I> will forward messages for
-<TT>mylist-request</TT> to the owner of <TT>mylist</TT>,
-as defined in the <A NAME="8137"></A><TT>/usr/local/sympa-os/expl/mylist/config</TT>
-file.  Using this feature means you would not need to modify the
-alias file if the owner of the list were to change.
-
-<P>
-Similarly, the address <TT>mylist-editor</TT> can be used
-to contact the list editors if any are defined in
-<A NAME="8141"></A><TT>/usr/local/sympa-os/expl/mylist/config</TT>.  This address definition
-is not compulsory.
-
-<P>
-The address <TT>mylist-owner</TT> is the address receiving
-non-delivery reports (note that the -owner suffix can be customized, 
-see&nbsp;<A HREF="node8.html#kw-return-path-suffix">7.8.4</A>, page&nbsp;<A HREF="node8.html#kw-return-path-suffix"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>). 
-The <A NAME="8145"></A><TT>bouncequeue</TT> program stores these messages 
-in the <A NAME="8148"></A><TT>queuebounce</TT> directory. <A NAME="8151"></A><I>WWSympa</I> ((see&nbsp;<A HREF="node2.html#wwsympa">1.2</A>, page&nbsp;<A HREF="node2.html#wwsympa"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
-may then analyze them and provide a web access to them.
-
-<P>
-The address <TT>mylist-subscribe</TT> is an address enabling
-users to subscribe in a manner which can easily be explained to them.
-Beware: subscribing this way is so straightforward that you may find spammers
-subscribing to your list by accident.
-
-<P>
-The address <TT>mylist-unsubscribe</TT> is the equivalent for
-unsubscribing. By the way, the easier it is for users to unsubscribe, the easier it will
-be for you to manage your list!
-
-<P>
-
-<H1><A NAME="SECTION00730000000000000000"></A>
-<A NAME="alias-manager"></A>
-<BR>
-6.3 Alias manager
-</H1>	
-
-<P>
-The <A NAME="8156"></A><TT>alias_manager.pl</TT> script does aliases management. It is run by <A NAME="8159"></A><I>WWSympa</I> and
- will install aliases for a new list and delete aliases for closed lists. 
-
-<P>
-The script expects the following arguments :
-
-<OL>
-<LI>add | del
-</LI>
-<LI><TT>&lt;</TT>list name<TT>&gt;</TT>
-</LI>
-<LI><TT>&lt;</TT>list domain<TT>&gt;</TT>
-</LI>
-</OL>
-Example : <A NAME="8162"></A><TT>/usr/local/sympa-os/bin/alias_manager.pl add mylistcru.fr</TT>
-
-<P>
-<A NAME="8165"></A><TT>/usr/local/sympa-os/bin/alias_manager.pl</TT> works on the alias file as defined in <A NAME="8168"></A><TT>sympa.conf</TT>)
-by the <A NAME="8171"></A><TT>sendmail_aliases</TT> variable (default is <A NAME="8174"></A><TT>/etc/mail/sympa_aliases</TT>). You must refer to this aliases file in your <A NAME="8177"></A><TT>sendmail.mc</TT> (if using sendmail) :<PRE>
-define(`ALIAS_FILE', `/etc/aliases,/etc/mail/sympa_aliases')dnl
+With <A NAME="1097"></A> :<PRE>
+grant all on sympa.* to sympa@localhost identified by 'your_password';
+flush privileges;
 </PRE>
 
 <P>
-Note that <A NAME="8180"></A><TT>sendmail</TT> has requirements regarding the ownership and rights on both <A NAME="8183"></A><TT>sympa_aliases</TT> and <A NAME="8186"></A><TT>sympa_aliases.db</TT> files (the later being created by sendmail via the <A NAME="8189"></A><TT>newaliases</TT> command). Anyhow these two files should be located in a directory, every path component of which being owned by and writable only by the root user.
 
-<P>
-<A NAME="8192"></A><TT>/usr/local/sympa-os/bin/alias_manager.pl</TT> runs a <A NAME="8195"></A><TT>newaliases</TT> command (via <A NAME="8198"></A><TT>aliaswrapper</TT>), after any changes to aliases file.
-
-<P>
-If you manage virtual domains with your mail server, then you might want to change
-the form of aliases used by the alias_manager. You can customize the <A NAME="8201"></A><TT>list_aliases</TT>
-template that is parsed to generate list aliases (see<A HREF="node19.html#list-aliases-tpl">18.8.8</A>,  
-page&nbsp;<A HREF="node19.html#list-aliases-tpl"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
-
-<P>
-<A NAME="virtual-transport"></A>
-<P>
-Note that you don't need alias management if you use MTA functionalities such as Postfix' <A NAME="8204"></A><TT>virtual_transport</TT>. You can then disable alias management in <I>Sympa</I> by positioning the
-<A NAME="8208"></A><TT>sendmail_aliases</TT> parameter to <TT>none</TT>.
-
-<P>
-<A NAME="ldap-aliases"></A>A L. Marcotte has written a version of <A NAME="8211"></A><TT>ldap_alias_manager.pl</TT> that is LDAP enabled.
-This script is distributed with Sympa distribution ; it needs to be customized with your LDAP parameters.
+<H1><A NAME="SECTION00750000000000000000">
+6.5 Importing subscribers data</A>
+</H1>
 
 <P>
 
-<H1><A NAME="SECTION00740000000000000000"></A>
-<A NAME="virtual-domains"></A>
-<BR>
-6.4 Virtual domains
-</H1>	
+<H2><A NAME="SECTION00751000000000000000">
+6.5.1 Importing data from a text file</A>
+</H2>
 
 <P>
-When using virtual domains with <A NAME="8214"></A><TT>sendmail</TT> or <A NAME="8217"></A><TT>postfix</TT>, you can't
-refer to  <TT>mylist@my.domain.org</TT> on the right-hand side of an 
-<A NAME="8221"></A><TT>/etc/aliases</TT> entry. You need to define an additional entry in a virtual table.
-You can also add a unique entry, with a regular expression, for your domain. 
+You can import subscribers data into the database from a text file having
+one entry per line : the first field is an e-mail address, the second (optional) 
+field is the free form name.  Fields are spaces-separated.
 
 <P>
-With Postfix, you should edit the <A NAME="8224"></A><TT>/etc/postfix/virtual.regexp</TT> file as follows :
-<BLOCKQUOTE>
-/<code>^</code>(.*)@my.domain.org$/	 my.domain.org-$1
-
-</BLOCKQUOTE>
- Entries in the 'aliases' file will look like this :
-<BLOCKQUOTE>
-my.domain.org-sympa:   "|/usr/local/sympa-os/bin/queue sympa@my.domain.org"
-    .....
-    my.domain.org-listA:   "|/usr/local/sympa-os/bin/queue listA@my.domain.org"
-
-</BLOCKQUOTE>
+Example:<PRE>
+## Data to be imported
+## email        gecos
+john.steward@some.company.com           John - accountant
+mary.blacksmith@another.company.com     Mary - secretary
+</PRE>
 
 <P>
-With Sendmail, add the following entry to <A NAME="8227"></A><TT>/etc/mail/virtusertable</TT> file :
-<BLOCKQUOTE>
-@my.domain.org       my.domain.org-%1%3
+To import data into the database :
 
-</BLOCKQUOTE>
+<P><PRE>
+cat /tmp/my_import_file | sympa.pl --import=my_list
+</PRE>
+
+<P>
+(see <A HREF="node4.html#sympa.pl">3.7</A>, page&nbsp;<A HREF="node4.html#sympa.pl"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+
+<P>
+
+<H2><A NAME="SECTION00752000000000000000">
+6.5.2 Importing data from subscribers files</A>
+</H2>
+
+<P>
+If a mailing list was previously setup to store subscribers into 
+<A NAME="5722"></A><TT>subscribers</TT> file (the default mode in versions older then 2.2b) 
+you can load subscribers data into the sympa database. The easiest way
+is to edit the list configuration using <A NAME="5725"></A><I>WWSympa</I> (this requires listmaster 
+privileges) and change the data source from <B>file</B> to <B>database</B>
+; subscribers data will be loaded into the database at the same time.
+
+<P>
+If the subscribers file is big, a timeout may occur during the FastCGI execution
+(Note that you can set a longer timeout with the <A NAME="5728"></A><TT>-idle-timeout</TT> option of
+the <TT>FastCgiServer</TT> Apache configuration directive). In this case, or if you have not installed <A NAME="5731"></A><I>WWSympa</I>, you should use the <A NAME="5734"></A><TT>load_subscribers.pl</TT> script.
+
+<P>
+
+<H1><A NAME="SECTION00760000000000000000">
+6.6 Extending database table format</A>
+</H1>
+
+<P>
+You can easily add other fields to <B>subscriber_table</B> and
+<B>user_table</B>, they will not disturb <I>Sympa</I> because it lists
+explicitely the field it expects in SELECT queries.
+
+<P>
+Moreover you can access these database fields from within <I>Sympa</I> 
+(in templates), as far as you list these additional fields in
+<A NAME="5739"></A><TT>sympa.conf</TT> (See <A HREF="node6.html#db-additional-subscriber-fields">5.10.9</A>, page&nbsp;<A HREF="node6.html#db-additional-subscriber-fields"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>
+and <A HREF="node6.html#db-additional-user-fields">5.10.10</A>, page&nbsp;<A HREF="node6.html#db-additional-user-fields"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).
+
+<P>
+
+<H1><A NAME="SECTION00770000000000000000">
+6.7 <I>Sympa</I> configuration</A>
+</H1>
+
+<P>
+To store subscriber information in your newly created
+database, you first need to tell <I>Sympa</I> what kind of
+database to work with, then you must configure
+your list to access the database.
+
+<P>
+You define the database source in <A NAME="5744"></A><TT>sympa.conf</TT> :
+<A NAME="5747"></A><TT>db_type</TT>, <A NAME="5750"></A><TT>db_name</TT>, 
+<A NAME="5753"></A><TT>db_host</TT>, <A NAME="5756"></A><TT>db_user</TT>, 
+<A NAME="5759"></A><TT>db_passwd</TT>.
+
+<P>
+If you are interfacing <I>Sympa</I> with an Oracle database, 
+<A NAME="5763"></A><TT>db_name</TT> is the SID.
+
+<P>
+All your lists are now configured to use the database,
+unless you set list parameter <A NAME="5766"></A><TT>user_data_source</TT> 
+to <B>file</B> or <B>include</B>. 
+
+<P>
+<I>Sympa</I> will now extract and store user
+information for this list using the database instead of the
+<A NAME="5770"></A><TT>subscribers</TT> file. Note however that subscriber information is 
+dumped to <A NAME="5773"></A><TT>subscribers.db.dump</TT> at every shutdown, 
+to allow a manual rescue restart (by renaming subscribers.db.dump to
+subscribers and changing the user_data_source parameter), if ever the
+database were to become inaccessible.
 
 <P>
 
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html920"
+<A NAME="tex2html816"
   HREF="node8.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html914"
+<A NAME="tex2html810"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html908"
+<A NAME="tex2html804"
   HREF="node6.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html916"
+<A NAME="tex2html812"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html918"
-  HREF="node31.html">
+<A NAME="tex2html814"
+  HREF="node23.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html921"
-  HREF="node8.html">7. sympa.conf parameters</A>
-<B> Up:</B> <A NAME="tex2html915"
+<B> Next:</B> <A NAME="tex2html817"
+  HREF="node8.html">7. WWSympa, Sympa's web interface</A>
+<B> Up:</B> <A NAME="tex2html811"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html909"
-  HREF="node6.html">5. Upgrading Sympa</A>
- &nbsp; <B>  <A NAME="tex2html917"
+<B> Previous:</B> <A NAME="tex2html805"
+  HREF="node6.html">5. sympa.conf parameters</A>
+ &nbsp <B>  <A NAME="tex2html813"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html919"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html815"
+  HREF="node23.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2004-01-12
 </ADDRESS>
 </BODY>
 </HTML>

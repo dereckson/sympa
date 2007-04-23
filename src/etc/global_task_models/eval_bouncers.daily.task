@@ -1,4 +1,5 @@
-title.gettext Daily evaluation of bouncing users
+title.fr notation automatique des bouncers de toutes les listes
+title.us Auto evaluation of bouncing users for all lists
 
 /ACTION
 eval_bouncers ()

@@ -336,17 +336,15 @@ sub get_https2{
 	    return undef;
 	}
 	
-	unless (eval "require IO::Socket::SSL") {
+	unless (require IO::Socket::SSL) {
 	    $errors = sprintf "Unable to use SSL library, IO::Socket::SSL required, install IO-Socket-SSL (CPAN) first\n";
 	    return undef;
 	}
-	require IO::Socket::SSL;
-
-	unless (eval "require LWP::UserAgent") {
+	
+	unless (require LWP::UserAgent) {
 	    $errors = sprintf "Unable to use LWP library, LWP::UserAgent required, install LWP (CPAN) first\n";
 	    return undef;
 	}
-	require  LWP::UserAgent;
 
 	my $ssl_socket;
 
@@ -370,7 +368,7 @@ sub get_https2{
 	    return undef;
 	}
 	
-	my $request = "GET $path HTTP/1.0\nHost: $host\n\n";
+	my $request = "GET $path HTTP/1.0\n\n";
 	print $ssl_socket "$request\n\n";
 
 	my @result;
