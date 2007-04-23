@@ -1,12 +1,13 @@
 From: SYMPA <[% conf.email %]@[% conf.host %]>
 To: [% to %]
 [% IF type == 'intern_error' -%]
-Subject: [% FILTER qencode %][%|loc%]Message distribution : Internal server error[%END%][%END%]
+Subject: [% FILTER qencode %][%|loc%]Message diffusion : Internal server error[%END%][%END%]
+MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="[% boundary %]"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 --[% boundary %]
-Content-Type: text/plain; charset="UTF-8";
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
 
 [% IF entry == 'forward' %]
 [%|loc(list.name,function)%]Impossible to forward your message to '%1-%2' because of an internal server error.[%END%]
@@ -19,24 +20,25 @@ Content-Type: text/plain; charset="UTF-8";
 [%#### USER  ERROR %]
 [%################ %]
 [% ELSIF type == 'user_error' -%]
-Subject: [% FILTER qencode %][%|loc%]Message distribution : User error[%END%][%END%]
+Subject: [% FILTER qencode %][%|loc%]Message diffusion : User error[%END%][%END%]
+MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="[% boundary %]"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 --[% boundary %]
-Content-Type: text/plain; charset="UTF-8";
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
 
 [%|loc(list.name)%]Impossible to distribute your message for list '%1' for the following reason :[%END%]
 
 [% IF entry == 'routing_error' -%]
-[%|loc(list.name,conf.sympa,clist.host)%]The following message was sent to list '%1' and it seems to contain
-one or more commands like subscribe, unsubscribe, help, index, get, ...
+[%|loc(list.name,conf.sympa,clist.host)%]The following message was sent to list '%1' while it seems to contain
+commands like subscribe, unsubscribe, help, index, get, ...
 
-If your message contained a command, please notice that 
+If your message effectively contained a command, please notice that 
 commands should never ever be sent to lists. Commands must be sent
 to %2 exclusively.
 
-If your message was really meant to be sent to the list, it was
+If your message was effectively addressed to the list, it has been
 interpreted by the software as a command. Please contact the list owner :  
 %1-request@%3 so that he can take care of your message.
 
@@ -49,9 +51,6 @@ was over the maximum size allowed on this list.[%END%]
 [% ELSIF entry == 'list_unknown' -%]
 
 [%|loc(listname)%]List '%1' does not exist.[%END%]
-[% ELSIF entry == 'dyn_cant_create' -%]
-
-[%|loc(listname)%]The %1 list could not be created.[%END%]
 [% ELSIF entry == 'unfound_message' -%]
 
 [%|loc(listname,key)%]Unable to access the message on list %1 with  key %2.
@@ -62,22 +61,24 @@ Warning : this message may already have been sent by one of the list's editor.[%
 [% ELSIF entry == 'wrong_format_message' -%]
 
 [%|loc(key)%]Unable to access the message authenticated with key %1 because of a wrong format.[%END%]
+[% ELSIF entry == 'message_rejected' -%]
+
+[%|loc(key,listname)%]Message %1 for list '%2' has been rejected.
+[%END%]
 [% END -%]
-[% IF list.name %]
 [%|loc(list.name,list.host)%]For further information, please contact %1-request@%2[%END%]
-[% ELSE %]
-[%|loc(conf.host)%]For further information, please contact listmaster@%1[%END%]
-[% END %]
+
 [%##################### %]
 [%# AUTHORIZATION ERROR %]
 [%##################### %]
 [% ELSIF type == 'authorization_reject' -%]
-Subject: [% FILTER qencode %][%|loc%]Message distribution : Authorization denied[%END%][%END%]
+Subject: [% FILTER qencode %][%|loc%]Message diffusion : Authorization reject[%END%][%END%]
+MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="[% boundary %]"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 --[% boundary %]
-Content-Type: text/plain; charset="UTF-8";
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
 
 [%|loc(list.name)%]Your message for list '%1' (attached below) was rejected. 
 You are not allowed to send this message for the following reason :[%END%]
@@ -88,9 +89,10 @@ You are not allowed to send this message for the following reason :[%END%]
 [%###### SUCCESS NOTICE %]
 [%##################### %]
 [% ELSIF type == 'success' -%]
-Subject: [% FILTER qencode %][%|loc%]Message distribution[%END%][%END%]
-Content-Type: text/plain; charset="UTF-8";
-Content-Transfer-Encoding: 8bit
+Subject: [% FILTER qencode %][%|loc%]Message diffusion[%END%][%END%]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 [% IF entry == 'moderating_message' -%]
 
@@ -103,10 +105,6 @@ Content-Transfer-Encoding: 8bit
 [% ELSIF entry == 'message_in_distribution_spool' -%]
 
 [%|loc(key,listname)%]Message %1 for list '%2' has been validated ; it will be distributed soon.[%END%]
-
-[% ELSIF entry == 'message_rejected' -%]
-
-[%|loc(key,listname)%]Message %1 for list '%2' has been rejected.[%END%]
 
 [% ELSIF entry == 'message_confirmed' -%]
 
@@ -124,9 +122,8 @@ Content-Transfer-Encoding: 8bit
 [%- IF msg -%]
 --[% boundary %]
 Content-Type: message/rfc822
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding:  [%|loc%]_encoding_[%END%]
 Content-Disposition: inline
-X-Sympa-Attach: yes
 
 [% msg %]
 

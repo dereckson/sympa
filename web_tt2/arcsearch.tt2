@@ -1,23 +1,22 @@
 <!-- $Id$ -->
 
 <h2>[%|loc%]Result of your search in the archive[%END%] 
-<a href="[% path_cgi %]/arc/[% list %]/[% archive_name %]"><span class="color_dark">[% list %]</span></a> : </h2>
+<a href="[% path_cgi %]/arc/[% list %]/[% archive_name %]"><span style="color: [% dark_color %];">[% list %]</span></a> : </h2>
 
 <p>[%|loc%]Search field :[%END%] 
 [% FOREACH u = directories %]
- <a href="[% path_cgi %]/arc/[% list %]/[% u %]"><span class="color_dark">[% u %]</font></a> - 
+ <a href="[% path_cgi %]/arc/[% list %]/[% u %]"><span style="color: [% dark_color %];">[% u %]</font></a> - 
 [% END %]
 </p>
-<p>
 [%|loc(key_word)%]Parameters of these search make on <strong> &quot;%1&quot;</strong>[%END%]:<br> 
 <em>
 
 [% IF how == 'phrase' %]
 	[%|loc%](This sentence,[%END%] 
 [% ELSIF how == 'any' %]
-	[%|loc%](All of these words,[%END%] 
+	[%|loc%](All of this words,[%END%] 
 [% ELSE %]
-	[%|loc%](Each of these words,[%END%] 
+	[%|loc%](Each of this words,[%END%] 
 [% END %]
 
 [% IF case == 'off' %]
@@ -53,25 +52,24 @@
 <dl>
 
 [% IF body %]
-	<dd>[%|loc(body_count)%]%1 hits on message Body[%END%]<br /></dd>
+	<dd>[%|loc(body_count)%]%1 hits on message's Body[%END%]<br /></dd>
 [% END %]
 
 [% IF subj %]
-	<dd>[%|loc(subj_count)%]%1 hits on message Subject field[%END%]<br /></dd>
+	<dd>[%|loc(subj_count)%]%1 hits on message's Subject field[%END%]<br /></dd>
 [% END %]
 
 [% IF from %]
-	<dd>[%|loc(from_count)%] %1 hits on message From field[%END%]<br /></dd>
+	<dd>[%|loc(from_count)%] %1 hits on message's From field[%END%]<br /></dd>
 [% END %]
 
 [% IF date %]
-	<dd>[%|loc(date_count)%]%1 hits on message Date field[%END%]<br /></dd>
+	<dd>[%|loc(date_count)%]%1 hits on message's Date field[%END%]<br /></dd>
 [% END %]
 
 </dl>
 
 <form method="post" action="[% path_cgi %]">
-<fieldset>
 <input type="hidden" name="list" value="[% list %]" />
 <input type="hidden" name="archive_name" value="[% archive_name %]" />
 <input type="hidden" name="key_word" value="[% key_word %]" />
@@ -111,7 +109,6 @@
 [% END %]
 <p>
 <input class="MainMenuLinks" name="action_arcsearch_form" type="submit" value="[%|loc%]New search[%END%]" />
-</fieldset>
 </form>
 <hr />
 <p>[%|loc%]Based on <em><a href="http://www.mhonarc.org/contrib/marc-search/">Marc-Search</a></em>, search engine of MHonArc archives[%END%]</p>

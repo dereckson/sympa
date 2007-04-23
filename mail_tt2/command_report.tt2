@@ -2,6 +2,9 @@ From: SYMPA <[% conf.email %]@[% conf.host %]>
 To: [% to %]
 Subject: [% FILTER qencode %][%|loc%]Results of your commands[%END%][%END%]
 X-Loop: [% conf.sympa %]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 [%############################-%]
 [%########## SUCCESS #########-%]
@@ -24,7 +27,7 @@ owners for approval. You will receive a notification when you have
 been subscribed (or unsubscribed) to the list.[%END-%]
 
 [% ELSIF notice.entry == 'updated_info' -%]
-[%|loc(notice.email,notice.listname)%]Information regarding user %1 has been updated for list %2.[%END%]
+[%|loc(notice.email,notice.listname)%]Information regarding user %1 have been updated for list %2.[%END%]
 
 [% ELSIF notice.entry == 'now_subscriber' -%]
 [%|loc(notice.email,notice.listname)%]User %1 is now subscriber of list %2.[%END%]
