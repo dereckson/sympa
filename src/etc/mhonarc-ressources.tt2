@@ -14,77 +14,24 @@ reference other variables.
 -->
 
 <DefineVar>
-CALENDAR
-<div id="ArcCalendar">
-    ($tag$% FOREACH year = calendar %$tag$)
-        <div>
-        <ul class="calendar">
-        <li class="calendarLinksInactive">($tag$% year.key %$tag$)</li>
-   	($tag$% FOREACH month = ['01' '02' '03' '04' '05' '06' '07' '08' '09' '10' '11' '12'] %$tag$)
-          ($tag$% IF year.value.item(month) %$tag$)
-                 ($tag$% IF  year.key == '$yyyy$' && month == '$mois$'%$tag$) <li class="calendarLinksCurrentPage"><a href="($tag$% path_cgi %$tag$)/arc/($tag$% list %$tag$)/($tag$% year.key %$tag$)-($tag$% month %$tag$)/" title="($tag$%|loc(year.value.item(month))%$tag$)%1 message(s)($tag$%END%$tag$)">($tag$% month %$tag$)</a></li>
-                 ($tag$% ELSE %$tag$)<li class="calendarLinks"><a href="($tag$% path_cgi %$tag$)/arc/($tag$% list %$tag$)/($tag$% year.key %$tag$)-($tag$% month %$tag$)/" title="($tag$%|loc(year.value.item(month))%$tag$)%1 message(s)($tag$%END%$tag$)">($tag$% month %$tag$)</a></li>
-		 ($tag$% END %$tag$)
-          ($tag$% ELSE %$tag$)<li class="calendarLinksInactive">($tag$% month %$tag$)</li>
-          ($tag$% END %$tag$)
-        ($tag$% END %$tag$)
-        </ul>
-        </div>
-    ($tag$% END %$tag$)
-</div>
-</DefineVar>
-
-<DefineVar>
-SEARCH_FORM
-     <div class="search_form">
-	<form method="post" action="($tag$% path_cgi %$tag$)">
-	<input name="list" type="hidden" value="($tag$% list %$tag$)" />
-	<input name="archive_name" type="hidden" value="($tag$% archive_name %$tag$)" />
-	<input name="how"   type="hidden" value="phrase" />
-	<input name="age"   type="hidden" value="new" />
-	<input name="case"  type="hidden" value="off" /> 
-	<input name="match" type="hidden" value="partial" />
-	<input name="limit" type="hidden" value="10" /> 
-	<input name="body"  type="hidden" value="true" />
-	<input name="subj"  type="hidden" value="true" />
-	<input name="key_word"     type="text"   size="12" />
-	<input name="action"  type="hidden" value="arcsearch" />
-	<input type="submit" class="MainMenuLinks" name="action_arcsearch" value="($tag$%|loc%$tag$)Search($tag$%END%$tag$)" /><br />
-	<input type="submit" class="MainMenuLinks" name="action_arcsearch_form" value="($tag$%|loc%$tag$)Advanced search($tag$%END%$tag$)" />
-	</form>
-    </div>
-</DefineVar>
-
-<DefineVar>
-TOP_PANEL
-<div id="ActionHeader">
-   $SEARCH_FORM$
-   $CALENDAR$
-   <div class="text_center"><strong>$PRINTABLE_MONTH$&nbsp;&nbsp;&nbsp;$NUMOFMSG$ ($tag$%|loc%$tag$)mails($tag$%END%$tag$)</strong></div><br />
-   ($tag$%|loc%$tag$)Pages navigation : ($tag$%END%$tag$)<br />
-</div>
-</DefineVar>
-
-<DefineVar>
-PRINTABLE_MONTH
-($tag$%|locdt("$yyyy$/$mois$")%$tag$)%Y/%m($tag$%END%$tag$)
-</DefineVar>
-
-<DefineVar>
 SELECTED_MONTH
-<P><font color="($tag$% dark_color %$tag$)" size="+1"><strong>
-$PRINTABLE_MONTH$
-</strong></FONT><br />
+<P><FONT COLOR="($time$% dark_color %$time$)" SIZE="+1"><STRONG>
+($time$% IF lang == 'fr' %$time$)
+$mois$/$yyyy$
+($time$% ELSE %$time$)
+$yyyy$/$mois$
+($time$% END %$time$)
+</STRONG></FONT><BR>
 <HR width="30%">
 </P>
 </DefineVar>
 
 <DefineVar>
 POWERED_BY
-<hr size="1" noshade>
-<p><font size="-1">
-($tag$%|loc%$tag$)Archive powered by($tag$%END%$tag$) <a href="$DOCURL$">MHonArc $VERSION$</a>.
-</font></p>
+<HR SIZE="1" NOSHADE>
+<P><FONT SIZE="-1" COLOR="($time$% dark_color %$time$)">
+($time$%|loc%$time$)Archive powered by($time$%END%$time$) <A HREF="$DOCURL$">MhonArc $VERSION$</A>.
+</FONT></P>
 </DefineVar>
 
 <!-- ============================================================== -->
@@ -94,9 +41,8 @@ POWERED_BY
 <DECODEHEADS>
 
 <MIMEARGS>
-text/plain; asis=us-ascii:iso-8859-1:iso-8859-2 nonfixed keepspace quote htmlcheck maxwidth=78
-text/html; asis=us-ascii:iso-8859-1:iso-8859-2 allownoncidurls
-m2h_external::filter; subdir usename
+text/plain; asis=us-ascii:iso-8859-1:iso-8859-2 nonfixed quote htmlcheck maxwidth=78
+text/html; asis=us-ascii:iso-8859-1:iso-8859-2
 </MIMEARGS>
 
 <CHARSETALIASES>
@@ -104,19 +50,21 @@ big5; big5
 big5; big5-eten
 </CHARSETALIASES>
 
-<CharsetConverters override>
-plain;    mhonarc::htmlize
-default; -decode-
-</CharsetConverters>
+<!--
+<TextEncode>
+utf-8; MHonArc::UTF8::to_utf8; MHonArc/UTF8.pm
+</TextEncode>
+-->
 
+<-- With data translated to UTF-8, it simplifies CHARSETCONVERTERS -->
+<CharsetConverters override>
+default; mhonarc::htmlize
+</CharsetConverters>
 
 <-- Need to also register UTF-8-aware text clipping function -->
 <TextClipFunc>
 MHonArc::UTF8::clip; MHonArc/UTF8.pm
 </TextClipFunc>
-<TextEncode>
-utf-8; MHonArc::UTF8::to_utf8; MHonArc/UTF8.pm
-</TextEncode>
 
 <!-- ============================================================== -->
 <!--    Options                                                     -->
@@ -169,79 +117,74 @@ IDXPGEND
 
 <!--  mail1.html -->
 <IDXPGBEGIN>
-[%TAGS ($tag$% %$tag$) %]
-
+[%TAGS ($time$% %$time$) %]
+<CENTER>
+$SELECTED_MONTH$
+<TABLE CELLPADDING="2" CELLSPACING="2" WIDTH="100%" BORDER="0">
+<TR ALIGN="CENTER" BGCOLOR="($time$% dark_color %$time$)">
+<TD>
 <!-- begin header -->
-<div id="ActionHeader">
-   $SEARCH_FORM$
-   $CALENDAR$
-   <div class="text_center"><strong>$PRINTABLE_MONTH$&nbsp;&nbsp;&nbsp;$NUMOFMSG$ ($tag$%|loc%$tag$)mails($tag$%END%$tag$)</strong></div><br />
-   ($tag$%|loc%$tag$)Pages navigation : ($tag$%END%$tag$)<br />
-
-  <span class="search_form">
-    <a class="ArcMenuLinksCurrentPage" href="mail$PAGENUM$.html">($tag$%|loc%$tag$)Chronological($tag$%END%$tag$)</a>
-    <a class="ArcMenuLinks" href="thrd$PAGENUM$.html">($tag$%|loc%$tag$)Thread($tag$%END%$tag$)</a>
-  </span>  
-  $PREVPGLINK$ ($tag$%|loc($PAGENUM$,$NUMOFPAGES$)%$tag$)page # %1/%2($tag$%END%$tag$) $NEXTPGLINK$   
-</div>
+<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="2">
+<TR ALIGN="CENTER" VALIGN="MIDDLE">
+<TD NOWRAP BGCOLOR="($time$% light_color %$time$)" ALIGN="CENTER">
+$PREVPGLINK$&nbsp;&nbsp;
+<FONT SIZE="-1" FACE="Arial,Helvetica"><STRONG>$NUMOFMSG$ ($time$%|loc($PAGENUM$,$NUMOFPAGES$)%$time$)mails, page # %1/%2($time$%END%$time$)</STRONG></FONT>
+&nbsp;&nbsp;$NEXTPGLINK$
+</TD>
+<TD NOWRAP BGCOLOR="($time$% light_color %$time$)" ALIGN="CENTER">
+<FONT COLOR="($time$% bg_color %$time$)" SIZE="-1"><STRONG>
+($time$%|loc%$time$)Chronological($time$%END%$time$)
+</STRONG></FONT>
+&nbsp;&nbsp;
+<FONT SIZE="-1"><STRONG><A HREF="thrd$PAGENUM$.html" STYLE="text-decoration: none">
+($time$%|loc%$time$)Thread($time$%END%$time$)
+</A></STRONG></FONT>
+</TD>
+</TR>
+</TABLE>
 <!-- end header -->
+</TD>
+</TR>
+</TABLE>
+</CENTER>
 </IDXPGBEGIN>
 
 <!-- top of message list -->
 <LISTBEGIN>
-<br />
-($tag$% IF is_owner %$tag$)<form id="msglist" action="($tag$% path_cgi %$tag$)" method="post">($tag$%END%$tag$)
-<ul>
+<UL>
 </LISTBEGIN>
 
 <!-- item of maillist.html -->
 <LITEMPLATE>
-<li>($tag$% IF is_owner %$tag$)<label for="msgid"><input type="checkbox" name="msgid" value="$MSGID$" /></label>($tag$%END%$tag$)
-
-<b>$SUBJECT$</b>, <em>$FROMNAME$</em></li>
+<LI><b>$SUBJECT$</b>, <EM>$FROMNAME$</EM></LI>
 </LITEMPLATE> 
 
 <!-- bottom of message list -->
 <LISTEND>
-</ul><br />
-($tag$% IF is_owner %$tag$)
-<input type="hidden" name="yyyy" value="$yyyy$" />
-<input type="hidden" name="month" value="$mois$" />
-<input type="hidden" name="action" value="remove_arc" />
-<input type="hidden" name="list" value ="($tag$% list %$tag$)" />  
-<input class="MainMenuLinks" type="button" value="($tag$%|loc%$tag$)Toggle Selection($tag$%END%$tag$)" onclick="toggle_selection(document.forms['msglist'].msgid)" />
-<input type="submit" class="MainMenuLinks" name="action_remove_arc" value="($tag$%|loc%$tag$)Tag messages for deletion($tag$%END%$tag$)" onClick="return request_confirm('($tag$%|loc%$tag$)Do you really want to delete these messages ?($tag$%END%$tag$)')"/><br />
-<br />
-
-</form>
-($tag$%END%$tag$)
+</UL>
 </LISTEND>  
 
 <!--  maillist.html bottom -->
 <IDXPGEND>
 $POWERED_BY$
-($tag$%TAGS [% %]%$tag$)
+($time$%TAGS [% %]%$time$)
 </IDXPGEND>
 
 <!-- links definition -->
 <PrevPgLink chop>
-<a class="ArcMenuLinks" href="$FIRSTPG$">&lt;&lt;</a>
-<a class="ArcMenuLinks" href="$PREVPG$">&lt;</a>
+<FONT SIZE="-1" FACE="Arial,Helvetica" COLOR="($time$% dark_color %$time$)"><A HREF="$FIRSTPG$"><IMG SRC="($time$% icons_url %$time$)/begin.png" ALT="First" HEIGHT="20" BORDER="0" ALIGN="middle"></A>&nbsp;&nbsp;<A HREF="$PREVPG$"><IMG SRC="($time$% icons_url %$time$)/left.png" ALT="Previous" HEIGHT="20" BORDER="0" ALIGN="middle"></A></FONT>
 </PrevPgLink>
 
 <PrevPgLinkIA chop>
-<a class="ArcMenuLinksInactive">&lt;&lt;</a>
-<a class="ArcMenuLinksInactive">&lt;</a>
+&nbsp;&nbsp;
 </PrevPgLinkIA>
 
 <NextPgLink chop>
-<a class="ArcMenuLinks" href="$NEXTPG$">&gt;</a>
-<a class="ArcMenuLinks" href="$LASTPG$">&gt;&gt;</a>
+<FONT SIZE="-1" FACE="Arial,Helvetica" COLOR="($time$% dark_color %$time$)"><A HREF="$NEXTPG$"><IMG SRC="($time$% icons_url %$time$)/right.png" ALT="Next" HEIGHT="20" BORDER="0" ALIGN="center"></A>&nbsp;&nbsp;<A HREF="$LASTPG$"><IMG SRC="($time$% icons_url %$time$)/end.png" ALT="Last" HEIGHT="20" BORDER="0" ALIGN="middle"></A></FONT>
 </NextPgLink>
 
 <NextPgLinkIA chop>
-<a class="ArcMenuLinksInactive">&gt;</a>
-<a class="ArcMenuLinksInactive">&gt;&gt;</a>
+&nbsp;&nbsp;
 </NextPgLinkIA>
 
 <!-- ============================================================== -->
@@ -279,95 +222,75 @@ TIDXPGEND
 
 <!-- top of thread index -->
 <TIDXPGBEGIN>
-[%TAGS ($tag$% %$tag$) %]
+[%TAGS ($time$% %$time$) %]
 </TIDXPGBEGIN>
 
 <THEAD>
+<CENTER>
+$SELECTED_MONTH$
+<TABLE CELLPADDING="2" CELLSPACING="2" WIDTH="100%" BORDER="0">
+<TR ALIGN="center" BGCOLOR="($time$% dark_color %$time$)">
+<TD>
 <!-- begin header -->
-<div id="ActionHeader">
-   $SEARCH_FORM$
-   $CALENDAR$
-   <div class="text_center"><strong>$PRINTABLE_MONTH$&nbsp;&nbsp;&nbsp;$NUMOFMSG$ ($tag$%|loc%$tag$)mails($tag$%END%$tag$)</strong></div><br />
-   ($tag$%|loc%$tag$)Pages navigation : ($tag$%END%$tag$)<br />
-
-   <span class="search_form">
-     <a class="ArcMenuLinks" href="mail$PAGENUM$.html">($tag$%|loc%$tag$)Chronological($tag$%END%$tag$)</a>
-     <a class="ArcMenuLinksCurrentPage" href="thrd$PAGENUM$.html">($tag$%|loc%$tag$)Thread($tag$%END%$tag$)</a>
-   </span>  
-   $TPREVPGLINK$ ($tag$%|loc($PAGENUM$,$NUMOFPAGES$)%$tag$)page # %1/%2($tag$%END%$tag$) $TNEXTPGLINK$ 
-</div>
+<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="2">
+<TR ALIGN="center" VALIGN="middle">
+<TD NOWRAP BGCOLOR="($time$% light_color %$time$)" ALIGN="center">
+$TPREVPGLINK$&nbsp;&nbsp;
+<FONT SIZE="-1" FACE="Arial,Helvetica"><STRONG>$NUMOFMSG$ ($time$%|loc($PAGENUM$,$NUMOFPAGES$)%$time$)mails, page # %1/%2($time$%END%$time$)</STRONG></FONT>
+&nbsp;&nbsp;$TNEXTPGLINK$
+</TD>
+<td NOWRAP BGCOLOR="($time$% light_color %$time$)" ALIGN="center">
+<FONT SIZE="-1"><STRONG><A HREF="mail$PAGENUM$.html" STYLE="TEXT-DECORATION: NONE">
+($time$%|loc%$time$)Chronological($time$%END%$time$)
+</A></STRONG></FONT>
+&nbsp;&nbsp;
+<FONT COLOR="($time$% bg_color %$time$)" SIZE="-1"><STRONG>
+($time$%|loc%$time$)Thread($time$%END%$time$)
+</STRONG></FONT>
+</TD>
+</TR>
+</TABLE>
 <!-- end header -->
+</TD>
+</TR>
+</TABLE>
+</CENTER>
 
-($tag$% IF is_owner %$tag$)<form id="msglist" action="($tag$% path_cgi %$tag$)" method="post">($tag$%END%$tag$)
-<ul>
+<UL>
 </THEAD>
 
-<TSINGLETXT>
-<li>($tag$% IF is_owner %$tag$)<label for="msgid"><input type="checkbox" name="msgid" value="$MSGID$" /></label>($tag$%END%$tag$)<b>$SUBJECT$</b>, <em>$FROMNAME$, ($tag$%|locdt("$YYYYMMDD$")%$tag$)%m/%d/%Y($tag$%END%$tag$)</em>
-</TSINGLETXT>
-
 <TTOPBEGIN>
-<li>($tag$% IF is_owner %$tag$)<label for="msgid"><input type="checkbox" name="msgid" value="$MSGID$" /></label>($tag$%END%$tag$)<b>$SUBJECT$</b>, <em>$FROMNAME$, ($tag$%|locdt("$YYYYMMDD$")%$tag$)%m/%d/%Y($tag$%END%$tag$)</em>
+<LI><b>$SUBJECT$</b>, <EM>$FROMNAME$</EM><BR>
 </TTOPBEGIN>
 
-<TLITXT>
-<li>($tag$% IF is_owner %$tag$)<label for="msgid"><input type="checkbox" name="msgid" value="$MSGID$" /></label>($tag$%END%$tag$)<b>$SUBJECT$</b>, <em>$FROMNAME$, ($tag$%|locdt("$YYYYMMDD$")%$tag$)%m/%d/%Y($tag$%END%$tag$)</em>
-</TLITXT>
-
 <TTOPEND>
-</li>
+</LI>
 </TTOPEND>
 
 <TFOOT>
-</ul>
-($tag$% IF is_owner %$tag$)
-<input type="hidden" name="yyyy" value="$yyyy$" />
-<input type="hidden" name="month" value="$mois$" />
-<input type="hidden" name="action" value="remove_arc" />
-<input type="hidden" name="list" value ="($tag$% list %$tag$)" />  
-<input class="MainMenuLinks" type="button" value="($tag$%|loc%$tag$)Toggle Selection($tag$%END%$tag$)" onclick="toggle_selection(document.forms['msglist'].msgid)" />
-<input type="submit" class="MainMenuLinks" name="action_remove_arc" value="($tag$%|loc%$tag$)Tag messages for deletion($tag$%END%$tag$)" onClick="return request_confirm('($tag$%|loc%$tag$)Do you really want to delete these messages ?($tag$%END%$tag$)')"/><br />
-<br />
-</form>
-($tag$%END%$tag$)<br />
+</UL>
 </TFOOT>
 
 <TIDXPGEND>
 $POWERED_BY$
-($tag$%TAGS [% %]%$tag$)
+($time$%TAGS [% %]%$time$)
 </TIDXPGEND>
-
-<TCONTBEGIN>
-<li><strong>$SUBJECTNA$</strong>($tag$%|loc%$tag$), <em>(continued)</em>($tag$%END%$tag$)
-</TCONTBEGIN>
-
-<TSUBJECTBEG>
-<li>($tag$%|loc%$tag$)&lt;Possible follow-up(s)&gt;($tag$%END%$tag$)</li>
-</TSUBJECTBEG>
-
-<TLINONE>
-<li>($tag$%|loc%$tag$)<em>Message not available</em>($tag$%END%$tag$)
-</TLINONE>
 
 <!-- links definition -->
 <TPrevPgLink chop>
-<a class="ArcMenuLinks" href="$TFIRSTPG$">&lt;&lt;</a>
-<a class="ArcMenuLinks" href="$TPREVPG$">&lt;</a>
+<FONT SIZE="-1" FACE="Arial,Helvetica" COLOR="($time$% dark_color %$time$)"><A HREF="$TFIRSTPG$"><IMG SRC="($time$% icons_url %$time$)/begin.png" ALT="First" HEIGHT="20" BORDER="0" ALIGN="middle"></A>&nbsp;<A HREF="$TPREVPG$"><IMG SRC="($time$% icons_url %$time$)/left.png" ALT="Previous" HEIGHT="20" BORDER="0" ALIGN="middle"></A></FONT>
 </TPrevPgLink>
 
 <TPrevPgLinkIA chop>
-<a class="ArcMenuLinksInactive">&lt;&lt;</a>
-<a class="ArcMenuLinksInactive">&lt;</a>
+&nbsp;&nbsp;
 </TPrevPgLinkIA>
 
 <TNextPgLink chop>
-<a class="ArcMenuLinks" href="$TNEXTPG$">&gt;</a>
-<a class="ArcMenuLinks"  href="$TLASTPG$">&gt;&gt;</a>
+<FONT SIZE="-1" FACE="Arial,Helvetica" COLOR="($time$% dark_color %$time$)"><A HREF="$TNEXTPG$"><IMG SRC="($time$% icons_url %$time$)/right.png" ALT="Next" HEIGHT="20" BORDER="0" ALIGN="center"></A>&nbsp;&nbsp;<A HREF="$TLASTPG$"><IMG SRC="($time$% icons_url %$time$)/end.png" ALT="Last" HEIGHT="20" BORDER="0" ALIGN="middle"></A></FONT>
 </TNextPgLink>
 
 <TNextPgLinkIA chop>
-<a class="ArcMenuLinksInactive">&gt;</a>
-<a class="ArcMenuLinksInactive">&gt;&gt;</a>
+&nbsp;&nbsp;
 </TNextPgLinkIA>
 
 <!-- ================================================================== -->
@@ -396,34 +319,48 @@ MSGPGEND
 -->
 
 <MSGPGBEGIN>
-[%TAGS ($tag$% %$tag$) %]
+[%TAGS ($time$% %$time$) %]
 </MSGPGBEGIN>
 
 <TOPLINKS>
-
-<div id="ActionHeader">
-   <div class="text_center"><h2>($tag$% subtitle %$tag$)</h2></div><br />
-   <span class="search_form">
-     <a class="ArcMenuLinks" href="$IDXFNAME$#$MSGNUM$">($tag$%|loc%$tag$)Chronological($tag$% END %$tag$)</a>
-     <a class="ArcMenuLinks" href="$TIDXFNAME$#$MSGNUM$">($tag$%|loc%$tag$)Thread($tag$% END %$tag$)</a>&nbsp;
-   </span>
-   <ul id="MainMenuLinks">
-     $PREVBUTTON$ ($tag$%|loc%$tag$)Chronological($tag$%END%$tag$) $NEXTBUTTON$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$TPREVBUTTON$  ($tag$%|loc%$tag$)Thread($tag$%END%$tag$) $TNEXTBUTTON$
-   </ul>
-</div>
-
+<CENTER>
+$SELECTED_MONTH$
+<TABLE CELLPADDING="2" CELLSPACING="2" WIDTH="100%" BORDER="0">
+<TR ALIGN="center" BGCOLOR="($time$% dark_color %$time$)">
+<TD>
+<!-- begin header -->
+<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="2">
+<TR ALIGN="CENTER" VALIGN="MIDDLE">
+<TD WIDTH="50%" BGCOLOR="($time$% light_color %$time$)" ALIGN="center" VALIGN="middle" NOWRAP>
+$PREVBUTTON$&nbsp;&nbsp;
+<FONT SIZE="-1"><STRONG><A HREF="$IDXFNAME$#$MSGNUM$" STYLE="text-decoration: none">
+($time$%|loc%$time$)Chronological($time$%END%$time$)
+</A></STRONG></FONT>
+&nbsp;&nbsp;$NEXTBUTTON$
+</TD>
+<TD WIDTH="50%" BGCOLOR="($time$% light_color %$time$)" ALIGN="center" VALIGN="middle" NOWRAP>
+$TPREVBUTTON$&nbsp;&nbsp;
+<FONT SIZE="-1"><STRONG><A HREF="$TIDXFNAME$#$MSGNUM$" STYLE="text-decoration: none">
+($time$%|loc%$time$)Thread($time$%END%$time$)
+</A></STRONG></FONT>
+&nbsp;&nbsp;$TNEXTBUTTON$
+</TD>
+</TR>
+</TABLE>
 <!-- end header -->
-
+</TD>
+</TR>
+</TABLE>
+</CENTER>
 </TOPLINKS>
 
 <HEADBODYSEP>
-</div>
-<hr size="1" noshade>
+</UL>
+<HR SIZE="1" NOSHADE>
 </HEADBODYSEP>
 
 <MSGBODYEND>
-<br clear="all" />
-<hr size="1" noshade>
+<HR SIZE="1" NOSHADE>
 $TSLICE(10;10;1)$
 </MSGBODYEND>
 
@@ -433,38 +370,56 @@ $TSLICE(10;10;1)$
 
 <MSGPGEND>
 $POWERED_BY$
-($tag$%TAGS [% %]%$tag$)
+($time$%TAGS [% %]%$time$)
 </MSGPGEND>
 
 <MSGPGSSMARKUP>
 </MSGPGSSMARKUP>
 
 <SUBJECTHEADER>
-($tag$% IF user.email && action == 'arc' %$tag$)
-<span class="search_form">
-<form action="($tag$% path_cgi %$tag$)" method="post">
-  <input type="hidden" name="in_reply_to" value="$MSGID$" />
-  <input type="hidden" name="subject" value="Re: $SUBJECTNA$" />
-  <input type="hidden" name="list" value="($tag$% list %$tag$)" />
-  ($tag$%|loc%$tag$)Reply to sender($tag$%END%$tag$)
-  <input type="radio" name="to" value="$FROMADDRNAME$ $FROMADDRDOMAIN$" checked />
-  ($tag$%|loc%$tag$)to list($tag$%END%$tag$)
-  <input type="radio" name="to" value="($tag$% list %$tag$) ($tag$% list_conf.host %$tag$)" />
-  <input class="MainMenuLinks" type="submit" name="action_compose_mail" value="($tag$%|loc%$tag$)Reply($tag$%END%$tag$)" /><br />
-  <input class="MainMenuLinks" type="submit" name="action_send_me" value="($tag$%|loc(user.email)%$tag$)send it back to %1($tag$%END%$tag$)" /><br />
-    <input type="hidden" name="yyyy" value="$yyyy$" />
-    <input type="hidden" name="month" value="$mois$" />
-    <input type="hidden" name="msgid" value="$MSGID$" />
-    <input type="hidden" name="action" value="" />
-   ($tag$% IF user.email == "$FROMADDRNAME$@$FROMADDRDOMAIN$"  || is_owner %$tag$)
-    <input class="MainMenuLinks" type="submit" name="action_remove_arc" value="($tag$%|loc%$tag$)tag this mail for deletion($tag$%END%$tag$)" onClick="return request_confirm('($tag$%|loc%$tag$)Do you really want to delete this message ?($tag$%END%$tag$)')" />
-    ($tag$% END %$tag$)
-</form>
-</span>
+<TABLE BORDER="0" WIDTH="100%" CELLPADDING="2" CELLSPACING="2">
+<TR>
+<TD>
+<FONT SIZE="+1" COLOR="($time$% dark_color %$time$)"><STRONG>$SUBJECTNA$</STRONG></FONT>, &nbsp;<FONT SIZE="+1">$FROMNAME$</FONT>
+</TD>
 
-($tag$% END %$tag$)
+($time$% IF user.email && action == 'arc' %$time$)
+<TD ALIGN="right" BGCOLOR="($time$% bg_color %$time$)">
+<FONT SIZE="-1">
+<!-- reply to button -->
+<FORM ACTION="($time$% path_cgi %$time$)" METHOD=POST>
+  <INPUT TYPE="hidden" NAME="in_reply_to" VALUE="$MSGID$">
+  <INPUT TYPE="hidden" NAME="subject" VALUE="Re: $SUBJECTNA$">
+  <INPUT TYPE="hidden" NAME="list" VALUE="($time$% list %$time$)">
+  ($time$%|loc%$time$)Reply to sender($time$%END%$time$)
+  <INPUT TYPE="radio" NAME="to" VALUE="$FROMADDRNAME$ $FROMADDRDOMAIN$" CHECKED>
+  ($time$%|loc%$time$)to list($time$%END%$time$)
+  <INPUT TYPE="radio" NAME="to" VALUE="($time$% list %$time$) ($time$% list_conf.host %$time$)">
+  <INPUT TYPE="submit" NAME="action_compose_mail" VALUE="($time$%|loc%$time$)Reply($time$%END%$time$)">
+  <INPUT TYPE="submit" NAME="action_send_me" VALUE="($time$%|loc(user.email)%$time$)send it back to %1($time$%END%$time$)">	
+  ($time$% IF action != 'viewmod' %$time$)
+    ($time$% IF user.email == '$FROMADDR$' %$time$)
+    <INPUT TYPE="hidden" NAME="yyyy" VALUE="$yyyy$">
+    <INPUT TYPE="hidden" NAME="month" VALUE="$mois$">
+    <INPUT TYPE="hidden" NAME="msgid" VALUE="$MSGID$">
+    <INPUT TYPE="hidden" NAME="action" VALUE="">
+    <INPUT TYPE="submit" NAME="action_remove_arc" VALUE="($time$%|loc%$time$)tag this mail for deletion($time$%END%$time$)" onClick="return request_confirm('($time$%|loc%$time$)Do you really want to delete this message ?($time$%END%$time$)')">
 
-<div class="block">
+    ($time$% ELSIF is_owner %$time$)
+    <INPUT TYPE="hidden" NAME="yyyy" VALUE="$yyyy$">
+    <INPUT TYPE="hidden" NAME="month" VALUE="$mois$">
+    <INPUT TYPE="hidden" NAME="msgid" VALUE="$MSGID$">
+    <INPUT TYPE="hidden" NAME="action" VALUE="">
+    <INPUT TYPE="submit" NAME="action_remove_arc" VALUE="($time$%|loc%$time$)tag this mail for deletion($time$%END%$time$)" onClick="return request_confirm('($time$%|loc%$time$)Do you really want to delete this message ?($time$%END%$time$)')">
+    ($time$% END %$time$)
+  ($time$% END %$time$)
+</FORM>
+</FONT>
+</TD>
+($time$% END %$time$)
+</TR>
+</TABLE>
+<UL>
 </SUBJECTHEADER>
 
 <!-- Message itself -->
@@ -499,7 +454,6 @@ reply-to
 thread-
 User-agent
 Mail-followup-to
-Dkim-signature
 </EXCS>
 
 <!-- Field order in message header -->
@@ -516,7 +470,7 @@ date
 From:strong
 To:strong
 Subject:strong
--default-:strong
+-default-:em
 </LABELSTYLES>
 
 <TSLICELEVELS>
@@ -532,15 +486,15 @@ Subject:strong
 </TSLICEBEG>
 
 <TSLICETOPBEGINCUR>
-<LI><STRONG>$SUBJECTNA$</STRONG>, <EM>$FROMNAME$, ($tag$%|locdt("$YYYYMMDD$")%$tag$)%m/%d/%Y($tag$%END%$tag$)</EM>
+<LI><STRONG>$SUBJECTNA$</STRONG>, <EM>$FROMNAME$</EM>
 </TSLICETOPBEGINCUR>
 
 <TSLICELITXTCUR>
-<LI><STRONG>$SUBJECTNA$</STRONG>, <EM>$FROMNAME$, ($tag$%|locdt("$YYYYMMDD$")%$tag$)%m/%d/%Y($tag$%END%$tag$)</EM>
+<LI><STRONG>$SUBJECTNA$</STRONG>, <EM>$FROMNAME$</EM>
 </TSLICELITXTCUR>
 
 <TSLICESINGLETXTCUR>
-<LI><STRONG>$SUBJECTNA$</STRONG>, <EM>$FROMNAME$, ($tag$%|locdt("$YYYYMMDD$")%$tag$)%m/%d/%Y($tag$%END%$tag$)</EM>
+<LI><STRONG>$SUBJECTNA$</STRONG>, <EM>$FROMNAME$</EM>
 </TSLICESINGLETXTCUR>
 
 <TSLICEEND>
@@ -549,35 +503,43 @@ Subject:strong
 
 <!-- Buttons definition -->
 <PREVBUTTON>
-<a class="ArcMenuLinks" href="$PREVMSG$">&lt;</a>
+<FONT SIZE="-1" FACE="Arial,Helvetica">
+<A HREF="$PREVMSG$"><IMG SRC="($time$% icons_url %$time$)/left.png" ALT="Previous" HEIGHT="20" BORDER="0" ALIGN="middle"></A>
+</FONT>
 </PREVBUTTON>
 
 <PREVBUTTONIA>
-<a class="ArcMenuLinksInactive">&lt;</a>
+&nbsp;&nbsp;
 </PREVBUTTONIA>
 
 <NEXTBUTTON>
-<a class="ArcMenuLinks" href="$NEXTMSG$">&gt;</a>
+<FONT SIZE="-1" FACE="Arial,Helvetica">
+<A HREF="$NEXTMSG$"><IMG SRC="($time$% icons_url %$time$)/right.png" ALT="Next" HEIGHT="20" BORDER="0" ALIGN="middle"></A>
+</FONT>
 </NEXTBUTTON>
 
 <NEXTBUTTONIA>
-<a class="ArcMenuLinksInactive">&gt;</a>
+&nbsp;&nbsp;
 </NEXTBUTTONIA>
 
 <TPREVBUTTON>
-<a class="ArcMenuLinks" href="$TPREVMSG$">&lt;</a>
+<FONT SIZE="-1" FACE="Arial,Helvetica">
+<A HREF="$TPREVMSG$"><IMG SRC="($time$% icons_url %$time$)/left.png" height=20 border=0 ALIGN=middle ALT="Previous"></A>
+</FONT>
 </TPREVBUTTON>
 
 <TPREVBUTTONIA>
-<a class="ArcMenuLinksInactive">&lt;</a>
+&nbsp;&nbsp;
 </TPREVBUTTONIA>
 
 <TNEXTBUTTON>
-<a class="ArcMenuLinks" href="$TNEXTMSG$">&gt;</a>
+<FONT SIZE="-1" FACE="Arial,Helvetica">
+<A HREF="$TNEXTMSG$"><IMG SRC="($time$% icons_url %$time$)/right.png" HEIGHT="20" BORDER="0" ALIGN="middle" ALT="Next"></A>
+</FONT>
 </TNEXTBUTTON>
 
 <TNEXTBUTTONIA>
-<a class="ArcMenuLinksInactive">&gt;</a>
+&nbsp;&nbsp;
 </TNEXTBUTTONIA>
 
 <!-- ============================================================== -->
@@ -585,7 +547,11 @@ Subject:strong
 <!-- ============================================================== -->
 
 <DAYBEGIN>
-<LI><STRONG>($tag$%|locdt("$YYYYMMDD$")%$tag$)%y/%m/%d($tag$%END%$tag$)</STRONG>
+($time$% IF lang == 'fr' %$time$)
+<LI><STRONG>$DDMMYY$</STRONG>
+($time$% ELSE %$time$)
+<LI><STRONG>$YYMMDD$</STRONG>
+($time$% END %$time$)
 <UL>
 </DAYBEGIN>
 
@@ -595,42 +561,42 @@ Subject:strong
 </DAYEND>
 
 <WEEKDAYS>
-($tag$%|loc%$tag$)Sunday:Monday:Tuesday:Wednesday:Thursday:Friday:Saturday($tag$%END%$tag$)
+($time$%|loc%$time$)Sunday:Monday:Tuesday:Wednesday:Thursday:Friday:Saturday($time$%END%$time$)
 </WEEKDAYS>
 
-($tag$% IF lang == 'cz' %$tag$)
+($time$% IF lang == 'cz' %$time$)
 <WEEKDAYSABR>
 Ne:Po:Út:St:Èt:Pá:So
 </WEEKDAYSABR>
-($tag$% ELSIF lang == 'hu' %$tag$)
+($time$% ELSIF lang == 'hu' %$time$)
 <WEEKDAYSABR>
 V:H:K:Sz:Cs:P:Szo
 </WEEKDAYSABR>
-($tag$% ELSIF lang == 'et' %$tag$)
+($time$% ELSIF lang == 'et' %$time$)
 <WEEKDAYSABR>
 P:M:T:K:N:R:L
 </WEEKDAYSABR>
-($tag$% END %$tag$)
+($time$% END %$time$)
 
 <MONTHS>
-($tag$%|loc%$tag$)January:February:March:April:May:June:July:August:September:October:November:December($tag$%END%$tag$)
+($time$%|loc%$time$)January:February:March:April:May:June:July:August:September:October:November:December($time$%END%$time$)
 </MONTHS>
 
-($tag$% IF lang == 'cz' %$tag$)
+($time$% IF lang == 'cz' %$time$)
 <MONTHSABR>
 Led:Úno:Bøe:Dub:Kvì:Èern:Èerv:Srp:Záø:Øíj:List:Pro
 </MONTHSABR>
-($tag$% ELSIF lang == 'hu' %$tag$)
+($time$% ELSIF lang == 'hu' %$time$)
 <MONTHSABR>
 Jan:Feb:Már:Ápr:Máj:Jún:Júl:Aug:Szep:Okt:Nov:Dec
 </MONTHSABR>
-($tag$% ELSIF lang == 'hu' %$tag$)
+($time$% ELSIF lang == 'hu' %$time$)
 <MONTHSABR>
 Jan:Veeb:Mär:Apr:Mai:Juun:Juul:Aug:Sep:Okt:Nov:Dets
 </MONTHSABR>
-($tag$% END %$tag$)
+($time$% END %$time$)
 
-($tag$% IF lang == 'cz' %$tag$)
+($time$% IF lang == 'cz' %$time$)
 <UseLocalTime>
 
 <MSGLOCALDATEFMT>
@@ -641,7 +607,7 @@ Jan:Veeb:Mär:Apr:Mai:Juun:Juul:Aug:Sep:Okt:Nov:Dets
 %d. %B. %Y %H:%M
 </LOCALDATEFMT>
 
-($tag$% ELSIF lang == 'hu' %$tag$)
+($time$% ELSIF lang == 'hu' %$time$)
 <UseLocalTime>
  
 <MSGLOCALDATEFMT>
@@ -652,7 +618,7 @@ Jan:Veeb:Mär:Apr:Mai:Juun:Juul:Aug:Sep:Okt:Nov:Dets
 %Y. %B %d., %A %H:%M
 </LOCALDATEFMT>
 
-($tag$% ELSIF lang == 'et' %$tag$)
+($time$% ELSIF lang == 'et' %$time$)
 <UseLocalTime>
 
 <MSGLOCALDATEFMT>
@@ -663,9 +629,9 @@ Jan:Veeb:Mär:Apr:Mai:Juun:Juul:Aug:Sep:Okt:Nov:Dets
 %Y. %B %d., %A %H:%M
 </LOCALDATEFMT>
  
-($tag$% ELSE %$tag$)
+($time$% ELSE %$time$)
 <MsgLocalDateFmt>
 %A %d %B %Y
 </MsgLocalDateFmt>
 
-($tag$% END %$tag$)
+($time$% END %$time$)
