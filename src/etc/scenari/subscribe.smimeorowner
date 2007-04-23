@@ -1,4 +1,7 @@
-title.gettext requires S/MIME signed or owner approval
+title.us anyone, autorisation is asked to owners
+title.fr ouvert a tous après autorisation du proprio
+title.de anyone, autorisation is asked to owners
+title.es cualquiera, autorización es solicitada al propietario
 
 # if subscriber request come from a subscriber, it's just an update, do it
 is_subscriber([listname],[sender]) smtp,smime,md5    -> do_it
