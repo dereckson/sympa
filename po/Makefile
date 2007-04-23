@@ -1,7 +1,7 @@
 
 
-LINGUAS = bg cs de en_US el es et eu fi fr hu it ja nb_NO nl oc pl pt pt_BR ro ru sv tr zh_CN
-SYMPA_LOCALES = bg_BG cs_CZ de_DE el_GR en_US es_ES et_EE eu_ES fi_FI fr_FR hu_HU it_IT ja_JP nb_NO nl_NL oc_FR pl_PL pt_BR pt_PT ro_RO ru_RU sv_SE tr_TR zh_CN
+LINGUAS = cs de en_US el es et fi fr hu it ja nb_NO nl oc pl pt pt_BR ro sv tr zh_CN zh_TW
+SYMPA_LOCALES = cs_CZ de_DE el_GR en_US es_ES et_EE fi_FI fr_FR hu_HU it_IT ja_JP nb_NO nl_NL oc_FR pl_PL pt_BR pt_PT ro_RO sv_SE tr_TR zh_CN zh_TW
 MOFILES = $(addsuffix .mo, $(LINGUAS))
 
 DEPENDON = $(shell cd .. ; ls src/*.p? wwsympa/wwsympa.fcgi wwsympa/*.p? web_tt2/*.tt2 mail_tt2/*.tt2 src/etc/mhonarc-ressources.tt2 src/etc/scenari/*)
@@ -32,8 +32,7 @@ checklocales:
 pot:
 	echo "Updating sympa.pot template file..."
 	cd .. ;\
-	$(XGETTEXT) -o po/sympa.pot src/*.p? soap/*.p? soap/*.fcgi wwsympa/wwsympa.fcgi wwsympa/*.p? web_tt2/*.tt2 mail_tt2/*.tt2 src/etc/mhonarc-ressources.tt2 src/etc/scenari/* src/etc/global_task_models/* src/etc/list_task_models/* src/etc/create_list_templates/*/*; \
-	$(XGETTEXT) -o po/web_help.pot web_tt2/help*.tt2
+	$(XGETTEXT) -o po/sympa.pot src/*.p? soap/*.p? soap/*.fcgi wwsympa/wwsympa.fcgi wwsympa/*.p? web_tt2/*.tt2 mail_tt2/*.tt2 src/etc/mhonarc-ressources.tt2 src/etc/scenari/* src/etc/global_task_models/* src/etc/list_task_models/* src/etc/create_list_templates/*/*
 
 install: $(MOFILES)
 	@( \
@@ -54,23 +53,6 @@ update-po: potfile
 		echo "Updating $$lang.po"; \
 		$(MSGMERGE) -o "$$lang.po" "$$lang.po" sympa.pot; \
 	done
-
-## Prepare a tar.gz with a structure adapted to Pootle
-## ie made of subdirectories (ll/sympa.po...templates/sympa.pot
-export:
-	echo "Building /tmp/sympa-po.tar.gz..."; \
-	if [ -d  /tmp/sympa-po ]; then \
-		rm -rf /tmp/sympa-po; \
-	fi
-	mkdir /tmp/sympa-po; \
-	languages='$(LINGUAS)'; \
-	for lang in $$languages; do \
-		mkdir /tmp/sympa-po/$$lang; \
-		cp $$lang.po /tmp/sympa-po/$$lang/sympa.po; \
-	done
-	mkdir /tmp/sympa-po/templates; \
-	cp sympa.pot /tmp/sympa-po/templates/sympa.pot; \
-	(cd /tmp/sympa-po; tar -zcvf /tmp/sympa-po.tar.gz *)
 
 ## Check translations, coming from Rosetta for instance
 ## These PO files are supposed to gathered in a directory
