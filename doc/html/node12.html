@@ -1,20 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002 (1.62) JA patch-1.4
+patched version by:  Kenshi Muto, Debian Project.
+LaTeX2HTML 2002 (1.62),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>11. Sympa RSS channel</TITLE>
-<META NAME="description" CONTENT="11. Sympa RSS channel">
+<TITLE>11. Virtual robot</TITLE>
+<META NAME="description" CONTENT="11. Virtual robot">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002 JA patch-1.4">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,32 +29,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html1172"
+<A NAME="tex2html951"
   HREF="node13.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1166"
+<A NAME="tex2html945"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1160"
+<A NAME="tex2html939"
   HREF="node11.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1168"
+<A NAME="tex2html947"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1170"
-  HREF="node31.html">
+<A NAME="tex2html949"
+  HREF="node23.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1173"
-  HREF="node13.html">12. Sympa SOAP server</A>
-<B> Up:</B> <A NAME="tex2html1167"
+<B> Next:</B> <A NAME="tex2html952"
+  HREF="node13.html">12. Customizing Sympa/WWSympa</A>
+<B> Up:</B> <A NAME="tex2html946"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1161"
-  HREF="node11.html">10. Sympa Internationalization</A>
- &nbsp; <B>  <A NAME="tex2html1169"
+<B> Previous:</B> <A NAME="tex2html940"
+  HREF="node11.html">10. Authorization scenarios</A>
+ &nbsp <B>  <A NAME="tex2html948"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1171"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html950"
+  HREF="node23.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,210 +62,252 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html1174"
-  HREF="node12.html#SECTION001210000000000000000">11.1 <TT>latest_lists</TT></A>
-<LI><A NAME="tex2html1175"
-  HREF="node12.html#SECTION001220000000000000000">11.2 <TT>active_lists</TT></A>
-<LI><A NAME="tex2html1176"
-  HREF="node12.html#SECTION001230000000000000000">11.3 <TT>latest_arc</TT></A>
-<LI><A NAME="tex2html1177"
-  HREF="node12.html#SECTION001240000000000000000">11.4 <TT>latest_d_read</TT></A>
+<LI><A NAME="tex2html953"
+  HREF="node12.html#SECTION001210000000000000000">11.1 How to create a virtual robot</A>
+<LI><A NAME="tex2html954"
+  HREF="node12.html#SECTION001220000000000000000">11.2 robot.conf</A>
+<UL>
+<LI><A NAME="tex2html955"
+  HREF="node12.html#SECTION001221000000000000000">11.2.1 Robot customization</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html956"
+  HREF="node12.html#SECTION001230000000000000000">11.3 Managing multiple virtual robots</A>
 </UL>
 <!--End of Table of Child-Links-->
 <HR>
 
 <H1><A NAME="SECTION001200000000000000000"></A>
-<A NAME="rss"></A><A NAME="1690"></A>
+    <A NAME="virtual-robot"></A>
 <BR>
-11. Sympa RSS channel
+11. Virtual robot
 </H1>
 
 <P>
-This service is provided by <A NAME="9378"></A><I>WWSympa</I> (<I>Sympa</I>'s web interface). 
-Here is the root of <A NAME="9382"></A><I>WWSympa</I>'s rss channel :
-<BR>
-<P>
-(Default value: <TT>http://<TT>&lt;</TT>host<TT>&gt;</TT>/wws/rss</TT>)
-<BR>
-Example: <TT>https://my.server/wws/rss</TT>
+Sympa is designed to manage multiple distinct mailing list servers on
+a single host with a single Sympa installation. Sympa virtual robots
+are like Apache virtual hosting. Sympa virtual robot definition includes
+a specific email address for the robot itself and its lists and also a virtual
+http server. Each robot provides access to a set of lists, each list is
+related to only one robot.
 
 <P>
-The access control of RSS queries proceed on the same way as <A NAME="9389"></A><I>WWSympa</I> actions referred to.
-<I>Sympa</I> provides the following RSS features :
+Most configuration parameters can be define for each robot except 
+general Sympa installation parameters (binary and spool location, smtp engine,
+antivirus plugging,...).
+
+<P>
+The Virtual robot name as defined in <I>Sympa</I> documentation and configuration file refers
+to the Internet domaine of the Virtual robot.
+
+<P>
+
+<H1><A NAME="SECTION001210000000000000000">
+11.1 How to create a virtual robot</A>
+</H1>
+
+<P>
+You don't need to install several Sympa servers. A single <A NAME="6297"></A><TT>sympa.pl</TT> daemon
+and one or more fastcgi servers can serve all virtual robot. Just configure the 
+server environment in order to accept the new domain definition.
 
 <UL>
-<LI>the latest created lists on a robot (<A NAME="9393"></A><TT>latest_lists</TT>) ;
+<LI><B>The DNS</B> must be configured to define a new mail exchanger record (MX) 
+to route message to your server. A new host (A record) or alias (CNAME) are mandatory
+to define the new web server.
 </LI>
-<LI>the most active lists on a robot(<A NAME="9396"></A><TT>active_lists</TT>) ;  
+<LI>Configure your <B>MTA (sendmail, postfix, exim, ...)</B> to accept incoming 
+messages for the new robot domain. Add mail aliases for the robot :
+
+<P>
+<I>Examples (with sendmail):</I> <PRE>
+sympa@your.virtual.domain:      "| /home/sympa/bin/queue sympa@your.virtual.domain"
+listmaster@your.virtual.domain: "| /home/sympa/bin/queue listmaster@your.virtual.domain"
+</PRE>
+
+<P>
 </LI>
-<LI>the latest messages of a list (<A NAME="9399"></A><TT>active_arc</TT>) ;   
+<LI>Define a <B>virtual host in your HTTPD server</B>. The fastcgi servers defined 
+in the common section of you httpd server can be used by each virtual host. You don't 
+need to run dedicated fascgi server for each virtual robot.
+
+<P>
+<I>Examples:</I> <PRE>
+FastCgiServer /home/sympa/bin/wwsympa.fcgi -processes 3 -idle-timeout 120
+.....
+&lt;VirtualHost 195.215.92.16&gt;
+  ServerAdmin webmaster@your.virtual.domain
+  DocumentRoot /var/www/your.virtual.domain
+  ServerName your.virtual.domain
+
+  &lt;Location /wws&gt;
+     SetHandler fastcgi-script
+  &lt;/Location&gt;
+
+  ScriptAlias /wws /home/sympa/bin/wwsympa.fcgi
+
+&lt;/VirtualHost&gt;
+</PRE>
+
+<P>
 </LI>
-<LI>the latest shared documents of a list (<A NAME="9402"></A><TT>latest_d_read</TT>) ; 
+<LI>Create a <A NAME="6300"></A><TT>robot.conf</TT> for the virtual robot (current web interface does
+not provide Virtual robot creation yet).
+
+<P>
 </LI>
 </UL>
 
 <P>
 
-<H1><A NAME="SECTION001210000000000000000"></A><A NAME="9405"></A>
-<BR>
-11.1 <TT>latest_lists</TT>
+<H1><A NAME="SECTION001220000000000000000">
+11.2 robot.conf</A>
 </H1>
+A robot is named by its domain, let's say my.domain.organd defined by a directory 
+<A NAME="6303"></A><TT>/home/sympa/etc/my.domain.org</TT>. This directory must contain at least a 
+<A NAME="6306"></A><TT>robot.conf</TT> file. This files has the same format as  <A NAME="6309"></A><TT>/etc/sympa.conf</TT>
+(have a look at robot.conf in the sample dir).
+Only the following parameters can be redefined for a particular robot :
 
 <P>
-This provides the latest created lists.  
-
-<P>
-Example: <TT>http://my.server/wws/rss/latest_lists?for=3&amp;count=6</TT>
-<BR>
-This provides the 6 latest created lists for the last 3 days.
-<BR>
-<P>
-Example: <TT>http://my.server/wws/rss/latest_lists/computing?count=6</TT>
-<BR>
-This provides the 6 latest created lists with topic ``computing''.
-<BR>
-<P>
-Parameters : 
 
 <UL>
-<LI><A NAME="9410"></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
+<LI><A NAME="6312"></A><TT>http_host</TT> 
+<BR>
+This hostname will be compared with 'SERVER_NAME' environment variable in wwsympa.fcgi
+	to determine the current Virtual Robot. You can a path at the end of this parameter if
+	you are running multiple Virtual robots on the same host. 
+	<PRE>Examples: \\
+	http_host  myhost.mydom
+	http_host  myhost.mydom/sympa
+</PRE>
+
+<P>
 </LI>
-<LI><A NAME="9413"></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
+<LI><A NAME="6315"></A><TT>wwsympa_url</TT> 
+<BR>
+The base URL of WWSympa
+
+<P>
 </LI>
-<LI>topic : the topic is indicated in the path info (see example below with topic computing). 
-    This parameter is optional.
+<LI><A NAME="6318"></A><TT>soap_url</TT> 
+<BR>
+The base URL of Sympa's SOAP server (if it is running ; see&nbsp;<A HREF="node9.html#soap">8</A>, page&nbsp;<A HREF="node9.html#soap"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>)
+
+<P>
+</LI>
+<LI><A NAME="6321"></A><TT>cookie_domain</TT>
+
+<P>
+</LI>
+<LI><A NAME="6324"></A><TT>email</TT>
+
+<P>
+</LI>
+<LI><A NAME="6327"></A><TT>title</TT>
+
+<P>
+</LI>
+<LI><A NAME="6330"></A><TT>default_home</TT>
+
+<P>
+</LI>
+<LI><A NAME="6333"></A><TT>create_list</TT>
+
+<P>
+</LI>
+<LI><A NAME="6336"></A><TT>lang</TT>
+
+<P>
+</LI>
+<LI><A NAME="6339"></A><TT>log_smtp</TT>
+
+<P>
+</LI>
+<LI><A NAME="6342"></A><TT>listmaster</TT>
+
+<P>
+</LI>
+<LI><A NAME="6345"></A><TT>max_size</TT>
+
+<P>
+</LI>
+<LI><A NAME="6348"></A><TT>dark_color</TT>, <A NAME="6351"></A><TT>light_color</TT>, <A NAME="6354"></A><TT>text_color</TT>, <A NAME="6357"></A><TT>bg_color</TT>, <A NAME="6360"></A><TT>error_color</TT>, <A NAME="6363"></A><TT>selected_color</TT>, <A NAME="6366"></A><TT>shaded_color</TT> 
 </LI>
 </UL>
 
 <P>
+These settings overwrite the equivalent global parameter defined in <A NAME="6369"></A><TT>/etc/sympa.conf</TT>
+for my.domain.orgrobot ; the main <A NAME="6372"></A><TT>listmaster</TT> still has privileges on Virtual
+Robots though. The http_host parameter is compared by wwsympa with the SERVER_NAME
+environment variable to recognize which robot is in used. 
 
-<H1><A NAME="SECTION001220000000000000000"></A><A NAME="9416"></A>
-<BR>
-11.2 <TT>active_lists</TT>
+<P>
+
+<H2><A NAME="SECTION001221000000000000000">
+11.2.1 Robot customization</A>
+</H2>
+
+<P>
+If needed, you can customize each virtual robot using its set of templates and authorization scenarios.
+
+<P>
+<A NAME="6375"></A><TT>/home/sympa/etc/my.domain.org/wws_templates/</TT>,
+<A NAME="6378"></A><TT>/home/sympa/etc/my.domain.org/templates/</TT>, 
+<A NAME="6381"></A><TT>/home/sympa/etc/my.domain.org/scenari/</TT> directories are searched when
+loading templates or scenari before searching into <A NAME="6384"></A><TT>/home/sympa/etc</TT> and  <A NAME="6387"></A><TT>/home/sympa/bin/etc</TT>. This allows to define different privileges and a different GUI for a Virtual Robot.
+
+<P>
+
+<H1><A NAME="SECTION001230000000000000000">
+11.3 Managing multiple virtual robots</A>
 </H1>
 
 <P>
-This provides the most active lists, based on the number of distributed messages (number of received messages).  
+If you are managing more than 2 virtual robots, then you might cinsider moving all the mailing lists in the default
+robot to a dedicated virtual robot located in the <A NAME="6390"></A><TT>/home/sympa/expl/my.domain.org/</TT> directory. The main benefit of 
+this organisation is the ability to define default configuration elements (templates or authorization scenarios) 
+for this robot without inheriting them within other virtual robots.
 
 <P>
-Example: <TT>http://my.server/wws/rss/active_lists?for=3&amp;count=6</TT>
-<BR>
-This provides the 6 most active lists for the last 3 days.
-<BR>
-<P>
-Example: <TT>http://my.server/wws/rss/active_lists/computing?count=6</TT>
-<BR>
-This provides the 6 most active lists with topic ``computing''.
-<BR>
-<P>
-Parameters : 
-
-<UL>
-<LI><A NAME="9421"></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
-</LI>
-<LI><A NAME="9424"></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
-</LI>
-<LI>topic : the topic is indicated in the path info (see example below with topic computing). 
-    This parameter is optional.
-</LI>
-</UL>
-
-<P>
-
-<H1><A NAME="SECTION001230000000000000000"></A><A NAME="9427"></A>
-<BR>
-11.3 <TT>latest_arc</TT>
-</H1>
-
-<P>
-This provides the latest messages of a list.  
-
-<P>
-Example: <TT>http://my.server/wws/rss/latest_arc/mylist?for=3&amp;count=6</TT>
-<BR>
-This provides the 6 latest messages received on the mylistlist for the last 3 days.
-<BR>
-<P>
-Parameters : 
-
-<UL>
-<LI>list : the list is indicated in the path info. This parameter is mandatory.
-</LI>
-<LI><A NAME="9431"></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
-</LI>
-<LI><A NAME="9434"></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
-</LI>
-</UL>
-
-<P>
-
-<H1><A NAME="SECTION001240000000000000000"></A><A NAME="9437"></A>
-<BR>
-11.4 <TT>latest_d_read</TT>
-</H1>
-
-<P>
-This provides the latest updated and uploaded shared documents of a list.  
-
-<P>
-Example: <TT>http://my.server/wws/rss/latest_d_read/mylist?for=3&amp;count=6</TT>
-<BR>
-This provides the 6 latest documents uploaded or updated on the mylistlist for the last 3 days.
-<BR>
-<P>
-Parameters : 
-
-<UL>
-<LI>list : the list is indicated in the path info. This parameter is mandatory.
-</LI>
-<LI><A NAME="9441"></A><TT>for</TT> : period of interest (expressed in days). This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
-</LI>
-<LI><A NAME="9444"></A><TT>count</TT> : maximum number of expected records. This is a CGI parameter. It is optional but one of the two parameters 
-     ``for'' or ``count'' is required.
-</LI>
-</UL>
+To create such a virtual robot, you need to create <A NAME="6393"></A><TT>/home/sympa/expl/my.domain.org/</TT> and <A NAME="6396"></A><TT>/home/sympa/etc/my.domain.org/</TT> directories ; 
+customize <A NAME="6399"></A><TT>host</TT>, <A NAME="6402"></A><TT>http_host</TT> and <A NAME="6405"></A><TT>wwsympa_url</TT> parameters in the <A NAME="6408"></A><TT>/home/sympa/etc/my.domain.org/robot.conf</TT> 
+with the same values as the default robot (as defined in <A NAME="6411"></A><TT>sympa.conf</TT> and <A NAME="6414"></A><TT>wwsympa.conf</TT> files).
 
 <P>
 
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html1172"
+<A NAME="tex2html951"
   HREF="node13.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1166"
+<A NAME="tex2html945"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1160"
+<A NAME="tex2html939"
   HREF="node11.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1168"
+<A NAME="tex2html947"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1170"
-  HREF="node31.html">
+<A NAME="tex2html949"
+  HREF="node23.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1173"
-  HREF="node13.html">12. Sympa SOAP server</A>
-<B> Up:</B> <A NAME="tex2html1167"
+<B> Next:</B> <A NAME="tex2html952"
+  HREF="node13.html">12. Customizing Sympa/WWSympa</A>
+<B> Up:</B> <A NAME="tex2html946"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1161"
-  HREF="node11.html">10. Sympa Internationalization</A>
- &nbsp; <B>  <A NAME="tex2html1169"
+<B> Previous:</B> <A NAME="tex2html940"
+  HREF="node11.html">10. Authorization scenarios</A>
+ &nbsp <B>  <A NAME="tex2html948"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1171"
-  HREF="node31.html">Index</A></B> 
+ &nbsp <B>  <A NAME="tex2html950"
+  HREF="node23.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2004-05-04
 </ADDRESS>
 </BODY>
 </HTML>

@@ -32,20 +32,15 @@ static char     qfile[128];
 static char     buf[16384];
 static int      i, fd;
 
-/* For HP-UX */
-#ifndef EX_CONFIG
-# define EX_CONFIG 78
-#endif
-
 #ifndef CONFIG
 # define CONFIG		"/etc/sympa.conf"
 #endif
 
-char *
+unsigned char *
 readconf(char *file)
 {
    FILE			*f;
-   char	buf[16384], *p, *r, *s;
+   unsigned char	buf[16384], *p, *r, *s;
 
    r = NULL;
    if ((f = fopen(file, "r")) != NULL) {
@@ -53,7 +48,7 @@ readconf(char *file)
 	/* Search for the configword "queue" and a whitespace after it */
 	if (strncmp(buf, "queue", 5) == 0 && isspace(buf[5])) {
             /* Strip the ending \n */
-            if ((p = strrchr((char *)buf, '\n')) != NULL)
+            if ((p = (unsigned char *)strrchr((char *)buf, '\n')) != NULL)
                *p = '\0';
             p = buf + 5;
             while (*p && isspace(*p)) p++;
@@ -84,8 +79,8 @@ readconf(char *file)
 int
 main(int argn, char **argv)
 {
-   char	*queuedir;
-   char        *listname;
+   unsigned char	*queuedir;
+   unsigned char        *listname;
    unsigned int		priority;
    int			firstfrom = 0;
 
@@ -121,7 +116,7 @@ main(int argn, char **argv)
      exit(EX_NOPERM);
    }
    umask(027);
-   snprintf(qfile, sizeof(qfile), "T.%s.%ld.%d", listname, time(NULL), getpid());
+   sprintf(qfile, "T.%s.%ld.%d", listname, time(NULL), getpid());
    fd = open(qfile, O_CREAT|O_WRONLY, 0600);
    if (fd == -1){
      char* buffer=(char*)malloc(strlen(argv[0])+strlen(queuedir)+80);

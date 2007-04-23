@@ -49,8 +49,8 @@ AC_ARG_WITH(cgidir, [  --with-cgidir=DIR     CGIs in DIR  (default ${prefix}/bin
 AC_SUBST(CGIDIR)
 
 ## location of icons
-ICONSDIR='/var/www/icons'
-AC_ARG_WITH(iconsdir, [  --with-iconsdir=DIR     web interface icons in DIR  (default /var/www/icons)], [ICONSDIR="$withval"])
+ICONSDIR='/home/httpd/icons'
+AC_ARG_WITH(iconsdir, [  --with-iconsdir=DIR     web interface icons in DIR  (default /home/httpd/icons)], [ICONSDIR="$withval"])
 AC_SUBST(ICONSDIR)
 
 ## location of user executables
@@ -95,7 +95,7 @@ AC_SUBST(INITDIR)
 
 ## Lock directory
 LOCKDIR=/var/lock/subsys
-AC_ARG_WITH(lockdir, [  --with-lockdir=DIR     create lock files in DIR  (default /var/lock/subsys)], [LOCKDIR="$withval"])
+AC_ARG_WITH(initdir, [  --with-lockdir=DIR     create lock files in DIR  (default /var/lock/subsys)], [LOCKDIR="$withval"])
 AC_SUBST(LOCKDIR)
 
 ## directory for storing .pid files
@@ -109,9 +109,9 @@ AC_ARG_WITH(etcdir, [  --with-etcdir=DIR     Config directories populated by the
 AC_SUBST(ETCDIR)
 
 ## directory for language files
-LOCALEDIR='${prefix}/locale'
-AC_ARG_WITH(localedir, [  --with-localedir=DIR     create language files in DIR  (default ${prefix}/locale)], [LOCALEDIR="$withval"])
-AC_SUBST(LOCALEDIR)
+NLSDIR='${prefix}/nls'
+AC_ARG_WITH(nlsdir, [  --with-nlsdir=DIR     create language files in DIR  (default ${prefix}/nls)], [NLSDIR="$withval"])
+AC_SUBST(NLSDIR)
 
 ## directory for Documentation files
 DOCDIR='${prefix}/doc'
@@ -133,9 +133,6 @@ SPOOLDIR='${prefix}/spool'
 AC_ARG_WITH(spooldir, [  --with-spooldir=DIR     spool directory is DIR  (default ${prefix}/spool)], [SPOOLDIR="$withval"])
 AC_SUBST(SPOOLDIR)
 
-## to run wwsympa.fcgi without setuidperl
-AC_ARG_ENABLE(secure, [  --enable-secure     install wwsympa to be run in a secure mode, without suidperl (default disabled)])
-AC_SUBST(enable_secure)
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -149,9 +146,6 @@ AC_SUBST(PERL)
 AC_PATH_PROG(SUIDPERL, suidperl, /usr/bin/suidperl)
 AC_SUBST(SUIDPERL)
 
-AC_PATH_PROG(SUDO, sudo, /usr/bin/sudo)
-AC_SUBST(SUDO)
-
 AC_PATH_PROG(MHONARC, mhonarc, /usr/bin/mhonarc)
 AC_ARG_WITH(mhonarc, [  --with-mhonarc=FULLPATH       set full path to MhOnArc mail archiving system (default /usr/bin/mhonarc)], [MHONARC="$withval"])
 AC_SUBST(MHONARC)
@@ -162,9 +156,6 @@ AC_SUBST(OPENSSL)
 
 AC_PATH_PROG(CVS2CL, cvs2cl.pl, /usr/local/bin)
 AC_SUBST(CVS2CL)
-
-AC_PATH_PROG(MSGFMT, msgfmt, /usr/bin/msgfmt)
-AC_SUBST(MSGFMT)
 
 AC_PATH_PROG(SH, sh, /bin/sh)
 
