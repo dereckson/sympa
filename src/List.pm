@@ -1258,6 +1258,13 @@ my %alias = ('reply-to' => 'reply_to',
 			     'group' => 'bounces'
 			     },
 
+	    'export' => {'format' => '\w+',
+			 'split_char' => ',',
+			 'occurrence' => '0-n',
+			 'default' =>'',
+			 'group' => 'data_source'
+		     }
+	    
 	    );
 
 ## This is the generic hash which keeps all lists in memory.
@@ -2073,7 +2080,6 @@ sub get_family {
 }
 
 ## return the config_changes hash
-## Used ONLY with lists belonging to a family.
 sub get_config_changes {
     my $self = shift;
     &do_log('debug3', 'List::get_config_changes(%s)', $self->{'name'});
@@ -4097,8 +4103,8 @@ sub send_notify_to_owner {
     my $robot = $self->{'domain'};
 
     unless (@to) {
-	do_log('warn', 'No owner defined or all of them use nomail option in list %s ; using listmasters as default', $self->{'name'} );
-	@to = split /,/, &Conf::get_robot_conf($robot, 'listmaster');
+	do_log('notice', 'Warning : no owner defined or all of them use nomail option in list %s', $self->{'name'} );
+	return undef;
     }
     unless (defined $operation) {
 	&do_log('err','List::send_notify_to_owner(%s) : missing incoming parameter "$operation"', $self->{'name'});
@@ -6955,7 +6961,6 @@ sub request_action {
     my $debug = shift;
     do_log('debug', 'List::request_action %s,%s,%s',$operation,$auth_method,$robot);
 
-    ## Defining default values for parameters.
     $context->{'sender'} ||= 'nobody' ;
     $context->{'email'} ||= $context->{'sender'};
     $context->{'remote_host'} ||= 'unknown_host' ;
@@ -6965,15 +6970,12 @@ sub request_action {
 					      $context->{'message'}->{'smime_crypted'} eq 'smime_crypted');
 
     # do_log('info',"xxxxxxxxxxxxxxxxxx  auth_method='$auth_method'");
-    ## Check that authorization method is one of those known by Sympa
     unless ( $auth_method =~ /^(smtp|md5|pgp|smime)/) {
 	do_log('info',"fatal error : unknown auth method $auth_method in List::get_action");
 	return undef;
     }
     my (@rules, $name) ;
     my $list;
-
-    ## if we know which list we're working on
     if ($context->{'listname'}) {
         unless ( $list = new List ($context->{'listname'}, $robot) ){
 	    do_log('info',"request_action :  unable to create object $context->{'listname'}");
@@ -7688,21 +7690,40 @@ sub search{
 	    return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
 	}
 	
-	my $ldap;
-	my $param = &tools::dup_var(\%ldap_conf);
-	my $ds = new Datasource('LDAP', $param);
-	    
-	unless (defined $ds && ($ldap = $ds->connect())) {
-	    &do_log('err',"Unable to connect to the LDAP server '%s'", $param->{'ldap_host'});
+	unless (eval "require Net::LDAP") {
+	    do_log('err',"Unable to use LDAP library, Net::LDAP required, install perl-ldap (CPAN) first");
 	    return undef;
+	}
+	require Net::LDAP;
+	
+	## There can be replicates
+	foreach my $host_entry (split(/,/,$ldap_conf{'host'})) {
+	    
+	    $host_entry =~ s/^\s*(\S.*\S)\s*$/$1/;
+	    my ($host,$port) = split(/:/,$host_entry);	    
+	    ## If port a 'port' entry was defined, use it as default
+	    $port = $port || $ldap_conf{'port'} || 389;	    
+	    my $ldap = Net::LDAP->new($host, port => $port );	    
+	    unless ($ldap) {	
+		do_log('notice','Unable to connect to the LDAP server %s:%d',$host, $port);
+		next;
+	    }	    
+	    my $status; 
+
+	    if (defined $ldap_conf{'bind_dn'} && defined $ldap_conf{'bind_password'}) {
+		$status = $ldap->bind($ldap_conf{'bind_dn'}, password =>$ldap_conf{'bind_password'});
+	    }else {
+		$status = $ldap->bind();
 	    }
 	    
-	## The 1.1 OID correponds to DNs ; it prevents the LDAP server from 
-	## preparing/providing too much data
+	    unless ($status && ($status->code == 0)) {
+		do_log('notice','Unable to bind to the LDAP server %s:%d',$host, $port);
+		next;
+	    }
+	    
 	    my $mesg = $ldap->search(base => "$ldap_conf{'suffix'}" ,
 				     filter => "$filter",
-				 scope => "$ldap_conf{'scope'}",
-				 attrs => ['1.1']);
+				     scope => "$ldap_conf{'scope'}");
 	    unless ($mesg) {
 		do_log('err',"Unable to perform LDAP search");
 		return undef;
@@ -7719,11 +7740,11 @@ sub search{
 		$persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'} = 1;
 	    }
 	    
-	$ds->disconnect() or do_log('notice','List::search_ldap.Unbind impossible');
+	    $ldap->unbind or do_log('notice','List::search_ldap.Unbind impossible');
 	    $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} = time;
 	    
 	    return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
-
+	}
     }elsif($filter_file =~ /\.txt$/){ 
 	# &do_log('info', 'List::search: eval %s', $filter_file);
 	my @files = &tools::get_filename('etc',{'order'=>'all'},"search_filters/$filter_file", $robot, $list); 
@@ -8780,8 +8801,17 @@ sub _include_users_ldap {
     my ($users, $param, $default_user_options, $tied) = @_;
     do_log('debug2', 'List::_include_users_ldap');
     
+    unless (eval "require Net::LDAP") {
+	do_log('err',"Unable to use LDAP library, install perl-ldap (CPAN) first");
+	return undef;
+    }
+    require Net::LDAP;
+    
     my $id = Datasource::_get_datasource_id($param);
 
+    my $host;
+    @{$host} = split(/,/, $param->{'host'});
+    my $port = $param->{'port'} || '389';
     my $user = $param->{'user'};
     my $passwd = $param->{'passwd'};
     my $ldap_suffix = $param->{'suffix'};
@@ -8798,19 +8828,51 @@ sub _include_users_ldap {
     ## Connection timeout (default is 120)
     #my $timeout = 30; 
     
-    my $param2 = &tools::dup_var($param);
-    my $ds = new Datasource('LDAP', $param2);
-    if (defined $user) {
-	$param2->{'bind_dn'} = $user;
-	$param2->{'bind_password'} = $passwd;
-    }
-    
-    unless (defined $ds && ($ldaph = $ds->connect())) {
-	&do_log('err',"Unable to connect to the LDAP server '%s'", $param2->{'host'});
+    if ($param->{'use_ssl'} eq 'yes' ) {
+	unless (eval "require Net::LDAPS") {
+	    do_log ('err',"Unable to use LDAPS library, Net::LDAPS required");
+	    return undef;
+	} 
+	
+	my %new_param = (async => 1);
+	$new_param{'timeout'} = $param->{'timeout'} if ($param->{'timeout'});
+	$new_param{'sslversion'} = $param->{'ssl_version'} if ($param->{'ssl_version'});
+	$new_param{'ciphers'} = $param->{'ssl_ciphers'} if ($param->{'ssl_ciphers'});
+
+	unless ($ldaph = Net::LDAPS->new($host, %new_param)) {
+	    
+	    do_log('notice',"Can\'t connect to LDAP server '%s' : $@", join(',',@{$host}));
+	    return undef;
+	}	
+	
+    }else { 
+	unless ($ldaph = Net::LDAP->new($host, timeout => $param->{'timeout'}, async => 1)) {
+	    
+	    do_log('notice',"Can\'t connect to LDAP server '%s' : $@", join(',',@{$host}));
 	    return undef;
 	}
+	
+    }
+    do_log('debug2', "Connected to LDAP server %s", join(',',@{$host}));
+    my $status;
     
-    do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $param->{'host'}, $ldap_suffix, $ldap_filter, $ldap_attrs);
+    if ( defined $user ) {
+	$status = $ldaph->bind ($user, password => "$passwd");
+	unless (defined($status) && ($status->code == 0)) {
+	    do_log('notice',"Can\'t bind with server %s as user '$user' : $@", join(',',@{$host}));
+	    return undef;
+	}
+    }else {
+	$status = $ldaph->bind;
+	unless (defined($status) && ($status->code == 0)) {
+	    do_log('notice',"Can\'t do anonymous bind with server %s : $@", join(',',@{$host}));
+	    return undef;
+	}
+    }
+
+    do_log('debug2', "Binded to LDAP server %s ; user : '$user'", join(',',@{$host})) ;
+    
+    do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', join(',',@{$host}), $ldap_suffix, $ldap_filter, $ldap_attrs);
     $fetch = $ldaph->search ( base => "$ldap_suffix",
                                       filter => "$ldap_filter",
 				      attrs => "$ldap_attrs",
@@ -8822,7 +8884,7 @@ sub _include_users_ldap {
     
     unless ($fetch->code == 0) {
 	do_log('err','Ldap search failed : %s (searching on server %s ; suffix %s ; filter %s ; attrs: %s)', 
-	       $fetch->error(), $param->{'host'}, $ldap_suffix, $ldap_filter, $ldap_attrs);
+	       $fetch->error(), join(',',@{$host}), $ldap_suffix, $ldap_filter, $ldap_attrs);
         return undef;
     }
     
@@ -8846,8 +8908,8 @@ sub _include_users_ldap {
 	}
     }
     
-    unless ($ds->disconnect()) {
-	do_log('notice','Can\'t unbind from  LDAP server %s', $param->{'host'});
+    unless ($ldaph->unbind) {
+	do_log('notice','Can\'t unbind from  LDAP server %s', join(',',@{$host}));
 	return undef;
     }
     
@@ -8886,7 +8948,7 @@ sub _include_users_ldap {
 	}
     }
 
-    do_log('debug2',"unbinded from LDAP server %s ", $param->{'host'});
+    do_log('debug2',"unbinded from LDAP server %s ", join(',',@{$host}));
     do_log('debug2','%d new users included from LDAP query',$total);
 
     return $total;
@@ -8906,6 +8968,9 @@ sub _include_users_ldap_2level {
 
     my $id = Datasource::_get_datasource_id($param);
 
+    my $host;
+    @{$host} = split(/,/, $param->{'host'});
+    my $port = $param->{'port'} || '389';
     my $user = $param->{'user'};
     my $passwd = $param->{'passwd'};
     my $ldap_suffix1 = $param->{'suffix1'};
@@ -8927,19 +8992,53 @@ sub _include_users_ldap_2level {
     ## LDAP and query handler
     my ($ldaph, $fetch);
 
-    my $param2 = &tools::dup_var($param);
-    my $ds = new Datasource('LDAP', $param2);
-    if (defined $user) {
-	$param2->{'bind_dn'} = $user;
-	$param2->{'bind_password'} = $passwd;
-    }
+    ## Connection timeout (default is 120)
+    #my $timeout = 30; 
     
-    unless (defined $ds && ($ldaph = $ds->connect())) {
-	&do_log('err',"Unable to connect to the LDAP server '%s'", $param2->{'host'});
+    if ($param->{'use_ssl'} eq 'yes' ) {
+	unless (eval "require Net::LDAPS") {
+	    do_log ('err',"Unable to use LDAPS library, Net::LDAPS required");
+	    return undef;
+	} 
+	
+	my %new_param = (async => 1);
+	$new_param{'timeout'} = $param->{'timeout'} if ($param->{'timeout'});
+	$new_param{'sslversion'} = $param->{'ssl_version'} if ($param->{'ssl_version'});
+	$new_param{'ciphers'} = $param->{'ssl_ciphers'} if ($param->{'ssl_ciphers'});
+
+	unless ($ldaph = Net::LDAPS->new($host, %new_param)) {
+	    
+	    do_log('notice',"Can\'t connect to LDAP server '%s' : $@", join(',',@{$host}));
+	    return undef;
+	}	
+	
+    }else { 
+	unless ($ldaph = Net::LDAP->new($host, timeout => $param->{'timeout'}, async => 1)) {
+	    do_log('notice',"Can\'t connect to LDAP server '%s' : $@",join(',',@{$host}) );
 	    return undef;
 	}
+    }
     
-    do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $param->{'host'}, $ldap_suffix1, $ldap_filter1, $ldap_attrs1) ;
+    do_log('debug2', "Connected to LDAP server %s", join(',',@{$host}));
+    my $status;
+    
+    if ( defined $user ) {
+	$status = $ldaph->bind ($user, password => "$passwd");
+	unless (defined($status) && ($status->code == 0)) {
+	    do_log('err',"Can\'t bind with server %s as user '$user' : $@", join(',',@{$host}));
+	    return undef;
+	}
+    }else {
+	$status = $ldaph->bind;
+	unless (defined($status) && ($status->code == 0)) {
+	    do_log('err',"Can\'t do anonymous bind with server %s : $@", join(',',@{$host}));
+	    return undef;
+	}
+    }
+
+    do_log('debug2', "Binded to LDAP server %s ; user : '$user'", join(',',@{$host})) ;
+    
+    do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', join(',',@{$host}), $ldap_suffix1, $ldap_filter1, $ldap_attrs1) ;
     unless ($fetch = $ldaph->search ( base => "$ldap_suffix1",
                                       filter => "$ldap_filter1",
 				      attrs => "$ldap_attrs1",
@@ -8978,7 +9077,7 @@ sub _include_users_ldap_2level {
 	($suffix2 = $ldap_suffix2) =~ s/\[attrs1\]/$attr/g;
 	($filter2 = $ldap_filter2) =~ s/\[attrs1\]/$attr/g;
 
-	do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $param->{'host'}, $suffix2, $filter2, $ldap_attrs2);
+	do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', join(',',@{$host}), $suffix2, $filter2, $ldap_attrs2);
 	unless ($fetch = $ldaph->search ( base => "$suffix2",
 					filter => "$filter2",
 					attrs => "$ldap_attrs2",
@@ -9007,8 +9106,8 @@ sub _include_users_ldap_2level {
 	}
     }
     
-    unless ($ds->disconnect()) {
-	do_log('err','Can\'t unbind from  LDAP server %s', $param->{'host'});
+    unless ($ldaph->unbind) {
+	do_log('err','Can\'t unbind from  LDAP server %s',join(',',@{$host}));
 	return undef;
     }
     
@@ -9047,7 +9146,7 @@ sub _include_users_ldap_2level {
 	}
     }
 
-    do_log('debug2',"unbinded from LDAP server %s ", $param->{'host'}) ;
+    do_log('debug2',"unbinded from LDAP server %s ",join(',',@{$host})) ;
     do_log('debug2','%d new users included from LDAP query',$total);
 
     return $total;
@@ -9061,7 +9160,7 @@ sub _include_users_sql {
 
     my $id = Datasource::_get_datasource_id($param);
     my $ds = new Datasource('SQL', $param);
-    unless ($ds->connect && ($ds->query($param->{'sql_query'}))) {
+    unless ($ds->connect && $ds->query($param->{'sql_query'})) {
         return undef;
     }
     ## Counters.
@@ -11358,22 +11457,22 @@ sub _load_admin_file {
 		$admin{$p} = &_load_list_param($robot,$p, $::pinfo{$p}{'default'}, $::pinfo{$p}, $directory);
 
 	    }elsif ((ref $::pinfo{$p}{'format'} eq 'HASH')
-		    && ($::pinfo{$p}{'occurrence'} =~ /1$/)) {
+		    && ($::pinfo{$p}{'occurrence'} !~ /n$/)) {
 		## If the paragraph is not defined, try to apply defaults
 		my $hash = {};
 		
 		foreach my $key (keys %{$::pinfo{$p}{'format'}}) {
 
-		    ## Skip keys without default value.
+		    ## Only if all keys have defaults
 		    unless (defined $::pinfo{$p}{'format'}{$key}{'default'}) {
-			next;
+			undef $hash;
+			last;
 		    }
 		    
 		    $hash->{$key} = &_load_list_param($robot,$key, $::pinfo{$p}{'format'}{$key}{'default'}, $::pinfo{$p}{'format'}{$key}, $directory);
 		}
 
 		$admin{$p} = $hash if (defined $hash);
-
 	    }
 
 #	    $admin{'defaults'}{$p} = 1;
@@ -12325,12 +12424,6 @@ sub purge {
 
     return undef 
 	unless ($self && ($list_of_lists{$self->{'domain'}}{$self->{'name'}}));
-    
-    ## Remove tasks for this list
-    &Task::list_tasks($Conf{'queuetask'});
-    foreach my $task (&Task::get_tasks_by_list($self->get_list_id())) {
-	unlink $task->{'filepath'};
-    }
     
     ## Close the list first, just in case...
     $self->close();

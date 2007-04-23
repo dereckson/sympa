@@ -77,32 +77,18 @@ sub do_log {
     # do not log if log level if too high regarding the log requested by user 
     return if ($level > $log_level);
 
-    ## Do not display variables which are references.
-    foreach my $i (0..$#param) {
-	if(ref($param[$i])){
-	    $param[$i]=ref($param[$i])
-	}
-    }
     ## Encode parameters to FS encoding to prevent "Wide character in syswrite" errors
     ## We perform this check after ensuring we need to log because Encode::from_to() is an expensive call
     if (defined $Conf::Conf{'filesystem_encoding'}) {
 	foreach my $i (0..$#param) {
 	    Encode::from_to($param[$i], 'utf8', $Conf::Conf{'filesystem_encoding'});
-	}
+	  }
     }
 
-    ## Determine calling function and parameters
-    my @call = caller(1);
-    ## wwslog already adds this information
-    unless ($call[3] =~ /wwslog$/) {
-	$m = $call[3].'() ' . $m if ($call[3]);
-    }
-
-    unless (syslog($fac, $m, @param)) {
+   unless (syslog($fac, $m, @param)) {
 	&do_connect();
 	    syslog($fac, $m, @param);
     }
-
     if ($main::options{'foreground'}) {
 	if ($main::options{'log_to_stderr'} || 
 	    ($main::options{'batch'} && $fac eq 'err')) {
@@ -258,12 +244,6 @@ sub db_log_del {
 
     my $dbh = &List::db_get_handler();
 
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &List::db_connect();
-	$dbh = &List::db_get_handler();
-    }
-
     my $statement =  sprintf "DELETE FROM logs_table WHERE (logs_table.date_logs <= %s)", $dbh->quote($date);
 
     unless ($dbh->do($statement)) {
@@ -276,7 +256,6 @@ sub db_log_del {
 # Scan log_table with appropriate select 
 sub get_first_db_log {
     my $dbh = &List::db_get_handler();
-
     my $select = shift;
 
     ## Dump vars

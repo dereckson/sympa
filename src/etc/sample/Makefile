@@ -19,9 +19,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-SRC	=	README trusted_applications.conf
+SRC	=	README config.* trusted_applications.conf
 
-SUBSTSRC	=	robot.conf *.ldap
+SUBSTSRC	=	sympa.conf wwsympa.conf
 
 SAMPLEDIR	=	$(DIR)/sample
 

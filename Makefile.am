@@ -268,7 +268,7 @@ nextstep:
 	@echo "# you should check the INSTALL file."
 	@echo "#"
 	@echo "# If you are upgrading, you now need to run"
-	@echo "#    $(SBINDIR)/sympa.pl --upgrade"
+	@echo "#    $(BINDIR)/sympa.pl --upgrade"
 	@echo "#######################################################"
 
 importantchanges:

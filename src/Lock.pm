@@ -58,13 +58,12 @@ sub new {
     my $lock = {'lock_filename' => $lock_filename};
 
     ## Create include.lock if needed
-    my $fh;
     unless (-f $lock_filename) {
-	unless (open $fh, ">>$lock_filename") {
+	unless (open FH, ">>$lock_filename") {
 	    &do_log('err', 'Cannot open %s: %s', $lock_filename, $!);
 	    return undef;
 	}
-	close $fh;
+	close FH;
    }
     
     ## Bless Message object
@@ -199,14 +198,13 @@ sub _lock_file {
     }
     
     ## Read access to prevent "Bad file number" error on Solaris
-    my $fh;
-    unless (open $fh, $open_mode.$lock_file) {
+    unless (open FH, $open_mode.$lock_file) {
 	&do_log('err', 'Cannot open %s: %s', $lock_file, $!);
 	return undef;
     }
     
     my $got_lock = 1;
-    unless (flock ($fh, $operation | LOCK_NB)) {
+    unless (flock (FH, $operation | LOCK_NB)) {
 	&do_log('notice','Waiting for %s lock on %s', $mode, $lock_file);
 
 	## If lock was obtained more than 20 minutes ago, then force the lock
@@ -217,7 +215,7 @@ sub _lock_file {
 		return undef;	    		
 	    }
 	    
-	    unless (open $fh, ">$lock_file") {
+	    unless (open FH, ">$lock_file") {
 		&do_log('err', 'Cannot open %s: %s', $lock_file, $!);
 		return undef;	    
 	    }
@@ -228,7 +226,7 @@ sub _lock_file {
 	$max = 2 if ($ENV{'HTTP_HOST'}); ## Web context
 	for (my $i = 1; $i < $max; $i++) {
 	    sleep (10 * $i);
-	    if (flock ($fh, $operation | LOCK_NB)) {
+	    if (flock (FH, $operation | LOCK_NB)) {
 		$got_lock = 1;
 		last;
 	    }
@@ -241,21 +239,21 @@ sub _lock_file {
 
 	## Keep track of the locking PID
 	if ($mode eq 'write') {
-	    print $fh "$$\n";
+	    print FH "$$\n";
 	}
     }else {
 	&do_log('err', 'Failed locking %s: %s', $lock_file, $!);
 	return undef;
     }
 
-    return $fh;
+    return \*FH;
 }
 
 ## unlock a file 
 sub _unlock_file {
     my $lock_file = shift;
     my $fh = shift;
-    &do_log('debug', 'Lock::_unlock_file(%s)',$lock_file);
+    &do_log('debug', 'Lock::_unlock_file(%s, %s)',$lock_file, $fh);
    
     unless (flock($fh,LOCK_UN)) {
 	&do_log('err', 'Failed UNlocking %s: %s', $lock_file, $!);

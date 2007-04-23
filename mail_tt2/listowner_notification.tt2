@@ -1,5 +1,5 @@
 From: SYMPA <[% conf.email %]@[% conf.host %]>
-To: [% to %]>
+To: [% FILTER qencode %][%|loc%]Listowners[%END%] <[% to %]>[%END%]
 [% IF type == 'arc_quota_exceeded' -%]
 Subject: [% FILTER qencode %][%|loc(list.name)%]List %1 archive quota exceeded[%END%][%END%]
 
@@ -80,7 +80,7 @@ Subject: [% FILTER qencode %][%|loc(list.name)%]UNsubscription request from list
 A user asked to be deleted from your list. If this is OK 
 with you, you should click the following URL :[% END %]
 
-[% FILTER escape_url %]mailto:[%sympa%]?subject=auth [%keyauth%] DEL [%list.name%] [%escaped_who%][% END %]
+[% FILTER escape_url %]mailto:[%sympa%]?subject=auth [%keyauth%]DEL [%list.name%] [%escaped_who%][% END %]
  
 [%|loc(sympa,keyauth,list.name,who)-%]
 or send an email to %1 with the following subject :
@@ -102,7 +102,7 @@ You should delete bouncing subscribers :
 Subject: [% FILTER qencode %][%|loc(command,list.name,who,gecos)%]FYI: %1 list %2 from %3 %4[%END%][%END%]
 
 [%|loc(command,list.name,who,gecos)%]FYI command %1 list %2 from %3 %4[%END%][% IF by -%][%|loc(by)%] validated by %1 [%END%]
-[%|loc%]No action is needed on your side.[%END%]
+(no action needed)
 [%END%]
 
 [% ELSIF type == 'automatic_del' -%]

@@ -589,7 +589,6 @@ sub createList {
     $parameters->{'listname'} = $listname;
     $parameters->{'subject'} = $subject;
     $parameters->{'description'} = $description;
-    $parameters->{'topics'} = $topics;
     
     if ($r_action =~ /listmaster/i) {
 	$param->{'status'} = 'pending' ;
