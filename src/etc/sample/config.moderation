@@ -3,8 +3,7 @@
 ## it. (see also editor or editorkey)
 send editorkeyonly
 
-reply_to_header
-value list
+reply_to list
 
 subscribe open
 

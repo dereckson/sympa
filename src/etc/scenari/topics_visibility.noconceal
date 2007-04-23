@@ -1,4 +1,8 @@
-title.gettext no conceal
+title.us no conceal
+title.fr liste visible
+title.de Sichtbar
+title.es lista visible
+title.cz viditelná 
 
 true()                          smtp,md5,smime    -> do_it
 

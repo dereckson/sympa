@@ -1,6 +1,13 @@
-title.gettext add impossible
+title.fr ajout impossible
+title.us add impossible
+title.de Hinzufuegen nicht moeglich
+title.es add imposible
+title.cz add zakázán
 
-true()   smtp,md5,smime -> reject('add_closed')
+true()   smtp -> reject
+
+
+
 
 
 
