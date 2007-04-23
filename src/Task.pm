@@ -123,14 +123,6 @@ sub list_tasks {
     return 1;
 }
 
-## Return a list tasks for the given list
-sub get_tasks_by_list {
-    my $list_id = shift;
-
-    return () unless (defined $task_by_list{$list_id});
-    return values %{$task_by_list{$list_id}};
-}
-
 sub get_used_models {
     ## Optional list parameter
     my $list_id = shift;

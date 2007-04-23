@@ -19,18 +19,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-=pod 
-
-=head1 NAME 
-
-I<admin.pm> - This module includes administrative function for the lists.
-
-=head1 DESCRIPTION 
-
-Central module for creating and editing lists.
-
-=cut 
-
 package admin;
 
 use strict;
@@ -43,94 +31,6 @@ use Log;
 
 require "--LIBDIR--/tools.pl";
 
-
-=pod 
-
-=head1 SUBFUNCTIONS 
-
-This is the description of the subfunctions contained by admin.pm 
-
-=cut 
-
-=pod 
-
-=head2 sub create_list_old(HASHRef,STRING,STRING)
-
-Creates a list. Used by the create_list() sub in sympa.pl and the do_create_list() sub in wwsympa.fcgi.
-
-=head3 Arguments 
-
-=over 
-
-=item * I<$param>, a ref on a hash containing parameters of the config list. The following keys are mandatory:
-
-=over 4
-
-=item - I<$param-E<gt>{'listname'}>,
-
-=item - I<$param-E<gt>{'subject'}>,
-
-=item - I<$param-E<gt>{'owner'}>, (or owner_include): array of hashes, with key email mandatory
-
-=item - I<$param-E<gt>{'owner_include'}>, array of hashes, with key source mandatory
-
-=back
-
-=item * I<$template>, a string containing the list creation template
-
-=item * I<$robot>, a string containing the name of the robot the list will be hosted by.
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<undef>, if something prevents the list creation
-
-=item * I<a reference to a hash>, if the list is normally created. This hash contains two keys:
-
-=over 4
-
-=item - I<list>, the list object corresponding to the list just created
-
-=item - I<aliases>, undef if not applicable; 1 (if ok) or $aliases : concatenated string of aliases if they are not installed or 1 (in status open)
-
-=back
-
-=back 
-
-=head3 Calls 
-
-=item * check_owner_defined
-
-=item * check_topics
-
-=item * install_aliases
-
-=item * list_check_smtp
-
-=item * Conf::get_robot_conf
-
-=item * Language::gettext_strftime
-
-=item * List::create_shared
-
-=item * List::has_include_data_sources
-
-=item * List::sync_includetools::get_filename
-
-=item * Log::do_log
-
-=item * tools::get_regexp
-
-=item * tools::make_tt2_include_path
-
-=item * tt2::parse_tt2 
-
-=back 
-
-=cut 
 
 ########################################################
 # create_list_old                                       
@@ -209,8 +109,7 @@ sub create_list_old{
 		$Conf{'list_check_smtp'});
 	return undef;
     }
-    
-    ## Check this listname doesn't exist already.
+
     if( $res || new List ($param->{'listname'}, $robot, {'just_try' => 1})) {
 	&do_log('err', 'admin::create_list_old : could not create already existing list %s for ', 
 		$param->{'listname'});
@@ -221,7 +120,6 @@ sub create_list_old{
     }
 
 
-    ## Check the template supposed to be used exist.
     my $template_file = &tools::get_filename('etc',{},'create_list_templates/'.$template.'/config.tt2', $robot);
     unless (defined $template_file) {
 	&do_log('err', 'no template %s found',$template);
@@ -244,7 +142,6 @@ sub create_list_old{
 	 $list_dir = $Conf{'home'}.'/'.$param->{'listname'};
      }
 
-    ## Check the privileges on the list directory
      unless (mkdir ($list_dir,0777)) {
 	 &do_log('err', 'admin::create_list_old : unable to create %s : %s',$list_dir,$?);
 	 return undef;
@@ -280,13 +177,12 @@ sub create_list_old{
     ## Creation of the info file 
     # remove DOS linefeeds (^M) that cause problems with Outlook 98, AOL, and EIMS:
     $param->{'description'} =~ s/\015//g;
-
+    
     unless (open INFO, ">$list_dir/info") {
 	&do_log('err','Impossible to create %s/info : %s',$list_dir,$!);
     }
     if (defined $param->{'description'}) {
-	Encode::from_to($param->{'description'}, 'utf8', $Conf{'filesystem_encoding'});
-	print INFO $param->{'description'};
+	print INFO Encode::from_to($param->{'description'}, 'utf8', $Conf{'filesystem_encoding'});
     }
     close INFO;
     
@@ -311,13 +207,6 @@ sub create_list_old{
     }
 
     $return->{'aliases'} = 1;
-
-    ## Synchronize list members if required
-    if ($list->has_include_data_sources()) {
-	&do_log('notice', "Synchronizing list members...");
-	$list->sync_include();
-    }   
-
     return $return;
 }
 
@@ -442,6 +331,7 @@ sub create_list{
     if (defined $param->{'topics'}){
 	unless (&check_topics($param->{'topics'},$robot)){
 	    &do_log('err', 'admin::create_list : topics param %s not defined in topics.conf',$param->{'topics'});
+	    return undef;
 	}
     }
       
@@ -499,13 +389,6 @@ sub create_list{
     }
 
     $return->{'aliases'} = 1;
-
-    ## Synchronize list members if required
-    if ($list->has_include_data_sources()) {
-	&do_log('notice', "Synchronizing list members...");
-	$list->sync_include();
-    }
-
     return $return;
 }
 
@@ -552,6 +435,7 @@ sub update_list{
     if (defined $param->{'topics'}){
 	unless (&check_topics($param->{'topics'},$robot)){
 	    &do_log('err', 'admin::update_list : topics param %s not defined in topics.conf',$param->{'topics'});
+	    return undef;
 	}
     }
 
@@ -582,12 +466,6 @@ sub update_list{
 	$list->{'admin'}{'status'} = 'open';
     }
     $list->{'admin'}{'family_name'} = $family->{'name'};
-
-    ## Synchronize list members if required
-    if ($list->has_include_data_sources()) {
-	&do_log('notice', "Synchronizing list members...");
-	$list->sync_include();
-    }
 
     return $list;
 }
@@ -892,17 +770,3 @@ sub check_topics {
 
 ########################################""
 return 1;
-
-=pod 
-
-=head1 AUTHORS 
-
-=over 
-
-=item * Serge Aumont <sa AT cru.fr> 
-
-=item * Olivier Salaun <os AT cru.fr> 
-
-=back 
-
-=cut 

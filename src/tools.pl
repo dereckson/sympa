@@ -1802,7 +1802,7 @@ sub get_filename {
 	}
 	my @result;
 	foreach my $f (@try) {
-	    &do_log('debug3','get_filename : name: %s ; dir %s', $name, $f  );
+	    &do_log('debug3','get_filname : name: %s ; dir %s', $name, $f  );
 	    if (-r $f) {
 		if ($options->{'order'} eq 'all') {
 		    push @result, $f;
@@ -1989,14 +1989,6 @@ sub qencode_hierarchy {
     }
 
     return $count;
-}
-
-## Dumps the value of each character of the inuput string
-sub dump_encoding {
-    my $out = shift;
-
-    $out =~ s/./sprintf('%02x', ord($&)).' '/eg;
-    return $out;
 }
 
 ## Remove PID file and STDERR output

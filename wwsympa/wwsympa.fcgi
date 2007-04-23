@@ -27,17 +27,6 @@
 ## Authors :
 ##           Serge Aumont <sa AT cru.fr>
 ##           Olivier Salaün <os AT cru.fr>
-=pod 
-
-=head1 NAME 
-
-I<wwsympa.fcgi> - Sympa web interface 
-
-=head1 DESCRIPTION 
-
-This fcgi script completely handles all aspects of the Sympa web interface
-
-=cut 
 
 ## Change this to point to your Sympa bin directory
 use lib '--LIBDIR--';
@@ -473,37 +462,37 @@ my %in_regexp = (
 
 		 ## Free data
 		 'subject' => '.*',
-		 'gecos' => '[^<>\\\*\$\n]+',
-		 'additional_field' => '[^<>\\\*\$\n]+',
+		 'gecos' => '[^<>\\\*\$]+',
+		 'additional_field' => '[^<>\\\*\$]+',
 		 'dump' => '[^<>\\\*\$]+', # contents email + gecos
 
 		 ## Search
-		 'filter' => '[^<>\\\[\]\(\)\$\n]+', # search list
-		 'key_word' => '[^<>\\\*\[\]\(\)\$\n]+',
-		 'format' => '[^<>\\\$\n]+', # dump format/filter string
+		 'filter' => '[^<>\\\[\]\(\)\$]+', # search list
+		 'key_word' => '[^<>\\\*\[\]\(\)\$]+',
+		 'format' => '[^<>\\\$]+', # dump format/filter string
 
 		 ## File names
-		 'file' => '[^<>\*\$\n]+',
+		 'file' => '[^<>\*\$]+',
 		 'template_path' => '[\w\-\.\/_]+',
-		 'arc_file' => '[^<>\\\*\$\n]+',
-		 'path' => '[^<>\\\*\$\n]+',
-		 'uploaded_file' => '[^<>\*\$\n]+', # Could be precised (use of "'")
-		 'unzipped_file' => '[^<>\*\$\n]+',
-		 'dir' => '[^<>\\\*\$\n]+',
-		 'name_doc' => '[^<>\\\*\$\n]+',
-		 'shortname' => '[^<>\\\*\$\n]+',
-		 'new_name' => '[^<>\\\*\$\n]+',
-		 'id' => '[^<>\\\*\$\n]+',
+		 'arc_file' => '[^<>\\\*\$]+',
+		 'path' => '[^<>\\\*\$]+',
+		 'uploaded_file' => '[^<>\*\$]+', # Could be precised (use of "'")
+		 'unzipped_file' => '[^<>\*\$]+',
+		 'dir' => '[^<>\\\*\$]+',
+		 'name_doc' => '[^<>\\\*\$]+',
+		 'shortname' => '[^<>\\\*\$]+',
+		 'new_name' => '[^<>\\\*\$]+',
+		 'id' => '[^<>\\\*\$]+',
 
 		 ## URL
-		 'referer' => '[^\\\$\*\"\'\`\^\|\<\>\n]+',
-		 'failure_referer' => '[^\\\$\*\"\'\`\^\|\<\>\n]+',
-		 'url' => '[^\\\$\*\"\'\`\^\|\<\>\n]+',
+		 'referer' => '[^\\\$\*\"\'\`\^\|\<\>]+',
+		 'failure_referer' => '[^\\\$\*\"\'\`\^\|\<\>]+',
+		 'url' => '[^\\\$\*\"\'\`\^\|\<\>]+',
 
 		 ## Msg ID
-		 'msgid' => '[^\\\*\"\'\`\^\|\n]+',
-		 'in_reply_to' => '[^\\\*\"\'\`\^\|\n]+',
-		 'message_id' => '[^\\\*\"\'\`\^\|\n]+',
+		 'msgid' => '[^\\\*\"\'\`\^\|]+',
+		 'in_reply_to' => '[^\\\*\"\'\`\^\|]+',
+		 'message_id' => '[^\\\*\"\'\`\^\|]+',
 
 		 ## Password
 		 'passwd' => '.+',
@@ -554,11 +543,13 @@ my %in_regexp = (
                  'latest_d_read' => '.*',
 
 		 ##Logs
-		 'target_type' => '[\w\-\.\:]*', 
-		 'target' => &tools::get_regexp('email'),
+		 'target_type' => '[\w\-\.\:]+', 
+		 'target_searched' => '[\w\-\.\@\:]+',
 		 'date_from' => '[\d\/]+',
 		 'date_to' => '[\d\/]+',
-		 'ip' => &tools::get_regexp('host'),
+		 'list_searched' => '[\w\-\.\@\:]+',
+		 'robot_searched' => '[\w\-\.\@\:]+',
+		 'ip_searched' => '[\d\.]+',
 		 );
 
 ## List some required filtering of incoming parameters, depending on current action
@@ -742,7 +733,6 @@ if ($wwsconf->{'use_fast_cgi'}) {
      $param->{'wwsconf'} = $wwsconf;
 
      $param->{'path_cgi'} = $ENV{'SCRIPT_NAME'};
-     $param->{'path_cgi'} =~ s/\/\//\//g; ## Replace '//' with '/' because it would break navigation
      $param->{'version'} = $Version::Version;
      $param->{'date'} = gettext_strftime "%d %b %Y at %H:%M:%S", localtime(time);
      $param->{'time'} = gettext_strftime "%H:%M:%S", localtime(time);
@@ -1249,10 +1239,6 @@ if ($wwsconf->{'use_fast_cgi'}) {
 
      my $remote = $ENV{'REMOTE_HOST'} || $ENV{'REMOTE_ADDR'};
 
-     ## Determine calling function and parameters
-     my @call = caller(1);
-     $msg = $call[3].'() ' . $msg if ($call[3]);
-
      $msg = "[list $param->{'list'}] " . $msg
 	 if $param->{'list'};
 
@@ -1478,7 +1464,7 @@ sub get_header_field {
 		 $regexp = $in_regexp{'*'};
 	     }
 	 foreach my $one_p (split /\0/, $in{$p}) {
-	     unless ($one_p =~ /^$regexp$/s) {
+	     unless ($one_p =~ /^$regexp$/m) {
 		 ## Dump parameters in a tmp file for later analysis
 		 my $dump_file =  &Conf::get_robot_conf($robot, 'tmpdir').'/sympa_dump.'.time.'.'.$$;
 		 unless (open DUMP, ">$dump_file") {
@@ -1566,77 +1552,6 @@ sub prepare_report_user {
     
 
 
-=pod 
-
-=head2 sub check_param_in
-
-Checks parameters contained in the global variable $in. It is the process used to analyze the incoming parameters.
-Use it to create a List object and initialize output parameters.
-
-=head3 Arguments 
-
-=over 
-
-=item * I<None>
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<undef> if the process encounters problems.
-
-=item * I<1> if everything goes well
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * d_access_control
-
-=item * make_pictures_url
-
-=item * wwslog
-
-=item * Language::SetLang
-
-=item * List::am_i
-
-=item * List::check_list_authz
-
-=item * List::get_mod_spool_size
-
-=item * List::get_shared_moderated
-
-=item * List::get_subscriber
-
-=item * List::get_subscription_request_count
-
-=item * List::get_total
-
-=item * List::get_total_bouncing
-
-=item * List::is_listmaster
-
-=item * List::is_moderated
-
-=item * List::is_shared_open
-
-=item * List::is_user
-
-=item * List::new
-
-=item * List::request_action
-
-=item * report::reject_report_web
-
-=back 
-
-=cut 
-
  ## Analysis of incoming parameters
  sub check_param_in {
      &wwslog('debug2', 'check_param_in');
@@ -1648,7 +1563,6 @@ Use it to create a List object and initialize output parameters.
      if ($in{'list'} =~ /^(\S+)\0/) {
 	 $in{'list'} = $1;
 
-	 ## Create a new List instance.
 	 unless ($list = new List ($in{'list'}, $robot)) {
 	     &report::reject_report_web('user','unknown_list',{'list' => $in{'list'}},$param->{'action'},'');
 	     &wwslog('info','check_param_in: unknown list %s', $in{'list'});
@@ -1664,21 +1578,19 @@ Use it to create a List object and initialize output parameters.
 	 $param->{'is_listmaster'} = 1;
      }
 
-     if ($in{'list'}) {
-	## Create a new List instance.
+    if ($in{'list'}) {
 	unless ($list = new List ($in{'list'}, $robot, {})) {
 	    &report::reject_report_web('user','unknown_list',{'list' => $in{'list'}},$param->{'action'},'');
 	    &wwslog('info','check_param_in: unknown list %s', $in{'list'});
 	    return undef;
 	}
 
-	## Gather list configuration informations for further output.
 	$param->{'list'} = $in{'list'};
 	$param->{'subtitle'} = $list->{'admin'}{'subject'};
 	$param->{'subscribe'} = $list->{'admin'}{'subscribe'}{'name'};
 	$param->{'send'} = $list->{'admin'}{'send'}{'title'}{$param->{'lang'}};
 
-	# Pictures are not available unless it is configured for the list and the robot
+	# pictures are not avilible unless it is configured for the list and the robot
  	if ($list->{'admin'}{'pictures_feature'} eq 'off') {
  	    $param->{'pictures_display'} = undef;
  	}
@@ -1686,20 +1598,15 @@ Use it to create a List object and initialize output parameters.
  	    $param->{'pictures_display'} = 'on';
  	}
  	
-	## Get the total number of subscribers to the list.
 	if (defined $param->{'total'}) {
 	    $param->{'total'} = $list->get_total();
 	}else {
 	    $param->{'total'} = $list->get_total('nocache');
 	}
-
-	## Check if the current list has a public key X.509 certificate.
 	$param->{'list_as_x509_cert'} = $list->{'as_x509_cert'};
-
-	## Stores to output the whole list's admin configuration.
 	$param->{'listconf'} = $list->{'admin'};
 
-	## If an user is logged in, checks this user's privileges.
+	## privileges
 	if ($param->{'user'}{'email'}) {
 	    $param->{'is_subscriber'} = $list->is_user($param->{'user'}{'email'});
 	    $param->{'subscriber'} = $list->get_subscriber($param->{'user'}{'email'})
@@ -1709,8 +1616,7 @@ Use it to create a List object and initialize output parameters.
 	    $param->{'is_editor'} = $list->am_i('editor', $param->{'user'}{'email'});
 	    $param->{'is_priv'} = $param->{'is_owner'} || $param->{'is_editor'};
 	    $param->{'pictures_url'} = &make_pictures_url($param->{'user'}{'email'});
-
-	    ## Checks if the user can post in this list.
+	    #May post:
 	    my $result = $list->check_list_authz('send',$param->{'auth_method'},
 						 {'sender' => $param->{'user'}{'email'},
 						  'remote_host' => $param->{'remote_host'},
@@ -1719,20 +1625,17 @@ Use it to create a List object and initialize output parameters.
 	    $r_action = $result->{'action'} if (ref($result) eq 'HASH');
 	    $param->{'may_post'} = 1 if ($r_action !~ /reject/);
 
-	## If no user logged in, the output can ask for authentification.
 	}else {
 	    $param->{'user'}{'email'} = undef;
 	    $param->{'need_login'} = 1;
 
 	}
 
-	## Check if this list's messages must be moderated.
 	$param->{'is_moderated'} = $list->is_moderated();
-
-	## Check if a shared directory exists for this list.
 	$param->{'is_shared_open'} =$list->is_shared_open();
 
-	## If the user logged in is a privileged user, gather informations relative to administration tasks
+	## Privileged info
+
 	if ($param->{'is_priv'}) {
 	    $param->{'mod_message'} = $list->get_mod_spool_size();
 
@@ -1751,15 +1654,11 @@ Use it to create a List object and initialize output parameters.
 	    $param->{'mod_total'} = $param->{'mod_total_shared'}+$param->{'mod_message'}+$param->{'mod_subscription'};
 	}
 
-	## If the subscription/unsubscription are defined by a set of rules, there is no permanent user list
-	## in which subscribe or from which unsubscribe, thus removing any sense from those operations.
-	## They are consequently forbidden...
+	## (Un)Subscribing 
 	if ($list->{'admin'}{'user_data_source'} eq 'include') {
 	    $param->{'may_signoff'} = $param->{'may_suboptions'} = $param->{'may_subscribe'} = 0;
-	
-	## ... otherwise, we must check the (un)subscription authorization scenarios.
 	}else {
-	    ## Check unsubscription authorization for the current user and list.
+	    ## May signoff
 	    my $result = $list->check_list_authz('unsubscribe',$param->{'auth_method'},
 						 {'sender' =>$param->{'user'}{'email'},
 						  'remote_host' => $param->{'remote_host'},
@@ -1775,7 +1674,7 @@ Use it to create a List object and initialize output parameters.
 		$param->{'may_suboptions'} = 1;
 	    }
 	    
-	    ## Check subscription authorization for the current user and list.
+	    ## May Subscribe
 	    my $result = $list->check_list_authz('subscribe',$param->{'auth_method'},
 						 {'sender' =>$param->{'user'}{'email'},
 						  'remote_host' => $param->{'remote_host'},
@@ -1785,13 +1684,12 @@ Use it to create a List object and initialize output parameters.
 	    $param->{'may_subscribe'} = 1 if ($main::action =~ /do_it|owner|request_auth/);
 	}
 	
-    	## Check if the current user can read the shared documents.
+    	## Shared documents
 	my %mode;
 	$mode{'read'} = 1;
 	my %access = &d_access_control(\%mode,"");
 	$param->{'may_d_read'} = $access{'may'}{'read'};
 
-	## Check the status (exists, deleted, doesn't exist) of the shared directory
 	if (-e $list->{'dir'}.'/shared') {
 	    $param->{'shared'}='exist';
 	}elsif (-e $list->{'dir'}.'/pending.shared') {
@@ -1801,7 +1699,6 @@ Use it to create a List object and initialize output parameters.
 	}
     }
 
-     ## Check if the current user can create a list.
      my $result = &List::request_action ('create_list',$param->{'auth_method'},$robot,
 					 {'sender' => $param->{'user'}{'email'},
 					  'remote_host' => $param->{'remote_host'},
@@ -2661,20 +2558,19 @@ sub do_sso_login_succeeded {
      }
      require Net::LDAP;
 
-     my ($ldap_anonymous,$filter);
+     my ($ldap_anonymous,$host,$filter);
 
      foreach my $ldap (@ldap_servers){
 
 	 # skip ldap auth service if the user id or email do not match regexp auth service parameter
 	 next unless ($auth =~ /$ldap->{'regexp'}/i);
 
-	 my $param = &tools::dup_var($ldap);
-	 my $ds = new Datasource('LDAP', $param);
+	 foreach $host (split(/,/,$ldap->{'host'})){
+	     unless($host){
+		 last;
+	     }
 
-	 unless (defined $ds && ($ldap_anonymous = $ds->connect())) {
-	     &do_log('err',"Unable to connect to the LDAP server '%s'", $ldap->{'ldap_host'});
-	     next;
-	 }
+	     &wwslog('debug4','Host: %s', $host);
 
 	     my @alternative_conf = split(/,/,$ldap->{'alternative_email_attribute'});
 	     my $attrs = $ldap->{'email_attribute'};
@@ -2688,22 +2584,53 @@ sub do_sso_login_succeeded {
 
 	     ## !! une fonction get_dn_by_email/uid
 
+	     my $ldap_anonymous;
+	     if ($ldap->{'use_ssl'}) {
+		 unless (eval "require Net::LDAPS") {
+		     &wwslog ('err',"Unable to use LDAPS library, Net::LDAPS required");
+		     return undef;
+		 } 
+		 require Net::LDAPS;
+
+		 my %param;
+		 $param{'timeout'} = $ldap->{'timeout'} if ($ldap->{'timeout'});
+		 $param{'sslversion'} = $ldap->{'ssl_version'} if ($ldap->{'ssl_version'});
+		 $param{'ciphers'} = $ldap->{'ssl_ciphers'} if ($ldap->{'ssl_ciphers'});
+
+		 $ldap_anonymous = Net::LDAPS->new($host,%param);
+	     }else {
+		 $ldap_anonymous = Net::LDAP->new($host,timeout => $ldap->{'timeout'});
+	     }
+
+
+	     unless ($ldap_anonymous ){
+		 &wwslog ('err','Unable to connect to the LDAP server %s',$host);
+		 next;
+	     }
+
+	     my $status = $ldap_anonymous->bind;
+	     unless(defined($status) && ($status->code == 0)){
+		 &wwslog('err', 'Bind failed on  %s', $host);
+		 last;
+	     }
+
 	     my $mesg = $ldap_anonymous->search(base => $ldap->{'suffix'} ,
 						filter => "$filter",
 						scope => $ldap->{'scope'}, 
 						timeout => $ldap->{'timeout'} );
 
 	     unless($mesg->count() != 0) {
-	     &wwslog('notice','No entry in the Ldap Directory Tree of %s for %s',$ldap->{'host'},$auth);
-	     $ds->disconnect();
+		 &wwslog('notice','No entry in the Ldap Directory Tree of %s for %s',$host,$auth);
+		 $ldap_anonymous->unbind;
 		 last;
 	     } 
 
-	 $ds->disconnect();
+	     $ldap_anonymous->unbind;
 	     my $redirect = $ldap->{'authentication_info_url'};
 	     return $redirect || 1;
-
+	 }
 	 next unless ($ldap_anonymous);
+	 next unless ($host);
      }
  }
 
@@ -3115,7 +3042,6 @@ sub do_remindpasswd {
 	 $list_info->{'host'} = $list->{'admin'}{'host'};
 	 $list_info->{'date_epoch'} = $list->{'admin'}{'creation'}{'date_epoch'};
 	 $list_info->{'date'} = $list->{'admin'}{'creation'}{'date'};
-	 $list_info->{'topics'} = $list->{'admin'}{'topics'};
 	 if ($param->{'user'}{'email'} &&
 	     ($list->am_i('owner',$param->{'user'}{'email'}) ||
 	      $list->am_i('editor',$param->{'user'}{'email'})) ) {
@@ -7402,58 +7328,11 @@ sub do_set_pending_list_request {
     return undef;
  }
 
-=pod 
-
-=head2 sub do_create_list
-
-Creates a list using a list template
-
-=head3 Arguments 
-
-=over 
-
-=item * I<None>
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<1>, if no problem is encountered
-
-=item * I<undef>, if anything goes wrong
-
-=item * I<'loginrequest'> if no user is logged in at the time the function is called.
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * web_db_log
-
-=item * wwslog
-
-=item * admin::create_list_old
-
-=item * check_param_in
-
-=item * List::send_notify_to_listmaster
-
-=item * report::reject_report_web
-
-=back 
-
-=cut 
-
 ## create a liste using a list template. 
  sub do_create_list {
 
      &wwslog('info', 'do_create_list(%s,%s,%s)',$in{'listname'},$in{'subject'},$in{'template'});
 
-     ## Check that all the needed arguments are present.
      foreach my $arg ('listname','subject','template','info','topics') {
 	 unless ($in{$arg}) {
 	     &report::reject_report_web('user','missing_arg',{'argument' => $arg},$param->{'action'});
@@ -7465,7 +7344,6 @@ Creates a list using a list template
 	     return undef;
 	 }
      }
-     ## Check that a user is logged in
      unless ($param->{'user'}{'email'}) {
 	 &report::reject_report_web('user','no_user',{},$param->{'action'});
 	 &wwslog('info','do_create_list :  no user');
@@ -7475,12 +7353,11 @@ Creates a list using a list template
 		      'error_type' => 'no_user'});	     
 	 return 'loginrequest';
      }
-     
+
      $param->{'create_action'} = $param->{'create_list'};
 
      &wwslog('info',"do_create_list, get action : $param->{'create_action'} ");
 
-     ## If the action is forbidden, stop here.
      if ($param->{'create_action'} =~ /reject/) {
 	 &report::reject_report_web('auth',$param->{'reason'},{},$param->{'action'},$list);
 	 &wwslog('info','do_create_list: not allowed');
@@ -7489,16 +7366,10 @@ Creates a list using a list template
 		      'status' => 'error',
 		      'error_type' => 'authorization'});	     
 	 return undef;
-
-     ## If the action is reserved to listmaster, note that it will have to be moderated
      }elsif ($param->{'create_action'} =~ /listmaster/i) {
 	 $param->{'status'} = 'pending' ;
-
-     ## If the action is plainly authorized, note that it will be excuted.
      }elsif  ($param->{'create_action'} =~ /do_it/i) {
 	 $param->{'status'} = 'open' ;
-
-     ## If the action hasn't an authorization status, stop here.
      }else{
 	 &report::reject_report_web('intern','internal_scenario_error_create_list',{},$param->{'action'},'',$param->{'user'}{'email'},$robot);
 	 &wwslog('info','do_create_list: internal error in scenario create_list');
@@ -7511,8 +7382,7 @@ Creates a list using a list template
 
      ## 'other' topic means no topic
      $in{'topics'} = undef if ($in{'topics'} eq 'other');
-
-     ## Store creation parameters.
+  
      my %owner;
      $owner{'email'} = $param->{'user'}{'email'};
      $owner{'gecos'} = $param->{'user'}{'gecos'};
@@ -7573,54 +7443,6 @@ Creates a list using a list template
      $param->{'listname'} = $resul->{'list'}{'name'};
      return 1;
  }
-
-=pod 
-
-=head2 sub do_create_list_request 
-
-Sends back the list creation edition form. 
-
-=head3 Arguments 
-
-=over 
-
-=item * I<None>
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<1>, if no problem is encountered
-
-=item * I<undef>, if anything goes wrong
-
-=item * I<'loginrequest'> if no user is logged in at the time the function is called.
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * wwslog
-
-=item * _prepare_edit_form
-
-=item * List::request_action
-
-=item * List::load_topics
-
-=item * tools::get_list_list_tpl
-
-=item * tt2::allow_absolute_path
-
-=item * report::reject_report_web
-
-=back 
-
-=cut 
 
  ## Return the creation form
  sub do_create_list_request {
@@ -8231,6 +8053,25 @@ Sends back the list creation edition form.
      }
      $param->{'occurrence'} = $record;
 
+     ##Lists stored in ldap directories
+     my %lists;
+     if($in{'extended'}){
+	 foreach my $directory (keys %{$Conf{'ldap_export'}}){
+	     next unless(%lists = &Ldap::get_exported_lists($param->{'regexp'},$directory));
+	     
+	     foreach my $list_name (keys %lists) {
+		 $param->{'occurrence'}++ unless($param->{'which'}{$list_name});
+		 next if($param->{'which'}{$list_name});
+		 $param->{'which'}{$list_name} = {'host' => "$lists{$list_name}{'host'}",
+						  'subject' => "$lists{$list_name}{'subject'}",
+						  'urlinfo' => "$lists{$list_name}{'urlinfo'}",
+						  'list_address' => "$lists{$list_name}{'list_address'}",
+						  'export' => 'yes',
+					      };
+	     }  
+	 }
+     } 
+     
      return 1;
  }
 
@@ -8615,6 +8456,21 @@ sub do_edit_list {
 	    $list->savestats();
 	}
 	
+	#If no directory, delete the entry
+	if($pname eq 'export'){
+	    foreach my $old_directory (@{$list->{'admin'}{'export'}}){
+		my $var = 0;
+		foreach my $new_directory (@{$new_admin->{'export'}}){
+		    next unless($new_directory eq $old_directory);
+		    $var = 1;
+		}
+		
+		if(!$var || $new_admin->{'status'} ne 'open'){
+		    &Ldap::delete_list($old_directory,$list);
+		}
+	    }
+	}
+	
 	$list->{'admin'}{$pname} = $new_admin->{$pname};
 	if (defined $new_admin->{$pname} || $pinfo->{$pname}{'internal'}) {
 	    delete $list->{'admin'}{'defaults'}{$pname};
@@ -8713,6 +8569,22 @@ sub do_edit_list {
      }
 
 
+     ##Exportation to an Ldap directory
+     if(($list->{'admin'}{'status'} eq 'open')){
+	 if($list->{'admin'}{'export'}){
+	     foreach my $directory (@{$list->{'admin'}{'export'}}){
+		 if($directory){
+		     unless(&Ldap::export_list($directory,$list)){
+			 &report::reject_report_web('intern','exportation_failed',{},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
+			 &wwslog('info','do_edit_list: The exportation failed');
+			 &web_db_log({'status' => 'error',
+				      'error_type' => 'internal'});
+		     }
+		 }
+	     }
+	 }
+     }
+
      ## Tag changed parameters
      foreach my $pname (keys %changed) {
 	 $::changed_params{$pname} = 1;
@@ -8779,46 +8651,6 @@ sub do_edit_list {
      }
      return $newvar;
  }
-
-=pod 
-
-=head2 sub do_edit_list_request 
-
-Sends back the list config edition form. 
-
-=head3 Arguments 
-
-=over 
-
-=item * I<None>
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<1>, if no problem is encountered
-
-=item * I<undef>, if anything goes wrong
-
-=item * I<'loginrequest'> if no user is logged in at the time the function is called.
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * wwslog
-
-=item * _prepare_edit_form
-
-=item * report::reject_report_web
-
-=back 
-
-=cut 
 
  ## Send back the list config edition form
  sub do_edit_list_request {
@@ -8934,69 +8766,13 @@ sub _check_new_values {
     }
 }
 
-=pod 
-
-=head2 sub _prepare_edit_form(LIST)
-
-Prepares config data to be sent in the edition form. Adds to the parameters array a hash for each parameter to be edited.
-
-=head3 Arguments 
-
-=over 
-
-=item * I<$list>, a List object
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<1>, if no problem is encountered
-
-=item * I<undef>, if anything goes wrong
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * _prepare_data
-
-=item * _restrict_values
-
-=item * wwslog
-
-=item * List::by_order
-
-=item * List::get_family
-
-=item * List::load_topics
-
-=item * List::may_edit
-
-=item * Language::GetLang
-
-=item * Language::SetLang
-
-=item * report::reject_report_web
-
-=item * tools::dup_var
-
-=back 
-
-=cut
-
-## Prepare config data to be sent in the
+## Prepare config data to be send in the
 ## edition form
 sub _prepare_edit_form {
     my $list = shift;
     my $list_config = &tools::dup_var($list->{'admin'});
     my $family;
-    my $is_form_editable = '0';
 
-    ## If the list belongs to a family, check if the said family can be retrieved.
     if (defined $list_config->{'family_name'}) {
 	unless ($family = $list->get_family()) {
 	    &report::reject_report_web('intern','unable_get_family',{},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
@@ -9005,33 +8781,17 @@ sub _prepare_edit_form {
 	}          
     }
 
-    ## For each parameter defined in List.pm, retrieve and prepare for editing
     foreach my $pname (sort List::by_order keys %{$pinfo}) {
-	 
-	 ## Skip comments and default values.
 	 next if ($pname =~ /^comment|defaults$/);
-	 
-	 ## Skip parameters belonging to another group.
 	 next if ($in{'group'} && ($pinfo->{$pname}{'group'} ne $in{'group'}));
 	 
-	 ## Skip obsolete parameters.
+	 ## Skip obsolete parameters
 	 next if $pinfo->{$pname}{'obsolete'};
 
-	 ## Check whether the parameter can be edited by the logged user.
 	 my $may_edit = $list->may_edit($pname,$param->{'user'}{'email'});
-
-	 ## Valid form global edit status as soon as at least one editable parameter is found.
-	 if ($may_edit eq 'write') {
-	     $is_form_editable = '1';
-	 }
-
-	 ## Store in $p a reference to the hash containing the informations relative to the parameter editing.
 	 my $p = &_prepare_data($pname, $pinfo->{$pname}, $list_config->{$pname},$may_edit,$family);
 
-	 ## Store if the parameter is still at its default value or not.
 	 $p->{'default'} = $list_config->{'defaults'}{$pname};
-
-	 ## Store the change state of this parameter, taken from the global variable %changed_params.
 	 $p->{'changed'} = $::changed_params{$pname};
 
 	 ## Exceptions...too many
@@ -9090,69 +8850,10 @@ sub _prepare_edit_form {
 
 	 push @{$param->{'param'}}, $p;	
      }
-    
-    ## If at least one param was editable, make the update button appear in the form.
-    $param->{'is_form_editable'} = $is_form_editable;
-    return 1; 
+     return 1; 
  }
 
-=pod 
-
-=head2 sub _prepare_data(STRING $name, HASH_Ref $struct, SCALAR $data, STRING $may_edit, FAMILY $family, STRING $main_p)
-
-Returns a reference to a hash containing the data used to edit the parameter (of name $name, corresponding to the structure $struct in pinfo, with the $may_edit editing status) containing the data in the Sympa web interface.
-
-=head3 Arguments 
-
-=over 
-
-=item * I<$name> (STRING), the name of the parameter processed
-
-=item * I<$struct> (HASH_Ref), a ref to the hash describing this parameter in %List::pinfo
-
-=item * I<$data> (), the value(s) taken by this parameter in the current list. Can be a reference to a list or the value of a single parameter.
-
-=item * I<$may_edit> (STRING), the editing status of this parameter in the current context.
-
-=item * I<$family> (FAMILY), the family the list belongs to.
-
-=item * I<$main_p> (STRING), the prefix composing the complete name of the parameter.
-
-=back 
-
-=head3 Return 
-
-=over 
-
-=item * I<$p_glob>, a reference to a hash containing the data used to edit the parameter.
-
-=back 
-
-=head3 Calls 
-
-=over 
-
-=item * _restrict_values
-
-=item * _prepare_data
-
-=item * load_data_sources_list
-
-=item * Family::get_param_constraint
-
-=item * List::load_scenario_list
-
-=item * List::load_task_list
-
-=item * List::may_edit
-
-=item * tools::escape_html
-
-=back 
-
-=cut
-
- sub _prepare_data {
+sub _prepare_data {
     my ($name, $struct,$data,$may_edit,$family,$main_p) = @_;
     #    &wwslog('debug2', '_prepare_data(%s, %s)', $name, $data);
     # $family and $main_p (recursive call) are optionnal
@@ -9164,7 +8865,7 @@ Returns a reference to a hash containing the data used to edit the parameter (of
 		   'comment' => $struct->{'comment'}{$param->{'lang'}}
 	       };
 
-    ## Check if some family constraint modify the editing rights.
+    ## family_constraint
     my $restrict = 0;
     my $constraint;
     if ((ref($family) eq 'Family') && ($may_edit eq 'write')) {
@@ -9193,19 +8894,13 @@ Returns a reference to a hash containing the data used to edit the parameter (of
  	$p_glob->{'may_edit'} = $may_edit;
     }        
     
-    ## Naming the parameter.
     if ($struct->{'gettext_id'}) {
 	$p_glob->{'title'} = gettext($struct->{'gettext_id'});
     }else {
 	$p_glob->{'title'} = $name;
     }
 
-    ## Occurrences : if the parameter can have multiple occurences,
-    ## its values are transfered into the array pointed by $data2
-    ## if they were given in arguments (if not, an empty array is created).
-    ## if it is a single occurence parameter, an array is created with
-    ## its single value.
-
+     ## Occurrences
      my $data2;
      if ($struct->{'occurrence'} =~ /n$/) {
 	 $p_glob->{'occurrence'} = 'multiple';
@@ -9288,7 +8983,7 @@ Returns a reference to a hash containing the data used to edit the parameter (of
 
 	 }elsif ((ref ($struct->{'format'}) eq 'ARRAY') || ($restrict && ($main_p eq 'msg_topic' && $name eq 'keywords'))) {
 	     $p_glob->{'type'} = 'enum';
-	     
+
 	     unless (defined $p_glob->{'value'}) {
 		 ## Initialize
 		 foreach my $elt (@{$struct->{'format'}}) {
@@ -12867,9 +12562,8 @@ sub d_unzip_shared_file {
 	}
     }		 
 
-    ## Qencode 8bit filenames afterward
-    ## The suspected charset is the one that is associated to the user's language
-    &tools::qencode_hierarchy($zip_abs_dir.'/zip', &Language::GetCharset());
+    ## Change 8bit filenames afterward    
+    &tools::qencode_hierarchy($zip_abs_dir.'/zip');
 
     return $status;
 }
@@ -15410,7 +15104,7 @@ sub do_dump_scenario {
 	 &wwslog('info','do_dump_scenario: missing scenario name');
 	 return undef;
      }
-     unless (&List::is_listmaster($param->{'user'}{'email'},$robot)) {
+     unless (&List::is_listmaster($param->{'user'}{'email'})) {
 	 &report::reject_report_web('auth','action_listmaster',{},$param->{'action'},$list);
 	 &wwslog('info','do_dump_scenario: reject because not listmaster');
 	 return undef;
@@ -15582,26 +15276,16 @@ sub get_protected_email_address {
  ## of there robot or there is real problems with privacy policy and law in such services.
  ## 
 sub do_viewlogs {
-    &wwslog('info', 'do_viewlogs(%d)',$in{'page'});
+    &wwslog('info', 'do_viewlogs(%d,%d)',$in{'page'}, $in{'all'});
 
-    unless ($list) {
-	&report::reject_report_web('user','missing_arg',{'argument' => 'list'},$param->{'action'});
-	&wwslog('info','do_iviewlogs: no list');
-	return undef;
-    }
-
-    unless ($param->{'is_editor'} || $param->{'is_owner'} || $param->{'is_listmaster'}) {
-	&report::reject_report_web('auth','action_editor',{},$param->{'action'});
-	&wwslog('info','do_viewlogs may_not from %s in list %s', $param->{'user'}{'email'}, $param->{'list'});
-	return undef;
-    }
 
     my $size = $in{'size'} || $wwsconf->{'viewlogs_page_size'};
     my $sortby = $in{'sortby'} || 'email';
     my @date = &Log::get_log_date();
        
-    $param->{'date_from_formated'} = gettext_strftime "%Y/%m/%d/%H/%M/%S", localtime($date[0]);
-    $param->{'date_to_formated'} = gettext_strftime "%Y/%m/%d/%H/%M/%S", localtime($date[1]);
+    $param->{'date_from'} = gettext_strftime "%d %b %Y %H:%M:%S", localtime($date[0]);
+    $param->{'date_to'} = gettext_strftime "%d %b %Y %H:%M:%S", localtime($date[1]);
+    
 
     $param->{'total'} = '17';
     
@@ -15631,18 +15315,104 @@ sub do_viewlogs {
     }
     
     
-    my @lines;
+    unless ($param->{'is_editor'} || $param->{'is_owner'} || $param->{'is_listmaster'}) {
+	&report::reject_report_web('auth','action_editor',{},$param->{'action'});
+	 &wwslog('info','do_viewlogs may_not from %s in list %s', $param->{'user'}{'email'}, $param->{'list'});
+	 return undef;
+     }
+
+    my @alllists_owner;
+    #display all the lists belonging to the user.
+    foreach my $list_of_lists (&List::get_which($param->{'user'}{'email'},$robot,'owner')) {
+	push @{$param->{'owner_lists'}}, $list_of_lists;
+	push @alllists_owner, $list_of_lists->{'name'};
+    }
+    
+    #display all the lists.
+    my @alllists;
+    my $all_lists = &List::get_lists($robot);
+    foreach my $list_of_lists (@$all_lists) {
+	unless($list_of_lists == $param->{'list'}) {
+	    push @{$param->{'list_of_lists'}}, $list_of_lists;
+	    push @alllists, $list_of_lists->{'name'};
+	}
+    }
+
+     my @lines;
 
     #display and search parameters preparation
     my $select = {};
 
     $select->{'robot'} = $robot;
-    $select->{'list'} = $param->{'list'};
+    $param->{'current_robot'} = $robot;
+
+    if ($in{'all'} == 1) {
+	if($param->{'is_editor'}) {
+	    $param->{'current_list'} = $param->{'list'}; ;
+     }
+	else {$param->{'current_list'} = 'all_list';}
+	$select->{'all'} = 'on';
+    }else {
+	$select->{'current_list'} = $param->{'list'};
+
+	if($in{'list_searched'} eq 'current_list') {
+	    $select->{'list'} = $param->{'list'};
+	    $param->{'list_searched_s'} = $select->{'list'};
+	    $param->{'current_list'} = $param->{'list'};
+	}
+	else {
+	    $select->{'list'} = $in{'list_searched'};
+	    $param->{'list_searched_s'} = $select->{'list'} || undef;
+	}
+	
+	if($select->{'list'} eq 'none') {
+	    $param->{'current_list'} = undef;
+	}
+	else{$param->{'current_list'} = $select->{'list'};}
+	
+	#display the current list above the table for editor
+	if($param->{'is_editor'}) {
+	    $param->{'current_list'} = $param->{'list'};
+	}
+	
+	
+    }	
+
+    $param->{'type_target_s'} = $in{'target_type'};
+    $select->{'type_target'} = $in{'target_type'};
+    $param->{'target_searched_s'} = $in{'target_searched'};
+    $select->{'target'} = $in{'target_searched'};
+    $param->{'date_from_s'} = $in{'date_from'};
+    $select->{'date_from'} = $in{'date_from'};
+    $param->{'date_to_s'} = $in{'date_to'};
+    $select->{'date_to'} = $in{'date_to'};
+    $param->{'type_searched_s'} = $in{'type_searched'};
+    $select->{'type'} = $in{'type_searched'};
+    $param->{'ip_searched_s'} = $in{'ip_searched'};
+    $select->{'ip'} = $in{'ip_searched'};
+    $select->{'alllists'} = \@alllists;
+    $select->{'alllists_owner'} =  \@alllists_owner;
+    $select->{'current_user'} = $param->{'user'}{'email'};
     
-    foreach my $p ('target_type','target','date_from','date_to','type','ip') {
-	$param->{$p} = $in{$p};
-	$select->{$p} = $in{$p};
+    if ($param->{'list_searched_s'} eq 'none') {
+	$param->{'list_searched_s'} = undef;
     }
+    if ($param->{'type_searched_s'} eq 'none') {
+	$param->{'type_searched_s'} = undef;
+    }	
+
+    #privileges
+    if($param->{'is_editor'}) {
+	$select->{'privilege'} = 'editor';
+    }
+    if(($param->{'is_owner'}) || ($param->{'is_privileged_owner'})) {
+	$select->{'privilege'} = 'owner';
+ }
+
+    if($param->{'is_listmaster'}) {
+	$select->{'privilege'} = 'listmaster';
+    }
+    
 
     unless ($in{'first'}) {
 	#sending of search parameters for the query
@@ -15661,12 +15431,37 @@ sub do_viewlogs {
 
 
 	#display the number of rows of the query.
-	if (&Log::return_rows_nb() != 0) {
+	if(&Log::return_rows_nb() != 0) {
 	    $param->{'rows_nb'} = &Log::return_rows_nb();
-	}else {
-	    $param->{'rows_nb'} = undef;
 	}
+	else {$param->{'rows_nb'} = undef;}
 
+	if($param->{'rows_nb'}) {
+	    if($select->{'list'} eq 'none') {
+		#if there is a search with a robot and without list, display 'All' in the 'select' and 'all_list' above the table.
+		if($select->{'robot'} ne 'none') {
+		    $param->{'list_searched_s'} = 'all_list';
+		    $param->{'current_list'} = 'all_list';
+		}
+		#else display the current list on the 'select' and above the table.
+		else {
+		    if($param->{'is_editor'}) {
+			$param->{'list_searched_s'} = $param->{'list'};
+			$param->{'current_list'} = $param->{'list'};
+		    }
+		    elsif($param->{'is_owner'} || $param->{'is_listmaster'}) {
+			$param->{'list_searched_s'} = 'all_list';
+			$param->{'current_list'} = 'all_list';
+		    }
+		}
+	    }
+	    #if there is a search without robot, display the current on the 'select' and above the table.
+	    if($select->{'robot'} eq 'none') {
+		$param->{'robot_searched_s'} = $robot;
+		$param->{'current_robot'} = $robot;
+	    }
+	}
+	
 	if ($param->{'page'} > 1) {
 	    $param->{'prev_page'} = $param->{'page'} - 1;
 	}
@@ -16310,16 +16105,3 @@ sub do_maintenance {
     
     return 1;
 }
-=pod 
-
-=head1 AUTHORS 
-
-=over 
-
-=item * Serge Aumont <sa AT cru.fr> 
-
-=item * Olivier Salaun <os AT cru.fr> 
-
-=back 
-
-=cut 

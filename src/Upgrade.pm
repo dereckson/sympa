@@ -532,7 +532,7 @@ sub upgrade {
 	## Search in Lists
 	my $all_lists = &List::get_lists('*');
 	foreach my $list ( @$all_lists ) {
-	    foreach my $f ('config','info','homepage','message.header','message.footer') {
+	    foreach my $f ('config','info','message.header','message.footer') {
 		if (-f $list->{'dir'}.'/'.$f){
 		    push @files, [$list->{'dir'}.'/'.$f, $list->{'admin'}{'lang'}];
 		}
@@ -798,14 +798,13 @@ sub probe_db {
 
 	    #	    unless ($sth = $dbh->table_info) {
 	    #	    unless ($sth = $dbh->prepare("LISTFIELDS $t")) {
-	    my $sql_query = "SHOW FIELDS FROM $t";
-	    unless ($sth = $dbh->prepare($sql_query)) {
-		do_log('err','Unable to prepare SQL query %s : %s', $sql_query, $dbh->errstr);
+	    unless ($sth = $dbh->prepare("SHOW FIELDS FROM $t")) {
+		do_log('err','Unable to prepare SQL query : %s', $dbh->errstr);
 		return undef;
 	    }
 	    
 	    unless ($sth->execute) {
-		do_log('err','Unable to execute SQL query %s : %s', $sql_query, $dbh->errstr);
+		do_log('err','Unable to execute SQL query : %s', $dbh->errstr);
 		return undef;
 	    }
 	    
@@ -1193,7 +1192,7 @@ sub to_utf8 {
 	next unless $modified;
 	
 	my $date = &POSIX::strftime("%Y.%m.%d-%H.%M.%S", localtime(time));
-	unless (rename $file, $file.'@'.$date) {
+	unless (rename $file, $file.'.'.$date) {
 	    do_log('err', "Cannot rename old template %s", $file);
 	    next;
 	}
@@ -1205,7 +1204,7 @@ sub to_utf8 {
 	close TEMPLATE;
 	chown $uid, $gid, $file;
 	chmod 0644, $file;
-	&do_log('notice','Modified file %s ; original file kept as %s', $file, $file.'@'.$date);
+	&do_log('notice','Modified file %s ; original file kept as %s', $file, $file.'.'.$date);
 	
 	$total++;
     }
