@@ -15,7 +15,7 @@ unless (Conf::load('--CONFIG--')) {
 &do_openlog($Conf{'syslog'}, $Conf{'log_socket_type'}, 'sympa');
 
 if ($Conf{'db_name'} and $Conf{'db_type'}) {
-    unless ($List::use_db = &Upgrade::probe_db()) {
+    unless ($List::use_db = &List::probe_db()) {
 	die "Sympa can't connect to database";
     }
 } #  to check availabity of Sympa database
@@ -38,7 +38,7 @@ foreach $msg ( sort grep(!/^\./, readdir SPOOL )) {
     next if ($msg =~ /^\./);
     
     $msg =~ /^(.*)\_([^\_]+)$/;
-    my ($listaddress, $modkey) = ($1, $2);
+    my ($listname, $modkey) = ($1, $2);
     
     
     if (-d "$Conf{'queuemod'}/.$msg") {
@@ -47,8 +47,7 @@ foreach $msg ( sort grep(!/^\./, readdir SPOOL )) {
     
     print "Creating HTML version for $Conf{'queuemod'}/$msg\n";
     
-    my ($listname, $listrobot) = split /\@/, $listaddress;
-    my $self = new List ($listname, $listrobot);
+    my $self = new List ($listname);
     
     my( @rcpt);
     my $admin = $self->{'admin'};
@@ -57,7 +56,7 @@ foreach $msg ( sort grep(!/^\./, readdir SPOOL )) {
     my $robot = $self->{'domain'};
     my $modqueue = $Conf{'queuemod'};
     unless ($name && $admin) {
-	print STDERR "Unkown list $listaddress, skipping\n";
+	print STDERR "Unkown list $listname, skipping\n";
 	next;
     }
     
@@ -66,7 +65,7 @@ foreach $msg ( sort grep(!/^\./, readdir SPOOL )) {
 	unless (mkdir ($tmp_dir, 0777)) {
 	    die "May not create $tmp_dir";
 	}
-	my $mhonarc_ressources = &tools::get_filename('etc',{},'mhonarc-ressources.tt2', $robot, $self);
+	my $mhonarc_ressources = &tools::get_filename('etc', 'mhonarc-ressources.tt2', $robot, $self);
 	unless ($mhonarc_ressources) {
 	    die "Cannot find any MhOnArc ressource file";
 	}

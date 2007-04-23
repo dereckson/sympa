@@ -1,11 +1,11 @@
 <!-- $Id$ -->
 
 
-<h2>
+<h2 class="block">
  [% IF count %]
-   [%|loc(count)%]The %1 newest lists[%END%] 
+   [%|loc(count)%] The %1 latest lists [%END%] 
  [% ELSE %]
-   [%|loc%]New lists[%END%] 
+   [%|loc%] The latest lists [%END%] 
  [% END %]
 
  [% IF for %]
@@ -16,8 +16,8 @@
 <br /> 
 
 
-<table class="table_style" summary="[%|loc%] The latest lists of this robot[%END%] ">
-<tr class="color4">
+<table style="border: solid 1px; width: auto; margin: 10px">
+<tr style="background-color: [% color_4 %];">
    <th><strong>[%|loc%]Listname[%END%]</strong></th>
    <th><strong>[%|loc%]Creation date[%END%]</strong></th>
    <th><strong>[%|loc%]Subject[%END%]</strong></th>
@@ -28,7 +28,7 @@
 [% IF dark == '1' %]
   <tr valign="top">[% SET dark = 0 %]
 [% ELSE %]
-  <tr class="color0">[% SET dark = 1 %]
+  <tr style="background-color: [% color_0 %];" valign="top">[% SET dark = 1 %]
 [% END %]
    <td>
      <a href="[% path_cgi %]/info/[% l.name %]" ><strong>[% hidden_head %][% l.name %][% hidden_at %][% l.host %][% hidden_end %]</strong></a>
