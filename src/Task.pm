@@ -50,11 +50,9 @@ sub new {
     ## Extract filename from path
     my @path = split /\//, $file;
     $task->{'filename'} = $path[$#path];
-    my $listname_regexp = &tools::get_regexp('listname');
-    my $host_regexp = &tools::get_regexp('host');
 
     ## File including the list domain
-    if ($task->{'filename'} =~ /^(\d+)\.(\w*)\.(\w+)\.($listname_regexp|_global)\@($host_regexp)$/) {
+    if ($task->{'filename'} =~ /^(\d+)\.(\w*)\.(\w+)\.($tools::regexp{'listname'}|_global)\@($tools::regexp{'host'})$/) {
 	$task->{'date'} = $1;
 	$task->{'label'} = $2;
 	$task->{'model'} = $3;
@@ -66,7 +64,7 @@ sub new {
 	    $task->{'domain'} = $task->{'list_object'}{'domain'};
 	}
 
-    }elsif ($task->{'filename'} =~ /^(\d+)\.(\w*)\.(\w+)\.($listname_regexp|_global)$/) {
+    }elsif ($task->{'filename'} =~ /^(\d+)\.(\w*)\.(\w+)\.($tools::regexp{'listname'}|_global)$/) {
 	$task->{'date'} = $1;
 	$task->{'label'} = $2;
 	$task->{'model'} = $3;
@@ -121,14 +119,6 @@ sub list_tasks {
     }    
 
     return 1;
-}
-
-## Return a list tasks for the given list
-sub get_tasks_by_list {
-    my $list_id = shift;
-
-    return () unless (defined $task_by_list{$list_id});
-    return values %{$task_by_list{$list_id}};
 }
 
 sub get_used_models {
