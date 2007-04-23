@@ -21,9 +21,9 @@
 
 sbin_SUBST	=	bounced.pl archived.pl
 
-cgi_SUBST	=	wwsympa.fcgi wwsympa_sudo_wrapper.pl
+cgi_SUBST	=	wwsympa.fcgi
 
-lib_SUBST	=	wwslib.pm cookielib.pm bounce-lib.pl Marc.pm Auth.pm SharedDocument.pm
+lib_SUBST	=	wwslib.pm cookielib.pm bounce-lib.pl Marc.pm Auth.pm
 
 SRC		=	mime.types 
 
@@ -35,7 +35,7 @@ clean:
 install: 
 	echo "Please use the main Makefile for installing WWSympa."
 
-newinstall: makedir $(sbin_SUBST) $(cgi_SUBST) $(lib_SUBST) substcgi substsbin substlib installicons installsrc installmod
+newinstall: makedir $(sbin_SUBST) $(cgi_SUBST) $(lib_SUBST) substcgi substsbin substlib installtemplates installicons installsrc installmod
 
 installmod:
 	@for i in $(SRC) ; do \
@@ -50,11 +50,10 @@ installmod:
 	chown $(USER) $(DESTDIR)$(CGIDIR)/$$i; \
 	chgrp $(GROUP) $(DESTDIR)$(CGIDIR)/$$i; \
 	done
-	@if [ "$(enable_secure)" != "yes" ]; then \
-		echo "Setting SetUID bit on wwsympa.fcgi..."; \
-		chmod u+s $(DESTDIR)$(CGIDIR)/wwsympa.fcgi; \
-		chmod g+s $(DESTDIR)$(CGIDIR)/wwsympa.fcgi; \
-	fi
+	@echo "Setting SetUID bit on wwsympa.fcgi..."
+	chmod u+s $(DESTDIR)$(CGIDIR)/wwsympa.fcgi
+	chmod g+s $(DESTDIR)$(CGIDIR)/wwsympa.fcgi
+	chmod 755 $(DESTDIR)$(ETCBINDIR)/web_tt2
 	chmod 755 $(DESTDIR)$(ICONSDIR)
 	chmod 755 $(DESTDIR)$(LIBDIR)/Marc
 	@for i in $(lib_SUBST) Marc/Search.pm; do \
@@ -80,6 +79,10 @@ makedir:
 		echo "Creating required directory $(DESTDIR)$(ETCBINDIR)"; \
 		mkdir -p $(DESTDIR)$(ETCBINDIR); \
 	fi
+	@if [ ! -d $(DESTDIR)$(ETCBINDIR)/web_tt2 ]; then \
+		echo "Creating required directory $(DESTDIR)$(ETCBINDIR)/web_tt2"; \
+		mkdir $(DESTDIR)$(ETCBINDIR)/web_tt2; \
+	fi
 	@if [ ! -d $(DESTDIR)$(ICONSDIR) ]; then \
 		echo "Creating required directory $(DESTDIR)$(ICONSDIR)"; \
 		mkdir -p $(DESTDIR)$(ICONSDIR); \
@@ -94,6 +97,33 @@ installsrc:
 	@echo "Installing sources..."
 	cp $(SRC) $(DESTDIR)$(ETCBINDIR)
 	cp Marc/Search.pm $(DESTDIR)$(LIBDIR)/Marc
+
+installtemplates:
+	@echo
+	@echo "Installing templates..."
+		( \
+		cd tt2; \
+		PERL=$(PERL); export PERL; \
+		UMASK=0644; export UMASK; \
+		INSTALLDIR=$(ETCBINDIR)/web_tt2; export INSTALLDIR; \
+		SBINDIR=$(SBINDIR); export SBINDIR; \
+		CGIDIR=$(CGIDIR); export CGIDIR; \
+		LIBDIR=$(LIBDIR); export LIBDIR; \
+		DESTDIR=$(DESTDIR); export DESTDIR; \
+		ETCBINDIR=$(ETCBINDIR); export ETCBINDIR; \
+		COL1=5; export COL1; \
+		COL2=40; export COL2; \
+		COL3=30; export COL3; \
+		COL4=40; export COL4; \
+		COL12=45; export COL12; \
+		COL23=70; export COL23; \
+		COL34=70; export COL34; \
+		COL234=110; export COL234; \
+		$(PERL) ../../subst.pl *.tt2; \
+		); \
+	$(PERL) ../set_symlinks.pl web_tt2 $(DESTDIR)$(ETCBINDIR)/web_tt2
+	find $(DESTDIR)$(ETCBINDIR) -type d -exec chmod 755 {} \;
+	find $(DESTDIR)$(ETCBINDIR) -type f -exec chmod 644 {} \;
 
 installicons:
 	@echo "Installing icons..."
@@ -147,8 +177,6 @@ substcgi:
 		PERL=$(PERL); export PERL; \
 		UMASK=0755; export UMASK; \
 		INSTALLDIR=$(CGIDIR); export INSTALLDIR; \
-		USER=$(USER); export USER; \
-		SUDO=$(SUDO); export SUDO; \
 		SBINDIR=$(SBINDIR); export SBINDIR; \
 		CGIDIR=$(CGIDIR); export CGIDIR; \
 		PIDDIR=$(PIDDIR); export PIDDIR;\
@@ -159,7 +187,6 @@ substcgi:
 		ICONSDIR=$(ICONSDIR); export ICONSDIR; \
 		WWSCONFIG=$(WWSCONFIG); export WWSCONFIG; \
 		CONFIG=$(CONFIG); export CONFIG; \
-		if [ "$(enable_secure)" = "yes" ]; then PERLOPT=""; else PERLOPT="-U"; fi; export PERLOPT; \
 		$(PERL) ../subst.pl $(cgi_SUBST) \
 	)
 

@@ -282,7 +282,7 @@
   
   $use_lynx = undef if (!$lynx);
   
-  if (defined $entity->bodyhandle) {
+  if ($entity->bodyhandle) {
     
     if ($have_mods && !$use_lynx) { # use perl HTML::* modules 
       eval {
@@ -350,6 +350,6 @@
  sub img_start   {
   my($self,$node) = @_;
   my $alt = $node->attr('alt');
-  $self->out(  defined($alt) ? sprintf(gettext("[ Image%s ]"), ": " . $alt) : sprintf(gettext("[Image%s]"),""));
+  $self->out(  defined($alt) ? sprintf(gettext("[ Image%s ]"), ": " . $alt) : sprintf(Msg(6, 308, "[Image%s]"),""));
  }
 

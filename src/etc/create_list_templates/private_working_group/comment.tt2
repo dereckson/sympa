@@ -1,6 +1,6 @@
-<dl><dt>[%|loc%]Private working group setup[%END%]</dt><dd>
-<ul>
-<li>[%|loc%]only subscribers can post[%END%]</li>
-<li>[%|loc%]private archives[%END%]</li>
-<li>[%|loc%]controlled subscription[%END%]</li>
-</ul></dd></dl>
+<I>[%|l%]Private working group setup[%END%]</I><BR>
+<UL>
+<LI>[%|l%]only subscribers can post[%END%]
+<LI>[%|l%]private archives[%END%]
+<LI>[%|l%]controlled subscription[%END%]
+</UL>

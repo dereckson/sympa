@@ -1,6 +1,6 @@
-<dl><dt>[%|loc%]Hotline mailing list[%END%]</dt><dd>
-<ul>
-<li>[%|loc%]everyone can post[%END%]</li>
-<li>[%|loc%]private archives[%END%]</li>
-<li>[%|loc%]controlled subscription[%END%]</li>
-</ul></dd></dl>
+<i>[%|l%]hotline mailing list[%END%]</i><BR>
+<UL>
+<LI>[%|l%]everyone can post[%END%]
+<LI>[%|l%]private archives[%END%]
+<LI>[%|l%]controlled subscription[%END%]
+</UL>

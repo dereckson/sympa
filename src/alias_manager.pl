@@ -37,7 +37,7 @@ require "tt2.pl";
 
 
 unless (Conf::load('--CONFIG--')) {
-   print STDERR gettext("The configuration file --CONFIG-- contains errors.\n");
+   print gettext("The configuration file --CONFIG-- contains errors.\n");
    exit(1);
 }
 my $tmp_alias_file = $Conf{'tmpdir'}.'/sympa_aliases.'.time;
@@ -54,14 +54,13 @@ my ($operation, $listname, $domain, $file) = @ARGV;
 
 
 if (($operation !~ /^(add)|(del)$/) || ($#ARGV < 2)) {
-    printf STDERR "Usage: $0 <add|del> <listname> <robot> [<file>]\n";
+    printf "Usage: $0 <add|del> <listname> <domain> [<file>]\n";
     exit(2);
 }
 
 $default_domain = $Conf{'domain'};
 
-my $alias_file;
-$alias_file = $Conf{'sendmail_aliases'} || '--SENDMAIL_ALIASES--';
+my $alias_file = '--SENDMAIL_ALIASES--';
 $alias_file = $file if ($file);
 
 unless (-w "$alias_file") {
@@ -77,22 +76,10 @@ $data{'list'}{'domain'} = $data{'robot'} = $domain;
 $data{'list'}{'name'} = $listname;
 $data{'default_domain'} = $default_domain;
 $data{'is_default_domain'} = 1 if ($domain eq $default_domain);
-$data{'return_path_suffix'} = &Conf::get_robot_conf($domain, 'return_path_suffix');
-
-
+my $template_file = &tools::get_filename('etc', 'list_aliases.tt2', $domain);
 my @aliases ;
+&tt2::parse_tt2 (\%data,$template_file,\@aliases);
 
-my $tt2_include_path = &tools::make_tt2_include_path($domain,'',,);
-
-my $aliases_dump;
-&tt2::parse_tt2 (\%data, 'list_aliases.tt2',\$aliases_dump, $tt2_include_path);
-
-@aliases = split /\n/, $aliases_dump;
-
-unless (@aliases) {
-    	print STDERR "No aliases defined\n";
-	exit(15);
-}
 
 if ($operation eq 'add') {
     ## Create a lock
@@ -114,12 +101,12 @@ if ($operation eq 'add') {
     }
 
     foreach (@aliases) {
-	print ALIAS "$_\n";
+	print ALIAS "$_";
     }
     close ALIAS;
 
     ## Newaliases
-    unless ($file) {
+    if ($alias_file eq '--SENDMAIL_ALIASES--') {
 	unless (system($alias_wrapper) == 0) {
 	    print STDERR "Failed to execute newaliases: $!\n";
 	    exit(6)
@@ -190,7 +177,7 @@ if ($operation eq 'add') {
     unlink $tmp_alias_file;
 
     ## Newaliases
-    unless ($file) {
+    if ($alias_file eq '--SENDMAIL_ALIASES--') {
 	unless (system($alias_wrapper) == 0) {
 	    print STDERR "Failed to execute newaliases: $!\n";
 	exit (6);

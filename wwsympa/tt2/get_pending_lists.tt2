@@ -1,0 +1,30 @@
+<!-- $Id$ -->
+
+
+<FORM ACTION="[% path_cgi %]" METHOD=POST>
+
+<HR  WIDTH=90%>
+
+<P>
+<TABLE>
+ <TR>
+   <TD Colspan=3 bgcolor="[% light_color %]"><B>[%|l%]Pending lists[%END%]</B></TD>
+ </TR>
+ <TR bgcolor="[% light_color %]">
+   <TD><B>[%|l%]list name[%END%]</B></TD>
+   <TD><B>[%|l%]list subject[%END%]</B></TD>
+   <TD><B>[%|l%]Requested by[%END%]</B></TD>
+ </TR>
+
+[% FOREACH list = pending %]
+<TR>
+<TD><A HREF="[% path_cgi %]/set_pending_list_request/[% list.key %]">[% list.key %]</A></TD>
+<TD>[% list.value.subject %]</TD>
+<TD>[% list.value.by %]</TD>
+</TR>
+[% END %]
+</TABLE>
+</FORM>
+
+
+
