@@ -32,7 +32,7 @@ my ($index, @t, $data, $internal, $previous_file, %option, $current_output);
 ## Parameters are   
 ## data: a HASH ref containing the data   
 ## template : a filename or a ARRAY ref that contains the template   
-## output : a Filedescriptor or a ARRAY ref for the output
+## output : a Filedescriptor or a SCALAR ref for the output
 sub parse_tpl {
     my ($template, $output);
     ($data, $template, $output, $recurse) = @_;
@@ -42,11 +42,6 @@ sub parse_tpl {
     ## Reset loop cache unless recursive use
     unless ($recurse == 1) {
 	$previous_file = undef;
-    }
-
-    unless (defined $template) {
-	&do_log('err','Parser [%d] parse_tpl() in %s : missing template parameter', $index, $previous_file);
-	return -1;	
     }
 
     ## Prevent loops
@@ -112,8 +107,7 @@ sub parse_tpl {
 
 return 1;
 
-## Processes [SETOPTION xx]
-## Currently available options : escape_html, ignore_undef 
+## Processes [SETOPTION xx] 
 sub do_setoption {
 
     if (/\[\s*SETOPTION\s+(\w+)\s*\]/i) {
@@ -160,17 +154,13 @@ sub do_include {
     }
 
     my $fh = new FileHandle $file;
-    foreach (<$fh>) {
 
-	$_ = &escape_html($_)
-	    if ($option{'escape_html'});
-
-	if (ref($current_output) eq 'ARRAY') {
-	    push @{$current_output}, sprintf $_;
-	}else {
-	    print $_;
-	}
+    if (ref($current_output) eq 'ARRAY') {
+	push @{$current_output}, sprintf <$fh>;
+    }else {
+	print <$fh>;
     }
+
     close $fh;
 }
 
@@ -432,16 +422,3 @@ sub do_eval {
 
     return $returned_value;
 }
-
-## Escape HTML meta-chars
-sub escape_html {
-    my $s = shift;
-
-    $s =~ s/\&/\&amp;/g;
-    $s =~ s/\"/\&quot\;/g;
-    $s =~ s/\</&lt\;/g;
-    $s =~ s/\>/&gt\;/g;
-    
-    return $s;
-}
-
