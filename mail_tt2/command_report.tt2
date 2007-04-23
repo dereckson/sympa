@@ -2,6 +2,9 @@ From: SYMPA <[% conf.email %]@[% conf.host %]>
 To: [% to %]
 Subject: [% FILTER qencode %][%|loc%]Results of your commands[%END%][%END%]
 X-Loop: [% conf.sympa %]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 [%############################-%]
 [%########## SUCCESS #########-%]
@@ -24,7 +27,7 @@ owners for approval. You will receive a notification when you have
 been subscribed (or unsubscribed) to the list.[%END-%]
 
 [% ELSIF notice.entry == 'updated_info' -%]
-[%|loc(notice.email,notice.listname)%]Information regarding user %1 has been updated for list %2.[%END%]
+[%|loc(notice.email,notice.listname)%]Information regarding user %1 have been updated for list %2.[%END%]
 
 [% ELSIF notice.entry == 'now_subscriber' -%]
 [%|loc(notice.email,notice.listname)%]User %1 is now subscriber of list %2.[%END%]
@@ -178,4 +181,4 @@ email address. Please try using your canonical address.[%END-%]
 
 -----------==========================================-----------
 
-[%|loc(conf.wwsympa_url)%]For further information, check the mailing list web site %1[%END%]
+[%|loc(conf.listmaster_email,conf.host)%]For further information, please contact %1@%2[%END%]
