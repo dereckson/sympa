@@ -25,7 +25,6 @@ package Sympa::Template::Compat;
 
 use strict;
 use base 'Template::Provider';
-use Encode;
 
 my @other_include_path;
 my $allow_absolute;
@@ -104,10 +103,8 @@ sub _translate {
 package tt2;
 
 use strict;
-
 use Template;
 use CGI::Util;
-use MIME::EncWords; 
 use Log;
 use Language;
 
@@ -116,29 +113,11 @@ my $last_error;
 
 sub qencode {
     my $string = shift;
-    # We are not able to determine the name of header field, so assume
-    # longest (maybe) one.    
-    return MIME::EncWords::encode_mimewords(Encode::decode('utf8', $string),
-					    Encoding=>'A',
-					    Charset=>&Language::GetCharset(),
-					    Field=>"message-id");
-}
-
-sub escape_url {
-
-    my $string = shift;
     
-    $string =~ s/[\s+]/sprintf('%%%02x', ord($&))/eg;
-    # Some MUAs aren't able to decode ``%40'' (escaped ``@'') in e-mail 
-    # address of mailto: URL, or take ``@'' in query component for a 
-    # delimiter to separate URL from the rest.
-    my ($body, $query) = split(/\?/, $string, 2);
-    if (defined $query) {
-	$query =~ s/\@/sprintf('%%%02x', ord($&))/eg;
-	$string = $body.'?'.$query;
-    }
-    
-    return $string;
+    my $encoded_string = MIME::Words::encode_mimewords($string, ('Encode' => 'Q', 'Charset' => gettext("_charset_")));
+    $encoded_string =~ s/\?=\s+=\?/_\?= =?/g; ## Fix bug 5462 of MIME::Words
+
+    return $encoded_string;
 }
 
 sub escape_xml {
@@ -153,79 +132,12 @@ sub escape_xml {
     return $string;
 }
 
-sub escape_quote {
-    my $string = shift;
-
-    $string =~ s/\'/\\\'/g; 
-    $string =~ s/\"/\\\"/g;
-
-    return $string;
-}
-
-sub encode_utf8 {
-    my $string = shift;
-
-    ## Skip if already internally tagged utf8
-    if (&Encode::is_utf8($string)) {
-	return &Encode::encode_utf8($string);
-    }
-
-    return $string;
-
-}
-
-sub decode_utf8 {
-    my $string = shift;
-
-    ## Skip if already internally tagged utf8
-    unless (&Encode::is_utf8($string)) {
-	## Wrapped with eval to prevent Sympa process from dying
-	## FB_CROAK is used instead of FB_WARN to pass $string intact to succeeding processes it operation fails
-	eval {
-	    $string = &Encode::decode('utf8', $string, Encode::FB_CROAK);
-	};
-	$@ = '';
-    }
-
-    return $string;
-
-}
-
 sub maketext {
     my ($context, @arg) = @_;
 
-    my $stash = $context->stash();
-    my $component = $stash->get('component');
-    my $template_name = $component->{'name'};
-    my ($provider) = grep { $_->{HEAD}[2] eq $component } @{ $context->{LOAD_TEMPLATES} };
-    my $path = $provider->{HEAD}[1] if $provider;
-
-    ## Strangely the path is sometimes empty...
-    ## TODO : investigate
-#    &do_log('notice', "PATH: $path ; $template_name");
-
-    ## Sample code to dump the STASH
-    # my $s = $stash->_dump();    
-
     return sub {
-	&Language::maketext($template_name, $_[0],  @arg);
+	&Language::maketext($_[0], @arg);
     }	
-}
-
-# IN:
-#    $fmt: strftime() style format string.
-#    $arg: a string representing date/time:
-#          "YYYY/MM", "YYYY/MM/DD", "YYYY/MM/DD/HH/MM", "YYYY/MM/DD/HH/MM/SS"
-# OUT:
-#    Subref to generate formatted (i18n'ized) date/time.
-sub locdatetime {
-    my ($fmt, $arg) = @_;
-    if ($arg !~ /^(\d{4})\D(\d\d?)(?:\D(\d\d?)(?:\D(\d\d?)\D(\d\d?)(?:\D(\d\d?))?)?)?/) {
-	return sub { gettext("(unknown date)"); };
-    } else {
-	my @arg = ($6+0, $5+0, $4+0, $3+0 || 1, $2-1, $1-1900, 0,0,0);
-        return sub { gettext_strftime($_[0], @arg); };
-    }
 }
 
 ## To add a directory to the TT2 include_path
@@ -259,6 +171,7 @@ sub get_error {
 
 sub parse_tt2 {
     my ($data, $template, $output, $include_path, $options) = @_;
+
     $include_path ||= ['--ETCBINDIR--'];
 
     ## Add directories that may have been added
@@ -272,34 +185,35 @@ sub parse_tt2 {
 	$template = \join('', @$template);
     }
 
+    # Do we need to recode strings
+    # maketext will check the $recode variable
+    if (defined $options &&
+	$options->{'recode'}) {
+	&Language::set_recode( $options->{'recode'});
+    }
+
     # quick hack! wrong layer!
 #    s|^/home/sympa/bin/etc/wws_templates/(.*?)(\...)?(\.tpl)|$1.tt2|
 #	for values %$data;
 
 #    &do_log('notice', 'TPL: %s ; LANG: %s', $template, $data->{lang});
 
-    &Language::SetLang($data->{lang}) if ($data->{'lang'});
+    &Language::SetLang($data->{lang});
 
     my $config = {
 	# ABSOLUTE => 1,
 	INCLUDE_PATH => $include_path,
 #	PRE_CHOMP  => 1,
-	UNICODE => 0, # Prevent BOM auto-detection
 	
 	FILTERS => {
 	    unescape => \&CGI::Util::unescape,
 	    l => [\&tt2::maketext, 1],
 	    loc => [\&tt2::maketext, 1],
-	    locdt => [\&tt2::locdatetime, 1],
 	    qencode => [\&qencode, 0],
- 	    escape_xml => [\&escape_xml, 0],
-	    escape_url => [\&escape_url, 0],
-	    escape_quote => [\&escape_quote, 0],
-	    decode_utf8 => [\&decode_utf8, 0],
-	    encode_utf8 => [\&encode_utf8, 0]
-	    }
-    };
-    
+ 	    escape_xml => [\&escape_xml, 0]
+	    },
+	    };
+
     if ($allow_absolute) {
 	$config->{'ABSOLUTE'} = 1;
 	$allow_absolute = 0;
@@ -312,9 +226,14 @@ sub parse_tt2 {
 	&do_log('err', 'Failed to parse %s : %s', $template, $tt2->error());
 	&do_log('err', 'Looking for TT2 files in %s', join(',',@{$include_path}));
 
+	# Reset $recode
+	&Language::set_recode();
 
 	return undef;
     } 
+
+    # Reset $recode
+    &Language::set_recode();
 
     return 1;
 }

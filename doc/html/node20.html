@@ -1,20 +1,23 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 
-<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+<!--Converted with jLaTeX2HTML 2002-2-1 (1.70) JA patch-2.0
+patched version by:  Kenshi Muto, Debian Project.
+* modified by:  Shige TAKENO
+LaTeX2HTML 2002-2-1 (1.70),
 original version by:  Nikos Drakos, CBLU, University of Leeds
 * revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
 * with significant contributions from:
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>19. List creation, edition and removal</TITLE>
-<META NAME="description" CONTENT="19. List creation, edition and removal">
+<TITLE>19. Shared documents</TITLE>
+<META NAME="description" CONTENT="19. Shared documents">
 <META NAME="keywords" CONTENT="sympa">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META NAME="Generator" CONTENT="jLaTeX2HTML v2002-2-1 JA patch-2.0">
 <META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 
 <LINK REL="STYLESHEET" HREF="sympa.css">
@@ -27,32 +30,32 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 
 <BODY TEXT="#000000" BGCOLOR="#ffffff">
 <!--Navigation Panel-->
-<A NAME="tex2html1365"
+<A NAME="tex2html1288"
   HREF="node21.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1359"
+<A NAME="tex2html1282"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1353"
+<A NAME="tex2html1276"
   HREF="node19.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1361"
+<A NAME="tex2html1284"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1363"
-  HREF="node31.html">
+<A NAME="tex2html1286"
+  HREF="node26.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1366"
-  HREF="node21.html">20. Lists Families</A>
-<B> Up:</B> <A NAME="tex2html1360"
+<B> Next:</B> <A NAME="tex2html1289"
+  HREF="node21.html">20. Bounce management</A>
+<B> Up:</B> <A NAME="tex2html1283"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1354"
-  HREF="node19.html">18. Mailing list definition</A>
- &nbsp; <B>  <A NAME="tex2html1362"
+<B> Previous:</B> <A NAME="tex2html1277"
+  HREF="node19.html">18. List configuration parameters</A>
+ &nbsp; <B>  <A NAME="tex2html1285"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1364"
-  HREF="node31.html">Index</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1287"
+  HREF="node26.html">Index</A></B> 
 <BR>
 <BR>
 <!--End of Navigation Panel-->
@@ -60,556 +63,566 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 <A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
 
 <UL>
-<LI><A NAME="tex2html1367"
-  HREF="node20.html#SECTION002010000000000000000">19.1 List creation</A>
+<LI><A NAME="tex2html1290"
+  HREF="node20.html#SECTION002010000000000000000">19.1 The three kind of operations on a document</A>
+<LI><A NAME="tex2html1291"
+  HREF="node20.html#SECTION002020000000000000000">19.2 The description file</A>
 <UL>
-<LI><A NAME="tex2html1368"
-  HREF="node20.html#SECTION002011000000000000000">19.1.1 Data for list creation</A>
-<LI><A NAME="tex2html1369"
-  HREF="node20.html#SECTION002012000000000000000">19.1.2 XML file format</A>
+<LI><A NAME="tex2html1292"
+  HREF="node20.html#SECTION002021000000000000000">19.2.1 Structure of description files</A>
 </UL>
 <BR>
-<LI><A NAME="tex2html1370"
-  HREF="node20.html#SECTION002020000000000000000">19.2 List families</A>
-<LI><A NAME="tex2html1371"
-  HREF="node20.html#SECTION002030000000000000000">19.3 List creation on command line with <TT>sympa.pl</TT></A>
-<LI><A NAME="tex2html1372"
-  HREF="node20.html#SECTION002040000000000000000">19.4 Creating and editing mailing using the web</A>
+<LI><A NAME="tex2html1293"
+  HREF="node20.html#SECTION002030000000000000000">19.3 The predefined authorization scenarios</A>
 <UL>
-<LI><A NAME="tex2html1373"
-  HREF="node20.html#SECTION002041000000000000000">19.4.1 List creation on the Web interface</A>
-<LI><A NAME="tex2html1374"
-  HREF="node20.html#SECTION002042000000000000000">19.4.2 Who can create lists on the Web interface</A>
-<LI><A NAME="tex2html1375"
-  HREF="node20.html#SECTION002043000000000000000">19.4.3 typical list profile and Web interface</A>
-<LI><A NAME="tex2html1376"
-  HREF="node20.html#SECTION002044000000000000000">19.4.4 List edition</A>
+<LI><A NAME="tex2html1294"
+  HREF="node20.html#SECTION002031000000000000000">19.3.1 The public scenario</A>
+<LI><A NAME="tex2html1295"
+  HREF="node20.html#SECTION002032000000000000000">19.3.2 The private scenario</A>
+<LI><A NAME="tex2html1296"
+  HREF="node20.html#SECTION002033000000000000000">19.3.3 The scenario owner</A>
+<LI><A NAME="tex2html1297"
+  HREF="node20.html#SECTION002034000000000000000">19.3.4 The scenario editor</A>
 </UL>
 <BR>
-<LI><A NAME="tex2html1377"
-  HREF="node20.html#SECTION002050000000000000000">19.5 Removing a list</A>
+<LI><A NAME="tex2html1298"
+  HREF="node20.html#SECTION002040000000000000000">19.4 Access control</A>
+<UL>
+<LI><A NAME="tex2html1299"
+  HREF="node20.html#SECTION002041000000000000000">19.4.1 Listmaster and privileged owners</A>
+<LI><A NAME="tex2html1300"
+  HREF="node20.html#SECTION002042000000000000000">19.4.2 Special case of the <TT>shared</TT> directory</A>
+<LI><A NAME="tex2html1301"
+  HREF="node20.html#SECTION002043000000000000000">19.4.3 General case</A>
 </UL>
+<BR>
+<LI><A NAME="tex2html1302"
+  HREF="node20.html#SECTION002050000000000000000">19.5 Shared document actions</A>
+<LI><A NAME="tex2html1303"
+  HREF="node20.html#SECTION002060000000000000000">19.6 Template files</A>
+<UL>
+<LI><A NAME="tex2html1304"
+  HREF="node20.html#SECTION002061000000000000000">19.6.1 d_read.tt2</A>
+<LI><A NAME="tex2html1305"
+  HREF="node20.html#SECTION002062000000000000000">19.6.2 d_editfile.tt2</A>
+<LI><A NAME="tex2html1306"
+  HREF="node20.html#SECTION002063000000000000000">19.6.3 d_control.tt2</A>
+<LI><A NAME="tex2html1307"
+  HREF="node20.html#SECTION002064000000000000000">19.6.4 d_upload.tt2</A>
+<LI><A NAME="tex2html1308"
+  HREF="node20.html#SECTION002065000000000000000">19.6.5 d_properties.tt2</A>
+</UL></UL>
 <!--End of Table of Child-Links-->
 <HR>
 
 <H1><A NAME="SECTION002000000000000000000"></A>
-    <A NAME="ml-creation"></A>
+    <A NAME="shared"></A>    <A NAME="3889"></A>
 <BR>
-19. List creation, edition and removal
+19. Shared documents
 </H1>
 
 <P>
-The list creation can be done by two ways, according to listmaster 
-needs : 
-
-<UL>
-<LI>instanciation family to create and manage large number of related lists. 
-    In this case, lists are linked to their family all along their life (Moreover
-    you can let sympa automatically create lists when needed.
-    See <A HREF="node21.html#automatic-list-creation">20.3</A>, page&nbsp;<A HREF="node21.html#automatic-list-creation"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>).    
-</LI>
-<LI>command line creation of individual list with <A NAME="10781"></A><TT>sympa.pl</TT> or on the Web 
-interface according to privileges defined by listmasters. Here lists are free from 
-their model creation.
-</LI>
-</UL> 
-Management of mailing lists by list owners is usually done via the Web interface : 
-when a list is created, whatever its status (<A NAME="10784"></A><TT>pending</TT> or <A NAME="10787"></A><TT>open</TT>), the owner 
-can use WWSympa admin features to modify list parameters, or to edit the welcome 
-message, and so on.
+Shared documents are documents that different users can manipulate
+on-line via the web interface of <I>Sympa</I>, provided that the are authorized
+to do so. A shared space is associated with a list, and users of the list 
+can upload, download, delete, etc, documents in the shared space.
 
 <P>
-WWSympa keeps logs of the creation and all modifications to a list as part of the list's
-<A NAME="10790"></A><TT>config</TT> file (old configuration files are archived).
-A complete installation requires some careful planning, although default
-values should be acceptable for most sites.
+<A NAME="9473"></A><I>WWSympa</I> shared web features are fairly rudimentary. It is not our aim to provide
+a sophisticated tool for web publishing, such as are provided by products
+like <I>Rearsite</I>.
+It is nevertheless very useful to be able to define privilege on
+web documents in relation to list attributes such as <I>subscribers</I>,
+<I>list owners</I>, or <I>list editors</I>. 
+
+<P>
+All file and directory names are lowercased by Sympa. It is consequently
+impossible to create two different documents whose names differ only
+in their case. The reason Sympa does this is to allow correct URL links
+even when using an HTML document generator (typically Powerpoint) which uses 
+random case for file names!
+
+<P>
+In order to have better control over the documents and to enforce security in
+the shared space, each document is linked to a set of specific control information : 
+its access rights.
+
+<P>
+A list's shared documents are stored in the <A NAME="9476"></A><TT>/usr/local/sympa-os/expl/mylist/shared</TT>
+directory. 
+
+<P>
+This chapter describes how the shared documents are managed, 
+especially as regards their access rights. 
+We shall see :  
+
+<P>
+
+<UL>
+<LI>the kind of operations which can be performed on shared documents 
+
+<P>
+</LI>
+<LI>access rights management  
+
+<P>
+</LI>
+<LI>access rights control specifications
+
+<P>
+</LI>
+<LI>actions on shared documents
+
+<P>
+</LI>
+<LI>template files
+</LI>
+</UL>
 
 <P>
 
 <H1><A NAME="SECTION002010000000000000000"></A>
-    <A NAME="list-creation"></A>
+    <A NAME="shared-operations"></A>
 <BR>
-19.1 List creation
+19.1 The three kind of operations on a document
 </H1>
-
-<P>
-Mailing lists can have many different uses. <I>Sympa</I> offers a
-wide choice of parameters to adapt a list behavior
-to different situations. Users might have difficulty selecting all the
-correct parameters to make the list configuration, so instead of selecting each 
-parameters, list configuration is made with a list profile. This is an 
-almost complete list configuration, but with a number of unspecified fields
-(such as owner e-mail) to be replaced by <I>Sympa</I> at list creation time. It is easy to create new list 
-templates by modifying existing ones. (Contributions to the distribution are welcome...)
-
-<P>
-
-<H2><A NAME="SECTION002011000000000000000">
-19.1.1 Data for list creation</A>
-</H2>
-
-<P>
-To create a list, some data concerning list parameters are required : 
+Where shared documents are concerned, there are three kinds of operation which
+have the same constraints relating to access control :
 
 <UL>
-<LI><B>listname </B> : name of the list,
+<LI>The read operation :
+<BR>	
+<UL>
+<LI>If applied on a directory, opens it and lists its contents (only those
+		sub-documents the user is authorized to ``see'').
 </LI>
-<LI><B>subject</B> : subject of the list (a short description),
+<LI>If applied on a file, downloads it, and in the case of a viewable file (<I>text/plain</I>, <I>text/html</I>,
+		or image), displays it. 
+	
 </LI>
-<LI><B>owner(s)</B> : by static definition and/or dynamic definition.
-    In case of static definition, the parameter <B>owner</B> and its subparameter <B>email</B> are required.
-    For dynamic definition, the parameter  <B>owner_include</B> and its subparameter <B>source</B> are required, 
-    indicating source file of data inclusion.
+</UL>
 </LI>
-<LI><B>list creation template</B> : the typical list profile.
+<LI>The edit operation allows :
+<BR>		
+<UL>
+<LI>Subdirectory creation
+</LI>
+<LI>File uploading
+</LI>
+<LI>File unzipping
+</LI>
+<LI>Description of a document (title and basic information)
+</LI>
+<LI>On-line editing of a text file
+</LI>
+<LI>Document (file or directory) removal. If on a directory, it must be empty.
+		
+</LI>
+</UL>
+	These different edit actions are equivalent as regards access rights. Users who are
+	authorized to edit a directory can create a subdirectory or upload a file to it,
+	as well as describe or delete it. Users authorized to edit a file can edit
+	it on-line, describe it, replace or remove it.  
+</LI>
+<LI>The control operation :
+<BR>
+The control operation is directly linked to the notion of access rights. If we wish
+	shared documents to be secure, we have to control the access to them. Not everybody
+	must be authorized to do everything to them. Consequently, each document has
+	specific access rights for reading and editing. Performing a control action on a document
+	involves changing its Read/Edit rights.
+<BR>
+The control operation has more restrictive access rights than the other two operations.
+	Only the owner of a document, the privileged owner of the list and the listmaster have
+	control rights on a document. Another possible control action on a document is therefore
+	specifying who owns it.  
 </LI>
 </UL>
 
 <P>
-Moreover of these required data, provided values are assigned to vars being in the list creation template. 
-Then the result is the list configuration file :
+
+<H1><A NAME="SECTION002020000000000000000"></A>
+<A NAME="shared-desc-file"></A>
 <BR>
+19.2 The description file
+</H1>
+The information (title, owner, access rights...) relative to each document must be stored, and so
+each shared document is linked to a special file called a description file, whose name includes
+the <A NAME="9479"></A><TT>.desc</TT> prefix.
+
 <P>
-On the Web interface, these data are given by the list creator in the web form. On command line these 
-data are given by an xml file.
+The description file of a directory having the path <A NAME="9482"></A><TT>mydirectory/mysubdirectory</TT> has the path
+<A NAME="9485"></A><TT>mydirectory/mysubdirectory/.desc</TT> .
+The description file of a file having the path <A NAME="9488"></A><TT>mydirectory/mysubdirectory/myfile.myextension</TT> has the path
+<A NAME="9491"></A><TT>mydirectory/mysubdirectory/.desc.myfile.myextension</TT> .
 
 <P>
 
-<H2><A NAME="SECTION002012000000000000000"></A>
-<A NAME="xml-file-format"></A>
-<BR>
-19.1.2 XML file format
+<H2><A NAME="SECTION002021000000000000000">
+19.2.1 Structure of description files</A>
 </H2>
 
 <P>
-The xml file provides information on :
-<BR>
-<UL>
-<LI>the list name,
-</LI>
-<LI>values to assign vars in the list creation template
-</LI>
-<LI>the list description in order to be written in the list file info
-</LI>
-<LI>the name of the list creation template (only for list creation on command line with sympa.pl, in a family context, the template is specified by the family name)
-</LI>
-</UL>
-
-<P>
-Here is an example of XML document that you can map with the following example of list creation template.:
+The structure of a document (file or directory) description file is given below.
+You should <I>never</I> have to edit a description file.
 
 <P><PRE>
-&lt;?xml version="1.0" ?&gt;
-&lt;list&gt;
-	&lt;listname&gt;example&lt;/listname&gt;
-  	&lt;type&gt;my_profile&lt;/type&gt;
-  	&lt;subject&gt;a list example&lt;/subject&gt;
-  	&lt;description/&gt;
-  	&lt;status&gt;open&lt;/status&gt;
-  	&lt;shared_edit&gt;editor&lt;/shared_edit&gt;
-    	&lt;shared_read&gt;private&lt;/shared_read&gt;
-	&lt;language&gt;fr&lt;/language&gt;
-	&lt;owner multiple="1"&gt; 
-	   &lt;email&gt;serge.aumont@cru.fr&lt;/email&gt;
-	   &lt;gecos&gt;C.R.U.&lt;/gecos&gt;
-	&lt;/owner&gt;
-	&lt;owner multiple="1"&gt; 
-	   &lt;email&gt;olivier.salaun@cru.fr&lt;/email&gt;
-	&lt;/owner&gt;
-	&lt;owner_include multiple="1"&gt;
-	   &lt;source&gt;my_file&lt;/source&gt;
-	&lt;/owner_include&gt;
-	&lt;sql&gt; 
-	   &lt;type&gt;oracle&lt;/type&gt;
-	   &lt;host&gt;sqlserv.admin.univ-x.fr&lt;/host&gt;
-	   &lt;user&gt;stdutilisateur&lt;/user&gt;
-	   &lt;pwd&gt;monsecret&lt;/pwd&gt;
-	   &lt;name&gt;les_etudiants&lt;/name&gt;
-	   &lt;query&gt;SELECT DISTINCT email FROM etudiant&lt;/query&gt;
-	&lt;/sql&gt;
-&lt;/list&gt;
+title
+  &lt;description of the file in a few words&gt;
 
+creation
+  email        &lt;e-mail of the owner of the document&gt; 
+  date_epoch   &lt;date_epoch of the creation of the document&gt;
 
-
-subject [% subject %]
-
-status [% status %]
-
-[% IF topic %]
-topics [% topic %]
-
-[% END %]
-visibility noconceal
-
-send privateoreditorkey
-
-Web_archive
-  access public
-
-subscribe open_notify
-
-shared_doc
-  d_edit [% shared_edit %]
-  d_read [% shared_read %]
-
-lang [% language %]
-
-[% FOREACH o = owner %]
-owner
-  email [% o.email %]
-  profile privileged
-  [% IF o.gecos %] 
-  gecos [% o.gecos %]
-  [% END %]
-
-[% END %]
-[% IF moderator %]
-   [% FOREACH m = moderator %]
-editor
-  email [% m.email %]
-
-   [% END %]
-[% END %]
- 
-[% IF sql %]
-include_sql_query
-  db_type [% sql.type %]
-  host [% sql.host %]
-  user [% sql.user %]
-  passwd [% sql.pwd %]
-  db_name [% sql.name %]
-  sql_query [% sql.query %]
-    
-[% END %]
-ttl 360
+access
+ read &lt;access rights for read&gt;
+ edit &lt;access rights for edit&gt;
 </PRE>
 
 <P>
-The XML file format should comply with the following rules : 
+The following example is for a document that subscribers can read, but which only the owner of the document
+and the owner of the list can edit.<PRE>
+title
+  module C++ which uses the class List
 
-<UL>
-<LI>The root element is <A NAME="10795"></A><TT>&lt;list&gt;</TT>
-</LI>
-<LI>One XML element is mandatory : <A NAME="10798"></A><TT>&lt;listname&gt;</TT> contains the name of the list.
-        That not excludes mandatory parameters for list creation (<A NAME="10801"></A><TT>listname, subject,owner.email and/or 
-	owner_include.source</TT>).
-</LI>
-<LI><A NAME="10804"></A><TT>&lt;type&gt;</TT> : this element contains the name of template list creation, it is used for list creation on command line with sympa.pl.
-        In a family context, this element is no used.
-</LI>
-<LI><A NAME="10807"></A><TT>&lt;description&gt;</TT> : the text contained in this element is written in list <A NAME="10810"></A><TT>info</TT> file(it can be a CDATA section).
-</LI>
-<LI>For other elements, its name is the name of the var to assign in the list creation template. 
-</LI>
-<LI>Each element concerning multiple parameters must have the <A NAME="10813"></A><TT>multiple</TT> attribute set 
-    to ``1'', example : <A NAME="10816"></A><TT>&lt;owner multiple=''1''></TT>. 
-</LI>
-<LI>For composed and multiple parameters, sub-elements are used. Example for <A NAME="10819"></A><TT>owner</TT> parameter :
-    <A NAME="10822"></A><TT>&lt;email&gt;</TT> and <A NAME="10825"></A><TT>&lt;gecos&gt;</TT> elements are contained in the <A NAME="10828"></A><TT>&lt;owner&gt;</TT>element. 
-    An element can only have homogeneous content.
-</LI>
-<LI>A list requires at least one owner, defined in the XML input file with one of the following elements :
-    
-<UL>
-<LI><A NAME="10831"></A><TT>&lt;owner multiple=''1''> &lt;email&gt; ... &lt;/email&gt; &lt;/owner&gt;</TT>
-</LI>
-<LI><A NAME="10834"></A><TT>&lt;owner_include multiple=''1''> &lt;source&gt; ... &lt;/source&gt; &lt;/owner_include&gt;</TT>
-    
-</LI>
-</UL>
-</LI>
-</UL>
+creation
+  email foo@some.domain.com
+  date_epoch 998698638
+
+access
+ read  private
+ edit  owner
+</PRE>
 
 <P>
 
-<H1><A NAME="SECTION002020000000000000000">
-19.2 List families</A>
+<H1><A NAME="SECTION002030000000000000000"></A>
+    <A NAME="shared-scenarios"></A>
+<BR>
+19.3 The predefined authorization scenarios
 </H1>
 
 <P>
-See chapter <A HREF="node21.html#lists-families">20</A>, page&nbsp;<A HREF="node21.html#lists-families"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>
+
+<H2><A NAME="SECTION002031000000000000000">
+19.3.1 The public scenario</A>
+</H2>
+The <B>public</B> scenario is the most permissive scenario. It enables anyone (including
+unknown users) to perform the corresponding action.
 
 <P>
 
-<H1><A NAME="SECTION002030000000000000000"></A><A NAME="10837"></A>
-    <A NAME="list-creation-sympa"></A>
-<BR>
-19.3 List creation on command line with <TT>sympa.pl</TT>
-</H1>
-
-<P>
-This way to create lists is independent of family. 
-
-<P>
-Here is a sample command to create one list :.
-<BLOCKQUOTE>
-sympa.pl -create_list -robot my.domain.org-input_file /path/to/my_file.xml
-
-</BLOCKQUOTE>
-
-<P>
-The list is created under the <A NAME="10840"></A><TT>my_robot</TT> robot and the list 
-is described in the file <A NAME="10843"></A><TT>my_file.xml</TT>. The XML file is 
-described before, see <A HREF="#xml-file-format">19.1.2</A>, page&nbsp;<A HREF="node20.html#xml-file-format"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>.
-
-<P>
-By default, the status of the created list is <A NAME="10846"></A><TT>open</TT>.
+<H2><A NAME="SECTION002032000000000000000">
+19.3.2 The private scenario</A>
+</H2>
+The <B>private</B> scenario is the basic scenario for a shared space. Every subscriber of
+the list is authorized to perform the corresponding action. The <B>private</B> scenario is the default
+read scenario for <A NAME="9494"></A><TT>shared</TT> when this shared space is created. This can be modified by editing
+the list configuration file.
 
 <P>
 
-<H3><A NAME="SECTION002030100000000000000"></A>
-    <A NAME="typical-list-profile"></A>
-<BR>
-19.3.0.1 typical list profile (list template creation)
-</H3>
+<H2><A NAME="SECTION002033000000000000000">
+19.3.3 The scenario owner</A>
+</H2>
+The scenario <B>owner</B> is the most restrictive scenario for a shared space.
+Only the listmaster, list owners and the owner of the document
+(or those of a parent document) are allowed to perform the corresponding action.
+The <B>owner</B> scenario is the default scenario for editing. 
 
 <P>
-The list creator has to choose a profile
-for the list and put its name in the XML element <A NAME="10849"></A><TT>&lt;type&gt;</TT>.
 
-<P>
-List profiles are stored in <A NAME="10852"></A><TT>/usr/local/sympa-os/etc/create_list_templates</TT> or in
-<A NAME="10855"></A><TT>/usr/local/sympa-os/bin/etc/create_list_templates</TT> (default of distrib).
-
-<P>
-You might want to hide or modify profiles (not useful, or dangerous 
-for your site). If a profile exists both in the local site directory
-<A NAME="10858"></A><TT>/usr/local/sympa-os/etc/create_list_templates</TT> and
-<A NAME="10861"></A><TT>/usr/local/sympa-os/bin/etc/create_list_templates</TT> directory, then the local profile 
-will be used by WWSympa. 
+<H2><A NAME="SECTION002034000000000000000">
+19.3.4 The scenario editor</A>
+</H2>
+The scenario <B>editor</B> is for a moderated shared space for editing. Every suscriber of the list is 
+allowed to editing a document. But this document will have to be installed or rejected by the editor of the 
+list. Documents awaiting for moderation are visible by their author and the editor(s) of the list in the
+shared space. The editor has also an interface with all documents awaiting. When there is a new document,
+the editor is notiied and when the document is installed, the author is notiied too. In case of reject, 
+the editor can notify the author or not.  
 
 <P>
 
 <H1><A NAME="SECTION002040000000000000000"></A>
-    <A NAME="web-ml-creation"></A>
+    <A NAME="shared-access"></A>
 <BR>
-19.4 Creating and editing mailing using the web
+19.4 Access control
 </H1>
+Access control is an important operation performed
+every time a document within the shared space is accessed.
 
 <P>
-The management of mailing lists is based on a strict definition of privileges 
-which pertain respectively to the listmaster, to the main list owner, and to 
-basic list owners. The goal is to allow each listmaster to define who can create 
-lists, and which parameters may be set by owners.
+The access control relative to a document in the hierarchy involves an iterative
+operation on all its parent directories. 
 
 <P>
 
 <H2><A NAME="SECTION002041000000000000000">
-19.4.1 List creation on the Web interface</A>
+19.4.1 Listmaster and privileged owners</A>
 </H2>
-
-<P>
-Listmasters are responsible for validating new mailing lists and, depending on the configuration chosen, 
-might be the only ones who can fill out the create list form.The listmaster
-is defined in <A NAME="10864"></A><TT>sympa.conf</TT> and others are defined at the virtual host level. By default, any authenticated user can 
-request a list creation but newly created are then validated by the listmaster. 
-
-<P>
-List rejection message and list creation notification message are both
-templates that you can customize (<A NAME="10867"></A><TT>list_rejected.tt2</TT> and
-<A NAME="10870"></A><TT>list_created.tt2</TT>).
+The listmaster and privileged list owners are special users in the shared
+web. They are allowed to perform every action on every document in
+the shared space. This privilege enables control over
+the shared space to be maintained. It is impossible to prevent the listmaster and
+privileged owners from performing whatever action they please on any document
+in the shared space.
 
 <P>
 
-<H2><A NAME="SECTION002042000000000000000">
-19.4.2 Who can create lists on the Web interface</A>
+<H2><A NAME="SECTION002042000000000000000"></A><A NAME="9497"></A>
+<BR>
+19.4.2 Special case of the <TT>shared</TT> directory
 </H2>
-
-<P>
-This is defined by the <A NAME="10873"></A><TT>create_list</TT> sympa.conf parameter (see <A HREF="node8.html#create-list">7.1.19</A>,  
-page&nbsp;<A HREF="node8.html#create-list"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>). This parameter refers to a <B>create_list</B> authorization scenario.
-It will determine if the <I>create list</I> button is displayed and if it requires
-a listmaster confirmation.
-
-<P>
-The authorization scenario can accept any condition concerning the [sender]
-(i.e. WWSympa user), and it returns <A NAME="10876"></A><TT>reject</TT>, <A NAME="10879"></A><TT>do_it</TT>
-or <A NAME="10882"></A><TT>listmaster</TT> as an action.
-
-<P>
-Only in cases where a user is authorized by the create_list authorization scenario
-will the "create" button be available in the main menu.
-If the scenario returns <A NAME="10885"></A><TT>do_it</TT>, the list will be created and installed.
-If the scenario returns "listmaster", the user is allowed to create a list, but
-the list is created with the <A NAME="10888"></A><TT>pending</TT> status,
-which means that only the list owner may view or use it.
-The listmaster will need to open the list of pending lists
-using the "pending list" button in the "server admin"
-menu in order to install or refuse a pending list.
+In order to allow access to a root directory to be more restrictive than
+that of its subdirectories, the <A NAME="9500"></A><TT>shared</TT> directory (root directory) is
+a special case as regards access control.
+The access rights for read and edit are those specified in the list configuration file.
+Control of the root directory is specific. 
+Only those users authorized to edit a list's configuration may change access rights on
+its <A NAME="9503"></A><TT>shared</TT> directory. 
 
 <P>
 
 <H2><A NAME="SECTION002043000000000000000">
-19.4.3 typical list profile and Web interface</A>
+19.4.3 General case</A>
 </H2>
-As on command line creation, the list creator has to choose a list profile and to fill in the owner's e-mail 
-and the list subject together with a short description. But in this case, you don't need any XML file. Concerning
-these typical list profiles, they are described before, see <A HREF="#typical-list-profile">19.3</A>, page&nbsp;<A HREF="node20.html#typical-list-profile"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>. 
-You can check available profile. On the Web interface, another way 
-to control publicly available profiles is to
-edit the <A NAME="10891"></A><TT>create_list.conf</TT> file (the default for this file is in
-the <A NAME="10894"></A><TT>/usr/local/sympa-os/bin/etc</TT> directory, and you may create your own customized
-version in <A NAME="10897"></A><TT>/usr/local/sympa-os/etc</TT>).
-This file controls which of the available list templates are to be displayed. Example :<PRE>
-# Do not allow the public_anonymous profile
-public_anonymous hidden
-* read
-</PRE>
-
-<P>
-
-<H2><A NAME="SECTION002044000000000000000"></A>
-<A NAME="list-edition"></A>
-<BR>
-19.4.4 List edition
-</H2>
-
-<P>
-For each parameter, you may specify (via the <A NAME="10900"></A><TT>/usr/local/sympa-os/etc/edit_list.conf</TT>
-configuration file) who has the right to edit the parameter concerned ; the default 
-<A NAME="10903"></A><TT>/usr/local/sympa-os/bin/etc/edit_list.conf</TT> is reasonably safe.
-
-<P>
-<PRE>
-Each line is a set of 3 field
-&lt;Parameter&gt; &lt;Population&gt; &lt;Privilege&gt;
-&lt;Population&gt; : &lt;listmaster|privileged_owner|owner&gt; 
-&lt;Privilege&gt; : &lt;write|read|hidden&gt;
-parameter named "default" means any other parameter
-</PRE>
-
-<P>
-There is no hierarchical relation between  populations in this
-configuration file. You need to explicitely list populations.
-
-<P>
-Eg: listmaster will not match rules refering to owner or privileged_owner
-
-<P><PRE>
-     examples :
-
-	# only listmaster can edit user_data_source, priority, ...
-	user_data_source listmaster write  
-
-	priority 	owner,privileged_owner 		read
-	priority 	listmaster 			write
-      
-	# only privileged owner can modify  editor parameter, send, ...
-	editor privileged_owner write
-	
-	send 		owner 				read
-	send 		privileged_owner,listmaster 	write
-
-	# other parameters can be changed by simple owners
-	default 	owner 				write
-</PRE>
-
-<P>
-Privileged owners are defined in the list's <A NAME="10906"></A><TT>config</TT> file as follows :
-	<PRE>
-	owner
-	email owners.email@foo.bar
-	profile privileged
-</PRE>
-
-<P>
-The following rules are hard coded in WWSympa :
+<A NAME="9506"></A><TT>mydirectory/mysubdirectory/myfile</TT> is an arbitrary document in the shared space,
+but not in the <I>root</I> directory. A user <B>X</B> wishes to perform one
+of the three operations (read, edit, control) on this document.
+The access control will proceed as follows :
 
 <UL>
-<LI>only listmaster can edit the "profile privileged"
-      owner attribute 
+<LI>Read operation
+<BR>
+To be authorized to perform a read action on
+	<A NAME="9509"></A><TT>mydirectory/mysubdirectory/myfile</TT>, <B>X</B> must be
+	authorized to read every document making up the path; in other words, she
+	must be allowed to read <A NAME="9512"></A><TT>myfile</TT> (the authorization scenario of the description file
+	of <A NAME="9515"></A><TT>myfile</TT> must return <I>do_it</I> for user <B>X</B>), and the
+	same goes for <A NAME="9518"></A><TT>mysubdirectory</TT> and <A NAME="9521"></A><TT>mydirectory</TT>).
+<BR>
+In addition, given that the owner of a document or one of its parent directories
+	is allowed to perform <B>all actions on that document</B>,
+	<A NAME="9524"></A><TT>mydirectory/mysubdirectory/myfile</TT> may also have read operations performed
+	on it by the owners of <A NAME="9527"></A><TT>myfile</TT>, <A NAME="9530"></A><TT>mysubdirectory</TT>,
+	and <A NAME="9533"></A><TT>mydirectory</TT>.
+
+<P>
+This can be schematized as follows :<PRE>
+	X can read &lt;a/b/c&gt; 
+
+	if			  
+
+	(X can read &lt;c&gt;
+	AND X can read &lt;b&gt;
+	AND X can read &lt;a&gt;)
+					
+	OR
+
+	(X owner of &lt;c&gt;
+	OR X owner of &lt;b&gt;
+	OR X owner of &lt;a&gt;)
+</PRE>
 
 <P>
 </LI>
-<LI>owners can edit their own attributes (except profile and e-mail)
+<LI>Edit operation
+<BR>
+The access algorithm for edit is identical to the algorithm for read :<PRE>
+	X can edit &lt;a/b/c&gt; 
+	
+	if 
+		
+	(X can edit &lt;c&gt;
+	AND X can edit &lt;b&gt;				
+	AND X can edit &lt;a&gt;)
+					
+	OR
+
+	(X owner of &lt;c&gt;
+	OR X owner of &lt;b&gt;
+	OR X owner of &lt;a&gt;)
+</PRE>
 
 <P>
 </LI>
-<LI>the requestor creating a new list becomes a privileged owner
+<LI>Control operation
+<BR>
+The access control which precedes a control action (change rights
+	or set the owner of a document) is much more restrictive.
+	Only the owner of a document or the owners of a parent
+	document may perform a control action :<PRE>
+	X can control &lt;a/b/c&gt; 
 
-<P>
-</LI>
-<LI>privileged owners can edit any gecos/reception/info attribute
-of any owner
-
-<P>
-</LI>
-<LI>privileged owners can edit owners' e-mail addresses (but not privileged owners' e-mail addresses)
+	if
+					
+	(X owner of &lt;c&gt;
+	OR X owner of &lt;b&gt;
+	OR X owner of &lt;a&gt;)
+</PRE>
 
 <P>
 </LI>
 </UL>
 
 <P>
-Sympa aims to define two levels of trust for owners (some being entitled 
-      simply to edit secondary parameters such as "custom_subject", others having
-      the right to manage more important parameters), while leaving control of
-      crucial parameters (such as the list of privileged owners and user_data_sources)
-      in the hands of the listmaster.
-      Consequently, privileged owners can change owners' e-mails,
-      but they cannot grant the responsibility of list management to others without
-      referring to the listmaster.
 
-<P>
-Concerning list edition in a family context, see <A HREF="node21.html#list-param-edit-family">20.2.8</A>, page&nbsp;<A HREF="node21.html#list-param-edit-family"><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="crossref.png"></A>
-
-<P>
-
-<H1><A NAME="SECTION002050000000000000000"></A>
-    <A NAME="ml-removal"></A>
-<BR>
-19.5 Removing a list
+<H1><A NAME="SECTION002050000000000000000">
+19.5 Shared document actions</A>
 </H1>
 
 <P>
-You can remove a list either from the command line or using the web interface.
+The shared web feature has called for some new actions.
+
+<UL>
+<LI>action D_ADMIN
+<BR>
+Create the shared web, close it or restore it. The d_admin action is accessible
+	from a list's <B>admin</B> page.
+</LI>
+<LI>action D_READ
+<BR>
+Reads the document after read access control. If a folder, lists all the subdocuments that can
+	be read. If a file, displays it if it is viewable, else downloads it to disk.
+	If the document to be read contains a file named <A NAME="9536"></A><TT>index.html</TT> or <A NAME="9539"></A><TT>index.htm</TT>, and if
+	the user has no permissions other than read on all contained subdocuments, the read action will
+	consist in displaying the index.
+	The d_read action is accessible from a list's <B>info</B> page.
+</LI>
+<LI>action D_CREATE_DIR
+<BR>
+Creates a new subdirectory in a directory that can be edited without moderation. 
+	The creator is the owner of the directory. The access rights are
+	those of the parent directory.
+</LI>
+<LI>action D_DESCRIBE
+<BR>
+Describes a document that can be edited.
+</LI>
+<LI>action D_DELETE
+<BR>
+Deletes a document after edit access control. If applied to a folder, it has to be empty.
+</LI>
+<LI>action D_UPLOAD
+<BR>
+Uploads a file into a directory that can be edited.  
+</LI>
+<LI>action D_UNZIP
+<BR>
+Unzip a file into a directory that can be edited without moderation. The whole file hierarchy contained in the zip file
+	is installed into the directory.
+</LI>
+<LI>action D_OVERWRITE
+<BR>
+Overwrites a file if it can be edited. The new owner of the file is the one who has done
+	the overwriting operation.
+</LI>
+<LI>actions D_EDIT_FILE and D_SAVE_FILE
+<BR>
+Edits a file and saves it after edit access control. The new owner of the file is the one 
+	who has done the saving operation. 
+</LI>
+<LI>action D_CHANGE_ACCESS
+<BR>
+Changes the access rights of a document (read or edit), provided that control of this document is
+	authorized. 
+</LI>
+<LI>action D_SET_OWNER
+<BR>
+Changes the owner of a directory, provided that control of this document is
+	authorized. The directory must be empty. The new owner can be anyone, but authentication is necessary
+	before any action may be performed on the document.
 
 <P>
-<A NAME="10909"></A><TT>sympa.pl</TT> provides an option to remove a mailing list, see the example below :
-<BLOCKQUOTE>
-sympa.pl -remove_list=mylist@mydomain
-
-</BLOCKQUOTE>
+</LI>
+</UL>
 
 <P>
-Privileged owners can remove a mailing list through the list admin part of the web interface. Removing the mailing list
-consists in removing its subscribers from the database and setting its status to <I>closed</I>.Once removed, the list 
-can still be restored by the listmaster ; list members are saved in a <A NAME="10912"></A><TT>subscribers.closed.dump</TT> file.
+
+<H1><A NAME="SECTION002060000000000000000">
+19.6 Template files</A>
+</H1>
+The following template files have been created for the shared web:
+
+<P>
+
+<H2><A NAME="SECTION002061000000000000000">
+19.6.1 d_read.tt2</A>
+</H2> 
+The default page for reading a document. If for a file, displays it (if 
+viewable) or downloads it. If for a directory, displays all readable
+subdocuments, each of which will feature buttons corresponding
+to the different actions this subdocument allows. If the directory is
+editable, displays buttons to describe it or upload a file to it. If the
+directory is editable without moderation, it displays button to
+create a new subdirector or to upload a zip file in order to install a file hierarchy. 
+If access to the document is editable,
+displays a button to edit the access to it. 
+
+<P>
+
+<H2><A NAME="SECTION002062000000000000000">
+19.6.2 d_editfile.tt2</A>
+</H2> 
+The page used to edit a file. If for a text file, allows it to be edited on-line.
+This page also enables another file to be substituted in its place.
+
+<P>
+
+<H2><A NAME="SECTION002063000000000000000">
+19.6.3 d_control.tt2</A>
+</H2>
+The page to edit the access rights and the owner of a document. 
+
+<P>
+
+<H2><A NAME="SECTION002064000000000000000">
+19.6.4 d_upload.tt2</A>
+</H2>
+This page to upload a file is only used when the name of the file already exists.
+
+<P>
+
+<H2><A NAME="SECTION002065000000000000000">
+19.6.5 d_properties.tt2</A>
+</H2>
+This page is used to edit description file and to rename it.
 
 <P>
 
 <HR>
 <!--Navigation Panel-->
-<A NAME="tex2html1365"
+<A NAME="tex2html1288"
   HREF="node21.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
-<A NAME="tex2html1359"
+<A NAME="tex2html1282"
   HREF="sympa.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
-<A NAME="tex2html1353"
+<A NAME="tex2html1276"
   HREF="node19.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
-<A NAME="tex2html1361"
+<A NAME="tex2html1284"
   HREF="node1.html">
 <IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A> 
-<A NAME="tex2html1363"
-  HREF="node31.html">
+<A NAME="tex2html1286"
+  HREF="node26.html">
 <IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index" SRC="index.png"></A> 
 <BR>
-<B> Next:</B> <A NAME="tex2html1366"
-  HREF="node21.html">20. Lists Families</A>
-<B> Up:</B> <A NAME="tex2html1360"
+<B> Next:</B> <A NAME="tex2html1289"
+  HREF="node21.html">20. Bounce management</A>
+<B> Up:</B> <A NAME="tex2html1283"
   HREF="sympa.html">Sympa Mailing Lists Management Software version</A>
-<B> Previous:</B> <A NAME="tex2html1354"
-  HREF="node19.html">18. Mailing list definition</A>
- &nbsp; <B>  <A NAME="tex2html1362"
+<B> Previous:</B> <A NAME="tex2html1277"
+  HREF="node19.html">18. List configuration parameters</A>
+ &nbsp; <B>  <A NAME="tex2html1285"
   HREF="node1.html">Contents</A></B> 
- &nbsp; <B>  <A NAME="tex2html1364"
-  HREF="node31.html">Index</A></B> 
+ &nbsp; <B>  <A NAME="tex2html1287"
+  HREF="node26.html">Index</A></B> 
 <!--End of Navigation Panel-->
 <ADDRESS>
 root
-2006-11-21
+2005-06-16
 </ADDRESS>
 </BODY>
 </HTML>
