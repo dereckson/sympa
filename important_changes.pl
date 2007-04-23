@@ -75,15 +75,14 @@ if ($ENV{'ETCDIR'} && ! -f $version_file) {
     close VFILE;
 }
 
-`chown $ENV{'USER'} $version_file`;
-`chgrp $ENV{'GROUP'} $version_file`;
+`chown $ENV{'USER'}.$ENV{'GROUP'} $version_file`;
 
 if (($previous_version eq $current_version) ||
     &higher($previous_version,$current_version)){
     exit 0;
 }
 
-print "You are upgrading from Sympa $previous_version\nYou should read CAREFULLY the changes listed below ; they might be incompatible changes :\n<RETURN>";
+print "You are upgrading from Sympa $previous_version\nYou should read CAREFULLY the changes listed below ; they might be uncompatible changes :\n<RETURN>";
 my $wait = <STDIN>;
 
 ## Extracting Important changes from release notes

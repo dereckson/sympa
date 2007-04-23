@@ -2,14 +2,17 @@ From: SYMPA <[% conf.email %]@[% conf.host %]>
 To: [% to %]
 Subject: [% FILTER qencode %][%|loc%]Results of your commands[%END%][%END%]
 X-Loop: [% conf.sympa %]
+MIME-Version: 1.0
+Content-Type: text/plain; charset=[%|loc%]_charset_[%END%];
+Content-Transfer-Encoding: [%|loc%]_encoding_[%END%]
 
 [%############################-%]
 [%########## SUCCESS #########-%]
 [%############################-%]
 [% IF nb_notice -%]
-[% IF nb_notice == 1 -%][%|loc%]Command has been performed :[%END%]
+[% IF nb_notice == 1 -%]Command has been performed :
 
-[% ELSIF nb_notice > 1 -%][%|loc%]These commands have been performed :[%END%]
+[% ELSIF nb_notice > 1 -%]These commands have been performed :
 
 [% END -%]
 [%- FOREACH notice = notices -%]
@@ -24,7 +27,7 @@ owners for approval. You will receive a notification when you have
 been subscribed (or unsubscribed) to the list.[%END-%]
 
 [% ELSIF notice.entry == 'updated_info' -%]
-[%|loc(notice.email,notice.listname)%]Information regarding user %1 has been updated for list %2.[%END%]
+[%|loc(notice.email,notice.listname)%]Information regarding user %1 have been updated for list %2.[%END%]
 
 [% ELSIF notice.entry == 'now_subscriber' -%]
 [%|loc(notice.email,notice.listname)%]User %1 is now subscriber of list %2.[%END%]
@@ -60,9 +63,9 @@ been subscribed (or unsubscribed) to the list.[%END-%]
 [% IF before_auth %]
                    ===============================
 [% END %]
-[% IF nb_auth == 1 -%][%|loc%]Command has been rejected :[%END%]
+[% IF nb_auth == 1 -%]Command has been rejected :
 
-[% ELSIF nb_auth > 1 -%][%|loc%]These commands have been rejected :[%END%]
+[% ELSIF nb_auth > 1 -%]These commands have been rejected :
 
 [% END -%]
 [%- FOREACH auth = auths -%]
@@ -78,9 +81,9 @@ been subscribed (or unsubscribed) to the list.[%END-%]
 [% IF before_user_err %]
                    ===============================
 [% END %]
-[% IF nb_user_err == 1 -%][%|loc%]Command has failed :[%END%]
+[% IF nb_user_err == 1 -%]Command has failed :
 
-[% ELSIF nb_user_err > 1 -%][%|loc%]These commands have failed :[%END%]
+[% ELSIF nb_user_err > 1 -%]These commands have failed :
 
 [% END -%]
 [%- FOREACH u_err = user_errors -%]
@@ -143,9 +146,9 @@ email address. Please try using your canonical address.[%END-%]
 [% IF before_intern_err %]
                    ===============================
 [% END %]
-[% IF nb_intern_err == 1 -%][%|loc%]Command has failed because of an internal server error :[%END%]
+[% IF nb_intern_err == 1 -%]Command has failed because of an internal server error :
 
-[% ELSIF nb_intern_err > 1 -%][%|loc%]These commands have failed because of an internal server error :[%END%]
+[% ELSIF nb_intern_err > 1 -%]These commands have failed because of an internal server error :
 
 [% END -%]
 [%- FOREACH i_err = intern_errors -%]
@@ -178,4 +181,4 @@ email address. Please try using your canonical address.[%END-%]
 
 -----------==========================================-----------
 
-[%|loc(conf.wwsympa_url)%]For further information, check the mailing list web site %1[%END%]
+[%|loc(conf.listmaster_email,conf.host)%]For further information, please contact %1@%2[%END%]

@@ -15,7 +15,7 @@ unless (Conf::load('--CONFIG--')) {
 &do_openlog($Conf{'syslog'}, $Conf{'log_socket_type'}, 'sympa');
 
 if ($Conf{'db_name'} and $Conf{'db_type'}) {
-    unless ($List::use_db = &Upgrade::probe_db()) {
+    unless ($List::use_db = &List::probe_db()) {
 	die "Sympa can't connect to database";
     }
 } #  to check availabity of Sympa database
@@ -66,7 +66,7 @@ foreach $msg ( sort grep(!/^\./, readdir SPOOL )) {
 	unless (mkdir ($tmp_dir, 0777)) {
 	    die "May not create $tmp_dir";
 	}
-	my $mhonarc_ressources = &tools::get_filename('etc',{},'mhonarc-ressources.tt2', $robot, $self);
+	my $mhonarc_ressources = &tools::get_filename('etc', 'mhonarc-ressources.tt2', $robot, $self);
 	unless ($mhonarc_ressources) {
 	    die "Cannot find any MhOnArc ressource file";
 	}
