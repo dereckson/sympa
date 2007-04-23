@@ -1,4 +1,5 @@
-title.gettext expiration routine run yearly
+title.fr procedure d'expiration : envoi de 2 messages d'avertissement avant suppression
+title.us expiration routine : sending of 2 warning mails before deletion
 
 /STEP1
 @selection = select_subs (older ([creation_date]-1y))

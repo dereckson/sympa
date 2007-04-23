@@ -1,27 +1,10 @@
-# bounce-lib.pl - This module includes functions for analysing non-delivery reports
-# RCS Identication ; $Revision$ ; $Date$ 
-#
-# Sympa - SYsteme de Multi-Postage Automatique
-# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
-# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+####################################################
+## Librairie d'analyse de bounce                  ##
+## Comité Réseau des Universités - Olivier Salaün ##
+## Copyright 1998                                 ##
+####################################################
 
 use MIME::Parser;
-
-use strict;
 
 ## RFC1891 compliance check
 sub rfc1891 {
@@ -44,7 +27,7 @@ sub rfc1891 {
 
     $$from =~ s/^.*<(.*)>.*$/$1/;
 
-    my @parts = $entity->parts();
+    @parts = $entity->parts();
 
     foreach my $p (@parts) {
 	my $h = $p->head();
@@ -76,12 +59,8 @@ sub rfc1891 {
 		    $status = $1;
 		}
 		
-		if (/^Original-Recipient:\s*rfc822\s*;\s*(.*)$/mi ||
-		    /^Final-Recipient:\s*rfc822\s*;\s*(.*)$/mi) {
+		if (/^Final-Recipient:\s*rfc822\s*;\s*(.*)$/mi) {
 		    $recipient = $1;
-		    if ($recipient =~ /\@.+:(.+)$/) {
-			$recipient = $1;
-		    }
 		    $recipient =~ s/^<(.*)>$/$1/;
 		    $recipient =~ y/[A-Z]/[a-z]/;
 		}
@@ -156,9 +135,6 @@ sub anabounce {
     my $entete = 1;
     my $type;
     my %info;
-    my ($qmail, $type_9, $type_18, $exchange, $ibm_vm, $lotus, $sendmail_5, $yahoo, $type_21, $exim, $vines,
-	$mercury_143, $altavista, $mercury_131, $type_31, $type_32,$exim_173, $type_38, $type_39,
-	$type_40, $pmdf, $following_recipients, $postfix);
 
     ## Le champ separateur de paragraphe est un ensemble
     ## de lignes vides
@@ -174,9 +150,8 @@ sub anabounce {
 	    undef $entete;
 
 	    ## Parcour du paragraphe
-	    my @paragraphe = split /\n/, $_;
+	    @paragraphe = split /\n/, $_;
 	    $/ = "\n";
-	    my ($champ_courant, %champ);
 	    foreach (@paragraphe) {
 
 		if (/^(\S+):\s*(.*)$/) {
@@ -198,33 +173,25 @@ sub anabounce {
 	    
 	    $champ{from} =~ s/^.*<(.+)[\>]$/$1/;
 	    $champ{from} =~  y/[A-Z]/[a-z]/;
-	    my ($local, $domaine) = split /\@/, $champ{from};
+	    ($local, $domaine) = split /\@/, $champ{from};
 	    
 	    if ($champ{subject} =~ /^Returned mail: (Quota exceeded for user (\S+))$/) {
 
 		$info{$2}{error} = $1;
 		$type = 27;
 
-	    }elsif ($champ{subject} =~ /^Returned mail: (message not deliverable): \<(\S+)\>$/) {
-		
-		$info{$2}{error} = $1;
-		$type = 34;
 	    }
 
 	    if ($champ{'x-failed-recipients'} =~ /^\s*(\S+)$/) {
 		$info{$1}{error} = "";
-	    } elsif ($champ{'x-failed-recipients'} =~ /^\s*(\S+),/) {
-		for my $xfr (split (/\s*,\s*/, $champ{'x-failed-recipients'})) {
-		    $info{$xfr}{error} = "";
-		}
 	    }
 
-	    }elsif (/^\s*-+ The following addresses (had permanent fatal errors|had transient non-fatal errors|have delivery notifications) -+/m) {
+	}elsif (/^\s*-+ The following addresses (had permanent fatal errors|had transient non-fatal errors|have delivery notifications) -+/m) {
 	    
 	    my $adr;
 	    
 	    ## Parcour du paragraphe
-	    my @paragraphe = split /\n/, $_;
+	    @paragraphe = split /\n/, $_;
 	    $/ = "\n";
 	    foreach (@paragraphe) {
 		
@@ -249,14 +216,14 @@ sub anabounce {
 	    my $adr;
 
 	    ## Parcour du paragraphe
-	    my @paragraphe = split /\n/, $_;
+	    @paragraphe = split /\n/, $_;
 	    $/ = "\n";
 	    foreach (@paragraphe) {
 		
 		if (/^(\d{3}\s)?(\S+|\".*\")\.{3}\s(.+)$/) {
 		    
 		    $adr = $2; 
-		    my $cause = $3;
+		    $cause = $3;
 		    $cause =~ s/^(.*) [\(\:].*$/$1/;
 		    foreach $a(split /,/, $adr) {
 
@@ -268,7 +235,7 @@ sub anabounce {
 		}elsif (/^\d{3}\s(too many hops).*to\s(.*)$/i) {
 
 		    $adr = $2; 
-		    my $cause = $1;
+		    $cause = $1;
 		    foreach $a (split /,/, $adr) {
 
 			$a =~ s/^[\"\<](.+)[\"\>]$/$1/;
@@ -280,7 +247,7 @@ sub anabounce {
 		}elsif (/^\d{3}\s.*\s([^\s\)]+)\.{3}\s(.+)$/) {
 		
 		    $adr = $1; 
-		    my $cause = $2;
+		    $cause = $2;
 		    $cause =~ s/^(.*) [\(\:].*$/$1/;
 		    foreach $a(split /,/, $adr) {
 
@@ -297,7 +264,7 @@ sub anabounce {
 	}elsif (/^Receiver not found:/m) {
 
 	    ## Parcour du paragraphe
-	    my @paragraphe = split /\n/, $_;
+	    @paragraphe = split /\n/, $_;
 	    $/ = "\n";
 	    foreach (@paragraphe) {
 	    
@@ -312,7 +279,7 @@ sub anabounce {
 	    my ($cause,$adr);
 	    
 	    ## Parcour du paragraphe
-	    my @paragraphe = split /\n/, $_;
+	    @paragraphe = split /\n/, $_;
 	    $/ = "\n";
 	    foreach (@paragraphe) {
 	    
@@ -336,7 +303,7 @@ sub anabounce {
 	    my $adr;
 	    
             ## Parcour du paragraphe
- 	    my @paragraphe = split /\n/, $_;
+ 	    @paragraphe = split /\n/, $_;
  	    $/ = "\n";
 	    foreach (@paragraphe) {
 	    
@@ -380,15 +347,10 @@ sub anabounce {
          ## Rapport NTMail
 	 }elsif (/^The requested destination was:\s+(.*)$/m) {
 
-	     $type = 7;
-
-	 }elsif (($type == 7) && (/^\s+(\S+)/)) {
-
-	     undef $type;
 	     my $adr =$1;
 	     $adr =~ s/^[\"\<](.+)[\"\>]$/$1/;
-	     next unless $adr;
-	     $info{$adr}{'error'} = '';
+	     $info{$adr} = 1;
+	     $type = 7;
 
 	 ## Rapport Qmail dans prochain paragraphe
 	 }elsif (/^Hi\. This is the qmail-send program/m) {
@@ -495,7 +457,7 @@ sub anabounce {
 	     my $adr;
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 		 
@@ -522,7 +484,7 @@ sub anabounce {
 	     undef $type_18;
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 		 
@@ -538,7 +500,7 @@ sub anabounce {
 	 }elsif (/unable to deliver following mail to recipient\(s\):/m) {
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 		 
@@ -578,7 +540,7 @@ sub anabounce {
 
 	     
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 		 
@@ -649,7 +611,7 @@ sub anabounce {
 	     undef $mercury_143;
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 
@@ -710,7 +672,7 @@ sub anabounce {
 	     undef $mercury_131;
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 
@@ -731,7 +693,7 @@ sub anabounce {
 	     undef $type_31;
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 
@@ -752,7 +714,7 @@ sub anabounce {
 	     undef $type_32;
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 
@@ -767,7 +729,7 @@ sub anabounce {
 	 }elsif (/^-+Transcript of session follows\s-+$/m) {
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 
@@ -812,7 +774,7 @@ sub anabounce {
 	     undef $exim_173;
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 
@@ -833,7 +795,7 @@ sub anabounce {
 	     undef $type_38 if /Recipient:/;
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 
@@ -901,7 +863,7 @@ sub anabounce {
              undef $pmdf;
 
 	     ## Parcour du paragraphe
-	     my @paragraphe = split /\n/, $_;
+	     @paragraphe = split /\n/, $_;
 	     $/ = "\n";
 	     foreach (@paragraphe) {
 
@@ -935,7 +897,7 @@ sub anabounce {
 	     undef $postfix if /THIS IS A WARNING/; # Pas la peine de le traiter
 
 	     if (/^<(\S+)>:\s(.*)/m) {
-		 my ($addr,$error) = ($1,$2);
+		 ($addr,$error) = ($1,$2);
 
 		 if ($error =~ /^host\s[^:]*said:\s(\d+)/) {
 		     $info{$addr}{error} = $1;
@@ -956,9 +918,7 @@ sub anabounce {
 
     my $count=0;
     ## On met les adresses au clair
-    foreach my $a1 (keys %info) {
-
-	next unless ($a1 and ref ($info{$a1}));
+    foreach $a1 (keys %info) {
 
         $count++;
 	my ($a2, $a3);
