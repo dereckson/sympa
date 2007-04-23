@@ -18,7 +18,7 @@ use strict;
 ## Sympa API
 require 'tt2.pl';
 use List;
-use mail;
+use smtp;
 use Conf;
 use Log;
 use Language;
@@ -66,10 +66,8 @@ my $pinfo = &List::_apply_defaults();
 &mail::set_send_spool($Conf{'queue'});
 
 ## Loading all Lists at startup, in order to increase execution speed
-
-my $all_lists = &List::get_lists('*');
-foreach my $list (@$all_lists){
-    ## Nothing to do here
+foreach my $listname (&List::get_lists('*')){
+     my $list = new List ($listname);
  }
 
 

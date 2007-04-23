@@ -51,15 +51,6 @@ close VERSION;
 ## Create the data_structure.version file if none exists
 my $version_file = "$ENV{'ETCDIR'}/data_structure.version";
 if ($ENV{'ETCDIR'} && ! -f $version_file) {
-    ## Create missing directory
-    unless (-d $ENV{'ETCDIR'}) {
-	print STDERR "Creating missing directory %s...\n", $ENV{'ETCDIR'};
-	unless (mkdir $ENV{'ETCDIR'}, 0770) {
-	    print STDERR "Failed to create $ENV{'ETCDIR'} directory : $!\n";
-	    exit -1;
-	}
-    }
-    
     print STDERR "Creating missing $version_file\n";
     
     unless (open VFILE, ">$version_file") {
@@ -75,15 +66,14 @@ if ($ENV{'ETCDIR'} && ! -f $version_file) {
     close VFILE;
 }
 
-`chown $ENV{'USER'} $version_file`;
-`chgrp $ENV{'GROUP'} $version_file`;
+`chown $ENV{'USER'}.$ENV{'GROUP'} $version_file`;
 
 if (($previous_version eq $current_version) ||
     &higher($previous_version,$current_version)){
     exit 0;
 }
 
-print "You are upgrading from Sympa $previous_version\nYou should read CAREFULLY the changes listed below ; they might be incompatible changes :\n<RETURN>";
+print "You are upgrading from Sympa $previous_version\nYou should read CAREFULLY the changes listed below ; they might be uncompatible changes :\n<RETURN>";
 my $wait = <STDIN>;
 
 ## Extracting Important changes from release notes
