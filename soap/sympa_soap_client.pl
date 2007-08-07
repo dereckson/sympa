@@ -30,24 +30,11 @@ use strict;
 my ($reponse, @ret, $val, %fault);
 
 
-my $usage = "\n$0 is a perl soap client for Sympa for TEST ONLY. Use it to illustrate how to code access to features of Sympa soap server. Authentication can be done via user/password or user cookie or as a trusted remote application\n\n";
-$usage .= "Usage: $0 <with the following options:>\n\n";
-$usage .= "--soap_url=<soap sympa server url>\n";
-$usage .= "--service=<a sympa service>\n";
-$usage .= "--trusted_application=<app name>\n";
-$usage .= "--trusted_application_password=<password>\n";
-$usage .= "--proxy_vars=<id=value,id2=value2>\n";
-$usage .= "--service_parameters=<value1,value2,value3>\n\n\n";
-$usage .= "OR usage: $0 <with the following options:>\n\n";
-$usage .= "--soap_url=<soap sympa server url>\n";
-$usage .= "--user_email=<email>\n";
-$usage .= "--user_password=<password>\n";
-$usage .= "--service=<a sympa service>\n";
-$usage .= "--service_parameters=<value1,value2,value3>\n\n\n";
-$usage .= "OR usage: $0 <with the following options:>\n\n";
-$usage .= "--soap_url=<soap sympa server url>\n";
-$usage .= "--cookie=<sympauser cookie string>\n\n\n";
-$usage .= "Example: \n\n$0 --soap_url=<soap sympa server url> --cookie=sympauser=someone\@cru.fr%3A8be58b86\n\n";
+my $usage = "$0 is a perl soap client for Sympa for TEST ONLY. Use it to illustrate how to code access to features of Sympa soap server. Authentication can be done via user/password or user cookie or as a trusted remote application\n";
+   $usage .= "Usage: $0 --soap_url=<soap sympa server url> --service=<a sympa service> --trusted_application=<app name> __trusted_application_password=<password> --proxy_vars=<id=value,id2=value2> --service_parameters=<value1,value2,value3>";
+   $usage .="       $0 --soap_url=<soap sympa server url> --user_email=<email> --user_password=<password> \n";
+   $usage .="       $0 --soap_url=<soap sympa server url> --cookie=<sympauser cookie string>\n";
+$usage .="exemple       $0 --soap_url=<soap sympa server url> --cookie=sympauser=someone%40cru.fr%3A8be58b86";
 
 my %options;
 unless (&GetOptions(\%main::options, 'soap_url=s', 'service=s', 'trusted_application=s', 'trusted_application_password=s','user_email=s', 'user_password=s','cookie=s','proxy_vars=s','service_parameters=s')) {
@@ -104,7 +91,7 @@ if (defined $trusted_application) {
 	printf $usage;
 	exit;
     }
-    &play_soap($soap_url, $user_email, $user_password, $service, $service_parameters);
+    &play_soap($soap_url, $user_email, $user_password);
 }
 
 sub play_soap_as_trusted{
@@ -160,10 +147,8 @@ sub play_soap{
     my $soap_url=shift;
     my $user_email=shift;
     my $user_password=shift;
-    my $service=shift;
-    my $service_parameters=shift;
 
-    my ($reponse, @ret, $val, %fault);
+    my ($service, $reponse, @ret, $val, %fault);
 
     ## Cookies management
     # my $uri = new URI($soap_url);
@@ -173,12 +158,6 @@ sub play_soap{
     $cookies->load();
     printf "cookie : %s\n", $cookies->as_string();
 
-    my @parameters; 
-    @parameters= split(/,/,$service_parameters) if (defined $service_parameters);
-    my $p= join(',',@parameters);
-    foreach my $tmpParam (@parameters) {
-	printf "param: %s\n", $tmpParam;
-    }
 
     # Change to the path of Sympa.wsdl
     #$service = SOAP::Lite->service($soap_url);
@@ -199,10 +178,48 @@ sub play_soap{
     &print_result($reponse);
     my $md5 = $reponse->result;
     
-    printf "\n\nAuthenticateAndRun %s....\n",$service;
-    $reponse = $soap->authenticateAndRun($user_email,$md5,$service,\@parameters);
+    print "\n\nAuthenticateAndRun simple which....\n";
+    $reponse = $soap->authenticateAndRun($user_email,$md5,'which');
     &print_result($reponse);
     
+    #printf "%s\n", $cookies->as_string();
+       
+    print "\n\nWHICH....\n";
+    $reponse = $soap->complexWhich();
+    &print_result($reponse);
+exit;    
+    #print "\n\nINFO....\n";
+    #$reponse = $soap->info('aliba');
+    #&print_result($reponse);
+    
+    # print "\n\nSUB....\n";
+    # $reponse = $soap->subscribe('aliba', 'ALI'); 
+    # &print_result($reponse);
+    
+    #print "\n\nREVIEW....\n";
+    #$reponse = $soap->review('aliba');
+    #&print_result($reponse);
+    
+  
+    #print "\n\nSIG....\n";
+    #$reponse = $soap->signoff('aliba');
+    #&print_result($reponse);
+    
+    print "\n\nLIST....\n";
+    $reponse = $soap->lists('Kulturelles');
+    &print_result($reponse);
+    
+    print "\n\nComplex LIST....\n";
+    $reponse = $soap->complexLists('Kulturelles');
+    &print_result($reponse);
+
+    print "\n\nAM I....\n";
+    $reponse = $soap->amI('aliba','owner','olivier.salaun@cru.fr');
+    &print_result($reponse);
+    
+    print "\n\nCheckCookie....\n";
+    $reponse = $soap->checkCookie();
+    &print_result($reponse);
 }
 
 sub print_result {

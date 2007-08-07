@@ -89,7 +89,7 @@ my $sympa_conf_file = '--CONFIG--';
 my $loop = 0;
 my $list;
 my $param = {};
-my ($robot, $robot_object);
+my $robot ;
 my $ip ; 
 my $rss ;
 
@@ -104,7 +104,7 @@ unless (&Conf::load( $sympa_conf_file )) {
     &fatal_err('Unable to load sympa config file %s', $sympa_conf_file);
 }
 
-&Log::set_log_level($Conf{'log_level'}) if ($Conf{'log_level'});
+$log_level = $Conf{'log_level'} if ($Conf{'log_level'});
 
 &mail::set_send_spool($Conf{'queue'});
 
@@ -621,6 +621,12 @@ my (%in, $query);
 
 my $birthday = time ;
 
+## If using fast_cgi, it is usefull to initialize all list context
+if ($wwsconf->{'use_fast_cgi'}) {
+
+    my $all_lists = &List::get_lists('*') unless ($maintenance_mode);
+}
+
 # Now internal encoding is same as input/output.
 #XXX## Set output encoding
 #XXX## All outgoing strings will be recoded transparently using this charset
@@ -639,9 +645,12 @@ my $birthday = time ;
      undef $param;
      undef $list;
      undef $robot;
-     undef $robot_object;
      undef $ip;
      undef $rss;
+
+     undef $log_level;
+     $log_level = $Conf{'log_level'} if ($Conf{'log_level'}); 
+     $log_level ||= 0;
 
      &Language::SetLang($Language::default_lang);
 
@@ -655,6 +664,8 @@ my $birthday = time ;
 	 &report::reject_report_web('system_quiet','no_database',{},'','');
 	 &do_log('info','WWSympa requires a RDBMS to run');
      }
+
+     &List::init_list_cache();
 
      ## If in maintenance mode, check if the data structure is now uptodate
      if ($maintenance_mode && &Upgrade::data_structure_uptodate()) {
@@ -694,9 +705,6 @@ my $birthday = time ;
      
      $robot = $Conf{'host'} unless $robot;
 
-     ## Create Robot object
-     $robot_object = new Robot $robot;
-
      ## Default robot
      if ($robot eq $Conf{'host'}) {
 	 $param->{'default_robot'} = 1;
@@ -716,7 +724,7 @@ my $birthday = time ;
          $param->{'cookie_domain'} = $http_host;
      }
 
-     &Log::set_log_level($Conf{'robots'}{$robot}{'log_level'});
+     $log_level = $Conf{'robots'}{$robot}{'log_level'};
 
      ## Sympa parameters in $param->{'conf'}
      $param->{'conf'} = {};
@@ -908,6 +916,12 @@ my $birthday = time ;
 	     unless (defined $param->{'user'}{'cookie_delay'}) {
 		 $param->{'user'}{'cookie_delay'} = $wwsconf->{'cookie_expire'};
 	     }
+	     ## get sub crition using cookie and set param for use in templates
+	     #@{$param->{'get_which'}}  =  &cookielib::get_which_cookie($ENV{'HTTP_COOKIE'});
+	     
+	     # if no cookie was received, look for subscriptions
+#         unless (defined $param->{'get_which'}) {
+	     
 	     
 	     ## Skip get_which if either in a list context or accessing the CSS
 	     unless ($in{'action'} eq 'css' || defined $in{'list'}) {
@@ -1328,95 +1342,96 @@ sub get_header_field {
     }
 }
 
-sub get_parameters {
-    #    &wwslog('debug4', 'get_parameters');
-    
-    ## CGI URL
-    if ($ENV{'HTTPS'} eq 'on') {
-	$param->{'base_url'} = sprintf 'https://%s', &get_header_field('HTTP_HOST');
-	$param->{'use_ssl'} = 1;
-    }else {
-	$param->{'base_url'} = sprintf 'http://%s', &get_header_field('HTTP_HOST');
-	$param->{'use_ssl'} = 0;
-    }
-    
-    $param->{'path_info'} = $ENV{'PATH_INFO'};
-    $param->{'robot_domain'} = $wwsconf->{'robot_domain'}{&get_header_field('SERVER_NAME')};
-    
-    if ($ENV{'REQUEST_METHOD'} eq 'GET') {
-	my $path_info = $ENV{'PATH_INFO'};
-	&do_log('debug', "PATH_INFO: %s",$ENV{'PATH_INFO'});
-	
-	$path_info =~ s+^/++;
-	
-	my $ending_slash = 0;
-	if ($path_info =~ /\/$/) {
-	    $ending_slash = 1;
-	}
-	
-	my @params = split /\//, $path_info;
-	
-	
-	#	foreach my $i(0..$#params) {
-	#	    $params[$i] = &tools::unescape_chars($params[$i]);
-	#	}
-	
-	if ($params[0] eq 'nomenu') {
-	    $param->{'nomenu'} = 1;
-	    shift @params;
-	}
-	
-	## debug mode
-	if ($params[0] =~ /debug(\d)?/) {
-	    shift @params;
-	    if ($1) { 
-		$main::options{'debug_level'} = $1 if ($1);
-	    }else{
-		$main::options{'debug_level'} = 1 ;
-	    }
-	}else{
-	    $main::options{'debug_level'} = 0 ;
-	} 
-	do_log ('debug2', "debug level $main::options{'debug_level'}");
-	
-	
-	
-	## rss mode
+ sub get_parameters {
+ #    &wwslog('debug4', 'get_parameters');
+
+     ## CGI URL
+     if ($ENV{'HTTPS'} eq 'on') {
+	 $param->{'base_url'} = sprintf 'https://%s', &get_header_field('HTTP_HOST');
+	 $param->{'use_ssl'} = 1;
+     }else {
+	 $param->{'base_url'} = sprintf 'http://%s', &get_header_field('HTTP_HOST');
+	 $param->{'use_ssl'} = 0;
+     }
+
+     $param->{'path_info'} = $ENV{'PATH_INFO'};
+     $param->{'robot_domain'} = $wwsconf->{'robot_domain'}{&get_header_field('SERVER_NAME')};
+
+
+     if ($ENV{'REQUEST_METHOD'} eq 'GET') {
+	 my $path_info = $ENV{'PATH_INFO'};
+	 &do_log('debug', "PATH_INFO: %s",$ENV{'PATH_INFO'});
+
+	 $path_info =~ s+^/++;
+
+	 my $ending_slash = 0;
+	 if ($path_info =~ /\/$/) {
+	     $ending_slash = 1;
+	 }
+
+	 my @params = split /\//, $path_info;
+	 
+
+ #	foreach my $i(0..$#params) {
+ #	    $params[$i] = &tools::unescape_chars($params[$i]);
+ #	}
+
+	 if ($params[0] eq 'nomenu') {
+	     $param->{'nomenu'} = 1;
+	     shift @params;
+	 }
+
+	 ## debug mode
+	 if ($params[0] =~ /debug(\d)?/) {
+	     shift @params;
+	     if ($1) { 
+		 $main::options{'debug_level'} = $1 if ($1);
+	     }else{
+		 $main::options{'debug_level'} = 1 ;
+	     }
+	 }else{
+	     $main::options{'debug_level'} = 0 ;
+	 } 
+	 do_log ('debug2', "debug level $main::options{'debug_level'}");
+
+
+
+	 ## rss mode
 ########### /^rss$/ ???
-	if ($params[0] eq 'rss') {
-	    shift @params;
-	    $rss = 1;
-	} 
-	
-	if ($#params >= 0) {
-	    $in{'action'} = $params[0];
-	    
-	    my $args;
-	    if (defined $action_args{$in{'action'}}) {
-		$args = $action_args{$in{'action'}};
-	    }else {
-		$args = $action_args{'default'};
-	    }
-	    
-	    my $i = 1;
-	    foreach my $p (@$args) {
-		my $pname;
-		## More than 1 param
-		if ($p =~ /^\@(\w+)$/) {
-		    $pname = $1;
-		    $in{$pname} = join '/', @params[$i..$#params];
-		    $in{$pname} .= '/' if $ending_slash;
-		    last;
-		}
-		else {
-		    $pname = $p;
-		    $in{$pname} = $params[$i];
-		}
-		$i++;
-	    }
-	}
-    }elsif ($ENV{'REQUEST_METHOD'} eq 'POST') {
-	    ## POST
+	 if ($params[0] eq 'rss') {
+	     shift @params;
+	     $rss = 1;
+	 } 
+
+	 if ($#params >= 0) {
+	     $in{'action'} = $params[0];
+
+	     my $args;
+	     if (defined $action_args{$in{'action'}}) {
+		 $args = $action_args{$in{'action'}};
+	     }else {
+		 $args = $action_args{'default'};
+	     }
+
+	     my $i = 1;
+	     foreach my $p (@$args) {
+		 my $pname;
+		 ## More than 1 param
+		 if ($p =~ /^\@(\w+)$/) {
+		     $pname = $1;
+
+		     $in{$pname} = join '/', @params[$i..$#params];
+		     $in{$pname} .= '/' if $ending_slash;
+		     last;
+		 }else {
+		     $pname = $p;
+		     $in{$pname} = $params[$i];
+		 }
+		 $i++;
+	     }
+	 }
+     }elsif ($ENV{'REQUEST_METHOD'} eq 'POST') {
+	 ## POST
 
 	 if ($in{'javascript_action'}) { 
 	     ## because of incompatibility javascript
@@ -1475,7 +1490,7 @@ sub get_parameters {
 	 }else {
 	     $regexp = $in_regexp{'*'};
 	 }
-
+	 
 	 my $negative_regexp;
 	 if ($pname =~ /^additional_field/) {
 	     $negative_regexp = $in_negative_regexp{'additional_field'};
@@ -1483,23 +1498,8 @@ sub get_parameters {
 	     $negative_regexp = $in_negative_regexp{$pname};
 	 }
 
-	 ## Check if parameter can legitimately use HTML. This selects the regexp used.
-	 my %htmlAllowedParams = ('content' => 1,);
-	 
-	 ## 07/08/07 : no more use the buggy regexp $tools::regexp{'html-free'}
-	 ## It would regexp any string containing '60' or '3c'
-	 my $xssregexp = &tools::get_regexp('xss-free');
-#	 if ($htmlAllowedParams{$p}) {
-#	     $xssregexp = &tools::get_regexp('xss-free');
-#	 }
-#	 else {
-#	     $xssregexp = &tools::get_regexp('html-free');
-#	 }
-
-
 	 foreach my $one_p (split /\0/, $in{$p}) {
 	     if ($one_p !~ /^$regexp$/s ||
-		 lc($one_p) =~ /$xssregexp/ ||
 		 (defined $negative_regexp && $one_p =~ /$negative_regexp/s) ) {
 		 ## Dump parameters in a tmp file for later analysis
 		 my $dump_file =  &Conf::get_robot_conf($robot, 'tmpdir').'/sympa_dump.'.time.'.'.$$;
@@ -1508,7 +1508,7 @@ sub get_parameters {
 		 }
 		 &tools::dump_var(\%in, 0, \*DUMP);
 		 close DUMP;
-		 
+
 		 &report::reject_report_web('user','syntax_errors',{'params' => $p},'','');
 		 &wwslog('err','get_parameters: syntax error for parameter %s value \'%s\' not conform to regexp ; dumped vars in %s', $pname, $one_p, $dump_file);
 		 $in{$p} = '';
@@ -1824,7 +1824,7 @@ Use it to create a List object and initialize output parameters.
     }
 
      ## Check if the current user can create a list.
-     my $result = &Scenario::request_action ('create_list',$param->{'auth_method'},$robot,
+     my $result = &List::request_action ('create_list',$param->{'auth_method'},$robot,
 					 {'sender' => $param->{'user'}{'email'},
 					  'remote_host' => $param->{'remote_host'},
 					  'remote_addr' => $param->{'remote_addr'}}); 
@@ -3159,8 +3159,7 @@ sub do_remindpasswd {
 	 my $result = $list->check_list_authz('visibility',$param->{'auth_method'},
 					      {'sender' => $sender, 
 					       'remote_host' => $param->{'remote_host'},
-					       'remote_addr' => $param->{'remote_addr'},
-					       'options' => {'dont_reload_scenario' => 1}});
+					       'remote_addr' => $param->{'remote_addr'}});
 
 	 my $r_action;
 	 $r_action = $result->{'action'} if (ref($result) eq 'HASH');
@@ -3459,7 +3458,7 @@ sub do_remindpasswd {
      my %sources;
 
      unless ($param->{'list'}) {
-	 &report::reject_report_web('user','missing_arg',{'argument' => 'list'},$param->{'action'});
+	 &report::reject_report_web('user','missing_arg',{'argument' => 'list'},$param->{'action'})
 	 &wwslog('info','do_review: no list');
 	 return undef;
      }
@@ -3468,7 +3467,7 @@ sub do_remindpasswd {
      return undef unless (defined &check_authz('do_review', 'review'));
 
      unless ($param->{'total'}) {
-	 &report::reject_report_web('user','no_subscriber',{},$param->{'action'},$list);
+	 &report::reject_report_web('user','no_subscriber',{},$param->{'action'},$list)
 	 &wwslog('info','do_review: no subscriber');
 	 # &List::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'review',$param->{'list'},$robot,'','no subscriber');
 	 return 1;
@@ -3503,15 +3502,6 @@ sub do_remindpasswd {
 
      ## Additional DB fields
      my @additional_fields = split ',', $Conf{'db_additional_subscriber_fields'};
-
-     ## Members list synchronization if list has included data sources.
-     if ($list->has_include_data_sources()) {
-	 if ($list->on_the_fly_sync_include('use_ttl'=>1)) {
-	     &report::notice_report_web('subscribers_updated',{},$param->{'action'});
-	 }else {
-	     &report::reject_report_web('intern','sync_include_failed',{},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
-	 }
-     }
 
      ## Members list
      $count = -1;
@@ -3864,6 +3854,7 @@ sub do_remindpasswd {
 	 return undef;
      }
 
+     $list->save();
      &report::notice_report_web('performed',{},$param->{'action'});
      &web_db_log({'parameters' => "$in{'reception'},$in{'visibility'}",
 		  'status' => 'success',
@@ -4078,6 +4069,7 @@ sub do_remindpasswd {
 			      'error_type' => 'internal'});		      
 		 return undef;
 	     }
+	     $list->save();
 	 }
 
 	 unless ($sub_is =~ /quiet/i ) {
@@ -4402,6 +4394,7 @@ sub do_remindpasswd {
 		 return undef;
 	     }
 
+	     $list->save();
 	 }
 
 	 if ($sig_is =~ /notify/) {
@@ -5229,6 +5222,7 @@ sub do_skinsedit {
 	 return undef;
      }
 
+     $list->save();
      &report::notice_report_web('add_performed', {'total' => $total},$param->{'action'});
      &web_db_log({'target_email' => $in{'email'}||$in{'pending_email'},
 		  'status' => 'success'});
@@ -5375,6 +5369,7 @@ sub do_skinsedit {
 		      'error_type' => 'internal'});
 	 return undef;
      }
+     $list->save();
 
      &report::notice_report_web('del_performed',{'total' => $total},$param->{'action'});
      &web_db_log({'target_email' => $in{'email'},
@@ -7697,7 +7692,7 @@ Sends back the list creation edition form.
 	 return 'loginrequest';
      }
 
-     my $result = &Scenario::request_action('create_list',$param->{'auth_method'},$robot,
+     my $result = &List::request_action('create_list',$param->{'auth_method'},$robot,
 						       {'sender' => $param->{'user'}{'email'},
 							'remote_host' => $param->{'remote_host'},
 							'remote_addr' => $param->{'remote_addr'}});
@@ -7948,7 +7943,7 @@ Sends back the list creation edition form.
 	 my $operation = $in{'scenario'};
 	 &wwslog('debug4', 'do_scenario_test: perform scenario_test');
 
-	 my $result = &Scenario::request_action ($operation,$in{'auth_method'},$robot,
+	 my $result = &List::request_action ($operation,$in{'auth_method'},$robot,
 					     {'listname' => $in{'listname'},
 					      'sender' => $in{'sender'},
 					      'email' => $in{'email'},
@@ -8742,9 +8737,11 @@ sub do_edit_list {
  	  return undef;
       }
 
-     ## If list has included data sources, update them and delete sync_include task.
-     if ($data_source_updated && ($list->has_include_data_sources())) {
-	 if ($list->on_the_fly_sync_include('use_ttl'=>0)) {
+     ## remove existing sync_include task
+     ## to start a new one
+     if ($data_source_updated && ($list->{'admin'}{'user_data_source'} eq 'include2')) {
+	 $list->remove_task('sync_include');
+	 if ($list->sync_include()) {
 	     &report::notice_report_web('subscribers_updated',{},$param->{'action'});
 	 }else {
 	     &report::reject_report_web('intern','sync_include_failed',{},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
@@ -9145,6 +9142,9 @@ sub _prepare_edit_form {
 		 $p->{'value'}{$lang}{'title'} = gettext('_language_');
 	     }
 	     &Language::SetLang($saved_lang);
+	 }elsif ($pname eq 'user_data_source') {
+	     ## Skip old 'include' and mode
+	     delete $p->{'value'}{'include'};
 	 }
 
 	 push @{$param->{'param'}}, $p;	
@@ -9350,15 +9350,8 @@ Returns a reference to a hash containing the data used to edit the parameter (of
 	     
 	     unless (defined $p_glob->{'value'}) {
 		 ## Initialize
-		 foreach my $elt (@{$struct->{'format'}}) {		    
+		 foreach my $elt (@{$struct->{'format'}}) {
 		     $p_glob->{'value'}{$elt}{'selected'} = 0;
-		 }
-
-		 ## Check obsolete values ; they should not be printed
-		 if (defined $struct->{'obsolete_values'}) {
-		     foreach my $elt (@{$struct->{'obsolete_values'}}) {		     
-			 delete $p_glob->{'value'}{$elt};
-		     }		     
 		 }
 	     }
 	     if (ref ($d)) {
@@ -9458,7 +9451,7 @@ sub _restrict_values {
 	 &wwslog('info','do_rename_list_request: not owner');
 	 return undef;
      }  
-     my $result = &Scenario::request_action ('create_list',$param->{'auth_method'},$robot,
+     my $result = &List::request_action ('create_list',$param->{'auth_method'},$robot,
 					 {'sender' => $param->{'user'}{'email'},
 					  'remote_host' => $param->{'remote_host'},
 					  'remote_addr' => $param->{'remote_addr'}});
@@ -9531,7 +9524,7 @@ sub _restrict_values {
 		      'error_type' => 'missing_parameter'});
 	 return 'rename_list_request';
      }
-     my $result = &Scenario::request_action ('create_list',$param->{'auth_method'},$in{'new_robot'},
+     my $result = &List::request_action ('create_list',$param->{'auth_method'},$in{'new_robot'},
 					{'sender' => $param->{'user'}{'email'},
 					 'remote_host' => $param->{'remote_host'},
 					 'remote_addr' => $param->{'remote_addr'}});
@@ -9885,6 +9878,7 @@ sub _restrict_values {
 
      if ($list->{'admin'}{'user_data_source'} eq 'file') {
 	 $list->{'users'} = &List::_load_users_file("$list->{'dir'}/subscribers.closed.dump");
+	 $list->save();
      }elsif ($list->{'admin'}{'user_data_source'} =~ /^database|include2$/) {
 	 unless (-f "$list->{'dir'}/subscribers.closed.dump") {
 	     &wwslog('notice', 'No subscribers to restore');
@@ -13938,9 +13932,34 @@ sub d_test_existing_and_rights {
      $param->{'scenari_read'} = $list->load_scenario_list('d_read', $robot);
      $param->{'scenari_read'}{$read}{'selected'} = 'selected="selected"';
 
+#     my $read_scenario_list = $list->load_scenario_list('d_read', $robot);
+#     $param->{'read'}{'scenario_name'} = $read;
+#     $param->{'read'}{'label'} = $read_scenario_list->{$read}{'title'}{$lang};
+#
+#     foreach my $key (keys %{$read_scenario_list}) {
+#	 $param->{'scenari_read'}{$key}{'scenario_name'} = $read_scenario_list->{$key}{'name'};
+#	 $param->{'scenari_read'}{$key}{'scenario_label'} = $read_scenario_list->{$key}{'title'}{$lang};
+#	 if ($key eq $read) {
+#	     $param->{'scenari_read'}{$key}{'selected'} = 'selected="selected"';
+#	 }
+#     }
+
      ## Scenario list for EDIT
      $param->{'scenari_edit'} = $list->load_scenario_list('d_edit', $robot);
      $param->{'scenari_edit'}{$edit}{'selected'} = 'selected="selected"';
+
+
+#     my $edit_scenario_list = $list->load_scenario_list('d_edit', $robot);
+#     $param->{'edit'}{'scenario_name'} = $edit;
+#     $param->{'edit'}{'label'} = $edit_scenario_list->{$edit}{'title'}{$lang};
+#
+#     foreach my $key (keys %{$edit_scenario_list}) {
+#	 $param->{'scenari_edit'}{$key}{'scenario_name'} = $edit_scenario_list->{$key}{'name'};
+#	 $param->{'scenari_edit'}{$key}{'scenario_label'} = $edit_scenario_list->{$key}{'title'}{$lang};
+#	 if ($key eq $edit) {
+#	     $param->{'scenari_edit'}{$key}{'selected'} = 'selected="selected"';
+#	 }
+#     }
 
      ## father directory
      if ($path =~ /^(([^\/]*\/)*)([^\/]+)(\/?)$/) {
@@ -15332,7 +15351,7 @@ sub export_topics {
 
      my $total = 0;
      foreach my $t (sort {$topics{$a}{'order'} <=> $topics{$b}{'order'}} keys %topics) {
-	 my $result = &Scenario::request_action ('topics_visibility', $param->{'auth_method'},$robot,
+	 my $result = &List::request_action ('topics_visibility', $param->{'auth_method'},$robot,
 					     {'topicname' => $t, 
 					      'sender' => $param->{'user'}{'email'},
 					      'remote_host' => $param->{'remote_host'},
@@ -15456,16 +15475,7 @@ sub do_dump_scenario {
 	 return undef;
      }
 
-     my $scenario = new Scenario ('function' => $in{'pname'},
-				  'robot' => $robot,
-				  'name' => $list->{'admin'}{$in{'pname'}}{'name'},
-				  'directory' => $list->{'dir'});
-     unless (defined $scenario) {
-	 &report::reject_report_web('intern','cannot_open_file',{},$param->{'action'},$list);
-	 &wwslog('info','failed to load scenario');
-	 return undef;
-     }
-     ($param->{'dumped_scenario'}, $param->{'scenario_path'}) = ($scenario->{'data'}, $scenario->{'file_path'});
+     ($param->{'dumped_scenario'}, $param->{'scenario_path'}) =  &List::_load_scenario_file($in{'pname'},$robot,$list->{'admin'}{$in{'pname'}}{'name'},$list->{'dir'},'flush');
      $param->{'pname'} = $in{'pname'};
      $param->{'scenario_name'} = $list->{'admin'}{$in{'pname'}}{'name'};
      

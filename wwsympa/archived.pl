@@ -99,8 +99,8 @@ if ($wwsconf->{'arc_path'}) {
 }
 
 ## Check databse connectivity
-unless (&List::check_db_connect()) {
-    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf{'db_name'});
+unless ($List::use_db = &List::check_db_connect()) {
+    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
 }
 
 ## Put ourselves in background if not in debug mode. 
@@ -122,14 +122,7 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
 ## Create and write the pidfile
 &tools::write_pid($wwsconf->{'archived_pidfile'}, $$);
 
-# setting log_level using conf unless it is set by calling option
-if ($main::options{'log_level'}) {
-    &Log::set_log_level($main::options{'log_level'});
-    do_log('info', "Configuration file read, log level set using options : $main::options{'log_level'}"); 
-}else{
-    &Log::set_log_level($Conf{'log_level'});
-    do_log('info', "Configuration file read, default log level $Conf{'log_level'}"); 
-}
+$log_level = $main::options{'log_level'} || $Conf{'log_level'};
 
 $wwsconf->{'log_facility'}||= $Conf{'syslog'};
 do_openlog($wwsconf->{'log_facility'}, $Conf{'log_socket_type'}, 'archived');

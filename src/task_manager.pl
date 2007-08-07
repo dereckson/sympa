@@ -77,7 +77,7 @@ unless (Conf::load($sympa_conf_file)) {
 
 ## Check databse connectivity
 unless (&List::check_db_connect()) {
-    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf{'db_name'});
+    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
 }
 
 ## Check that the data structure is uptodate
@@ -111,16 +111,17 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
 
 &tools::write_pid($wwsconf->{'task_manager_pidfile'}, $$);
 
+$log_level = $main::options{'log_level'} || $Conf{'log_level'};
+
 $wwsconf->{'log_facility'}||= $Conf{'syslog'};
 do_openlog($wwsconf->{'log_facility'}, $Conf{'log_socket_type'}, 'task_manager');
 
 # setting log_level using conf unless it is set by calling option
 if ($main::options{'log_level'}) {
-    &Log::set_log_level($main::options{'log_level'});
-    do_log('info', "Configuration file read, log level set using options : $main::options{'log_level'}"); 
+    do_log('info', "Configuration file read, log level set using options : $log_level"); 
 }else{
-    &Log::set_log_level($Conf{'log_level'});
-    do_log('info', "Configuration file read, default log level $Conf{'log_level'}"); 
+    $log_level = $Conf{'log_level'};
+    do_log('info', "Configuration file read, default log level  $log_level"); 
 }
 
 ## Set the UserID & GroupID for the process
@@ -244,7 +245,7 @@ while (!$end) {
 
     ## List all tasks
     unless (&Task::list_tasks($spool_task)) {
-	&List::send_notify_to_listmaster('intern_error',$Conf{'domain'},{'error' => "Failed to list task files in $spool_task"});
+	&List::send_notify_to_listmaster('intern_error',$Conf{'domain'},{'error' => "Failed to list task files in $spool_task"})
 	&do_log ('err', "Failed to list task files in %s", $spool_task);
 	exit -1;
     }
@@ -316,7 +317,7 @@ while (!$end) {
     ## Execute existing tasks
     ## List all tasks
     unless (&Task::list_tasks($spool_task)) {
-	&List::send_notify_to_listmaster('intern_error',$Conf{'domain'},{'error' => "Failed to list task files in $spool_task"});
+	&List::send_notify_to_listmaster('intern_error',$Conf{'domain'},{'error' => "Failed to list task files in $spool_task"})
 	&do_log ('err', "Failed to list task files in %s", $spool_task);
 	exit -1;
     }
@@ -324,9 +325,6 @@ while (!$end) {
     ## processing of tasks anterior to the current date
     &do_log ('debug3', 'processing of tasks anterior to the current date');
     foreach my $task ( &Task::get_task_list() ) {
-	
-	last if $end;
-
 	my $task_file = $task->{'filepath'};
 
 	&do_log ('debug3', "procesing %s", $task_file);
@@ -1030,6 +1028,7 @@ sub delete_subs_cmd {
 	    error ($task->{'filepath'}, "error in delete_subs command : deletion of $email not allowed");
 	} else {
 	    my $u = $list->delete_user ($email) if (!$log);
+	    $list->save() if (!$log);;
 	    &do_log ('notice', "--> $email deleted");
 	    $selection{$email} = {};
 	}

@@ -561,7 +561,7 @@ sub createList {
 	    ->faultdetail("Missing required parameter(s) : $reject");	
     }
     # check authorization
-    my $result = &Scenario::request_action('create_list','md5',$robot,
+    my $result = &List::request_action('create_list','md5',$robot,
 					 {'sender' => $sender,
 					  'remote_host' => $ENV{'REMOTE_HOST'},
 					  'remote_addr' =>  $ENV{'REMOTE_ADDR'},
@@ -789,6 +789,8 @@ sub add {
 				       });
     }
     
+    $list->save();
+    
     ## Now send the welcome file to the user if it exists.
     unless ($quiet || ($action =~ /quiet/i )) {
 	unless ($list->send_file('welcome', $email, $robot,{})) {
@@ -903,6 +905,7 @@ sub del {
 		->faultdetail('Database access failed');	  
 	}
     }
+    $list->save();
     
     ## Send a notice to the removed user, unless the owner indicated
     ## quiet del.
@@ -984,13 +987,6 @@ sub review {
     }
     if ($action =~ /do_it/i) {
 	my $is_owner = $list->am_i('owner', $sender);
-	
-	## Members list synchronization if include is in use
-	if ($list->has_include_data_sources()) {
-	    unless ($list->on_the_fly_sync_include('use_ttl'=>1)) {
-		&Log::do_log('notice','Unable to synchronize list %s.', $listname);
-	    }
-	}
 	unless ($user = $list->get_first_user({'sortby' => 'email'})) {
 	    &Log::do_log('err', "SOAP : no subscribers in list '%s'", $list->{'name'});
 	    push @resultSoap, SOAP::Data->name('result')->type('string')->value('no_subscribers');
@@ -1118,6 +1114,8 @@ sub signoff {
 	    &Log::do_log('err',"Unable to send template 'bye' to $sender");
 	}
 	
+	$list->save();
+
 	&Log::do_log('info', 'SOAP : sign off %s from %s accepted', $listname, $sender);
 	
 	return SOAP::Data->name('result')->type('boolean')->value(1);
@@ -1259,6 +1257,8 @@ sub subscribe {
 					  });
       }
       
+      $list->save();
+
       ## Now send the welcome file to the user
       unless ($quiet || ($action =~ /quiet/i )) {
 	  unless ($list->send_file('welcome', $sender, $robot,{})) {

@@ -35,7 +35,7 @@ use Encode;
 my ($log_facility, $log_socket_type, $log_service,$sth,@sth_stack,$rows_nb);
 
 
-our $log_level = 0;
+local $log_level |= 0;
 
 sub fatal_err {
     my $m  = shift;
@@ -59,27 +59,35 @@ sub fatal_err {
 
 sub do_log {
     my $fac = shift;
-
-    my $level = 0;
-
-    if ($fac =~ /debug(\d)?/ ) {
-	$level = $1 || 1;
-	$fac = 'debug';
-    }    
-
-    # do not log if log level if too high regarding the log requested by user 
-    return if ($level > $log_level);
-
     my $m = shift;
     my @param = @_;
 
     my $errno = $!;
     my $debug = 0;
 
+    my $level = 0;
+
+    $level = 1 if ($fac =~ /^debug$/) ;
+
+    if ($fac =~ /debug(\d)/ ) {
+	$level = $1;
+	$fac = 'debug';
+    }
+ 
+    # do not log if log level if too high regarding the log requested by user 
+    return if ($level > $log_level);
+
     ## Do not display variables which are references.
     foreach my $i (0..$#param) {
 	if(ref($param[$i])){
 	    $param[$i]=ref($param[$i])
+	}
+    }
+    ## Encode parameters to FS encoding to prevent "Wide character in syswrite" errors
+    ## We perform this check after ensuring we need to log because Encode::from_to() is an expensive call
+    if (defined $Conf::Conf{'filesystem_encoding'}) {
+	foreach my $i (0..$#param) {
+	    Encode::from_to($param[$i], 'utf8', $Conf::Conf{'filesystem_encoding'});
 	}
     }
 
@@ -405,14 +413,6 @@ sub get_next_db_log {
 	$sth = pop @sth_stack;
     }
     return $log;
-}
-
-sub set_log_level {
-    $log_level = shift;
-}
-
-sub get_log_level {
-    return $log_level;
 }
 
 1;
