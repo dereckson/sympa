@@ -46,7 +46,7 @@ unless (&Conf::load($sympa_conf_file)) {
     &Log::fatal_err('Unable to load sympa config file %s', $sympa_conf_file);
 }
 
-&Log::set_log_level($Conf{'log_level'}) if ($Conf{'log_level'}); 
+$log_level = $Conf{'log_level'} if ($Conf{'log_level'}); 
 
 
 ## Open log

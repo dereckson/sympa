@@ -152,9 +152,6 @@
 	  [% IF additional_fields %]
 	    <th>[% additional_fields %]</th>
 	  [% END %]
-	  <th>
-	      [%|loc%]Additional information[%END%]
-	</th>
         [% END %]
       </tr>
       
@@ -241,9 +238,6 @@
 	      [% u.additional %]
 	     </td>
 	  [% END %]
-	  <td class="text_left">
-	  	 [% FOREACH ca_k IN list_conf.custom_attribute %]<b>[% ca_k.name %] : </b>[% SET id = ca_k.id %][% u.custom_attribute.$id.value %]<br>[% END %]
-	</td>
        	  [% END %]
         </tr>
 

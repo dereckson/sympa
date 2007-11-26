@@ -15,7 +15,6 @@ create table user_table
     cookie_delay_user      numeric                null    ,
     lang_user              varchar(10)            null    ,
     attributes_user	   varchar(255)           null    ,
-    data_user              varchar(255)         null    ,
     constraint ind_user primary key (email_user)
 )
 go
@@ -28,7 +27,6 @@ create table subscriber_table
 (
     list_subscriber        varchar(50)            not null,
     user_subscriber        varchar(100)           not null,
-    custom_attribute_subscriber varchar (500)          null    ,
     robot_subscriber       varchar(80)           not null,
     date_subscriber        datetime               not null,
     update_subscriber      datetime               null,
@@ -63,7 +61,6 @@ create table admin_table
 	date_admin 		datetime 	  not null,
 	update_admin 		datetime          null,
 	reception_admin 	varchar(20)       null,
-	visibility_admin 	varchar(20)       null,
 	comment_admin 		varchar(150)	  null,
 	subscribed_admin  	numeric           null,
 	included_admin  	numeric           null,
@@ -124,20 +121,4 @@ CREATE TABLE logs_table (
 go
 
 create index id_logs_fk on logs_table (id_logs)
-go
-
-CREATE TABLE session_table (
-	id_session			varchar(30) NOT NULL,
-	start_date_session		numeric NOT NULL,
-	date_session		        numeric NOT NULL,
-	remote_addr_session		varchar(60),
-	robot_session		        varchar(80),
-	email_session		        varchar(100),
-	hit_session     	        numeric,
-	data_session		        varchar(255),
-	constraint ind_session primary key (id_session)
-)
-go
-
-create index id_session_fk on session_table (id_session)
 go

@@ -114,7 +114,7 @@ unshift @INC, $wwsconf->{'wws_path'};
 
 ## Check databse connectivity
 unless (&List::check_db_connect()) {
-    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf{'db_name'});
+    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
 }
 
 ## Put ourselves in background if not in debug mode. 
@@ -138,13 +138,7 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
 ## Create and write the pidfile
 &tools::write_pid($wwsconf->{'bounced_pidfile'}, $$);
 
-if ($main::options{'log_level'}) {
-    &Log::set_log_level($main::options{'log_level'});
-    do_log('info', "Configuration file read, log level set using options : $main::options{'log_level'}"); 
-}else{
-    &Log::set_log_level($Conf{'log_level'});
-    do_log('info', "Configuration file read, default log level $Conf{'log_level'}"); 
-}
+$log_level = $main::options{'log_level'} || $Conf{'log_level'};
 
 $wwsconf->{'log_facility'}||= $Conf{'syslog'};
 do_openlog($wwsconf->{'log_facility'}, $Conf{'log_socket_type'}, 'bounced');
@@ -270,6 +264,7 @@ while (!$end) {
 		if ($action =~ /do_it/i) {
 		    if ($list->is_user($who)) {
 			my $u = $list->delete_user($who);
+			$list->save();
 			do_log ('notice',"$who has been removed from $listname because welcome message bounced");
 			&Log::db_log({'robot' => $list->{'domain'},'list' => $list->{'name'},'action' => 'del',
 				      'target_email' => $who,'status' => 'error','error_type' => 'welcome_bounced',
@@ -356,7 +351,7 @@ while (!$end) {
 		    if ($action =~ /do_it/i) {
 			if ($list->is_user($original_rcpt)) {
 			    my $u = $list->delete_user($original_rcpt);
-
+			    $list->save();
 			    do_log ('notice',"$original_rcpt has been removed from %s because abuse feedback report",$list->name);	
 			    unless ($list->send_notify_to_owner('automatic_del',{'who' => $original_rcpt, 'by' => 'listmaster'})) {
 				&do_log('notice',"Unable to send notify 'notice' to $list->{'name'} list owner");
@@ -420,7 +415,7 @@ while (!$end) {
 	    ## Bounce directory
 	    if (! -d $bounce_dir) {
 		unless (mkdir $bounce_dir, 0777) {
-		    &List::send_notify_to_listmaster('intern_error',$Conf{'domain'},{'error' => "Failed to list create bounce directory $bounce_dir"});
+		    &List::send_notify_to_listmaster('intern_error',$Conf{'domain'},{'error' => "Failed to list create bounce directory $bounce_dir"})
 		    &do_log('err', 'Could not create %s: %s bounced die, check bounce-path in wwsympa.conf', $bounce_dir, $!);
 		    exit;
 		} 

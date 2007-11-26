@@ -23,7 +23,7 @@ sbin_SUBST	=	bounced.pl archived.pl
 
 cgi_SUBST	=	wwsympa.fcgi wwsympa_sudo_wrapper.pl
 
-lib_SUBST	=	wwslib.pm cookielib.pm bounce-lib.pl Marc.pm Auth.pm SharedDocument.pm SympaSession.pm
+lib_SUBST	=	wwslib.pm cookielib.pm bounce-lib.pl Marc.pm Auth.pm SharedDocument.pm
 
 SRC		=	mime.types 
 
@@ -55,6 +55,7 @@ installmod:
 		chmod u+s $(DESTDIR)$(CGIDIR)/wwsympa.fcgi; \
 		chmod g+s $(DESTDIR)$(CGIDIR)/wwsympa.fcgi; \
 	fi
+	chmod 755 $(DESTDIR)$(ICONSDIR)
 	chmod 755 $(DESTDIR)$(LIBDIR)/Marc
 	@for i in $(lib_SUBST) Marc/Search.pm; do \
 	chown $(USER) $(DESTDIR)$(LIBDIR)/$$i; \
@@ -79,6 +80,10 @@ makedir:
 		echo "Creating required directory $(DESTDIR)$(ETCBINDIR)"; \
 		mkdir -p $(DESTDIR)$(ETCBINDIR); \
 	fi
+	@if [ ! -d $(DESTDIR)$(ICONSDIR) ]; then \
+		echo "Creating required directory $(DESTDIR)$(ICONSDIR)"; \
+		mkdir -p $(DESTDIR)$(ICONSDIR); \
+	fi
 	@if [ ! -d $(DESTDIR)$(LIBDIR)/Marc ]; then \
 		echo "Creating required directory $(DESTDIR)$(LIBDIR)/Marc"; \
 		mkdir $(DESTDIR)$(LIBDIR)/Marc; \
@@ -92,8 +97,7 @@ installsrc:
 
 installicons:
 	@echo "Installing icons..."
-	@echo $(DIR)/static_content/icons
-	cp icons/*.png $(DIR)/static_content/icons
+	cp icons/*.png $(DESTDIR)$(ICONSDIR)
 
 substlib:
 	@echo "Doing multiple substitutions while installing librairies..."
@@ -110,6 +114,7 @@ substlib:
 		DESTDIR=$(DESTDIR); export DESDIR; \
 		ETCBINDIR=$(ETCBINDIR); export ETCBINDIR; \
 		MAILERPROGDIR=$(MAILERPROGDIR); export MAILERPROGDIR; \
+		ICONSDIR=$(ICONSDIR); export ICONSDIR; \
 		WWSCONFIG=$(WWSCONFIG); export WWSCONFIG; \
 		CONFIG=$(CONFIG); export CONFIG; \
 		$(PERL) ../subst.pl $(lib_SUBST) \
@@ -130,6 +135,7 @@ substsbin:
 		DESTDIR=$(DESTDIR); export DESDIR; \
 		ETCBINDIR=$(ETCBINDIR); export ETCBINDIR; \
 		MAILERPROGDIR=$(MAILERPROGDIR); export MAILERPROGDIR; \
+		ICONSDIR=$(ICONSDIR); export ICONSDIR; \
 		WWSCONFIG=$(WWSCONFIG); export WWSCONFIG; \
 		CONFIG=$(CONFIG); export CONFIG; \
 		$(PERL) ../subst.pl $(sbin_SUBST) \
@@ -150,6 +156,7 @@ substcgi:
 		DESTDIR=$(DESTDIR); export DESDIR; \
 		ETCBINDIR=$(ETCBINDIR); export ETCBINDIR; \
 		MAILERPROGDIR=$(MAILERPROGDIR); export MAILERPROGDIR; \
+		ICONSDIR=$(ICONSDIR); export ICONSDIR; \
 		WWSCONFIG=$(WWSCONFIG); export WWSCONFIG; \
 		CONFIG=$(CONFIG); export CONFIG; \
 		if [ "$(enable_secure)" = "yes" ]; then PERLOPT=""; else PERLOPT="-U"; fi; export PERLOPT; \

@@ -50,7 +50,7 @@ sub get_previous_version {
 	    last;
 	}
 	close VFILE;
-	
+
 	return $previous_version;
     }
     
@@ -589,69 +589,20 @@ sub upgrade {
 	&do_log('notice','%d files have been modified', $total);
     }
 
-    ## giving up subscribers flat files ; moving subscribers to the DB
-    ## Also giving up old 'database' mode
-    if (&tools::lower_version($previous_version, '5.4a.1')) {
-	
-	&do_log('notice','Looking for lists with user_data_source parameter set to file or database...');
-
-	my $all_lists = &List::get_lists('*');
-	foreach my $list ( @$all_lists ) {
-
-	    if ($list->{'admin'}{'user_data_source'} eq 'file') {
-
-		&do_log('notice','List %s ; changing user_data_source from file to include2...', $list->{'name'});
-		
-		my @users = &List::_load_users_file("$list->{'dir'}/subscribers");
-		
-		$list->{'admin'}{'user_data_source'} = 'include2';
-		$list->{'total'} = 0;
-		
-		## Add users to the DB
-		my $total = $list->add_user(@users);
-		unless (defined $total) {
-		    &do_log('err', 'Failed to add users');
-		    next;
-		}
-		
-		&do_log('notice','%d subscribers have been loaded into the database', $total);
-		
-		unless ($list->save_config('listmaster')) {
-		    &do_log('err', 'Failed to save config file for list %s', $list->{'name'});
-		}
-	    }elsif ($list->{'admin'}{'user_data_source'} eq 'database') {
-
-		&do_log('notice','List %s ; changing user_data_source from database to include2...', $list->{'name'});
-
-		unless ($list->update_user('*', {'subscribed' => 1})) {
-		    &do_log('err', 'Failed to update subscribed DB field');
-		}
-
-		$list->{'admin'}{'user_data_source'} = 'include2';
-
-		unless ($list->save_config('listmaster')) {
-		    &do_log('err', 'Failed to save config file for list %s', $list->{'name'});
-		}
-	    }
-	}
-    }
-    
-
     return 1;
 }
 
 sub probe_db {
     &do_log('debug3', 'List::probe_db()');    
     my (%checked, $table);
-    
+
     ## Database structure
     my %db_struct = ('mysql' => {'user_table' => {'email_user' => 'varchar(100)',
 						  'gecos_user' => 'varchar(150)',
 						  'password_user' => 'varchar(40)',
 						  'cookie_delay_user' => 'int(11)',
 						  'lang_user' => 'varchar(10)',
-						  'attributes_user' => 'text',
-						  'data_user' => 'text'},
+						  'attributes_user' => 'text'},
 				 'subscriber_table' => {'list_subscriber' => 'varchar(50)',
 							'user_subscriber' => 'varchar(100)',
 							'robot_subscriber' => 'varchar(80)',
@@ -666,8 +617,7 @@ sub probe_db {
 							'included_subscriber' => "int(1)",
 							'include_sources_subscriber' => 'varchar(50)',
 							'bounce_score_subscriber' => 'smallint(6)',
-							'bounce_address_subscriber' => 'varchar(100)',
-							'custom_attribute_subscriber' => 'text'},
+							'bounce_address_subscriber' => 'varchar(100)'},
 				 'admin_table' => {'list_admin' => 'varchar(50)',
 						   'user_admin' => 'varchar(100)',
 						   'robot_admin' => 'varchar(80)',
@@ -675,7 +625,6 @@ sub probe_db {
 						   'date_admin' => 'datetime',
 						   'update_admin' => 'datetime',
 						   'reception_admin' => 'varchar(20)',
-						   'visibility_admin' => 'varchar(20)',
 						   'comment_admin' => 'varchar(150)',
 						   'subscribed_admin' => "int(1)",
 						   'included_admin' => "int(1)",
@@ -686,14 +635,6 @@ sub probe_db {
 						      'serviceid_netidmap' => 'varchar(100)',
 						      'email_netidmap' => 'varchar(100)',
 						      'robot_netidmap' => 'varchar(80)'},
-				 'session_table' => {'id_session' => 'varchar(30)',
-						     'start_date_session' => 'int(11)',
-						     'date_session' => 'int(11)',
-						     'remote_addr_session' => 'varchar(60)',
-						     'robot_session'  => 'varchar(80)',
-						     'email_session'  => 'varchar(100)',
-						     'hit_session' => 'int(11)',
-						     'data_session'  => 'text'},
 				 'logs_table' => {'id_logs' => 'bigint(20)',
 						  'date_logs' => 'int(11)',
 						  'robot_logs' => 'varchar(80)',
@@ -714,8 +655,7 @@ sub probe_db {
 						   'password_user' => 'varchar(40)',
 						   'cookie_delay_user' => 'integer',
 						   'lang_user' => 'varchar(10)',
-						   'attributes_user' => 'varchar(255)',
-						   'data_user' => 'varchar(255)'},
+						   'attributes_user' => 'varchar(255)'},
 				  'subscriber_table' => {'list_subscriber' => 'varchar(50)',
 							 'user_subscriber' => 'varchar(100)',
 							 'robot_subscriber' => 'varchar(80)',
@@ -738,7 +678,6 @@ sub probe_db {
 						    'date_admin' => 'timestamp',
 						    'update_admin' => 'timestamp',
 						    'reception_admin' => 'varchar(20)',
-						    'visibility_admin' => 'varchar(20)',
 						    'comment_admin' => 'varchar(150)',
 						    'subscribed_admin' => "boolean",
 						    'included_admin' => "boolean",
@@ -749,14 +688,6 @@ sub probe_db {
 						       'serviceid_netidmap' => 'varchar(100)',
 						       'email_netidmap' => 'varchar(100)',
 						       'robot_netidmap' => 'varchar(80)'},
-				  'session_table' => {'id_session' => 'varchar(30)',
-						     'start_date_session' => 'integer',
-						     'date_session' => 'int(11)',
-						     'remote_addr_session' => 'varchar(60)',
-						     'robot_session'  => 'varchar(80)',
-						     'email_session'  => 'varchar(100)',
-						     'hit_session' => 'integer',
-						     'data_session'  => 'varchar(255)'},
 				  'logs_table' => {'id_logs' => 'integer',
 						   'date_logs' => 'integer',
 						   'robot_logs' => 'varchar(80)',
@@ -792,29 +723,16 @@ sub probe_db {
 		    'date_logs' => 1,
 		    'action_logs' => 1,
 		    'status_logs' => 1,
-		    'daemon_logs' => 1,
-		    'id_session' => 1,
-		    'start_date_session' => 1,
-		    'date_session' => 1,
+		    'daemon_logs' => 1
 		    );
     
     my %primary = ('user_table' => ['email_user'],
-		   'subscriber_table' => ['robot_subscriber','list_subscriber','user_subscriber'],
-		   'admin_table' => ['robot_admin','list_admin','role_admin','user_admin'],
+		   'subscriber_table' => ['list_subscriber','robot_subscriber','user_subscriber'],
+		   'admin_table' => ['list_admin','robot_admin','user_admin','role_admin'],
 		   'netidmap_table' => ['netid_netidmap','serviceid_netidmap','robot_netidmap'],
-		   'logs_table' => ['id_logs'],
-		   'session_table' => ['id_session']
+		   'logs_table' => ['id_logs']
 		   );
 
-    ## List the required INDEXES
-    ##   1st key is the concerned table
-    ##   2nd key is the index name
-    ##   the table lists the field on which the index applies
-    my %indexes = ('admin_table' => {'user_index' => ['user_admin']},
-		   'subscriber_table' => {'user_index' => ['user_subscriber']}				     
-		   );
-
-    # table indexes that can be removed during upgrade process
     my @former_indexes = ('user_subscriber', 'list_subscriber', 'subscriber_idx', 'admin_idx', 'netidmap_idx', 'user_admin', 'list_admin', 'role_admin', 'admin_table_index', 'logs_table_index','netidmap_table_index','subscriber_table_index');
     
     ## Report changes to listmaster
@@ -825,12 +743,12 @@ sub probe_db {
 	&do_log('err', 'No db_name defined in configuration file');
 	return undef;
     }
-    
+
     unless (&List::check_db_connect()) {
 	unless (&SQLSource::create_db()) {
 	    return undef;
 	}
-	
+
 	if ($ENV{'HTTP_HOST'}) { ## Web context
 	    return undef unless &List::db_connect('just_try');
 	}else {
@@ -839,7 +757,7 @@ sub probe_db {
     }
     
     my $dbh = &List::db_get_handler();
-    
+
     my (@tables, $fields, %real_struct);
     if ($Conf{'db_type'} eq 'mysql') {
 	
@@ -874,11 +792,11 @@ sub probe_db {
 		$real_struct{$t1} = {};
 	    }
 	}
-	
+
 	## Get fields
 	foreach my $t (@tables) {
 	    my $sth;
-	    
+
 	    #	    unless ($sth = $dbh->table_info) {
 	    #	    unless ($sth = $dbh->prepare("LISTFIELDS $t")) {
 	    my $sql_query = "SHOW FIELDS FROM $t";
@@ -895,12 +813,12 @@ sub probe_db {
 	    while (my $ref = $sth->fetchrow_hashref()) {
 		$real_struct{$t}{$ref->{'Field'}} = $ref->{'Type'};
 	    }
-	    
+
 	    $sth->finish();
 	}
 	
     }elsif ($Conf{'db_type'} eq 'Pg') {
-	
+		
 	unless (@tables = $dbh->tables) {
 	    &do_log('err', 'Can\'t load tables list from database %s', $Conf{'db_name'});
 	    return undef;
@@ -918,7 +836,7 @@ sub probe_db {
 	
 	foreach my $t (@tables) {
 	    next unless (defined $db_struct{$Conf{'db_type'}}{$t});
-	    
+
 	    my $res = $dbh->selectall_arrayref("PRAGMA table_info($t)");
 	    unless (defined $res) {
 		&do_log('err','Failed to check DB tables structure : %s', $dbh->errstr);
@@ -928,7 +846,7 @@ sub probe_db {
 		$real_struct{$t}{$field->[1]} = $field->[2];
 	    }
 	}
-	
+
 	# Une simple requête sqlite : PRAGMA table_info('nomtable') , retourne la liste des champs de la table en question.
 	# La liste retournée est composée d'un N°Ordre, Nom du champ, Type (longueur), Null ou not null (99 ou 0),Valeur par défaut,Clé primaire (1 ou 0)
 	
@@ -977,7 +895,7 @@ sub probe_db {
 	
 	$sth->finish();
     }
-    
+
     foreach $table ( @tables ) {
 	$checked{$table} = 1;
     }
@@ -1012,7 +930,7 @@ sub probe_db {
 		    if ($not_null{$f}) {
 			$options .= 'NOT NULL';
 		    }
-		    
+
 		    unless ($dbh->do("ALTER TABLE $t ADD $f $db_struct{$Conf{'db_type'}}{$t}{$f} $options")) {
 			&do_log('err', 'Could not add field \'%s\' to table\'%s\'.', $f, $t);
 			&do_log('err', 'Sympa\'s database structure may have change since last update ; please check RELEASE_NOTES');
@@ -1022,7 +940,7 @@ sub probe_db {
 		    push @report, sprintf('Field %s added to table %s', $f, $t);
 		    &do_log('info', 'Field %s added to table %s', $f, $t);
 		    $added_fields{$f} = 1;
-		    
+
 		    ## Remove temporary DB field
 		    if ($real_struct{$t}{'temporary'}) {
 			unless ($dbh->do("ALTER TABLE $t DROP temporary")) {
@@ -1047,7 +965,7 @@ sub probe_db {
 			if ($not_null{$f}) {
 			    $options .= 'NOT NULL';
 			}
-			
+
 			push @report, sprintf("ALTER TABLE $t CHANGE $f $f $db_struct{$Conf{'db_type'}}{$t}{$f} $options");
 			&do_log('notice', "ALTER TABLE $t CHANGE $f $f $db_struct{$Conf{'db_type'}}{$t}{$f} $options");
 			unless ($dbh->do("ALTER TABLE $t CHANGE $f $f $db_struct{$Conf{'db_type'}}{$t}{$f} $options")) {
@@ -1067,150 +985,73 @@ sub probe_db {
 		    }
 		}
 	    }
-	    if ($Conf{'db_type'} eq 'mysql') {
-		## Check that primary key has the right structure.
-		my $should_update;
-		my $test_request_result = $dbh->selectall_hashref('SHOW COLUMNS FROM '.$t,'Key');
-		my %primaryKeyFound;
+
+	    ## Check that primary key has the right structure.
+	    my $should_update;
+	    my $test_request_result = $dbh->selectall_hashref('SHOW COLUMNS FROM '.$t,'Key');
+	    my %primaryKeyFound;
+	    foreach my $scannedResult ( keys %$test_request_result ) {
+		if ( $scannedResult eq "PRI" ) {
+		    $primaryKeyFound{$scannedResult} = 1;
+		}
+	    }
+	    foreach my $field (@{$primary{$t}}) {		
+		unless ($primaryKeyFound{$field}) {
+		    $should_update = 1;
+		    last;
+		}
+	    }
+		
+	    ## Create required PRIMARY KEY. Removes useless INDEX.
+	    foreach my $field (@{$primary{$t}}) {		
+		if ($added_fields{$field}) {
+		    $should_update = 1;
+		    last;
+		}
+	    }
+	    
+	    if ($should_update) {
+		my $fields = join ',',@{$primary{$t}};
+		my %definedPrimaryKey;
+		foreach my $definedKeyPart (@{$primary{$t}}) {
+		    $definedPrimaryKey{$definedKeyPart} = 1;
+		}
+		my $searchedKeys = ['Field','Key'];
+		my $test_request_result = $dbh->selectall_hashref('SHOW COLUMNS FROM '.$t,$searchedKeys);
+		my $expectedKeyMissing = 0;
+		my $unExpectedKey = 0;
+		my $primaryKeyFound = 0;
+		my $primaryKeyDropped = 0;
 		foreach my $scannedResult ( keys %$test_request_result ) {
-		    if ( $scannedResult eq "PRI" ) {
-			$primaryKeyFound{$scannedResult} = 1;
-		    }
-		}
-		foreach my $field (@{$primary{$t}}) {		
-		    unless ($primaryKeyFound{$field}) {
-			$should_update = 1;
-			last;
-		    }
-		}
-		
-		## Create required PRIMARY KEY. Removes useless INDEX.
-		foreach my $field (@{$primary{$t}}) {		
-		    if ($added_fields{$field}) {
-			$should_update = 1;
-			last;
-		    }
-		}
-		
-		if ($should_update) {
-		    my $fields = join ',',@{$primary{$t}};
-		    my %definedPrimaryKey;
-		    foreach my $definedKeyPart (@{$primary{$t}}) {
-			$definedPrimaryKey{$definedKeyPart} = 1;
-		    }
-		    my $searchedKeys = ['Field','Key'];
-		    my $test_request_result = $dbh->selectall_hashref('SHOW COLUMNS FROM '.$t,$searchedKeys);
-		    my $expectedKeyMissing = 0;
-		    my $unExpectedKey = 0;
-		    my $primaryKeyFound = 0;
-		    my $primaryKeyDropped = 0;
-		    foreach my $scannedResult ( keys %$test_request_result ) {
-			if ( $$test_request_result{$scannedResult}{"PRI"} ) {
-			    $primaryKeyFound = 1;
-			    if ( !$definedPrimaryKey{$scannedResult}) {
-				&do_log('info','Unexpected primary key : %s',$scannedResult);
-				$unExpectedKey = 1;
-				next;
-			    }
-			}
-			else {
-			    if ( $definedPrimaryKey{$scannedResult}) {
-				&do_log('info','Missing expected primary key : %s',$scannedResult);
-				$expectedKeyMissing = 1;
-				next;
-			    }
-			}
-			
-		    }
-		    if( $primaryKeyFound && ( $unExpectedKey || $expectedKeyMissing ) ) {
-			## drop previous primary key
-			unless ($dbh->do("ALTER TABLE $t DROP PRIMARY KEY")) {
-			    &do_log('err', 'Could not drop PRIMARY KEY, table\'%s\'.', $t);
-			}
-			push @report, sprintf('Table %s, PRIMARY KEY dropped', $t);
-			&do_log('info', 'Table %s, PRIMARY KEY dropped', $t);
-			$primaryKeyDropped = 1;
-		    }
-		    
-		    ## Add primary key
-		    if ( $primaryKeyDropped || !$primaryKeyFound ) {
-			&do_log('debug', "ALTER TABLE $t ADD PRIMARY KEY ($fields)");
-			unless ($dbh->do("ALTER TABLE $t ADD PRIMARY KEY ($fields)")) {
-			    &do_log('err', 'Could not set field \'%s\' as PRIMARY KEY, table\'%s\'.', $fields, $t);
-			    return undef;
-			}
-			push @report, sprintf('Table %s, PRIMARY KEY set on %s', $t, $fields);
-			&do_log('info', 'Table %s, PRIMARY KEY set on %s', $t, $fields);
-		    }
-		}
-		
-		## drop previous index if this index is not a primary key and was defined by a previous Sympa version
-		my $test_request_result = $dbh->selectall_hashref('SHOW INDEX FROM '.$t,'Key_name');
-		my %index_columns;
-		
-		foreach my $indexName ( keys %$test_request_result ) {
-		    unless ( $indexName eq "PRIMARY" ) {
-			$index_columns{$indexName} = 1;
-		    }
-		}
-		
-		foreach my $idx ( keys %index_columns ) {
-		    
-		    ## Check whether the index found should be removed
-		    my $index_name_is_known = 0;
-		    foreach my $known_index ( @former_indexes ) {
-			if ( $idx eq $known_index ) {
-			    $index_name_is_known = 1;
-			    last;
+		    if ( $$test_request_result{$scannedResult}{"PRI"} ) {
+			$primaryKeyFound = 1;
+			if ( !$definedPrimaryKey{$scannedResult}) {
+			    &do_log('info','Unexpected primary key : %s',$scannedResult);
+			    $unExpectedKey = 1;
+			    next;
 			}
 		    }
-		    ## Drop indexes
-		    if( $index_name_is_known ) {
-			if ($dbh->do("ALTER TABLE $t DROP INDEX $idx")) {
-			    push @report, sprintf('Deprecated INDEX \'%s\' dropped in table \'%s\'', $idx, $t);
-			    &do_log('info', 'Deprecated INDEX \'%s\' dropped in table \'%s\'', $idx, $t);
-			}else {
-			    &do_log('err', 'Could not drop deprecated INDEX \'%s\' in table \'%s\'.', $idx, $t);
+		    else {
+			if ( $definedPrimaryKey{$scannedResult}) {
+			    &do_log('info','Missing expected primary key : %s',$scannedResult);
+			    $expectedKeyMissing = 1;
+			    next;
 			}
-			
 		    }
 		    
 		}
-		
-		## Create required indexes
-		foreach my $idx (keys %{$indexes{$t}}){ 
-		    
-		    unless ($index_columns{$idx}) {
-			my $columns = join ',', @{$indexes{$t}{$idx}};
-			if ($dbh->do("ALTER TABLE $t ADD INDEX $idx ($columns)")) {
-			    &do_log('info', 'Added INDEX \'%s\' in table \'%s\'', $idx, $t);
-			}else {
-			    &do_log('err', 'Could not add INDEX \'%s\' in table \'%s\'.', $idx, $t);
-			}
-		    }
-		}	 
-	    }   
-	    elsif ($Conf{'db_type'} eq 'sqlite') {
-		## Create required INDEX and PRIMARY KEY
-		my $should_update;
-		foreach my $field (@{$primary{$t}}) {
-		    if ($added_fields{$field}) {
-			$should_update = 1;
-			last;
-		    }
-		}
-		
-		if ($should_update) {
-		    my $fields = join ',',@{$primary{$t}};
-		    
+		if( $primaryKeyFound && ( $unExpectedKey || $expectedKeyMissing ) ) {
 		    ## drop previous primary key
 		    unless ($dbh->do("ALTER TABLE $t DROP PRIMARY KEY")) {
 			&do_log('err', 'Could not drop PRIMARY KEY, table\'%s\'.', $t);
 		    }
 		    push @report, sprintf('Table %s, PRIMARY KEY dropped', $t);
 		    &do_log('info', 'Table %s, PRIMARY KEY dropped', $t);
-		    
-		    ## Add primary key
+		    $primaryKeyDropped = 1;
+		}
+
+		## Add primary key
+		if ( $primaryKeyDropped || !$primaryKeyFound ) {
 		    &do_log('debug', "ALTER TABLE $t ADD PRIMARY KEY ($fields)");
 		    unless ($dbh->do("ALTER TABLE $t ADD PRIMARY KEY ($fields)")) {
 			&do_log('err', 'Could not set field \'%s\' as PRIMARY KEY, table\'%s\'.', $fields, $t);
@@ -1218,35 +1059,45 @@ sub probe_db {
 		    }
 		    push @report, sprintf('Table %s, PRIMARY KEY set on %s', $t, $fields);
 		    &do_log('info', 'Table %s, PRIMARY KEY set on %s', $t, $fields);
-		    
-		    
-		    ## drop previous index
-		    my $success;
-		    foreach my $field (@{$primary{$t}}) {
-			unless ($dbh->do("ALTER TABLE $t DROP INDEX $field")) {
-			    next;
-			}
-			$success = 1; last;
-		    }
-		    
-		    if ($success) {
-			push @report, sprintf('Table %s, INDEX dropped', $t);
-			&do_log('info', 'Table %s, INDEX dropped', $t);
-		    }else {
-			&do_log('err', 'Could not drop INDEX, table \'%s\'.', $t);
-		    }
-		    
-		    ## Add INDEX
-		    unless ($dbh->do("ALTER TABLE $t ADD INDEX $t\_index ($fields)")) {
-			&do_log('err', 'Could not set INDEX on field \'%s\', table\'%s\'.', $fields, $t);
-			return undef;
-		    }
-		    push @report, sprintf('Table %s, INDEX set on %s', $t, $fields);
-		    &do_log('info', 'Table %s, INDEX set on %s', $t, $fields);
-		    
 		}
 	    }
+	    
+	    ## drop previous index if this index is not a primary key and was defined by a previous Sympa version
+	    my $test_request_result = $dbh->selectall_hashref('SHOW INDEX FROM '.$t,'Key_name');
+	    my %index_columns;
+	    
+	    foreach my $indexName ( keys %$test_request_result ) {
+		unless ( $indexName eq "PRIMARY" ) {
+		    $index_columns{$indexName} = 1;
+		}
+	    }
+
+	    foreach my $idx ( keys %index_columns ) {
+		
+		## Check whether the index found was defined by Sympa
+		my $index_name_is_known = 0;
+		foreach my $known_index ( @former_indexes ) {
+		    if ( $idx eq $known_index ) {
+			$index_name_is_known = 1;
+			last;
+		    }
+		}
+		## If index was defined by Sympa, drop it.
+		if( $index_name_is_known ) {
+		    if ($dbh->do("ALTER TABLE $t DROP INDEX $idx")) {
+			push @report, sprintf('Deprecated INDEX \'%s\' dropped in table \'%s\'', $idx, $t);
+			&do_log('info', 'Deprecated INDEX \'%s\' dropped in table \'%s\'', $idx, $t);
+		    }
+		    else {
+			&do_log('err', 'Could not drop deprecated INDEX \'%s\' in table \'%s\'.', $idx, $t);
+		    }
+		    
+		}
+		
+	    }
+	    
 	}
+	
 	## Try to run the create_db.XX script
     }elsif ($found_tables == 0) {
 	unless (open SCRIPT, "--SCRIPTDIR--/create_db.$Conf{'db_type'}") {

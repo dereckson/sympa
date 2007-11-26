@@ -33,7 +33,6 @@ use CPAN;
 	     'DBD::Sybase' => '0.90',
 	     'DBD::mysql' => '2.0407',
 	     'FCGI' => '0.67',
-	     'HTML::StripScripts::Parser' => '1.0',
 	     'MIME::Tools' => '5.423',
 	     'File::Spec' => '0.8',
              'Crypt::CipherSaber' => '0.50',
@@ -75,7 +74,6 @@ use CPAN;
 	     'Encode' => 'Encode',
 	     'MIME::Charset' => 'MIME-Charset',
 	     'MIME::EncWords' => 'MIME-EncWords',
-	     'HTML::StripScripts::Parser' => 'HTML-StripScripts-Parser',
 	     );
 
 %opt_CPAN = ('DBD::Pg' => 'DBD-Pg',
@@ -89,7 +87,8 @@ use CPAN;
 	     'Net::SSLeay' => 'NET-SSLeay',
 	     'Bundle::LWP' => 'LWP',
 	     'SOAP::Lite' => 'SOAP-Lite',
-	     'File::NFSLock' => 'File-NFSLock');
+	     'File::NFSLock' => 'File-NFSLock',
+	     'Crypt::OpenSSL::X509' => 'Crypt-OpenSSL-X509');
 
 %opt_features = ('DBI' => 'a generic Database Driver, required by Sympa to access Subscriber information and User preferences. An additional Database Driver is required for each database type you wish to connect to.',
 		 'DBD::mysql' => 'Mysql database driver, required if you connect to a Mysql database.\nYou first need to install the Mysql server and have it started before installing the Perl DBD module.',
@@ -107,7 +106,8 @@ use CPAN;
 		 'Net::SSLeay' => 'required by the \'include_remote_sympa_list\' feature that includes members of a list on a remote server, using X509 authentication',
 		 'Bundle::LWP' => 'required by the \'include_remote_sympa_list\' feature that includes members of a list on a remote server, using X509 authentication',
 		 'SOAP::Lite' => 'required if you want to run the Sympa SOAP server that provides ML services via a "web service"',
-		 'File::NFSLock' => 'required to perform NFS lock ; see also lock_method sympa.conf parameter'
+		 'File::NFSLock' => 'required to perform NFS lock ; see also lock_method sympa.conf parameter',
+		 'Crypt::OpenSSL::X509' => 'required for HTTP x509 authentication (when using Email in SubjAltName)'
 		 );
 
 ### main:
@@ -159,13 +159,13 @@ sub check_modules {
 	    }else {
 		print "version is too old ($v < $rv).\n";
                 print ">>>>>>> You must update \"$todo{$mod}\" to version \"$versions{$todo{$mod}}\" <<<<<<.\n";
-		&install_module($mod, {'default' => $default});
+		&install_module($mod, $default);
 	    }
 	} elsif ($status eq "nofile") {
 	    ### not installed
 	    print "was not found on this system.\n";
 
-	    &install_module($mod, {'default' => $default});
+	    &install_module($mod, $default);
 
 	} elsif ($status eq "pb_retval") {
 	    ### doesn't return 1;
@@ -180,9 +180,7 @@ sub check_modules {
 # Install a CPAN module
 ##----------------------
 sub install_module {
-    my ($module, $options) = @_;
-
-    my $default = $options->{'default'};
+    my ($module, $default) = @_;
 
     unless ($ENV{'FTP_PASSIVE'} eq 1) {
 	$ENV{'FTP_PASSIVE'} = 1;
@@ -200,45 +198,15 @@ sub install_module {
 	return undef;
     }
 
-    unless ($options->{'force'}) {
-	printf "Description: %s\n", $opt_features{$module};
-	print "Install module $module ? [$default]";
-	my $answer = <STDIN>; chomp $answer;
-	$answer ||= $default;
-	return unless ($answer =~ /^y$/i);
-    }
-    
+    printf "Description: %s\n", $opt_features{$module};
+    print "Install module $module ? [$default]";
+    my $answer = <STDIN>; chomp $answer;
+    $answer ||= $default;
+    next unless ($answer =~ /^y$/i);
     $CPAN::Config->{'inactivity_timeout'} = 4;
-    $CPAN::Config->{'colorize_output'} = 1;
-
-    #CPAN::Shell->clean($module) if ($options->{'force'});
-
     CPAN::Shell->make($module);
-    
-    if ($options->{'force'}) {
-	CPAN::Shell->force('test', $module);
-      }else {
-	  CPAN::Shell->test($module);
-      }
-    
-
+    CPAN::Shell->test($module);
     CPAN::Shell->install($module); ## Could use CPAN::Shell->force('install') if make test failed
-
-    ## Check if module has been successfuly installed
-    unless (&test_module($module) == 1) {
-
-	## Prevent recusive calls if already in force mode
-	if ($options->{'force'}) {
-	    print  "Installation of $module still FAILED. You should download the tar.gz from http://search.cpan.org and install it manually.";
-	    my $answer = <STDIN>;
-	}else {
-	    print  "Installation of $module FAILED. Do you want to force the installation of this module? (y/N) ";
-	    my $answer = <STDIN>; chomp $answer;
-	    if ($answer =~ /^y/i) {
-		&install_module($module, {'force' => 1});
-	    }
-	}
-    }
 
     ## Restore lang
     $ENV{'LANG'} = $lang if (defined $lang);

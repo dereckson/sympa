@@ -34,7 +34,6 @@ use Log;
 use Time::Local;
 use File::Find;
 use Digest::MD5;
-use HTML::StripScripts::Parser;
 
 use Encode::Guess; ## Usefull when encoding should be guessed
 use Encode::MIME::Header;
@@ -51,143 +50,22 @@ my $separator="------- CUT --- CUT --- CUT --- CUT --- CUT --- CUT --- CUT -----
 ## Caution : if this regexp changes (more/less parenthesis), then regexp using it should 
 ## also be changed
 my %regexp = ('email' => '([\w\-\_\.\/\+\=\']+|\".*\")\@[\w\-]+(\.[\w\-]+)+',
-	      'family_name' => '[a-z0-9][a-z0-9\-\.\+_]*', 
-	      'host' => '[\w\.\-]+',
-	      'multiple_host_with_port' => '[\w\.\-]+(:\d+)?(,[\w\.\-]+(:\d+)?)*',
-	      'listname' => '[a-z0-9][a-z0-9\-\.\+_]*',
-	      'sql_query' => '(SELECT|select).*',
-	      'scenario' => '[\w,\.\-]+',
-	      'task' => '\w+',
-	      'datasource' => '[\w-]+',
-	      'uid' => '[\w\-\.\+]+',
-	      );
+	   'family_name' => '[a-z0-9][a-z0-9\-\.\+_]*', 
+	   'host' => '[\w\.\-]+',
+	   'multiple_host_with_port' => '[\w\.\-]+(:\d+)?(,[\w\.\-]+(:\d+)?)*',
+	   'listname' => '[a-z0-9][a-z0-9\-\.\+_]*',
+	   'sql_query' => '(SELECT|select).*',
+	   'scenario' => '[\w,\.\-]+',
+	   'task' => '\w+',
+	   'datasource' => '[\w-]+',
+	   'uid' => '[\w\-\.\+]+',
+	   );
 
 my %openssl_errors = (1 => 'an error occurred parsing the command options',
 		      2 => 'one of the input files could not be read',
 		      3 => 'an error occurred creating the PKCS#7 file or when reading the MIME message',
 		      4 => 'an error occurred decrypting or verifying the message',
 		      5 => 'the message was verified correctly but an error occurred writing out the signers certificates');
-
-## Returns an HTML::StripScripts::Parser object built with  the parameters provided as arguments.
-sub _create_xss_parser {
-    my %parameters = @_;
-    &do_log('debug3','tools::_create_xss_parser(%s)',$parameters{'robot'});
-    my $hss = HTML::StripScripts::Parser->new({ Context => 'Document',
-						AllowSrc        => 1,
-						AllowHref       => 1,
-						AllowRelURL     => 1,
-						EscapeFiltered  => 1,
-						Rules => {
-						    '*' => {
-							src => '^http://'.&Conf::get_robot_conf($parameters{'robot'},'http_host'),
-						    },
-						},
-					    });
-    return $hss;
-}
-
-## Returns sanitized version (using StripScripts) of the string provided as argument.
-sub sanitize_html {
-    my %parameters = @_;
-    &do_log('debug3','tools::sanitize_html(%s,%s)',$parameters{'string'},$parameters{'robot'});
-
-    unless (defined $parameters{'string'}) {
-	&do_log('err',"No string provided.");
-	return undef;
-    }
-
-    my $hss = &_create_xss_parser('robot' => $parameters{'robot'});
-    unless (defined $hss) {
-	&do_log('err',"Can't create StripScript parser.");
-	return undef;
-    }
-    my $string = $hss -> filter_html($parameters{'string'});
-    return $string;
-}
-
-## Returns sanitized version (using StripScripts) of the content of the file whose path is provided as argument.
-sub sanitize_html_file {
-    my %parameters = @_;
-    &do_log('debug3','tools::sanitize_html_file(%s)',$parameters{'robot'});
-
-    unless (defined $parameters{'file'}) {
-	&do_log('err',"No path to file provided.");
-	return undef;
-    }
-
-    my $hss = &_create_xss_parser('robot' => $parameters{'robot'});
-    unless (defined $hss) {
-	&do_log('err',"Can't create StripScript parser.");
-	return undef;
-    }
-    $hss -> parse_file($parameters{'file'});
-    return $hss -> filtered_document;
-}
-
-## Sanitize all values in the hash $var, starting from $level
-sub sanitize_var {
-    my %parameters = @_;
-    &do_log('debug3','tools::sanitize_var(%s,%s,%s)',$parameters{'var'},$parameters{'level'},$parameters{'robot'});
-    unless (defined $parameters{'var'}){
-	&do_log('err','Missing var to sanitize.');
-	return undef;
-    }
-    unless (defined $parameters{'htmlAllowedParam'} && $parameters{'htmlToFilter'}){
-	&do_log('trace','Missing var *** %s *** %s *** to ignore.',$parameters{'htmlAllowedParam'},$parameters{'htmlToFilter'});
-	return undef;
-    }
-    my $level = $parameters{'level'};
-    $level |= 0;
-    
-    if(ref($parameters{'var'})) {
-	if(ref($parameters{'var'}) eq 'ARRAY') {
-	    foreach my $index (0..$#{$parameters{'var'}}) {
-		if ((ref($parameters{'var'}->[$index]) eq 'ARRAY') || (ref($parameters{'var'}->[$index]) eq 'HASH')) {
-		    &sanitize_var('var' => $parameters{'var'}->[$index],
-				  'level' => $level+1,
-				  'robot' => $parameters{'robot'},
-				  'htmlAllowedParam' => $parameters{'htmlAllowedParam'},
-				  'htmlToFilter' => $parameters{'htmlToFilter'},
-				  );
-		}
-		else {
-		    if (defined $parameters{'var'}->[$index]) {
-			$parameters{'var'}->[$index] = &escape_html($parameters{'var'}->[$index]);
-		    }
-		}
-	    }
-	}
-	elsif(ref($parameters{'var'}) eq 'HASH') {
-	    foreach my $key (keys %{$parameters{'var'}}) {
-		if ((ref($parameters{'var'}->{$key}) eq 'ARRAY') || (ref($parameters{'var'}->{$key}) eq 'HASH')) {
-		    &sanitize_var('var' => $parameters{'var'}->{$key},
-				  'level' => $level+1,
-				  'robot' => $parameters{'robot'},
-				  'htmlAllowedParam' => $parameters{'htmlAllowedParam'},
-				  'htmlToFilter' => $parameters{'htmlToFilter'},
-				  );
-		}
-		else {
-		    if (defined $parameters{'var'}->{$key}) {
-			unless ($parameters{'htmlAllowedParam'}{$key}||$parameters{'htmlToFilter'}{$key}) {
-			    $parameters{'var'}->{$key} = &escape_html($parameters{'var'}->{$key});
-			}
-			if ($parameters{'htmlToFilter'}{$key}) {
-			    $parameters{'var'}->{$key} = &sanitize_html('string' => $parameters{'var'}->{$key},
-									'robot' =>$parameters{'robot'} );
-			}
-		    }
-		}
-		
-	    }
-	}
-    }
-    else {
-	&do_log('err','Variable is neither a hash nor an array.');
-	return undef;
-    }
-    return 1;
-}
 
 ## Sorts the list of adresses by domain name
 ## Input : users hash
@@ -1279,9 +1157,9 @@ sub unescape_chars {
 sub escape_html {
     my $s = shift;
 
-    $s =~ s/\"/\&quot\;/gm;
-    $s =~ s/\</&lt\;/gm;
-    $s =~ s/\>/&gt\;/gm;
+    $s =~ s/\"/\&quot\;/g;
+    $s =~ s/\</&lt\;/g;
+    $s =~ s/\>/&gt\;/g;
     
     return $s;
 }
@@ -2149,22 +2027,6 @@ sub remove_pid {
     return 1;
 }
 
-# input user agent string and IP. return 1 if suspected to be a crawler.
-# initial version based on rawlers_dtection.conf file only
-# later : use Session table to identify those who create a lot of sessions 
-sub is_a_crawler {
-
-    my $robot = shift;
-    my $context = shift;
-
-#    if ($Conf{$robot}{'crawlers_detection'}) {
-#	return ($Conf{$robot}{'crawlers_detection'}{'user_agent_string'}{$context->{'user_agent_string'}});
-#    }
-
-    # open (TMP, ">> /tmp/dump1"); printf TMP "dump de la conf dans is_a_crawler : \n"; &tools::dump_var($Conf{'crawlers_detection'}, 0,\*TMP);     close TMP;
-    return $Conf{'crawlers_detection'}{'user_agent_string'}{$context->{'user_agent_string'}};
-}
-
 sub write_pid {
     my ($pidfile, $pid) = @_;
 
@@ -2517,16 +2379,14 @@ sub smime_extract_certs {
 ## Dump a variable's content
 sub dump_var {
     my ($var, $level, $fd) = @_;
-
-    return undef unless ($fd);
-
+    
     if (ref($var)) {
 	if (ref($var) eq 'ARRAY') {
 	    foreach my $index (0..$#{$var}) {
 		print $fd "\t"x$level.$index."\n";
 		&dump_var($var->[$index], $level+1, $fd);
 	    }
-	}elsif (ref($var) eq 'HASH' || ref($var) eq 'Scenario' || ref($var) eq 'List') {
+	}elsif (ref($var) eq 'HASH') {
 	    foreach my $key (sort keys %{$var}) {
 		print $fd "\t"x$level.'_'.$key.'_'."\n";
 		&dump_var($var->{$key}, $level+1, $fd);
@@ -2541,80 +2401,6 @@ sub dump_var {
 	    print $fd "\t"x$level."UNDEF\n";
 	}
     }
-}
-
-## Dump a variable's content
-sub dump_html_var {
-    my ($var) = shift;
-	my $html = '';
-
-    
-    if (ref($var)) {
-
-	if (ref($var) eq 'ARRAY') {
-	    $html .= '<ul>';
-	    foreach my $index (0..$#{$var}) {
-		$html .= '<li> '.$index.':';
-		$html .= &dump_html_var($var->[$index]);
-		$html .= '</li>';
-	    }
-	    $html .= '</ul>';
-	}elsif (ref($var) eq 'HASH' || ref($var) eq 'Scenario' || ref($var) eq 'List') {
-	    $html .= '<ul>';
-	    foreach my $key (sort keys %{$var}) {
-		$html .= '<li>'.$key.'=' ;
-		$html .=  &dump_html_var($var->{$key});
-		$html .= '</li>';
-	    }
-	    $html .= '</ul>';
-	}else {
-	    $html .= 'EEEEEEEEEEEEEEEEEEEEE'.ref($var);
-	}
-    }else{
-	if (defined $var) {
-	    $html .= &escape_html($var);
-	}else {
-	    $html .= 'UNDEF';
-	}
-    }
-    return $html;
-}
-
-## Dump a variable's content
-sub dump_html_var2 {
-    my ($var) = shift;
-
-    my $html = '' ;
-    
-    if (ref($var)) {
-	if (ref($var) eq 'ARRAY') {
-	    $html .= 'ARRAY <ul>';
-	    foreach my $index (0..$#{$var}) {
-		$html .= '<li> '.$index;
-		$html .= &dump_html_var($var->[$index]);
-		$html .= '</li>'
-	    }
-	    $html .= '</ul>';
-	}elsif (ref($var) eq 'HASH' || ref($var) eq 'Scenario' || ref($var) eq 'List') {
-	    #$html .= " (".ref($var).') <ul>';
-	    $html .= '<ul>';
-	    foreach my $key (sort keys %{$var}) {
-		$html .= '<li>'.$key.'=' ;
-		$html .=  &dump_html_var($var->{$key});
-		$html .= '</li>'
-	    }    
-	    $html .= '</ul>';
-	}else {
-	    $html .= "<li>'%s'"."</li>", ref($var);
-	}
-    }else{
-	if (defined $var) {
-	    $html .= '<li>'.$var.'</li>';
-	}else {
-	    $html .= '<li>UNDEF</li>';
-	}
-    }
-    return $html;
 }
 
 sub remove_empty_entries {
@@ -2898,6 +2684,8 @@ sub LOCK_EX {2};
 sub LOCK_NB {4};
 sub LOCK_UN {8};
 
+
+
 ## lock a file 
 sub lock {
     my $lock_file = shift;
@@ -3007,7 +2795,8 @@ sub add_in_blacklist {
 	    }	
 	}
 	close BLACKLIST;
-    }   
+    }
+    
     unless (open BLACKLIST, ">> $file"){
 	&do_log('info','do_blacklist : append to file %s',$file);
 	return undef;
@@ -3016,6 +2805,8 @@ sub add_in_blacklist {
     close BLACKLIST;
 
 }
+
+
 
 ## unlock a file 
 sub unlock {
@@ -3060,36 +2851,6 @@ sub get_regexp {
 	return '\w+'; ## default is a very strict regexp
     }
 
-}
-
-## convert a string formated as var1="value1";var2="value2"; into a hash.
-## Used when extracting from session table some session properties or when extracting users preference from user table
-## Current encoding is NOT compatible with encoding of values with '"'
-##
-sub string_2_hash {
-    my $data = shift;
-    my %hash ;
-    
-    while ($data =~ /^(\;?(\w+)\=\"([^\"]*)\")/) {
-	$hash{$2} = $3; 
-	$data =~ s/$1// ;
-    }    
-
-    return (%hash);
-
-}
-## convert a hash into a string formated as var1="value1";var2="value2"; into a hash
-sub hash_2_string { 
-    my $refhash = shift;
-
-    return undef unless ((ref($refhash))&& (ref($refhash) eq 'HASH')) ;
-
-    my $data_string ;
-    foreach my $var (keys %$refhash ) {
-	next unless ($var);
-	$data_string .= ';'.$var.'="'.$refhash->{$var}.'"';
-    }
-    return ($data_string);
 }
 
 1;

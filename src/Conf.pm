@@ -48,19 +48,18 @@ my @valid_options = qw(
 		       cookie cookie_cas_expire create_list automatic_list_feature automatic_list_creation automatic_list_removal crl_dir crl_update_task db_host db_env db_name db_timeout
 		       db_options db_passwd db_type db_user db_port db_additional_subscriber_fields db_additional_user_fields
 		       default_shared_quota default_archive_quota default_list_priority distribution_mode edit_list email etc
-		       global_remind home host ignore_x_no_archive_header_feature domain lang listmaster listmaster_email localedir log_socket_type log_level 
+		       global_remind home host domain lang listmaster listmaster_email localedir log_socket_type log_level 
 		       logo_html_definition misaddressed_commands misaddressed_commands_regexp max_size maxsmtp nrcpt 
 		       owner_priority pidfile pidfile_distribute pidfile_creation
 		       spool queue queuedistribute queueauth queuetask queuebounce queuedigest queueautomatic
 		       queuemod queuetopic queuesubscribe queueoutgoing tmpdir lock_method
 		       loop_command_max loop_command_sampling_delay loop_command_decrease_factor loop_prevention_regex
-		       purge_user_table_task purge_logs_table_task purge_session_table_task session_table_ttl anonymous_session_table_ttl
-                       purge_orphan_bounces_task eval_bouncers_task process_bouncers_task
+		       purge_user_table_task purge_logs_table_task purge_orphan_bounces_task eval_bouncers_task process_bouncers_task
 		       minimum_bouncing_count minimum_bouncing_period bounce_delay 
 		       default_bounce_level1_rate default_bounce_level2_rate 
 		       remind_return_path request_priority return_path_suffix rfc2369_header_fields sendmail sendmail_args sleep 
 		       sort sympa_priority supported_lang syslog log_smtp umask verp_rate welcome_return_path wwsympa_url
-                       openssl capath cafile  key_passwd ssl_cert_dir remove_headers remove_outgoing_headers
+                       openssl capath cafile  key_passwd ssl_cert_dir remove_headers
 		       antivirus_path antivirus_args antivirus_notify anonymous_header_fields sendmail_aliases
 		       dark_color light_color text_color bg_color error_color selected_color shaded_color
 		       color_0 color_1 color_2 color_3 color_4 color_5 color_6 color_7 color_8 color_9 color_10 color_11 color_12 color_13 color_14 color_15
@@ -171,8 +170,7 @@ my %Default_Conf =
      'loop_command_decrease_factor' => 0.5,
      'loop_prevention_regex' => 'mailer-daemon|sympa|listserv|majordomo|smartlist|mailman',
      'rfc2369_header_fields' => 'help,subscribe,unsubscribe,post,owner,archive',
-     'remove_headers' => 'X-Sympa-To,X-Family-To,Return-Receipt-To,Precedence,X-Sequence,Disposition-Notification-To',
-     'remove_outgoing_headers' => 'none',
+     'remove_headers' => 'Return-Receipt-To,Precedence,X-Sequence,Disposition-Notification-To',
      'antivirus_path' => '',
      'antivirus_args' => '',
      'antivirus_notify' => 'sender',
@@ -214,11 +212,6 @@ my %Default_Conf =
      'purge_user_table_task' => 'monthly',
      'purge_logs_table_task' => 'daily',
      'logs_expiration_period' => 3, #3 months
-     'purge_session_table_task' => 'daily',
-     'session_table_ttl' => '2d', #
-     'anonymous_session_table_ttl' => '1h', #
-     'purge_chalenge_table_task' => 'daily',
-     'chalenge_table_ttl' => '5d', # 
      'purge_orphan_bounces_task' => 'monthly',
      'eval_bouncers_task' => 'daily',
      'process_bouncers_task' => 'weekly',
@@ -250,8 +243,7 @@ my %Default_Conf =
      'static_content_path' => '--DIR--/static_content',
      'filesystem_encoding' => 'utf-8',
      'cache_list_config' => 'none', ## none | binary_file
-     'lock_method' => 'flock', ## flock | nfs
-     'ignore_x_no_archive_header_feature' => 'off'
+     'lock_method' => 'flock' ## flock | nfs
      );
    
 
@@ -271,7 +263,6 @@ my %trusted_applications = ('trusted_application' => {'occurrence' => '0-n',
 							  }
 					    }
 			    );
-
 
 my $wwsconf;
 %Conf = ();
@@ -449,19 +440,26 @@ sub load {
 	return undef;
     }
 
-    ## Parameters made of comma-separated list
-    foreach my $parameter ('rfc2369_header_fields','anonymous_header_fields','remove_headers','remove_outgoing_headers') {
-	if ($Conf{$parameter} eq 'none') {
-	    delete $Conf{$parameter};
-	}else {
-	    $Conf{$parameter} = [split(/,/, $Conf{$parameter})];
-	}
+    if ($Conf{'rfc2369_header_fields'} eq 'none') {
+	delete $Conf{'rfc2369_header_fields'};
+    }else {
+	$Conf{'rfc2369_header_fields'} = [split(/,/, $Conf{'rfc2369_header_fields'})];
     }
-
     foreach my $action (split(/,/, $Conf{'use_blacklist'})) {
 	$Conf{'blacklist'}{$action} = 1;
     }
 
+    if ($Conf{'anonymous_header_fields'} eq 'none') {
+	delete $Conf{'anonymous_header_fields'};
+    }else {
+	$Conf{'anonymous_header_fields'} = [split(/,/, $Conf{'anonymous_header_fields'})];
+    }
+
+    if ($Conf{'remove_headers'} eq 'none') {
+	delete $Conf{'remove_headers'};
+    }else {
+	$Conf{'remove_headers'} = [split(/,/, $Conf{'remove_headers'})];
+    }
     $Conf{'listmaster'} =~ s/\s//g ;
     @{$Conf{'listmasters'}} = split(/,/, $Conf{'listmaster'});
 
@@ -475,9 +473,6 @@ sub load {
     $Conf{'sympa'} = "$Conf{'email'}\@$Conf{'host'}";
     $Conf{'request'} = "$Conf{'email'}-request\@$Conf{'host'}";
     $Conf{'trusted_applications'} = &load_trusted_application (); 
-    $Conf{'crawlers_detection'} = &load_crawlers_detection (); 
-
-    #  open (TMP, ">> /tmp/dump1"); printf TMP "dump de la conf dans conf.pm\n" ; &tools::dump_var($Conf{'crawlers_detection'}, 0,\*TMP);     close TMP;
 
     $Conf{'pictures_url'}  = $Conf{'static_content_url'}.'/pictures/';
     $Conf{'pictures_path'}  = $Conf{'static_content_path'}.'/pictures/';
@@ -645,7 +640,7 @@ sub load_robots {
 
 	## CSS
 	$robot_conf->{$robot}{'css_url'} ||= $robot_conf->{$robot}{'static_content_url'}.'/css/'.$robot;
-	$robot_conf->{$robot}{'css_path'} ||= $Conf{'static_content_path'}.'/css/'.$robot;
+	$robot_conf->{$robot}{'css_path'} ||= $robot_conf->{$robot}{'static_content_path'}.'/css/'.$robot;
 
 	$robot_conf->{$robot}{'sympa'} = $robot_conf->{$robot}{'email'}.'@'.$robot_conf->{$robot}{'host'};
 	$robot_conf->{$robot}{'request'} = $robot_conf->{$robot}{'email'}.'-request@'.$robot_conf->{$robot}{'host'};
@@ -654,8 +649,8 @@ sub load_robots {
 	$robot_conf->{$robot}{'verp_rate'} ||= $Conf{'verp_rate'};
 	$robot_conf->{$robot}{'use_blacklist'} ||= $Conf{'use_blacklist'};
 
-	$robot_conf->{$robot}{'pictures_url'} ||= $robot_conf->{$robot}{'static_content_url'}.'/pictures/';
-	$robot_conf->{$robot}{'pictures_path'} ||= $robot_conf->{$robot}{'static_content_path'}.'/pictures/';
+	$robot_conf->{$robot}{'pictures_url'} ||= $robot_conf->{$robot}{'static_content_url'}.'/pictures/' if ($robot_conf->{$robot}{'static_content_url'}) ;
+	$robot_conf->{$robot}{'pictures_path'} ||= $robot_conf->{$robot}{'static_content_path'}.'/pictures/' if ($robot_conf->{$robot}{'static_content_path'});
 	$robot_conf->{$robot}{'pictures_feature'} ||= $Conf{'pictures_feature'};
 
 	# split action list for blacklist usage
@@ -679,7 +674,6 @@ sub load_robots {
 	}
 	# printf STDERR "load trusted de $robot";
 	$robot_conf->{$robot}{'trusted_applications'} = &load_trusted_application($robot);
-	$robot_conf->{$robot}{'crawlers_detection'} = &load_crawlers_detection($robot);
 	close (ROBOT_CONF);
     }
     closedir(DIR);
@@ -723,7 +717,7 @@ sub checkfiles_as_root {
 	if ($dir ne '' && ! -d $dir){
 	    unless ( mkdir ($dir, 0775)) {
 		&do_log('err', 'Unable to create directory %s : %s', $dir, $!);
-		printf STDERR 'Unable to create directory %s : %s',$dir, $!;
+		printf STDERR 'Unable to create directory %s : $!',$dir, $!;
 		$config_err++;
 	    }
 
@@ -1194,38 +1188,7 @@ sub load_trusted_application {
     # open TMP, ">/tmp/dump1";&tools::dump_var(&load_generic_conf_file($config,\%trusted_applications);, 0,\*TMP);close TMP;
     return (&load_generic_conf_file($config,\%trusted_applications));
 
-}
 
-
-## load trusted_application.conf configuration file
-sub load_crawlers_detection {
-    my $robot = shift;
-
-    my %crawlers_detection_conf = ('user_agent_string' => {'occurrence' => '0-n',
-						  'format' => '.+'
-						  } );
-        
-    my $config ;
-    if (defined $robot) {
-	$config = $Conf{'etc'}.'/'.$robot.'/crawlers_detection.conf';
-    }else{
-	$config = $Conf{'etc'}.'/crawlers_detection.conf' ;
-	$config = '--ETCBINDIR--/crawlers_detection.conf' unless (-f $config);
-    }
-
-    return undef unless  (-r $config);
-    my $hashtab = &load_generic_conf_file($config,\%crawlers_detection_conf);
-    my $hashhash ;
-
-
-    foreach my $kword (keys %{$hashtab}) {
-	next unless ($crawlers_detection_conf{$kword});  # ignore comments and default
-	foreach my $value (@{$hashtab->{$kword}}) {
-	    $hashhash->{$kword}{$value} = 'true';
-	}
-    }
-    
-    return $hashhash;
 }
 
 ############################################################
@@ -1258,7 +1221,7 @@ sub load_generic_conf_file {
     my (@paragraphs);
     
     ## Just in case...
-    local $/ = "\n";
+    $/ = "\n";
     
     ## Set defaults to 1
     foreach my $pname (keys %structure) {       
@@ -1274,15 +1237,17 @@ sub load_generic_conf_file {
 	if (/^\s*$/) {
 	    $i++ if $paragraphs[$i];
 	}else {
-	    push @{$paragraphs[$i]}, $_;
+	    push @{$paragraphs[$i]}, $_; # printf STDERR "xxxxxxxxxxxxxxxxxxx detected paragraph $_\n";
 	}
     }
+   # printf STDERR "xxxxxxxxxxxxxxxxxxx #detected paragraph $i\n";
 
     for my $index (0..$#paragraphs) {
 	my @paragraph = @{$paragraphs[$index]};
 
 	my $pname;
 
+	# printf STDERR "xxxxxxxxxxxxxxxxxxx paragraph $index\n";
 	## Clean paragraph, keep comments
 	for my $i (0..$#paragraph) {
 	    my $changed = undef;
@@ -1314,6 +1279,7 @@ sub load_generic_conf_file {
 	}
 	    
 	$pname = $1;	
+	# printf STDERR "xxxxxxxxxxxx parametre pname $pname\n";
 	unless (defined $structure{$pname}) {
 	    printf STDERR 'Unknown parameter "%s" in %s, ignored', $pname, $config_file;
 	    return undef if $on_error eq 'abort';
@@ -1396,11 +1362,11 @@ sub load_generic_conf_file {
 	    }else {
 		$admin{$pname} = \%hash;
 	    }
-	}else{
+	}else {
 	    ## This should be a single line
 	    my $xxxmachin =  $structure{$pname}{'format'};
 	    unless ($#paragraph == 0) {
-		printf STDERR 'Expecting a single line for %s parameter in %s %s\n', $pname, $config_file, $xxxmachin ;
+		printf STDERR 'Expecting a single line for %s parameter in %sxxxxxx %s\n', $pname, $config_file, $xxxmachin ;
 		return undef if $on_error eq 'abort';
 	    }
 
@@ -1424,6 +1390,7 @@ sub load_generic_conf_file {
     }
     
     close CONFIG;
+#open TMP2, ">>/tmp/sss"; printf TMP2 "xxxxxxxxxxxxxxxxxxx--------structure admin\n"; &tools::dump_var(\%admin, 0, \*TMP2);printf TMP2 "xxxxxxxxxxxxxxxxxxx--------\n"; close TMP2;
     return \%admin;
 }
 
@@ -1432,6 +1399,7 @@ sub load_generic_conf_file {
 # 
 sub _load_a_param {
     my ($key, $value, $p) = @_;
+    # print STDERR 'xxxxxxxxxxxxx _load_list_param(%s,\'%s\',\'%s\')\n', $robot,$key, $value;
     
     ## Empty value
     if ($value =~ /^\s*$/) {

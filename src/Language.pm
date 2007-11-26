@@ -54,11 +54,7 @@ my %language_equiv = ( 'zh_CN' => 'cn',
 
 ## Supported languages are defined by 'supported_lang' sympa.conf parameter
 
-my %lang2locale = ('ar' => 'ar_SY',
-		   'af' => 'af_ZA',
-		   'br' => 'br_FR',
-		   'bg' => 'bg_BG',
-		   'cs' => 'cs_CZ',
+my %lang2locale = ('cz' => 'cs_CZ',
 		   'de' => 'de_DE',
 		   'us' => 'en_US',
 		   'el' => 'el_GR',
@@ -76,12 +72,11 @@ my %lang2locale = ('ar' => 'ar_SY',
 		   'pl' => 'pl_PL',
 		   'pt' => 'pt_PT',
 		   'ro' => 'ro_RO',
-		   'ru' => 'ru_RU',
 		   'sv' => 'sv_SE',
 		   'cn' => 'zh_CN',
+		   'cs' => 'cs_CZ',
 		   'tr' => 'tr_TR',
-		   'tw' => 'zh_TW',
-		   'vi' => 'vi_VN',);
+		   'tw' => 'zh_TW');
 
 ## We use different catalog/textdomains depending on the template that requests translations
 my %template2textdomain = ('help_admin.tt2' => 'web_help',
@@ -176,14 +171,15 @@ sub SetLang {
 	}
     }
     
+#    &Locale::Messages::bindtextdomain('web_help','--LOCALEDIR--');
+#    bind_textdomain_codeset web_help => 'utf-8';
+
     $ENV{'LANGUAGE'}=$locale;
-    ## Define what catalogs are used
+    ## Define what catalog is used
     &Locale::Messages::textdomain("sympa");
     &Locale::Messages::bindtextdomain('sympa','--LOCALEDIR--');
-    &Locale::Messages::bindtextdomain('web_help','--LOCALEDIR--');
     # Get translations by internal encoding.
     bind_textdomain_codeset sympa => 'utf-8';
-    bind_textdomain_codeset web_help => 'utf-8';
 
     $current_lang = $lang;
     $current_locale = $locale;
@@ -246,12 +242,12 @@ sub maketext {
     my $translation;
     my $textdomain = $template2textdomain{$template_file};
     
-    if ($textdomain) {
-	$translation = &sympa_dgettext ($textdomain, $msg);
-    }else {
-	$translation = &gettext ($msg);
-    }
-#    $translation = &gettext ($msg);
+#    if ($textdomain) {
+#	$translation = &sympa_dgettext ($textdomain, $msg);
+#    }else {
+#	$translation = &gettext ($msg);
+#    }
+    $translation = &gettext ($msg);
 
     ## replace parameters in string
     $translation =~ s/\%\%/'_ESCAPED_'.'%_'/eg; ## First escape '%%'
@@ -266,7 +262,7 @@ sub sympa_dgettext {
     my $textdomain = shift;
     my @param = @_;
 
-    &do_log('debug4', 'Language::sympa_dgettext(%s)', $param[0]);
+    &do_log('debug3', 'Language::gettext(%s)', $param[0]);
 
     ## This prevents meta information to be returned if the string to translate is empty
     if ($param[0] eq '') {
@@ -303,7 +299,7 @@ sub sympa_dgettext {
 sub gettext {
     my @param = @_;
 
-    &do_log('debug4', 'Language::gettext(%s)', $param[0]);
+    &do_log('debug3', 'Language::gettext(%s)', $param[0]);
 
     ## This prevents meta information to be returned if the string to translate is empty
     if ($param[0] eq '') {

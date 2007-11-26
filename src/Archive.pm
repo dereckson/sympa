@@ -40,9 +40,7 @@ sub outgoing {
     return 1 if ($dir eq '/dev/null');
 
     ## ignoring message with a no-archive flag
-    if (ref($msg) && 
-	($Conf::Conf{'ignore_x_no_archive_header_feature'} ne 'on') && 
-	(($msg->head->get('X-no-archive') =~ /yes/i) || ($msg->head->get('Restrict') =~ /no\-external\-archive/i))) {
+    if (ref($msg) && (($msg->head->get('X-no-archive') =~ /yes/i) || ($msg->head->get('Restrict') =~ /no\-external\-archive/i))) {
 	do_log('info',"Do not archive message with no-archive flag for list $list_id");
 	return 1;
     }
@@ -213,6 +211,7 @@ sub search_msgid {
     chomp $msgid ;
 
     foreach my $file (grep (!/\./,readdir ARC)) {
+	#  do_log('info',"xxxxxxxxxxxxxxxxxxxxxxx  scan $arcpath/arctxt");
 	next unless (open MAIL,"$dir/$file") ;
 	while (<MAIL>) {
 	    last if /^$/ ; #stop parse after end of headers
@@ -246,9 +245,9 @@ sub last_path {
     my $list = shift;
 
     &do_log('debug', 'Archived::last_path(%s)', $list->{'name'});
-  my $file = $list->{'dir'}.'/archives/last_message';
+  my $file = $list->{'dir'}.'/archives/last_message';  &do_log('info', 'yyyyyyyyyyyyyyyyyyy file %s', $file);
     return undef unless ($list->is_archived());
-    my $file = $list->{'dir'}.'/archives/last_message';
+    my $file = $list->{'dir'}.'/archives/last_message';  &do_log('info', 'xxxxxxxxxxxxxx file %s', $file);
 
     return ($list->{'dir'}.'/archives/last_message') if (-f $list->{'dir'}.'/archives/last_message'); 
     return undef;

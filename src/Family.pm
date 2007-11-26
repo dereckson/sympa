@@ -2491,6 +2491,7 @@ sub _set_status_changes {
 	
 	if ($list->{'admin'}{'user_data_source'} eq 'file') {
 	    $list->{'users'} = &List::_load_users_file("$list->{'dir'}/subscribers.closed.dump");
+	    $list->save();
 	}elsif ($list->{'admin'}{'user_data_source'} eq 'database') {
 	    unless (-f "$list->{'dir'}/subscribers.closed.dump") {
 		&do_log('notice', 'No subscribers to restore');
@@ -2746,7 +2747,7 @@ sub _load_param_constraint_conf {
     my $error = 0;
 
     ## Just in case...
-    local $/ = "\n";
+    $/ = "\n";
 
     while (<FILE>) {
 	next if /^\s*(\#.*|\s*)$/;

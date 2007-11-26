@@ -269,10 +269,6 @@ sub create_list_old{
 
     ## Lock config before openning the config file
     my $lock = new Lock ($list_dir.'/config');
-    unless (defined $lock) {
-	&do_log('err','Lock could not be created');
-	return undef;
-    }
     $lock->set_timeout(5); 
     unless ($lock->lock('write')) {
 	return undef;
@@ -473,10 +469,6 @@ sub create_list{
       
     ## Lock config before openning the config file
     my $lock = new Lock ($list_dir.'/config');
-    unless (defined $lock) {
-	&do_log('err','Lock could not be created');
-	return undef;
-    }
     $lock->set_timeout(5); 
     unless ($lock->lock('write')) {
 	return undef;
@@ -597,10 +589,6 @@ sub update_list{
 
     ## Lock config before openning the config file
     my $lock = new Lock ($list->{'dir'}.'/config');
-    unless (defined $lock) {
-	&do_log('err','Lock could not be created');
-	return undef;
-    }
     $lock->set_timeout(5); 
     unless ($lock->lock('write')) {
 	return undef;

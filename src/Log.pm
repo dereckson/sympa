@@ -33,27 +33,16 @@ use Encode;
 @EXPORT = qw(fatal_err do_log do_openlog $log_level);
 
 my ($log_facility, $log_socket_type, $log_service,$sth,@sth_stack,$rows_nb);
-# When logs are not available, period of time to wait before sending another warning to listmaster.
-my $warning_timeout = 600;
-# Date of the last time a message was sent to warn the listmaster that the logs are unavailable.
-my $warning_date = 0;
 
-our $log_level = 0;
+
+local $log_level |= 0;
 
 sub fatal_err {
     my $m  = shift;
     my $errno  = $!;
     
-    eval {
-	syslog('err', $m, @_);
-	syslog('err', "Exiting.");
-    };
-    if($@ && ($warning_date < time - $warning_timeout)) {
-	$warning_date = time + $warning_timeout;
-	unless(&List::send_notify_to_listmaster('logs_failed', $Conf::Conf{'host'}, [$@])) {
-	    print STDERR "No logs available, can't send warning message";
-	}
-    };
+    syslog('err', $m, @_);
+    syslog('err', "Exiting.");
     $m =~ s/%m/$errno/g;
 
     my $full_msg = sprintf $m,@_;
@@ -70,27 +59,35 @@ sub fatal_err {
 
 sub do_log {
     my $fac = shift;
-
-    my $level = 0;
-
-    if ($fac =~ /debug(\d)?/ ) {
-	$level = $1 || 1;
-	$fac = 'debug';
-    }
-
-    # do not log if log level if too high regarding the log requested by user 
-    return if ($level > $log_level)  ;
-
     my $m = shift;
     my @param = @_;
 
     my $errno = $!;
     my $debug = 0;
 
+    my $level = 0;
+
+    $level = 1 if ($fac =~ /^debug$/) ;
+
+    if ($fac =~ /debug(\d)/ ) {
+	$level = $1;
+	$fac = 'debug';
+    }
+ 
+    # do not log if log level if too high regarding the log requested by user 
+    return if ($level > $log_level);
+
     ## Do not display variables which are references.
     foreach my $i (0..$#param) {
 	if(ref($param[$i])){
 	    $param[$i]=ref($param[$i])
+	}
+    }
+    ## Encode parameters to FS encoding to prevent "Wide character in syswrite" errors
+    ## We perform this check after ensuring we need to log because Encode::from_to() is an expensive call
+    if (defined $Conf::Conf{'filesystem_encoding'}) {
+	foreach my $i (0..$#param) {
+	    Encode::from_to($param[$i], 'utf8', $Conf::Conf{'filesystem_encoding'});
 	}
     }
 
@@ -101,21 +98,10 @@ sub do_log {
 	$m = $call[3].'() ' . $m if ($call[3]);
     }
 
-    if ($fac eq 'trace' ) {
-	$m = "###### TRACE MESSAGE ######:  " . $m;
-	$fac = 'notice';
-    }
-    eval {
-	unless (syslog($fac, $m, @param)) {
-	    &do_connect();
+    unless (syslog($fac, $m, @param)) {
+	&do_connect();
 	    syslog($fac, $m, @param);
-	}
-    };
-    if($@ && ($warning_date < time - $warning_timeout)) {
-	$warning_date = time + $warning_timeout;
-	unless(&List::send_notify_to_listmaster('logs_failed', $Conf::Conf{'host'}, [$@])) {
-	}
-    };
+    }
 
     if ($main::options{'foreground'}) {
 	if ($main::options{'log_to_stderr'} || 
@@ -146,13 +132,7 @@ sub do_connect {
     }
     # close log may be usefull : if parent processus did open log child process inherit the openlog with parameters from parent process 
     closelog ; 
-    eval {openlog("$log_service\[$$\]", 'ndelay', $log_facility)};
-    if($@ && ($warning_date < time - $warning_timeout)) {
-	$warning_date = time + $warning_timeout;
-	unless(&List::send_notify_to_listmaster('logs_failed', $Conf::Conf{'host'}, [$@])) {
-	    print STDERR "No logs available, can't send warning message";
-	}
-    };
+    openlog("$log_service\[$$\]", 'ndelay', $log_facility);
 }
 
 # return the name of the used daemon
@@ -433,14 +413,6 @@ sub get_next_db_log {
 	$sth = pop @sth_stack;
     }
     return $log;
-}
-
-sub set_log_level {
-    $log_level = shift;
-}
-
-sub get_log_level {
-    return $log_level;
 }
 
 1;

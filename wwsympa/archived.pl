@@ -99,8 +99,8 @@ if ($wwsconf->{'arc_path'}) {
 }
 
 ## Check databse connectivity
-unless (&List::check_db_connect()) {
-    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf{'db_name'});
+unless ($List::use_db = &List::check_db_connect()) {
+    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
 }
 
 ## Put ourselves in background if not in debug mode. 
@@ -122,14 +122,7 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
 ## Create and write the pidfile
 &tools::write_pid($wwsconf->{'archived_pidfile'}, $$);
 
-# setting log_level using conf unless it is set by calling option
-if ($main::options{'log_level'}) {
-    &Log::set_log_level($main::options{'log_level'});
-    do_log('info', "Configuration file read, log level set using options : $main::options{'log_level'}"); 
-}else{
-    &Log::set_log_level($Conf{'log_level'});
-    do_log('info', "Configuration file read, default log level $Conf{'log_level'}"); 
-}
+$log_level = $main::options{'log_level'} || $Conf{'log_level'};
 
 $wwsconf->{'log_facility'}||= $Conf{'syslog'};
 do_openlog($wwsconf->{'log_facility'}, $Conf{'log_socket_type'}, 'archived');
@@ -268,6 +261,7 @@ while (!$end) {
 	       &tools::remove_dir ($url_dir);
 
 	       unless (-d "$arcpath/deleted"){
+		   # do_log('info',"xxxxxxxxxxxxxxxxxxxxxxx  $arcpath/deleted");
 		   unless (mkdir ("$arcpath/deleted",0777)) {
 		       do_log('info',"remove_arc: unable to create $arcpath/deleted : $!");
 		       last;
@@ -284,11 +278,14 @@ while (!$end) {
 		   do_log('info',"remove_arc: unable to open dir $arcpath/arctxt");
 		   next;
 	       }
+	       # do_log('info',"xxxxxxxxxxxxxxxxxxxxxxx  test emptydir");
 	       my @files = grep(/^\d+$/, readdir( DIR ));
 	       closedir (DIR);
 	       if ($#files == -1) {
+		   # do_log('info','remove_dir   xxxxxxxxxxxxxxxxxxx %s',$arcpath);
 		   &tools::remove_dir ($arcpath); 
 	       }else{			
+		   # do_log('info', "xxxxxxxxxxxxxxxxxxx $arcpath/arctxt not empty");
 	       }
 	   }
 	   close REMOVE;
@@ -539,10 +536,10 @@ sub rebuild {
 	&unset_hidden_mode();
     }
 
-    &do_log('notice',"Rebuilding  $arc with M2H_ADDRESSMODIFYCODE : %s",$ENV{'M2H_ADDRESSMODIFYCODE'});
+    do_log('notice','Rebuilding  $arc with M2H_ADDRESSMODIFYCODE : %s',$ENV{'M2H_ADDRESSMODIFYCODE'});
 
     if ($arc) {
-        &do_log('notice',"Rebuilding  $arc of $adrlist archive");
+        do_log('notice',"Rebuilding  $arc of $adrlist archive");
 	$arc =~ /^(\d{4})-(\d{2})$/ ;
 	my $yyyy = $1 ;
 	my $mm = $2 ;
@@ -551,22 +548,13 @@ sub rebuild {
 	my $arcdir = $wwsconf->{'arc_path'}.'/'.$adrlist.'/'.$yyyy.'-'.$mm ;
 	my $arctxt = $arcdir.'/arctxt' ;
 	if (opendir (DIR,$arctxt)) {
-	    my @files = (grep(/^\d+$/,(readdir DIR )));
+	    my @files = (grep /^\d+$/,(readdir DIR ));
 	    close (DIR);
 	    if ($#files == -1) { 
 		do_log('notice', "Removing empty directory $arcdir");
 		&tools::remove_dir ($arcdir);
 		next ;	 
 	    } 
-
-	    ## index file was removed ; recreate it
-	    my $index = $files[$#files];
-	    &save_idx($arcdir.'/index', $index+1);
-	}
-	
-	## recreate index file if needed
-	unless (-f $arcdir.'/index') {
-	    &create_idx($arcdir);
 	}
 
 	## Remove .mhonarc.db
@@ -614,32 +602,25 @@ sub rebuild {
 	    my $yyyy = $1 ;
 	    my $mm = $2 ;
 
-	    my $arcdir = $wwsconf->{'arc_path'}.'/'.$adrlist.'/'.$yyyy.'-'.$mm;
-
 	    ## Remove .mhonarc.db
-	    unlink $arcdir.'/.mhonarc.db';
+	    unlink $wwsconf->{'arc_path'}.'/'.$adrlist.'/'.$yyyy.'-'.$mm.'/.mhonarc.db';
 	    
 	    ## Remove existing HTML files
-	    opendir HTML, $arcdir;
+	    opendir HTML, "$wwsconf->{'arc_path'}/$adrlist/$yyyy-$mm";
 	    ## Skip arctxt/ . and ..
 	    foreach my $html_file (grep !/^arctxt$|^index$|\.+$/, readdir(HTML)) {
-		unlink $arcdir.'/'.$html_file;
+		unlink $wwsconf->{'arc_path'}.'/'.$adrlist.'/'.$yyyy.'-'.$mm.'/'.$html_file;
 	    }	
 	    closedir HTML;	
 
-	    ## recreate index file if needed
-	    unless (-f $arcdir.'/index') {
-		&create_idx($arcdir);
-	    }
-
-	    my $cmd = "$wwsconf->{'mhonarc'} -modifybodyaddresses -addressmodifycode \'$ENV{'M2H_ADDRESSMODIFYCODE'}\'  -rcfile $mhonarc_ressources -outdir $arcdir  -definevars \"listname=$listname hostname=$hostname yyyy=$yyyy mois=$mm yyyymm=$yyyy-$mm wdir=$wwsconf->{'arc_path'} base=$Conf{'wwsympa_url'}/arc tag=$tag\" -umask $Conf{'umask'} $wwsconf->{'arc_path'}/$adrlist/$arc/arctxt";
+	    my $cmd = "$wwsconf->{'mhonarc'} -modifybodyaddresses -addressmodifycode \'$ENV{'M2H_ADDRESSMODIFYCODE'}\'  -rcfile $mhonarc_ressources -outdir $wwsconf->{'arc_path'}/$adrlist/$yyyy-$mm  -definevars \"listname=$listname hostname=$hostname yyyy=$yyyy mois=$mm yyyymm=$yyyy-$mm wdir=$wwsconf->{'arc_path'} base=$Conf{'wwsympa_url'}/arc tag=$tag\" -umask $Conf{'umask'} $wwsconf->{'arc_path'}/$adrlist/$arc/arctxt";
 	    my $exitcode = system($cmd);
 	    $exitcode = $exitcode / 256;
 
 	    ## Remove lock if required
 	    if ($exitcode == 75) {
-		&do_log('notice', 'Removing lock directory %s', $arcdir.'/.mhonarc.lck');
-		rmdir $arcdir.'/.mhonarc.lck';
+		&do_log('notice', 'Removing lock directory %s', $wwsconf->{'arc_path'}.'/'.$adrlist.'/'.$arc.'/.mhonarc.lck');
+		rmdir $wwsconf->{'arc_path'}.'/'.$adrlist.'/'.$arc.'/.mhonarc.lck';
 		
 		$exitcode = system($cmd);
 		$exitcode = $exitcode / 256;	    
@@ -821,8 +802,12 @@ sub mail2arc {
      }
      else
      {
-	 ## recreate index file if needed and update it
-	 $newfile = $index = &create_idx($monthdir) + 1;
+	do_log('debug',"indexing $listname archive");
+	opendir (DIR, arctxtdir);
+	my @files = (sort { $a <=> $b;}  readdir(DIR)) ;
+	my $index = $files[$#files];
+	$index +=1;
+	$newfile = $index;
      }
     
     my $mhonarc_ressources = &tools::get_filename('etc',{},'mhonarc-ressources.tt2',$list->{'domain'}, $list);
@@ -973,32 +958,11 @@ Saves the archives index file
 
 sub save_idx {
     my ($index,$lst) = @_;
-#    &do_log('notice', "save_idx($index,$lst)");
     
     open(INDEXF,">$index") || fatal_err("couldn't overwrite index $index");
     print INDEXF "$lst\n";
     close INDEXF;
     #   do_log('debug',"last arc entry for $index is $lst");
-}
-
-## Create the 'index' file for one archive subdir
-sub create_idx {
-    my $arc_dir = shift; ## corresponds to the yyyy-mm directory
-
-    my $arc_txt_dir = $arc_dir.'/arctxt';
-
-    unless (opendir (DIR, $arc_txt_dir)) {
-	&do_log('err', "Failed to open directory '$arc_txt_dir'");
-	return undef;
-    }
-
-    my @files = (sort { $a <=> $b;}  grep(/^\d+$/,(readdir DIR ))) ;
-    my $index = $files[$#files];
-    &save_idx($arc_dir.'/index', $index);
-
-    closedir DIR;
-
-    return $index;
 }
 
 =pod 

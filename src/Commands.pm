@@ -563,8 +563,6 @@ sub review {
 
     &Language::SetLang($list->{'admin'}{'lang'});
 
-    $list->on_the_fly_sync_include('use_ttl' => 1);
-
     my $auth_method = &get_auth_method('review','',{'type'=>'auth_failed',
 						    'data'=>{},
 						    'msg'=> "REVIEW $listname from $sender"},$sign_mod,$list);
@@ -817,6 +815,8 @@ sub subscribe {
 					    'password' => $u->{'password'} || &tools::tmp_passwd($sender)
 					    });
 	}
+	
+	$list->save();
 	
 	## Now send the welcome file to the user
 	unless ($quiet || ($action =~ /quiet/i )) {
@@ -1127,6 +1127,8 @@ sub signoff {
 	    } 
 	}
 	
+	$list->save();
+
 	unless ($quiet || ($action =~ /quiet/i)) {
 	    ## Send bye file to subscriber
 	    unless ($list->send_file('bye', $email, $robot, {})) {
@@ -1265,6 +1267,8 @@ sub add {
 					    });
 	}
 
+	$list->save();
+    
 	## Now send the welcome file to the user if it exists.
 	unless ($quiet || ($action =~ /quiet/i )) {
 	    unless ($list->send_file('welcome', $email, $robot,{})) {
@@ -1504,7 +1508,7 @@ sub remind {
 
     if ($listname eq '*') {
 
-	$result = &Scenario::request_action('global_remind',$auth_method,$robot,
+	$result = &List::request_action('global_remind',$auth_method,$robot,
 					{'sender' => $sender });
 	$action = $result->{'action'} if (ref($result) eq 'HASH');
 	
@@ -1786,6 +1790,8 @@ sub del {
 	    }
 	}
 
+	$list->save();
+	
 	## Send a notice to the removed user, unless the owner indicated
 	## quiet del.
 	unless ($quiet || ($action =~ /quiet/i )) {
@@ -1928,6 +1934,7 @@ sub set {
 	    &do_log('info', 'SET %s %s from %s refused, update failed',  $which, $mode, $sender);
 	    return 'failed';
 	}
+	$list->save();
 	
 	&report::notice_report_cmd('config_updated',{'listname' => $which},$cmd_line);  
 
@@ -1941,6 +1948,7 @@ sub set {
 	    &do_log('info', 'SET %s %s from %s refused, update failed',  $which, $mode, $sender);
 	    return 'failed';
 	}
+	$list->save();
 	
 	&report::notice_report_cmd('config_updated',{'listname' => $which},$cmd_line);  
 	&do_log('info', 'SET %s %s from %s accepted (%d seconds)', $which, $mode, $sender, time-$time_command);

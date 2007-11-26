@@ -35,8 +35,6 @@ use Log;
 use Getopt::Long;
 use Time::Local;
 use Digest::MD5;
-use Scenario;
-use SympaSession;
 use mail;
 use wwslib;
  
@@ -79,7 +77,7 @@ unless (Conf::load($sympa_conf_file)) {
 
 ## Check databse connectivity
 unless (&List::check_db_connect()) {
-    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf{'db_name'});
+    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
 }
 
 ## Check that the data structure is uptodate
@@ -113,16 +111,17 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
 
 &tools::write_pid($wwsconf->{'task_manager_pidfile'}, $$);
 
+$log_level = $main::options{'log_level'} || $Conf{'log_level'};
+
 $wwsconf->{'log_facility'}||= $Conf{'syslog'};
 do_openlog($wwsconf->{'log_facility'}, $Conf{'log_socket_type'}, 'task_manager');
 
 # setting log_level using conf unless it is set by calling option
 if ($main::options{'log_level'}) {
-    &Log::set_log_level($main::options{'log_level'});
-    do_log('info', "Configuration file read, log level set using options : $main::options{'log_level'}"); 
+    do_log('info', "Configuration file read, log level set using options : $log_level"); 
 }else{
-    &Log::set_log_level($Conf{'log_level'});
-    do_log('info', "Configuration file read, default log level $Conf{'log_level'}"); 
+    $log_level = $Conf{'log_level'};
+    do_log('info', "Configuration file read, default log level  $log_level"); 
 }
 
 ## Set the UserID & GroupID for the process
@@ -172,7 +171,6 @@ my %global_models = (#'crl_update_task' => 'crl_update',
 		     'expire_bounce_task' => 'expire_bounce',
 		     'purge_user_table_task' => 'purge_user_table',
 		     'purge_logs_table_task' => 'purge_logs_table',
-		     'purge_session_table_task' => 'purge_session_table',
 		     'purge_orphan_bounces_task' => 'purge_orphan_bounces',
 		     'eval_bouncers_task' => 'eval_bouncers',
 		     'process_bouncers_task' =>'process_bouncers',
@@ -209,7 +207,6 @@ my %commands = ('next'                  => ['date', '\w*'],
 		'sync_include'          => [],
 		'purge_user_table'      => [],
 		'purge_logs_table'      => [],
-		'purge_session_table'   => [],
 		'purge_orphan_bounces'  => [],
 		'eval_bouncers'         => [],
 		'process_bouncers'      => []
@@ -248,7 +245,7 @@ while (!$end) {
 
     ## List all tasks
     unless (&Task::list_tasks($spool_task)) {
-	&List::send_notify_to_listmaster('intern_error',$Conf{'domain'},{'error' => "Failed to list task files in $spool_task"});
+	&List::send_notify_to_listmaster('intern_error',$Conf{'domain'},{'error' => "Failed to list task files in $spool_task"})
 	&do_log ('err', "Failed to list task files in %s", $spool_task);
 	exit -1;
     }
@@ -267,6 +264,7 @@ while (!$end) {
 	unless ($used_models{$global_models{$key}}) {
 	    if ($Conf{$key}) { 
 		my %data = %default_data; # hash of datas necessary to the creation of tasks
+		#printf "xxxxxxxxxxxxx appel 1\n";
 		create ($current_date, '', $global_models{$key}, $Conf{$key}, \%data);
 		$used_models{$1} = 1;
 	    }
@@ -319,7 +317,7 @@ while (!$end) {
     ## Execute existing tasks
     ## List all tasks
     unless (&Task::list_tasks($spool_task)) {
-	&List::send_notify_to_listmaster('intern_error',$Conf{'domain'},{'error' => "Failed to list task files in $spool_task"});
+	&List::send_notify_to_listmaster('intern_error',$Conf{'domain'},{'error' => "Failed to list task files in $spool_task"})
 	&do_log ('err', "Failed to list task files in %s", $spool_task);
 	exit -1;
     }
@@ -327,9 +325,6 @@ while (!$end) {
     ## processing of tasks anterior to the current date
     &do_log ('debug3', 'processing of tasks anterior to the current date');
     foreach my $task ( &Task::get_task_list() ) {
-	
-	last if $end;
-
 	my $task_file = $task->{'filepath'};
 
 	&do_log ('debug3', "procesing %s", $task_file);
@@ -798,7 +793,6 @@ sub cmd_process {
     return expire_bounce ($task, $Rarguments, \%context) if ($command eq 'expire_bounce');
     return purge_user_table ($task, \%context) if ($command eq 'purge_user_table');
     return purge_logs_table ($task, \%context) if ($command eq 'purge_logs_table');
-    return purge_session_table ($task, \%context) if ($command eq 'purge_session_table');
     return sync_include($task, \%context) if ($command eq 'sync_include');
     return purge_orphan_bounces ($task, \%context) if ($command eq 'purge_orphan_bounces');
     return eval_bouncers ($task, \%context) if ($command eq 'eval_bouncers');
@@ -985,7 +979,7 @@ sub select_subs {
 	}
     }
     
-    # parameter of subroutine Scenario::verify
+    # parameter of subroutine List::verify
     my $verify_context = {'sender' => 'nobody',
 			  'email' => 'nobody',
 			  'remote_host' => 'unknown_host',
@@ -999,7 +993,7 @@ sub select_subs {
 	# condition rewriting for older and newer
 	$new_condition = "$1($user->{'update_date'}, $2)" if ($condition =~ /(older|newer)\((\d+)\)/ );
 	
-	if (&Scenario::verify ($verify_context, $new_condition) == 1) {
+	if (&List::verify ($verify_context, $new_condition) == 1) {
 	    $selection{$user->{'email'}} = undef;
 	    &do_log ('notice', "--> user $user->{'email'} has been selected");
 	}
@@ -1034,6 +1028,7 @@ sub delete_subs_cmd {
 	    error ($task->{'filepath'}, "error in delete_subs command : deletion of $email not allowed");
 	} else {
 	    my $u = $list->delete_user ($email) if (!$log);
+	    $list->save() if (!$log);;
 	    &do_log ('notice', "--> $email deleted");
 	    $selection{$email} = {};
 	}
@@ -1073,6 +1068,7 @@ sub create_cmd {
 	$data{'list'}{'name'} = $list->{'name'};
     }
     $type = '_global';
+    #printf "xxxxxxxxxxxxx appel 3\n";
     unless (create ($task->{'date'}, '', $model, $model_choice, \%data)) {
 	error ($task->{'filepath'}, "error in create command : creation subroutine failure");
 	return undef;
@@ -1093,7 +1089,6 @@ sub exec_cmd {
     
     return 1;
 }
-
 sub purge_logs_table {
     # If a log is older then $list->get_latest_distribution_date()-$delai expire the log
     my ($task, $Rarguments, $context) = @_;
@@ -1106,19 +1101,6 @@ sub purge_logs_table {
 	return undef;
     }
     &do_log('notice','purge_logs_table(): logs purged');
-    return 1;
-}
-
-## remove sessions from session_table if older than $Conf{'session_table_ttl'}
-sub purge_session_table {    
-
-    do_log('info','task_manager::purge_session_table()');
-    my $removed = &SympaSession::purge_old_sessions('*');
-    unless(defined $removed) {
-	&do_log('err','&SympaSession::purge_old_sessions(): Failed to remove old sessions');
-	return undef;
-    }
-    &do_log('notice','purge_session_table(): %s row removed in session_table',$removed);
     return 1;
 }
 
@@ -1472,7 +1454,7 @@ sub purge_orphan_bounces {
 	 my $verify_context;
 	 $verify_context->{'sender'} = 'nobody';
 
-	 if (&Scenario::verify ($verify_context, $condition) == 1) {
+	 if (&List::verify ($verify_context, $condition) == 1) {
 	     unlink ($file);
 	     &do_log ('notice', "--> updating of the $file crl file");
 	     my $cmd = "wget -O \'$file\' \'$url\'";

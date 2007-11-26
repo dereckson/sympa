@@ -15,7 +15,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License# along with this program; if not, write to the Free Software
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 package List;
@@ -26,7 +27,6 @@ use SQLSource qw(create_db %date_format);
 use Upgrade;
 use Lock;
 use Task;
-use Scenario;
 require Fetch;
 require Exporter;
 require Encode;
@@ -247,6 +247,7 @@ use PlainDigest;
 my ($dbh, $sth, $db_connected, @sth_stack, $use_db);
 
 my %list_cache;
+my %persistent_cache;
 
 ## DB fields with numeric type
 ## We should not do quote() for these while inserting data
@@ -269,8 +270,8 @@ my @param_order = qw (subject visibility info subscribe add unsubscribe del owne
 		      default_user_options msg_topic msg_topic_keywords_apply_on msg_topic_tagging reply_to_header reply_to forced_reply_to * 
 		      verp_rate welcome_return_path remind_return_path user_data_source include_file include_remote_file 
 		      include_list include_remote_sympa_list include_ldap_query
-                      include_ldap_2level_query include_sql_query include_admin ttl distribution_ttl creation update 
-		      status serial custom_attribute);
+                      include_ldap_2level_query include_sql_query include_admin ttl creation update 
+		      status serial);
 
 ## List parameters aliases
 my %alias = ('reply-to' => 'reply_to',
@@ -306,8 +307,6 @@ my %alias = ('reply-to' => 'reply_to',
 ## group :       Group of parameters
 ## obsolete :    Obsolete parameter ; should not be displayed 
 ##               nor saved
-## obsolete_values : defined obsolete values for a parameter
-##                   these values should not get proposed on the web interface edition form
 ## order :       Order of parameters within paragraph
 ## internal :    Indicates that the parameter is an internal parameter
 ##               that should always be saved in the config file
@@ -438,7 +437,7 @@ my %alias = ('reply-to' => 'reply_to',
 						   'gettext_id' => "",
 						   'order' => 2
 						   },
-					'email' => {'format' => 'listmaster|'.&tools::get_regexp('email'),
+					'email' => {'format' => &tools::get_regexp('email'),
 						    'occurrence' => '1',
 						    'gettext_id' => "",
 						    'order' => 1
@@ -450,52 +449,6 @@ my %alias = ('reply-to' => 'reply_to',
 			   'group' => 'other'
 
 		       },
-	'custom_attribute' => {
-		'format' => {
-			'id' => {
-				'format' => '\w+',
-				'length' => 20,
-				'gettext_id' => "internal identifier",
-				'occurrence' => '1',
-				'order' =>1
-			},
-			'name' => {
-				'format' => '.+',
-				'length' =>30,
-				'occurrence' => '1',
-				'gettext_id' => "label",
-				'order' => 2
-			},
-			'comment' => {
-				'format' => '.+',
-				'length' => 100,
-				'gettext_id' => "additional comment",
-				'order' => 3
-			},
-			'type' => {
-				'format' => ['string','text','integer','enum'],
-				'default' => 'string',
-				'occurence' => 1,
-				'gettext_id' => "type",
-				'order' => 4
-			},
-			'enum_values' => {
-				'format' => '.+',
-				'length' => 100,
-				'gettext_id' => "possible attribute values (if enum is used)",
-				'order' => 5
-			},
-			'optional' => {
-				'format' => ['required','optional'],
-				'gettext_id' => "is the attribute optionnal ?",
-				'order' => 6
-			}
-		
-		},
-		'occurrence' => '0-n',
-		'gettext_id' => "Custom user attributes",
-		'group' => 'other'
-	},
 	    'custom_header' => {'format' => '\S+:\s+.*',
 				'length' => 30,
 				'occurrence' => '0-n',
@@ -556,14 +509,6 @@ my %alias = ('reply-to' => 'reply_to',
 				  'gettext_id' => "Digest maximum number of messages",
 				  'group' => 'sending'
 		       },	    
-
-	    'distribution_ttl' => {'format' => '\d+',
-		      'length' => 6,
-		      'unit' => 'seconds',
-		      'gettext_id' => "Inclusions timeout for message distribution",
-		      'group' => 'data_source'
-		      },
-
 	    'editor' => {'format' => {'email' => {'format' => &tools::get_regexp('email'),
 						  'length' => 30,
 						  'occurrence' => '1',
@@ -574,11 +519,6 @@ my %alias = ('reply-to' => 'reply_to',
 						      'default' => 'mail',
 						      'gettext_id' => "reception mode",
 						      'order' => 4
-						      },
-				      'visibility' => {'format' => ['conceal','noconceal'],
-						      'default' => 'noconceal',
-						      'gettext_id' => "visibility",
-						      'order' => 5
 						      },
 				      'gecos' => {'format' => '.+',
 						  'length' => 30,
@@ -609,12 +549,7 @@ my %alias = ('reply-to' => 'reply_to',
 							      'default' => 'mail',
 							      'gettext_id' => 'reception mode',
 							       'order' => 3
-							      },
-				              'visibility' => {'format' => ['conceal','noconceal'],
-							       'default' => 'noconceal',
-							       'gettext_id' => "visibility",
-							       'order' => 5
-					                      }
+							      }
 					      
 					      },
 				  'occurrence' => '0-n',
@@ -1003,7 +938,7 @@ my %alias = ('reply-to' => 'reply_to',
  							       'gettext_id' => 'date',
  							       'order' => 2
  							       },
- 						    'email' => {'format' => 'listmaster|'.&tools::get_regexp('email'),
+ 						    'email' => {'format' => &tools::get_regexp('email'),
  								'occurrence' => '0-1',
  								'gettext_id' => 'who ran the instantiation',
  								'order' => 1
@@ -1073,11 +1008,6 @@ my %alias = ('reply-to' => 'reply_to',
 						     'gettext_id' => "reception mode",
 						     'order' =>5
 						     },
-				     'visibility' => {'format' => ['conceal','noconceal'],
-						      'default' => 'noconceal',
-						      'gettext_id' => "visibility",
-						      'order' => 6
-				                     },
 				     'gecos' => {'format' => '.+',
 						 'length' => 30,
 						 'gettext_id' => "name",
@@ -1113,11 +1043,6 @@ my %alias = ('reply-to' => 'reply_to',
 							     'gettext_id' => 'reception mode',
 							     'order' => 4
 							 },
-				             'visibility' => {'format' => ['conceal','noconceal'],
-							      'default' => 'noconceal',
-							      'gettext_id' => "visibility",
-							      'order' => 5
-				                             },
 					     'profile' => {'format' => ['privileged','normal'],
 							   'default' => 'normal',
 							   'gettext_id' => 'profile',
@@ -1148,20 +1073,6 @@ my %alias = ('reply-to' => 'reply_to',
 			      'default' => {'conf' => 'default_remind_task'},
 			      'group' => 'other'
 			      },
-	    'remove_headers' => {'format' => '\S+',
-				 'gettext_id' => 'Incoming SMTP headers fields to be removed',
-				 'default' => {'conf' => 'remove_headers'},
-				 'group' => 'sending',
-				 'occurrence' => '0-n',
-				 'split_char' => ',',
-				 },
-	    'remove_outgoing_headers' => {'format' => '\S+',
-					  'gettext_id' => 'Outgoing SMTP headers fields to be removed',
-					  'default' => {'conf' => 'remove_outgoing_headers'},
-					  'group' => 'sending',
-					  'occurrence' => '0-n',
-					  'split_char' => ',',
-					  },
 	    'reply_to' => {'format' => '\S+',
 			   'default' => 'sender',
 			   'gettext_id' => "Reply address",
@@ -1298,7 +1209,6 @@ my %alias = ('reply-to' => 'reply_to',
 		     },
 	    'user_data_source' => {'format' => ['database','file','include','include2'],
 				   'default' => 'include2',
-				   'obsolete_values'=> ['database','file','include'],
 				   'gettext_id' => "User data source",
 				   'group' => 'data_source'
 				   },
@@ -1352,7 +1262,7 @@ my %alias = ('reply-to' => 'reply_to',
 ## This is the generic hash which keeps all lists in memory.
 my %list_of_lists = ();
 my %list_of_robots = ();
-our %list_of_topics = ();
+my %list_of_topics = ();
 my %edit_list_conf = ();
 
 ## Last modification times
@@ -1447,19 +1357,15 @@ sub new {
 	}
     }
 
-    my $status ;
     if ($list_of_lists{$robot}{$name}){
 	# use the current list in memory and update it
 	$list=$list_of_lists{$robot}{$name};
-	
-	$status = $list->load($name, $robot, $options);
     }else{
 	# create a new object list
 	bless $list, $pkg;
-
-	$options->{'first_access'} = 1;
-	$status = $list->load($name, $robot, $options);
-    }   
+    }
+    
+    my $status = $list->load($name, $robot, $options);
     
     unless (defined $status) {
 	return undef;
@@ -1559,10 +1465,6 @@ sub savestats {
     
     ## Lock file
     my $lock = new Lock ($dir.'/stats');
-    unless (defined $lock) {
-	&do_log('err','Could not create new lock');
-	return undef;
-    }
     $lock->set_timeout(2); 
     unless ($lock->lock('write')) {
 	return undef;
@@ -1730,6 +1632,32 @@ sub dump {
     return 1;
 }
 
+## Saves a copy of the list to disk. Does not remove the
+## data.
+sub save {
+    my $self = shift;
+    do_log('debug3', 'List::save');
+
+    my $name = $self->{'name'};    
+ 
+    return undef 
+	unless ($list_of_lists{$self->{'domain'}}{$name});
+ 
+    my $user_file_name;
+
+    if ($self->{'admin'}{'user_data_source'} eq 'file') {
+	$user_file_name = "$self->{'dir'}/subscribers";
+
+        unless ($self->_save_users_file($user_file_name)) {
+	    &do_log('info', 'unable to save user file %s', $user_file_name);
+	    return undef;
+	}
+        $self->{'mtime'} = [ (stat("$self->{'dir'}/config"))[9], (stat("$self->{'dir'}/subscribers"))[9], (stat("$self->{'dir'}/stats"))[9] ];
+    }
+    
+    return 1;
+}
+
 ## Saves the configuration file to disk
 sub save_config {
     my ($self, $email) = @_;
@@ -1742,10 +1670,6 @@ sub save_config {
 
     ## Lock file
     my $lock = new Lock ($self->{'dir'}.'/config');
-    unless (defined $lock) {
-	&do_log('err','Could not create new lock');
-	return undef;
-    }
     $lock->set_timeout(5); 
     unless ($lock->lock('write')) {
 	return undef;
@@ -1792,50 +1716,49 @@ sub load {
     
     my $users;
 
-    ## Set of initializations ; only performed when the config is first loaded
-    if ($options->{'first_access'}) {
-
-	## Search robot if none was provided
+    ## Search robot if none was provided
+    unless ($robot) {
+	foreach my $r (keys %{$Conf{'robots'}}) {
+	    if (-d "$Conf{'home'}/$r/$name") {
+		$robot=$r;
+		last;
+	    }
+	}
+	
+	## Try default robot
 	unless ($robot) {
-	    foreach my $r (keys %{$Conf{'robots'}}) {
-		if (-d "$Conf{'home'}/$r/$name") {
-		    $robot=$r;
-		    last;
-		}
-	    }
-	    
-	    ## Try default robot
-	    unless ($robot) {
-		if (-d "$Conf{'home'}/$name") {
-		    $robot = $Conf{'host'};
-		}
+	    if (-d "$Conf{'home'}/$name") {
+		$robot = $Conf{'host'};
 	    }
 	}
-	
-	if ($robot && (-d "$Conf{'home'}/$robot")) {
-	    $self->{'dir'} = "$Conf{'home'}/$robot/$name";
-	}elsif (lc($robot) eq lc($Conf{'host'})) {
-	    $self->{'dir'} = "$Conf{'home'}/$name";
-	}else {
-	    &do_log('err', 'No such robot (virtual domain) %s', $robot) unless ($options->{'just_try'});
-	    return undef ;
-	}
-	
-	$self->{'domain'} = $robot ;
-
-	# default list host is robot domain
-	$self->{'admin'}{'host'} ||= $self->{'domain'};
-
-	$self->{'name'}  = $name ;
     }
 
+    if ($robot && (-d "$Conf{'home'}/$robot")) {
+	$self->{'dir'} = "$Conf{'home'}/$robot/$name";
+    }elsif (lc($robot) eq lc($Conf{'host'})) {
+ 	$self->{'dir'} = "$Conf{'home'}/$name";
+    }else {
+	&do_log('err', 'No such robot (virtual domain) %s', $robot) unless ($options->{'just_try'});
+	return undef ;
+    }
+    
+    $self->{'domain'} = $robot ;
     unless ((-d $self->{'dir'}) && (-f "$self->{'dir'}/config")) {
 	&do_log('debug2', 'Missing directory (%s) or config file for %s', $self->{'dir'}, $name) unless ($options->{'just_try'});
 	return undef ;
     }
 
+    $self->{'name'}  = $name ;
+
     my ($m1, $m2, $m3) = (0, 0, 0);
     ($m1, $m2, $m3) = @{$self->{'mtime'}} if (defined $self->{'mtime'});
+
+    ## Get a shared lock on config file first 
+    my $lock = new Lock ($self->{'dir'}.'/config');
+    $lock->set_timeout(5); 
+    unless ($lock->lock('read')) {
+	return undef;
+    }
 
     my $time_config = (stat("$self->{'dir'}/config"))[9];
     my $time_config_bin = (stat("$self->{'dir'}/config.bin"))[9];
@@ -1844,22 +1767,10 @@ sub load {
     my $config_reloaded = 0;
     my $admin;
     
-    if (&Conf::get_robot_conf($self->{'domain'}, 'cache_list_config') eq 'binary_file' &&
+    if (&Conf::get_robot_conf($self->{'robot'}, 'cache_list_config') eq 'binary_file' &&
 	$time_config_bin > $self->{'mtime'}->[0] &&
 	$time_config <= $time_config_bin &&
 	! $options->{'reload_config'}) { 
-
-	## Get a shared lock on config file first 
-	my $lock = new Lock ($self->{'dir'}.'/config');
-	unless (defined $lock) {
-	    &do_log('err','Could not create new lock');
-	    return undef;
-	}
-	$lock->set_timeout(5); 
-	unless ($lock->lock('read')) {
-	    return undef;
-	}
-
 	## Load a binary version of the data structure
 	## unless config is more recent than config.bin
 	unless ($admin = &Storable::retrieve("$self->{'dir'}/config.bin")) {
@@ -1868,27 +1779,14 @@ sub load {
 	    return undef;
 	}
 
-	$config_reloaded = 1;
 	$m1 = $time_config_bin;
-	$lock->unlock();
 
     }elsif ($self->{'name'} ne $name || $time_config > $self->{'mtime'}->[0] ||
 	    $options->{'reload_config'}) {	
 	$admin = _load_admin_file($self->{'dir'}, $self->{'domain'}, 'config');
 
-	## Get a shared lock on config file first 
-	my $lock = new Lock ($self->{'dir'}.'/config');
-	unless (defined $lock) {
-	    &do_log('err','Could not create new lock');
-	    return undef;
-	}
-	$lock->set_timeout(5); 
-	unless ($lock->lock('write')) {
-	    return undef;
-	}
-
 	## update the binary version of the data structure
-	if (&Conf::get_robot_conf($self->{'domain'}, 'cache_list_config') eq 'binary_file') {
+	if (&Conf::get_robot_conf($self->{'robot'}, 'cache_list_config') eq 'binary_file') {
 		unless (&Storable::store($admin,"$self->{'dir'}/config.bin")) {
 		    &do_log('err', 'Failed to save the binary config %s', "$self->{'dir'}/config.bin");
 		}
@@ -1903,11 +1801,14 @@ sub load {
  	}
 
 	$m1 = $time_config;
-	$lock->unlock();
     }
     
-    ## If config was reloaded...
-    if ($admin) {
+    ## Release lock
+    unless ($lock->unlock()) {
+	return undef;
+    }
+
+     if ($admin) {
  	$self->{'admin'} = $admin;
  	
  	## check param_constraint.conf if belongs to a family and the config has been loaded
@@ -1929,6 +1830,14 @@ sub load {
  	    }
  	}
      } 
+
+    # default list host is robot domain
+    $self->{'admin'}{'host'} ||= $self->{'domain'};
+    # uncomment the following line if you want virtual robot to overwrite list->host
+    # $self->{'admin'}{'host'} = $self->{'domain'} if ($self->{'domain'} ne $Conf{'host'});
+ 
+    # Would make sympa same 'dir' as a parameter
+    #$self->{'admin'}{'dir'} ||= $self->{'dir'};
 
     $self->{'as_x509_cert'} = 1  if ((-r "$self->{'dir'}/cert.pem") || (-r "$self->{'dir'}/cert.pem.enc"));
     
@@ -2004,8 +1913,9 @@ sub load {
 	return undef;
     }
     
-    ## Load stats file if first new() or stats file changed
+## Load stats file if first new() or stats file changed
     my ($stats, $total);
+
     if (! $self->{'mtime'}[2] || ($time_stats > $self->{'mtime'}[2])) {
 	($stats, $total, $self->{'last_sync'}, $self->{'last_sync_admin_user'}) = _load_stats_file("$self->{'dir'}/stats");
 	$m3 = $time_stats;
@@ -2026,6 +1936,13 @@ sub load {
 	$self->savestats();
     }
 
+#    elsif ($self->{'admin'}{'user_data_source'} eq 'database'){
+#	## If no total found in 'stats' AND database mode
+#	$self->{'total'} = _load_total_db($name);
+#    }elsif ($self->{'admin'}{'user_data_source'} eq 'file'){
+#	$self->{'total'} = $users->{'total'};
+#    }
+
     $self->{'mtime'} = [ $m1, $m2, $m3];
 
     $list_of_lists{$self->{'domain'}}{$name} = $self;
@@ -2039,11 +1956,16 @@ sub get_owners {
   
     my $owners = ();
 
-    # owners are in the admin_table ; they might come from an include data source
-    for (my $owner = $self->get_first_admin_user('owner'); $owner; $owner = $self->get_next_admin_user()) {
-	push(@{$owners},$owner);
-    } 
+    # owners are in the admin_table
+    if ($self->{'admin'}{'user_data_source'} eq 'include2') {
+	for (my $owner = $self->get_first_admin_user('owner'); $owner; $owner = $self->get_next_admin_user()) {
+	    push(@{$owners},$owner);
+	} 
 
+    #owners are only in the config
+    } else {
+	$owners = $self->{'admin'}{'owner'};
+    }
     return $owners;
 }
 
@@ -2067,11 +1989,16 @@ sub get_editors {
   
     my $editors = ();
 
-    # editors are in the admin_table ; they might come from an include data source
-    for (my $editor = $self->get_first_admin_user('editor'); $editor; $editor = $self->get_next_admin_user()) {
-	push(@{$editors},$editor);
-    } 
+    # editors are in the admin_table
+    if ($self->{'admin'}{'user_data_source'} eq 'include2') {
+	for (my $editor = $self->get_first_admin_user('editor'); $editor; $editor = $self->get_next_admin_user()) {
+	    push(@{$editors},$editor);
+	} 
 
+    #editors are only in the config
+    } else {
+	$editors = $self->{'admin'}{'editor'};
+    }
     return $editors;
 }
 
@@ -2454,14 +2381,10 @@ sub distribute_msg {
 	
 	## Search previous subject tagging in Subject
 	my $custom_subject = $self->{'admin'}{'custom_subject'};
-
-	## tag_regexp will be used to remove the custom subject if it is already present in the message subject.
-	## Remember that the value of custom_subject can be "dude number [%list.sequence"%]" whereas the actual
-	## subject will contain "dude number 42".
 	my $tag_regexp = $custom_subject;
 	$tag_regexp =~ s/([\[\]\*\-\(\)\+\{\}\?])/\\$1/g;  ## cleanup, just in case dangerous chars were left
-	$tag_regexp =~ s/\\\[%\S+%\\\]/[^\]]\+/g; ## Replaces variables declarations by "[^\]]+"
-	$tag_regexp =~ s/\s+/\\s+/g; ## Takes spaces into account
+	$tag_regexp =~ s/\[\S+\]/\.\+/g;
+	$tag_regexp =~ s/\s+/\\s+/g; ## consider folding
 	
 	## Add subject tag
 	$message->{'msg'}->head->delete('Subject');
@@ -2470,43 +2393,29 @@ sub distribute_msg {
 				    'sequence' => $self->{'stats'}->[0]
 				    }},
 			[$custom_subject], \$parsed_tag);
-
-	## If subject is tagged, replace it with new tag
-	## Splitting the subject in two parts :
-	##   - what is before the custom subject (probably some "Re:")
-	##   - what is after it : the orginal subject sent to the list.
-	## The custom subject is not kept.
-	my $before_tag = '';
-	my $after_tag = $subject_field;
-	$after_tag =~ s/.*\[$tag_regexp\]//;
-
-	if($subject_field =~ /(.*)\s*\[$tag_regexp\](.*)/) {
-	    $before_tag = $1;
-	    $after_tag = $2;
-	    $after_tag =~ s/^\s*(.*)\s*$/$1/; ## Remove leading and trailing blanks
-	}
 	
+	## If subject is tagged, replace it with new tag
+	$subject_field =~ s/\s*\[$tag_regexp\]//;
  	## Encode subject using initial charset
 
 	## Don't try to encode the subject if it was not originaly encoded non-ASCII.
 	if ($message->{'subject_charset'} or $subject_field !~ /[^\x00-\x7E]/) {
 	    $subject_field = MIME::EncWords::encode_mimewords([
-							       [Encode::decode('utf8', $before_tag), $message->{'subject_charset'}],
 							       [Encode::decode('utf8', '['.$parsed_tag.'] '), &Language::GetCharset()],
-							       [Encode::decode('utf8', $after_tag), $message->{'subject_charset'}]
+							       [Encode::decode('utf8', $subject_field), $message->{'subject_charset'}]
 							       ], Encoding=>'A', Field=>'Subject');
 	}else {
-	    $subject_field = $before_tag . ' ' .  MIME::EncWords::encode_mimewords([
-										    [Encode::decode('utf8', '['.$parsed_tag.']'), &Language::GetCharset()]
-										    ], Encoding=>'A', Field=>'Subject') . ' ' . $after_tag;
+	    $subject_field = MIME::EncWords::encode_mimewords([
+							       [Encode::decode('utf8', '['.$parsed_tag.']'), &Language::GetCharset()]
+							       ], Encoding=>'A', Field=>'Subject') . ' ' . $subject_field;
 	}
 
 	$message->{'msg'}->head->add('Subject', $subject_field);
     }
     
     ## Remove unwanted headers if present.
-    if ($self->{'admin'}{'remove_headers'}) {
-        foreach my $field (@{$self->{'admin'}{'remove_headers'}}) {
+    if ($Conf{'remove_headers'}) {
+        foreach my $field (@{$Conf{'remove_headers'}}) {
             $hdr->delete($field);
         }
     }
@@ -2575,14 +2484,6 @@ sub distribute_msg {
 	    }
 	}
     }
-
-    ## Remove outgoing header fileds
-    ## Useful to remove some header fields that Sympa has set
-    if ($self->{'admin'}{'remove_outgoing_headers'}) {
-        foreach my $field (@{$self->{'admin'}{'remove_outgoing_headers'}}) {
-            $hdr->delete($field);
-        }
-    }   
     
     ## store msg in digest if list accept digest mode (encrypted message can't be included in digest)
     if (($self->is_digest()) and ($message->{'smime_crypted'} ne 'smime_crypted')) {
@@ -2590,9 +2491,11 @@ sub distribute_msg {
     }
 
     ## Synchronize list members, required if list uses include sources
-    ## unless sync_include has been performed recently.
-    if ($self->has_include_data_sources()) {
-	$self->on_the_fly_sync_include('use_ttl' => 1);
+    ## unless sync_include has been performed withi last 5 minutes
+    if ($self->has_include_data_sources() &&
+	($self->{'last_sync'} < time - 60*5)) { 
+	&do_log('notice', "Synchronizing list members...");
+	$self->sync_include();
     }
 
     ## Blindly send the message to all users.
@@ -2605,6 +2508,327 @@ sub distribute_msg {
     
     return $numsmtp;
 }
+
+####################################################
+# send_msg                              
+####################################################
+# selects subscribers according to their reception 
+# mode in order to distribute a message to a list
+# and sends the message to them. For subscribers in reception mode 'mail', 
+# and in a msg topic context, selects only one who are subscribed to the topic
+# of the message.
+# 
+#  
+# IN : -$self (+): ref(List)  
+#      -$message (+): ref(Message)
+# OUT : -$numsmtp : number of sendmail process 
+#       | 0 : no subscriber for sending message in list
+#       | undef 
+####################################################
+sub send_msg {
+    my($self, $message) = @_;
+    do_log('debug2', 'List::send_msg(%s, %s)', $message->{'filename'}, $message->{'smime_crypted'});
+    
+    my $hdr = $message->{'msg'}->head;
+    my $name = $self->{'name'};
+    my $robot = $self->{'domain'};
+    my $admin = $self->{'admin'};
+    my $total = $self->get_total('nocache');
+    my $sender_line = $hdr->get('From');
+    my @sender_hdr = Mail::Address->parse($sender_line);
+    my %sender_hash;
+    foreach my $email (@sender_hdr) {
+	$sender_hash{lc($email->address)} = 1;
+    }
+   
+    unless ($total > 0) {
+	&do_log('info', 'No subscriber in list %s', $name);
+	return 0;
+    }
+
+    ## Bounce rate
+    ## Available in database mode only
+    if (($admin->{'user_data_source'} eq 'database') ||
+	($admin->{'user_data_source'} eq 'include2')){
+	my $rate = $self->get_total_bouncing() * 100 / $total;
+	if ($rate > $self->{'admin'}{'bounce'}{'warn_rate'}) {
+	    unless ($self->send_notify_to_owner('bounce_rate',{'rate' => $rate})) {
+		&do_log('notice',"Unable to send notify 'bounce_rate' to $self->{'name'} listowner");
+	    }
+	}
+    }
+ 
+    ## Who is the enveloppe sender ?
+    my $host = $self->{'admin'}{'host'};
+    my $from = $name.&Conf::get_robot_conf($robot, 'return_path_suffix').'@'.$host;
+
+    # separate subscribers depending on user reception option and also if verp a dicovered some bounce for them.
+    my (@tabrcpt, @tabrcpt_notice, @tabrcpt_txt, @tabrcpt_html, @tabrcpt_url, @tabrcpt_verp, @tabrcpt_notice_verp, @tabrcpt_txt_verp, @tabrcpt_html_verp, @tabrcpt_url_verp);
+    my $mixed = ($message->{'msg'}->head->get('Content-Type') =~ /multipart\/mixed/i);
+    my $alternative = ($message->{'msg'}->head->get('Content-Type') =~ /multipart\/alternative/i);
+ 
+    for ( my $user = $self->get_first_user(); $user; $user = $self->get_next_user() ){
+	unless ($user->{'email'}) {
+	    &do_log('err','Skipping user with no email address in list %s', $name);
+	    next;
+	}
+#	&do_log('debug','trace distribution VERP email %s,reception %s,bounce_address %s',$user->{'email'},$user->{'reception'},$user->{'bounce_address'} );
+	if ($user->{'reception'} =~ /^digest|digestplain|summary|nomail$/i) {
+	    next;
+	} elsif ($user->{'reception'} eq 'notice') {
+	    if ($user->{'bounce_address'}) {
+		push @tabrcpt_notice_verp, $user->{'email'}; 
+	    }else{
+		push @tabrcpt_notice, $user->{'email'}; 
+	    }
+        } elsif ($alternative and ($user->{'reception'} eq 'txt')) {
+	    if ($user->{'bounce_address'}) {
+		push @tabrcpt_txt_verp, $user->{'email'};
+	    }else{
+		push @tabrcpt_txt, $user->{'email'};
+	    }
+        } elsif ($alternative and ($user->{'reception'} eq 'html')) {
+	    if ($user->{'bounce_address'}) {
+		push @tabrcpt_html_verp, $user->{'email'};
+	    }else{
+		if ($user->{'bounce_address'}) {
+		    push @tabrcpt_html_verp, $user->{'email'};
+		}else{
+		    push @tabrcpt_html, $user->{'email'};
+		}
+	   }
+	} elsif ($mixed and ($user->{'reception'} eq 'urlize')) {
+	    if ($user->{'bounce_address'}) {
+		push @tabrcpt_url_verp, $user->{'email'};
+	    }else{
+		push @tabrcpt_url, $user->{'email'};
+	    }
+	} elsif (($message->{'smime_crypted'}) && (! (-r $Conf{'ssl_cert_dir'}.'/'.&tools::escape_chars($user->{'email'}) ||  
+						      -r $Conf{'ssl_cert_dir'}.'/'.&tools::escape_chars($user->{'email'}).'.enc'))) {
+	    ## Missing User certificate
+	    unless ($self->send_file('x509-user-cert-missing', $user->{'email'}, $robot, {'mail' => {'subject' => $message->{'msg'}->head->get('Subject'),
+												     'sender' => $message->{'msg'}->head->get('From')}})) {
+	    &do_log('notice',"Unable to send template 'x509-user-cert-missing' to $user->{'email'}");
+	    }
+	}else{
+	    if ($user->{'bounce_address'}) {
+		push @tabrcpt_verp, $user->{'email'} unless ($sender_hash{$user->{'email'}})&&($user->{'reception'} eq 'not_me');
+	    }else{	    
+		push @tabrcpt, $user->{'email'} unless ($sender_hash{$user->{'email'}})&&($user->{'reception'} eq 'not_me');}
+	    }	    
+       }    
+
+    ## sa  return 0  = Pb  ?
+    unless (@tabrcpt || @tabrcpt_notice || @tabrcpt_txt || @tabrcpt_html || @tabrcpt_url || @tabrcpt_verp || @tabrcpt_notice_verp || @tabrcpt_txt_verp || @tabrcpt_html_verp || @tabrcpt_url_verp) {
+	&do_log('info', 'No subscriber for sending msg in list %s', $name);
+	return 0;
+    }
+    #save the message before modifying it
+    my $saved_msg = $message->{'msg'}->dup;
+    my $nbr_smtp;
+    my $nbr_verp;
+
+
+    # prepare verp parameter
+    my $verp_rate =  $self->{'admin'}{'verp_rate'};
+    my $xsequence =  $self->{'stats'}->[0] ;
+
+    ##Send message for normal reception mode
+    if (@tabrcpt) {
+	## Add a footer
+	unless ($message->{'protected'}) {
+	    my $new_msg = $self->add_parts($message->{'msg'});
+	    if (defined $new_msg) {
+		$message->{'msg'} = $new_msg;
+		$message->{'altered'} = '_ALTERED_';
+	    }
+	}
+	
+	## TOPICS
+	my @selected_tabrcpt;
+	if ($self->is_there_msg_topic()){
+	    @selected_tabrcpt = $self->select_subscribers_for_topic($message->get_topic(),\@tabrcpt);
+	} else {
+	    @selected_tabrcpt = @tabrcpt;
+	}
+	
+	my @verp_selected_tabrcpt = &extract_verp_rcpt($verp_rate, $xsequence,\@selected_tabrcpt, \@tabrcpt_verp);
+
+
+	my $result = &mail::mail_message($message, $self, {'enable' => 'off'}, @selected_tabrcpt);
+	unless (defined $result) {
+	    &do_log('err',"List::send_msg, could not send message to distribute from $from (verp desabled)");
+	    return undef;
+	}
+	$nbr_smtp = $result;
+	
+	$result = &mail::mail_message($message, $self, {'enable' => 'on'}, @verp_selected_tabrcpt);
+	unless (defined $result) {
+	    &do_log('err',"List::send_msg, could not send message to distribute from $from (verp enabled)");
+	    return undef;
+	}
+	$nbr_smtp += $result;
+	$nbr_verp = $result;
+
+    }
+
+    ##Prepare and send message for notice reception mode
+    if (@tabrcpt_notice) {
+	my $notice_msg = $saved_msg->dup;
+        $notice_msg->bodyhandle(undef);    
+	$notice_msg->parts([]);
+	my $new_message = new Message($notice_msg);
+	
+	my @verp_tabrcpt_notice = &extract_verp_rcpt($verp_rate, $xsequence,\@tabrcpt_notice, \@tabrcpt_notice_verp);
+
+	my $result = &mail::mail_message($new_message, $self, {'enable' => 'off'}, @tabrcpt_notice);
+	unless (defined $result) {
+	    &do_log('err',"List::send_msg, could not send message to distribute from $from (verp desabled)");
+	    return undef;
+	}
+	$nbr_smtp += $result;
+
+	$result = &mail::mail_message($new_message, $self , {'enable' => 'on'}, @verp_tabrcpt_notice);
+	unless (defined $result) {
+	    &do_log('err',"List::send_msg, could not send message to distribute from $from  (verp enabled)");
+	    return undef;
+	}
+	$nbr_smtp += $result;
+	$nbr_verp += $result;
+
+    }
+
+    ##Prepare and send message for txt reception mode
+    if (@tabrcpt_txt) {
+	my $txt_msg = $saved_msg->dup;
+	if (&tools::as_singlepart($txt_msg, 'text/plain')) {
+	    do_log('notice', 'Multipart message changed to singlepart');
+	}
+	
+	## Add a footer
+	my $new_msg = $self->add_parts($txt_msg);
+	if (defined $new_msg) {
+	    $txt_msg = $new_msg;
+	}
+	my $new_message = new Message($txt_msg);
+
+	my @verp_tabrcpt_txt = &extract_verp_rcpt($verp_rate, $xsequence,\@tabrcpt_txt, \@tabrcpt_txt_verp);
+	
+	my $result = &mail::mail_message($new_message, $self,  {'enable' => 'off'}, @tabrcpt_txt);
+	unless (defined $result) {
+	    &do_log('err',"List::send_msg, could not send message to distribute from $from  (verp desabled)");
+	    return undef;
+	}
+	$nbr_smtp += $result;
+
+	$result = &mail::mail_message($new_message, $self , {'enable' => 'on'}, @verp_tabrcpt_txt);
+	unless (defined $result) {
+	    &do_log('err',"List::send_msg, could not send message to distribute from $from  (verp enabled)");
+	    return undef;
+	}
+	$nbr_smtp += $result;
+	$nbr_verp += $result;
+
+    }
+
+   ##Prepare and send message for html reception mode
+    if (@tabrcpt_html) {
+	my $html_msg = $saved_msg->dup;
+	if (&tools::as_singlepart($html_msg, 'text/html')) {
+	    do_log('notice', 'Multipart message changed to singlepart');
+	}
+        ## Add a footer
+	my $new_msg = $self->add_parts($html_msg);
+	if (defined $new_msg) {
+	    $html_msg = $new_msg;
+        }
+	my $new_message = new Message($html_msg);
+
+	my @verp_tabrcpt_html = &extract_verp_rcpt($verp_rate, $xsequence,\@tabrcpt_html, \@tabrcpt_html_verp);
+
+	my $result = &mail::mail_message($new_message, $self , {'enable' => 'off'}, @tabrcpt_html);
+	unless (defined $result) {
+	    &do_log('err',"List::send_msg, could not send message to distribute from $from  (verp desabled)");
+	    return undef;
+	}
+	$nbr_smtp += $result;
+
+	$result = &mail::mail_message($new_message, $self , {'enable' => 'on'}, @verp_tabrcpt_html);
+	unless (defined $result) {
+	    &do_log('err',"List::send_msg, could not send message to distribute from $from  (verp enabled)");
+	    return undef;
+	}
+	$nbr_smtp += $result;
+	$nbr_verp += $result;
+    }
+
+   ##Prepare and send message for urlize reception mode
+    if (@tabrcpt_url) {
+	my $url_msg = $saved_msg->dup; 
+ 
+	my $expl = $self->{'dir'}.'/urlized';
+    
+	unless ((-d $expl) ||( mkdir $expl, 0775)) {
+	    do_log('err', "Unable to create urlize directory $expl");
+	    return undef;
+	}
+
+	my $dir1 = $url_msg->head->get('Message-ID');
+	chomp($dir1);
+
+	## Clean up Message-ID
+	$dir1 =~ s/^\<(.+)\>$/$1/;
+	$dir1 = &tools::escape_chars($dir1);
+	$dir1 = '/'.$dir1;
+
+	unless ( mkdir ("$expl/$dir1", 0775)) {
+	    do_log('err', "Unable to create urlize directory $expl/$dir1");
+	    printf "Unable to create urlized directory $expl/$dir1";
+	    return 0;
+	}
+	my $mime_types = &tools::load_mime_types();
+	my @parts = $url_msg->parts();
+	
+	foreach my $i (0..$#parts) {
+	    my $entity = &_urlize_part ($url_msg->parts ($i), $self, $dir1, $i, $mime_types,  &Conf::get_robot_conf($robot, 'wwsympa_url')) ;
+	    if (defined $entity) {
+		$parts[$i] = $entity;
+	    }
+	}
+	
+	## Replace message parts
+	$url_msg->parts (\@parts);
+
+        ## Add a footer
+	my $new_msg = $self->add_parts($url_msg);
+	if (defined $new_msg) {
+	    $url_msg = $new_msg;
+	} 
+	my $new_message = new Message($url_msg);
+
+
+	my @verp_tabrcpt_url = &extract_verp_rcpt($verp_rate, $xsequence,\@tabrcpt_url, \@tabrcpt_url_verp);
+
+	my $result = &mail::mail_message($new_message, $self , {'enable' => 'off'}, @tabrcpt_url);
+	unless (defined $result) {
+	    &do_log('err',"List::send_msg, could not send message to distribute from $from  (verp desabled)");
+	    return undef;
+	}
+	$nbr_smtp += $result;
+
+	$result = &mail::mail_message($new_message, $self , {'enable' => 'on'}, @verp_tabrcpt_url);
+	unless (defined $result) {
+	    &do_log('err',"List::send_msg, could not send message to distribute from $from  (verp enabled)");
+	    return undef;
+	}
+	$nbr_smtp += $result;
+	$nbr_verp += $result;
+
+    }
+
+    return $nbr_smtp;
+}
+
 
 ####################################################
 # send_msg_digest                              
@@ -2669,7 +2893,7 @@ sub send_msg_digest {
     }
 
     my $old = $/;
-    local $/ = "\n\n" . &tools::get_separator() . "\n\n";
+    $/ = "\n\n" . &tools::get_separator() . "\n\n";
     
     ## Digest split in individual messages
     open DIGEST, $filename or return undef;
@@ -2695,7 +2919,7 @@ sub send_msg_digest {
 	push @list_of_mail, $mail;
     }
     close DIGEST;
-    local $/ = $old;
+    $/ = $old;
 
     ## Deletes the introduction part
     splice @list_of_mail, 0, 1;
@@ -3051,10 +3275,14 @@ sub send_msg {
     }
 
     ## Bounce rate
-    my $rate = $self->get_total_bouncing() * 100 / $total;
-    if ($rate > $self->{'admin'}{'bounce'}{'warn_rate'}) {
-	unless ($self->send_notify_to_owner('bounce_rate',{'rate' => $rate})) {
-	    &do_log('notice',"Unable to send notify 'bounce_rate' to $self->{'name'} listowner");
+    ## Available in database mode only
+    if (($admin->{'user_data_source'} eq 'database') ||
+	($admin->{'user_data_source'} eq 'include2')){
+	my $rate = $self->get_total_bouncing() * 100 / $total;
+	if ($rate > $self->{'admin'}{'bounce'}{'warn_rate'}) {
+	    unless ($self->send_notify_to_owner('bounce_rate',{'rate' => $rate})) {
+		&do_log('notice',"Unable to send notify 'bounce_rate' to $self->{'name'} listowner");
+	    }
 	}
     }
  
@@ -3072,6 +3300,7 @@ sub send_msg {
 	    &do_log('err','Skipping user with no email address in list %s', $name);
 	    next;
 	}
+#	&do_log('debug','trace distribution VERP email %s,reception %s,bounce_address %s',$user->{'email'},$user->{'reception'},$user->{'bounce_address'} );
 	if ($user->{'reception'} =~ /^digest|digestplain|summary|nomail$/i) {
 	    next;
 	} elsif ($user->{'reception'} eq 'notice') {
@@ -3758,36 +3987,22 @@ sub archive_send_last {
 sub send_notify_to_listmaster {
 
     my ($operation, $robot, $param) = @_;
-    unless ($operation eq 'logs_failed') {
-	&do_log('debug2', 'List::send_notify_to_listmaster(%s,%s )', $operation, $robot );
+    &do_log('debug2', 'List::send_notify_to_listmaster(%s,%s )', $operation, $robot );
+
+    unless (defined $operation) {
+	&do_log('err','List::send_notify_to_listmaster(%s) : missing incoming parameter "$operation"');
+	return undef;
+    }
+    unless (defined $robot) {
+	&do_log('err','List::send_notify_to_listmaster(%s) : missing incoming parameter "$robot"');
+	return undef;
     }
 
-    unless ($operation eq 'logs_failed') {
-	unless (defined $operation) {
-	    &do_log('err','List::send_notify_to_listmaster(%s) : missing incoming parameter "$operation"');
-	    return undef;
-	}
-	unless (defined $robot) {
-	    &do_log('err','List::send_notify_to_listmaster(%s) : missing incoming parameter "$robot"');
-	    return undef;
-	}
-    }
+
     my $host = &Conf::get_robot_conf($robot, 'host');
     my $listmaster = &Conf::get_robot_conf($robot, 'listmaster');
     my $to = "$Conf{'listmaster_email'}\@$host";
     my $options = {}; ## options for send_global_file()
-
-    if ($operation eq 'logs_failed') {
-	my $data = {'to' => $to,
-		    'type' => $operation};
-	for my $i(0..$#{$param}) {
-	    $data->{"param$i"} = $param->[$i];
-	}
-	unless (&send_global_file('listmaster_notification', $listmaster, $robot, $data, $options)) {
-	    return undef;
-	}
-	return 1;
-    }
 
     if (ref($param) eq 'HASH') {
 
@@ -4339,31 +4554,44 @@ sub delete_user {
     my $name = $self->{'name'};
     my $total = 0;
     
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &db_connect();
-    }
-    
-    foreach my $who (@u) {
-	$who = &tools::clean_email($who);
-	my $statement;
+    if (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	($self->{'admin'}{'user_data_source'} eq 'include2')){
 	
-	$list_cache{'is_user'}{$self->{'domain'}}{$name}{$who} = undef;    
-	$list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$who} = undef;    
-	
-	## Delete record in SUBSCRIBER
-	$statement = sprintf "DELETE FROM subscriber_table WHERE (user_subscriber=%s AND list_subscriber=%s AND robot_subscriber=%s)",
-	$dbh->quote($who), 
-	$dbh->quote($name), 
-	$dbh->quote($self->{'domain'});
-	
-	
-	unless ($dbh->do($statement)) {
-	    do_log('err','Unable to execute SQL statement %s : %s', $statement, $dbh->errstr);
-	    next;
-	}   
-	
-	$total--;
+	## Check database connection
+	unless ($dbh and $dbh->ping) {
+	    return undef unless &db_connect();
+	}
+	    
+	foreach my $who (@u) {
+	    $who = &tools::clean_email($who);
+	    my $statement;
+	    
+	    $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who} = undef;    
+	    $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$who} = undef;    
+	    
+	    ## Delete record in SUBSCRIBER
+	    $statement = sprintf "DELETE FROM subscriber_table WHERE (user_subscriber=%s AND list_subscriber=%s AND robot_subscriber=%s)",
+ 	    $dbh->quote($who), 
+ 	    $dbh->quote($name), 
+ 	    $dbh->quote($self->{'domain'});
+
+	    
+	    unless ($dbh->do($statement)) {
+		do_log('err','Unable to execute SQL statement %s : %s', $statement, $dbh->errstr);
+		next;
+	    }   
+
+	    $total--;
+	}
+    }else {
+	my $users = $self->{'users'};
+
+	foreach my $who (@u) {
+	    $who = &tools::clean_email($who);
+	    
+	    delete $self->{'users'}{$who};
+	    $total-- unless (exists $users->{$who});
+	}
     }
 
     $self->{'total'} += $total;
@@ -4381,6 +4609,11 @@ sub delete_admin_user {
     my $name = $self->{'name'};
     my $total = 0;
     
+    unless($self->{'admin'}{'user_data_source'} eq 'include2'){
+	&do_log('err', 'Cannot delete %s in list %s, user_data_source different than include2 ',$role, $self->{'name'}); 
+	return undef;
+    }
+
     ## Check database connection
     unless ($dbh and $dbh->ping) {
 	return undef unless &db_connect();
@@ -4475,9 +4708,19 @@ sub get_total {
     my $option = shift;
     &do_log('debug3','List::get_total(%s)', $name);
 
-    if ($option eq 'nocache') {
-	$self->{'total'} = $self->_load_total_db($option);
+    if (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	($self->{'admin'}{'user_data_source'} eq 'include2')) {
+	if ($option eq 'nocache') {
+	    $self->{'total'} = $self->_load_total_db($option);
+	}
     }
+#    if ($self->{'admin'}{'user_data_source'} eq 'database') {
+	## If stats file was updated
+#	my $time = (stat("$name/stats"))[9];
+#	if ($time > $self->{'mtime'}[0]) {
+#	    $self->{'total'} = $self->_load_total_db();
+#	}
+#    }
     
     return $self->{'total'};
 }
@@ -4507,9 +4750,9 @@ sub get_user_db {
 
     if ($Conf{'db_type'} eq 'Oracle') {
 	## "AS" not supported by Oracle
-	$statement = sprintf "SELECT email_user \"email\", gecos_user \"gecos\", password_user \"password\", cookie_delay_user \"cookie_delay\", lang_user \"lang\", attributes_user \"attributes\" %s,data_user \"data\" FROM user_table WHERE email_user = %s ", $additional, $dbh->quote($who);
+	$statement = sprintf "SELECT email_user \"email\", gecos_user \"gecos\", password_user \"password\", cookie_delay_user \"cookie_delay\", lang_user \"lang\", attributes_user \"attributes\" %s FROM user_table WHERE email_user = %s ", $additional, $dbh->quote($who);
     }else {
-	$statement = sprintf "SELECT email_user AS email, gecos_user AS gecos, password_user AS password, cookie_delay_user AS cookie_delay, lang_user AS lang %s, attributes_user AS attributes, data_user AS data FROM user_table WHERE email_user = %s ", $additional, $dbh->quote($who);
+	$statement = sprintf "SELECT email_user AS email, gecos_user AS gecos, password_user AS password, cookie_delay_user AS cookie_delay, lang_user AS lang %s, attributes_user AS attributes FROM user_table WHERE email_user = %s ", $additional, $dbh->quote($who);
     }
     
     push @sth_stack, $sth;
@@ -4539,15 +4782,10 @@ sub get_user_db {
 	## Turn user_attributes into a hash
 	my $attributes = $user->{'attributes'};
 	$user->{'attributes'} = undef;
-	foreach my $attr (split (/\;/, $attributes)) {
-	    my ($key, $value) = split (/\=/, $attr);
+	foreach my $attr (split /;/, $attributes) {
+	    my ($key, $value) = split /=/, $attr;
 	    $user->{'attributes'}{$key} = $value;
 	}    
-	## Turn data_user into a hash
-	 if ($user->{'data'}) {
-	     my %prefs = &tools::string_2_hash($user->{'data'});
-	     $user->{'prefs'} = \%prefs;
-	 }
     }
 
     return $user;
@@ -4603,92 +4841,101 @@ sub get_subscriber {
     
     do_log('debug2', 'List::get_subscriber(%s)', $email);
 
-    my $name = $self->{'name'};
-    my $statement;
-    my $date_field = sprintf $date_format{'read'}{$Conf{'db_type'}}, 'date_subscriber', 'date_subscriber';
-    my $update_field = sprintf $date_format{'read'}{$Conf{'db_type'}}, 'update_subscriber', 'update_subscriber';	
-    
-    ## Use session cache
-    if (defined $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$email}) {
-	return $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$email};
-    }
-    
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &db_connect();
-    }
-    
-    ## Additional subscriber fields
-    my $additional;
-    if ($Conf{'db_additional_subscriber_fields'}) {
-	$additional = ',' . $Conf{'db_additional_subscriber_fields'};
-    }
-    
-    if ($Conf{'db_type'} eq 'Oracle') {
-	## "AS" not supported by Oracle
-	$statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\", bounce_address_subscriber \"bounce_address\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", custom_attribute_subscriber \"custom_attribute\  %s FROM subscriber_table WHERE (user_subscriber = %s AND list_subscriber = %s AND robot_subscriber = %s)", 
-	$date_field, 
-	$update_field, 
-	$additional, 
-	$dbh->quote($email), 
-	$dbh->quote($name),
-	$dbh->quote($self->{'domain'});
-    }else {
-	$statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, reception_subscriber AS reception,  topics_subscriber AS topics, visibility_subscriber AS visibility, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, custom_attribute_subscriber AS custom_attribute %s FROM subscriber_table WHERE (user_subscriber = %s AND list_subscriber = %s AND robot_subscriber = %s)", 
-	$date_field, 
-	$update_field, 
-	$additional, 
-	$dbh->quote($email), 
-	$dbh->quote($name),
-	$dbh->quote($self->{'domain'});
-    }
-    
-    push @sth_stack, $sth;
-    
-    unless ($sth = $dbh->prepare($statement)) {
-	do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
-	return undef;
-    }
-    
-    unless ($sth->execute) {
-	do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-	return undef;
-    }
-    
-    my $user = $sth->fetchrow_hashref;
-    
-    if (defined $user) {
-	$user->{'reception'} ||= 'mail';
-	$user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
-	unless ($self->is_available_reception_mode($user->{'reception'}));
-	
-	$user->{'update_date'} ||= $user->{'date'};
-	
-	## In case it was not set in the database
-	$user->{'subscribed'} = 1
-	    if ($self->{'admin'}{'user_data_source'} eq 'database');
-	
-	do_log('debug2', 'List::get_subscriber custom_attribute  = (%s)', $user->{custom_attribute});
-	if (defined $user->{custom_attribute}) {
-	    do_log('debug2', '1. custom_attribute  = (%s)', $user->{custom_attribute});
-	    my %custom_attr = &parseCustomAttribute($user->{'custom_attribute'});
-	    $user->{'custom_attribute'} = \%custom_attr ;
-	    do_log('debug2', '2. custom_attribute  = (%s)', %custom_attr);
-	    	do_log('debug2', '3. custom_attribute  = (%s)', $user->{custom_attribute});
-	    my @k = sort keys %custom_attr ;
-	    do_log('debug2', "keys custom_attribute  = @k");
+    if (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	($self->{'admin'}{'user_data_source'} eq 'include2')){
+
+	my $name = $self->{'name'};
+	my $statement;
+	my $date_field = sprintf $date_format{'read'}{$Conf{'db_type'}}, 'date_subscriber', 'date_subscriber';
+	my $update_field = sprintf $date_format{'read'}{$Conf{'db_type'}}, 'update_subscriber', 'update_subscriber';	
+
+	## Use session cache
+	if (defined $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$email}) {
+	    # &do_log('debug3', 'xxx Use cache(get_subscriber, %s,%s)', $name, $email);
+	    return $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$email};
 	}
 
-    }
-    
-    $sth->finish();
+	## Check database connection
+	unless ($dbh and $dbh->ping) {
+	    return undef unless &db_connect();
+	}
 
-    $sth = pop @sth_stack;
-    
-    ## Set session cache
-    $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$email} = $user;
-    
-    return $user;
+	## Additional subscriber fields
+	my $additional;
+	if ($Conf{'db_additional_subscriber_fields'}) {
+	    $additional = ',' . $Conf{'db_additional_subscriber_fields'};
+	}
+
+	if ($Conf{'db_type'} eq 'Oracle') {
+	    ## "AS" not supported by Oracle
+	    $statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\", bounce_address_subscriber \"bounce_address\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\"  %s FROM subscriber_table WHERE (user_subscriber = %s AND list_subscriber = %s AND robot_subscriber = %s)", 
+	    $date_field, 
+	    $update_field, 
+	    $additional, 
+	    $dbh->quote($email), 
+	    $dbh->quote($name),
+	    $dbh->quote($self->{'domain'});
+	}else {
+	    $statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, reception_subscriber AS reception,  topics_subscriber AS topics, visibility_subscriber AS visibility, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id %s FROM subscriber_table WHERE (user_subscriber = %s AND list_subscriber = %s AND robot_subscriber = %s)", 
+	    $date_field, 
+	    $update_field, 
+	    $additional, 
+	    $dbh->quote($email), 
+	    $dbh->quote($name),
+	    $dbh->quote($self->{'domain'});
+	}
+
+	push @sth_stack, $sth;
+
+	unless ($sth = $dbh->prepare($statement)) {
+	    do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
+	    return undef;
+	}
+	
+	unless ($sth->execute) {
+	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
+	    return undef;
+	}
+	
+	my $user = $sth->fetchrow_hashref;
+
+	if (defined $user) {
+	    $user->{'reception'} ||= 'mail';
+	    $user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
+	    unless ($self->is_available_reception_mode($user->{'reception'}));
+	    
+	    $user->{'update_date'} ||= $user->{'date'};
+
+	    ## In case it was not set in the database
+	    $user->{'subscribed'} = 1
+		if ($self->{'admin'}{'user_data_source'} eq 'database');
+
+	}
+
+	$sth->finish();
+
+	$sth = pop @sth_stack;
+
+	## Set session cache
+	$list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$email} = $user;
+
+	return $user;
+    }else {
+	my $i;
+	return undef 
+	    unless $self->{'users'}{$email};
+
+	my %user = split(/\n/, $self->{'users'}{$email});
+
+	$user{'reception'} ||= 'mail';
+	$user{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
+	     unless ($self->is_available_reception_mode($user{'reception'}));
+	
+	## In case it was not set in the database
+	$user{'subscribed'} = 1 if (defined(%user));
+
+	return \%user;
+    }
 }
 ## Returns an array of all users in User table hash for a given user
 sub get_subscriber_by_bounce_address {
@@ -4716,6 +4963,8 @@ sub get_subscriber_by_bounce_address {
     unless ($dbh and $dbh->ping) {
 	return undef unless &db_connect();
     }
+
+    return undef unless (($self->{'admin'}{'user_data_source'} eq 'database') || ($self->{'admin'}{'user_data_source'} eq 'include2'));
 
     $statement = sprintf "SELECT user_subscriber AS email, bounce_address_subscriber AS bounce_address FROM subscriber_table WHERE (list_subscriber=%s AND robot_subscriber=%s AND bounce_address_subscriber LIKE %s",$dbh->quote($listname),$dbh->quote($robot),$dbh->quote($bounce_address);
     
@@ -4746,6 +4995,11 @@ sub get_admin_user {
     
     do_log('debug2', 'List::get_admin_user(%s,%s)', $role,$email); 
 
+    unless($self->{'admin'}{'user_data_source'} eq 'include2'){
+	&do_log('err', 'Cannot add %s in list %s, user_data_source different than include2 ', $role, $self->{'name'}); 
+	return undef;
+    }
+
     my $name = $self->{'name'};
     my $statement;
     my $date_field = sprintf $date_format{'read'}{$Conf{'db_type'}}, 'date_admin', 'date_admin';
@@ -4753,6 +5007,7 @@ sub get_admin_user {
 
     ## Use session cache
     if (defined $list_cache{'get_admin_user'}{$self->{'domain'}}{$name}{$role}{$email}) {
+	# &do_log('debug3', 'xxx Use cache(get_admin_user, %s,%s,%s)', $name, $role, $email);
 	return $list_cache{'get_admin_user'}{$self->{'domain'}}{$name}{$role}{$email};
     }
 
@@ -4763,7 +5018,7 @@ sub get_admin_user {
 
     if ($Conf{'db_type'} eq 'Oracle') {
 	## "AS" not supported by Oracle
-	$statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", visibility_admin \"visibility\",%s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\",  subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\"  FROM admin_table WHERE (user_admin = %s AND list_admin = %s AND robot_admin = %s AND role_admin = %s)", 
+	$statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\",  subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\"  FROM admin_table WHERE (user_admin = %s AND list_admin = %s AND robot_admin = %s AND role_admin = %s)", 
 	$date_field, 
 	$update_field, 
 	$dbh->quote($email), 
@@ -4771,7 +5026,7 @@ sub get_admin_user {
 	$dbh->quote($self->{'domain'}),
  	$dbh->quote($role);
     }else {
-	$statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, visibility_admin AS visibility, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id FROM admin_table WHERE (user_admin = %s AND list_admin = %s AND robot_admin = %s AND role_admin = %s)", 
+	$statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id FROM admin_table WHERE (user_admin = %s AND list_admin = %s AND robot_admin = %s AND role_admin = %s)", 
 	$date_field, 
 	$update_field, 
 	$dbh->quote($email), 
@@ -4828,339 +5083,298 @@ sub get_first_user {
     $sql_regexp = $data->{'sql_regexp'};
     
     my $lock = new Lock ($self->{'dir'}.'/include');
-    unless (defined $lock) {
-	&do_log('err','Could not create new lock');
-	return undef;
-    }
     $lock->set_timeout(10*60); 
 
     do_log('debug2', 'List::get_first_user(%s,%s,%d,%d)', $self->{'name'},$sortby, $offset, $rows);
         
-    ## Get an Shared lock	    
-    unless ($lock->lock('read')) {
-	return undef;
-    }
-    
-    my $name = $self->{'name'};
-    my $statement;
-    my $date_field = sprintf $date_format{'read'}{$Conf{'db_type'}}, 'date_subscriber', 'date_subscriber';
-    my $update_field = sprintf $date_format{'read'}{$Conf{'db_type'}}, 'update_subscriber', 'update_subscriber';
-    
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &db_connect();
-    }
-    
-    ## SQL regexp
-    my $selection;
-    if ($sql_regexp) {
-	$selection = sprintf " AND (user_subscriber LIKE %s OR comment_subscriber LIKE %s)"
-	    ,$dbh->quote($sql_regexp), $dbh->quote($sql_regexp);
-    }
-    
-    ## Additional subscriber fields
-    my $additional;
-    if ($Conf{'db_additional_subscriber_fields'}) {
-	$additional = ',' . $Conf{'db_additional_subscriber_fields'};
-    }
-    
-    ## Oracle
-    if ($Conf{'db_type'} eq 'Oracle') {
-	
-	$statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\", bounce_address_subscriber \"bounce_address\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", custom_attribute_subscriber \"custom_attribute\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s %s)", 
-	$date_field, 
-	$update_field, 
-	$additional, 
-	$dbh->quote($name), 
-	$dbh->quote($self->{'domain'}),
-	$selection;
-	
-	## SORT BY
-	if ($sortby eq 'domain') {
-	    $statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\",bounce_address_subscriber \"bounce_address\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", custom_attribute_subscriber \"custom_attribute\", substr(user_subscriber,instr(user_subscriber,'\@')+1) \"dom\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY \"dom\"", 
-	    $date_field, 
-	    $update_field, 
-	    $additional, 
-	    $dbh->quote($name),
-	    $dbh->quote($self->{'domain'});
-	    
-	}elsif ($sortby eq 'email') {
-	    $statement .= " ORDER BY \"email\"";
-	    
-	}elsif ($sortby eq 'date') {
-	    $statement .= " ORDER BY \"date\" DESC";
-	    
-	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
-	    
-	}elsif ($sortby eq 'name') {
-	    $statement .= " ORDER BY \"gecos\"";
-	} 
-	
-	## Sybase
-    }elsif ($Conf{'db_type'} eq 'Sybase'){
-	
-	$statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\", bounce_address_subscriber \"bounce_address\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", custom_attribute_subscriber \"custom_attribute\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s %s)", 
-	$date_field, 
-	$update_field, 
-	$additional, 
-	$dbh->quote($name), 
-	$dbh->quote($self->{'domain'}),
-	$selection;
-	
-	## SORT BY
-	if ($sortby eq 'domain') {
-	    $statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\",  bounce_address_subscriber \"bounce_address\",%s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", custom_attribute_subscriber \"custom_attribute\", substring(user_subscriber,charindex('\@',user_subscriber)+1,100) \"dom\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY \"dom\"", 
-	    $date_field, 
-	    $update_field, 
-	    $additional, 
-	    $dbh->quote($name),
-	    $dbh->quote($self->{'domain'});
-	    
-	}elsif ($sortby eq 'email') {
-	    $statement .= " ORDER BY \"email\"";
-	    
-	}elsif ($sortby eq 'date') {
-	    $statement .= " ORDER BY \"date\" DESC";
-	    
-	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
-	    
-	}elsif ($sortby eq 'name') {
-	    $statement .= " ORDER BY \"gecos\"";
-	}
-	
-	
-	## mysql
-    }elsif ($Conf{'db_type'} eq 'mysql') {
-	
-	$statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, topics_subscriber AS topics, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address,  %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, custom_attribute_subscriber AS custom_attribute %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s %s)", 
-	$date_field, 
-	$update_field, 
-	$additional, 
-	$dbh->quote($name), 
-	$dbh->quote($self->{'domain'}),
-	$selection;
-	
-	## SORT BY
-	if ($sortby eq 'domain') {
-	    ## Redefine query to set "dom"
-	    
-	    $statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, topics_subscriber AS topics, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address,  %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, custom_attribute_subscriber AS custom_attribute, REVERSE(SUBSTRING(user_subscriber FROM position('\@' IN user_subscriber) FOR 50)) AS dom %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s ) ORDER BY dom", 
-	    $date_field, 
-	    $update_field, 
-	    $additional, 
-	    $dbh->quote($name),
-	    $dbh->quote($self->{'domain'});
-	    
-	}elsif ($sortby eq 'email') {
-	    ## Default SORT
-	    $statement .= ' ORDER BY email';
-	    
-	}elsif ($sortby eq 'date') {
-	    $statement .= ' ORDER BY date DESC';
-	    
-	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
-	    
-	}elsif ($sortby eq 'name') {
-	    $statement .= ' ORDER BY gecos';
-	} 
-	
-	## LIMIT clause
-	if (defined($rows) and defined($offset)) {
-	    $statement .= sprintf " LIMIT %d, %d", $offset, $rows;
-	}
-	
-	## SQLite
-    }elsif ($Conf{'db_type'} eq 'SQLite') {
-	
-	$statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, custom_attribute_subscriber AS custom_attribute %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s %s)", 
-	$date_field, 
-	$update_field, 
-	$additional, 
-	$dbh->quote($name), 
-	$dbh->quote($self->{'domain'}),
-	$selection;
-	
-	## SORT BY
-	if ($sortby eq 'domain') {
-	    ## Redefine query to set "dom"
-	    
-	    $statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, custom_attribute_subscriber AS custom_attribute, substr(user_subscriber,0,func_index(user_subscriber,'\@')+1) AS dom %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY dom", 
-	    $date_field, 
-	    $update_field, 
-	    $additional, 
-	    $dbh->quote($name),
-	    $dbh->quote($self->{'domain'});
-	    
-	}elsif ($sortby eq 'email') {
-	    ## Default SORT
-	    $statement .= ' ORDER BY email';
-	    
-	}elsif ($sortby eq 'date') {
-	    $statement .= ' ORDER BY date DESC';
-	    
-	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
-	    
-	}elsif ($sortby eq 'name') {
-	    $statement .= ' ORDER BY gecos';
-	} 
-	
-	## LIMIT clause
-	if (defined($rows) and defined($offset)) {
-	    $statement .= sprintf " LIMIT %d, %d", $offset, $rows;
-	}
-	
-	## Pg    
-    }else {
-	
-	$statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, topics_subscriber AS topics, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, custom_attribute_subscriber AS custom_attribute %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s %s)", 
-	$date_field, 
-	$update_field, 
-	$additional, 
-	$dbh->quote($name), 
-	$dbh->quote($self->{'domain'}),
-	$selection;
-	
-	## SORT BY
-	if ($sortby eq 'domain') {
-	    ## Redefine query to set "dom"
-	    
-	    $statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, topics_subscriber AS topics, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, custom_attribute_subscriber AS custom_attribute, SUBSTRING(user_subscriber FROM position('\@' IN user_subscriber) FOR 50) AS dom %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY dom", 
-	    $date_field, 
-	    $update_field, 
-	    $additional, 
-	    $dbh->quote($name),
-	    $dbh->quote($self->{'domain'});
-	    
-	}elsif ($sortby eq 'email') {
-	    $statement .= ' ORDER BY email';
-	    
-	}elsif ($sortby eq 'date') {
-	    $statement .= ' ORDER BY date DESC';
-	    
-	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
-	    
-	}elsif ($sortby eq 'name') {
-	    $statement .= ' ORDER BY gecos';
-	}
-	
-	## LIMIT clause
-	if (defined($rows) and defined($offset)) {
-	    $statement .= sprintf " LIMIT %d OFFSET %d", $rows, $offset;
-	}
-    }
-    push @sth_stack, $sth;
-    
-    unless ($sth = $dbh->prepare($statement)) {
-	do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
-	return undef;
-    }
-    
-    unless ($sth->execute) {
-	do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-	return undef;
-    }
-    
-    my $user = $sth->fetchrow_hashref;
-    if (defined $user) {
-	&do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) 
-	    if (! $user->{'email'});
-	$user->{'reception'} ||= 'mail';
-	$user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
-	unless ($self->is_available_reception_mode($user->{'reception'}));
-	$user->{'update_date'} ||= $user->{'date'};
-	
-	## In case it was not set in the database
-	$user->{'subscribed'} = 1
-	    if (defined($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
+    if (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	($self->{'admin'}{'user_data_source'} eq 'include2')){
 
-	############################################################################	    
-	if (defined $user->{custom_attribute}) {
-	    do_log('debug2', 'custom_attribute  = (%s)', $user->{custom_attribute});
-	    my %custom_attr = &parseCustomAttribute($user->{'custom_attribute'});
-	    $user->{'custom_attribute'} = \%custom_attr ;
-	}
-
-
-    }
-    else {
-	$sth->finish;
-	$sth = pop @sth_stack;
-	
 	if ($self->{'admin'}{'user_data_source'} eq 'include2') {
-	    
-	    ## Release the Shared lock
-	    unless ($lock->unlock()) {
+
+	    ## Get an Shared lock	    
+	    unless ($lock->lock('read')) {
 		return undef;
 	    }
 	}
-    }
-    
-    ## If no offset (for LIMIT) was used, update total of subscribers
-    unless ($offset) {
-	my $total = $self->_load_total_db('nocache');
-	if ($total != $self->{'total'}) {
-	    $self->{'total'} = $total;
-	    $self->savestats();
+
+	my $name = $self->{'name'};
+	my $statement;
+	my $date_field = sprintf $date_format{'read'}{$Conf{'db_type'}}, 'date_subscriber', 'date_subscriber';
+	my $update_field = sprintf $date_format{'read'}{$Conf{'db_type'}}, 'update_subscriber', 'update_subscriber';
+	
+	## Check database connection
+	unless ($dbh and $dbh->ping) {
+	    return undef unless &db_connect();
 	}
-    }
+
+	## SQL regexp
+	my $selection;
+	if ($sql_regexp) {
+	    $selection = sprintf " AND (user_subscriber LIKE %s OR comment_subscriber LIKE %s)"
+		,$dbh->quote($sql_regexp), $dbh->quote($sql_regexp);
+	}
+
+	## Additional subscriber fields
+	my $additional;
+	if ($Conf{'db_additional_subscriber_fields'}) {
+	    $additional = ',' . $Conf{'db_additional_subscriber_fields'};
+	}
+	
+	## Oracle
+	if ($Conf{'db_type'} eq 'Oracle') {
+
+	    $statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\", bounce_address_subscriber \"bounce_address\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s %s)", 
+	    $date_field, 
+	    $update_field, 
+	    $additional, 
+	    $dbh->quote($name), 
+	    $dbh->quote($self->{'domain'}),
+	    $selection;
+
+	    ## SORT BY
+	    if ($sortby eq 'domain') {
+		$statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\",bounce_address_subscriber \"bounce_address\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", substr(user_subscriber,instr(user_subscriber,'\@')+1) \"dom\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY \"dom\"", 
+		$date_field, 
+		$update_field, 
+		$additional, 
+		$dbh->quote($name),
+		$dbh->quote($self->{'domain'});
+
+	    }elsif ($sortby eq 'email') {
+		$statement .= " ORDER BY \"email\"";
+
+	    }elsif ($sortby eq 'date') {
+		$statement .= " ORDER BY \"date\" DESC";
+
+	    }elsif ($sortby eq 'sources') {
+		$statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+
+	    }elsif ($sortby eq 'name') {
+		$statement .= " ORDER BY \"gecos\"";
+	    } 
+
+	## Sybase
+	}elsif ($Conf{'db_type'} eq 'Sybase'){
+
+	    $statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\", bounce_address_subscriber \"bounce_address\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s %s)", 
+	    $date_field, 
+	    $update_field, 
+	    $additional, 
+	    $dbh->quote($name), 
+	    $dbh->quote($self->{'domain'}),
+	    $selection;
+	    
+	    ## SORT BY
+	    if ($sortby eq 'domain') {
+		$statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\",  bounce_address_subscriber \"bounce_address\",%s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", substring(user_subscriber,charindex('\@',user_subscriber)+1,100) \"dom\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY \"dom\"", 
+		$date_field, 
+		$update_field, 
+		$additional, 
+		$dbh->quote($name),
+		$dbh->quote($self->{'domain'});
+		
+	    }elsif ($sortby eq 'email') {
+		$statement .= " ORDER BY \"email\"";
+		
+	    }elsif ($sortby eq 'date') {
+		$statement .= " ORDER BY \"date\" DESC";
+		
+	    }elsif ($sortby eq 'sources') {
+		$statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+		
+	    }elsif ($sortby eq 'name') {
+		$statement .= " ORDER BY \"gecos\"";
+	    }
+	    
+	    
+	    ## mysql
+	}elsif ($Conf{'db_type'} eq 'mysql') {
+	    
+	    $statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, topics_subscriber AS topics, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address,  %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s %s)", 
+	    $date_field, 
+	    $update_field, 
+	    $additional, 
+	    $dbh->quote($name), 
+	    $dbh->quote($self->{'domain'}),
+	    $selection;
+	    
+	    ## SORT BY
+	    if ($sortby eq 'domain') {
+		## Redefine query to set "dom"
+		
+		$statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, topics_subscriber AS topics, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address,  %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, REVERSE(SUBSTRING(user_subscriber FROM position('\@' IN user_subscriber) FOR 50)) AS dom %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s ) ORDER BY dom", 
+		$date_field, 
+		$update_field, 
+		$additional, 
+		$dbh->quote($name),
+		$dbh->quote($self->{'domain'});
+		
+	    }elsif ($sortby eq 'email') {
+		## Default SORT
+		$statement .= ' ORDER BY email';
+		
+	    }elsif ($sortby eq 'date') {
+		$statement .= ' ORDER BY date DESC';
+		
+	    }elsif ($sortby eq 'sources') {
+		$statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+		
+	    }elsif ($sortby eq 'name') {
+		$statement .= ' ORDER BY gecos';
+	    } 
+	    
+	    ## LIMIT clause
+	    if (defined($rows) and defined($offset)) {
+		$statement .= sprintf " LIMIT %d, %d", $offset, $rows;
+	    }
+	    
+	    ## SQLite
+	}elsif ($Conf{'db_type'} eq 'SQLite') {
     
-    return $user;
-}
-
-# Create a custom attribute from an XML description
-# IN : File handle or a string, XML formed data as stored in database
-# OUT : HASH data storing custome attributes.
-sub parseCustomAttribute {
-	my $xmldoc = shift ;
-	return undef if ($xmldoc eq '') ;
-
-	my $parser = XML::LibXML->new();
-	my $tree;
-
-	## We should use eval to parse to prevent the program to crash if it fails
-	if (ref($xmldoc) eq 'GLOB') {
-	    $tree = eval {$parser->parse_fh($xmldoc)};
+	    $statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s %s)", 
+	    $date_field, 
+	    $update_field, 
+	    $additional, 
+	    $dbh->quote($name), 
+	    $dbh->quote($self->{'domain'}),
+	    $selection;
+ 	    
+ 	    ## SORT BY
+ 	    if ($sortby eq 'domain') {
+ 		## Redefine query to set "dom"
+		
+ 		$statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, substr(user_subscriber,0,func_index(user_subscriber,'\@')+1) AS dom %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY dom", 
+		$date_field, 
+		$update_field, 
+		$additional, 
+		$dbh->quote($name),
+		$dbh->quote($self->{'domain'});
+		
+ 	    }elsif ($sortby eq 'email') {
+ 		## Default SORT
+ 		$statement .= ' ORDER BY email';
+		
+ 	    }elsif ($sortby eq 'date') {
+ 		$statement .= ' ORDER BY date DESC';
+ 
+ 	    }elsif ($sortby eq 'sources') {
+ 		$statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+		
+ 	    }elsif ($sortby eq 'name') {
+ 		$statement .= ' ORDER BY gecos';
+ 	    } 
+ 	    
+ 	    ## LIMIT clause
+ 	    if (defined($rows) and defined($offset)) {
+ 		$statement .= sprintf " LIMIT %d, %d", $offset, $rows;
+ 	    }
+ 	    
+	    ## Pg    
 	}else {
-	    $tree = eval {$parser->parse_string($xmldoc)};
-	}
+	    
+	    $statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, topics_subscriber AS topics, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s %s)", 
+	    $date_field, 
+	    $update_field, 
+	    $additional, 
+	    $dbh->quote($name), 
+	    $dbh->quote($self->{'domain'}),
+	    $selection;
+	    
+	    ## SORT BY
+	    if ($sortby eq 'domain') {
+		## Redefine query to set "dom"
 
-	unless (defined $tree) {
-	    &do_log('err', "Failed to parse XML data");
+		$statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, reception_subscriber AS reception, topics_subscriber AS topics, visibility_subscriber AS visibility, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, SUBSTRING(user_subscriber FROM position('\@' IN user_subscriber) FOR 50) AS dom %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY dom", 
+		$date_field, 
+		$update_field, 
+		$additional, 
+		$dbh->quote($name),
+		$dbh->quote($self->{'domain'});
+
+	    }elsif ($sortby eq 'email') {
+		$statement .= ' ORDER BY email';
+
+	    }elsif ($sortby eq 'date') {
+		$statement .= ' ORDER BY date DESC';
+
+	    }elsif ($sortby eq 'sources') {
+		$statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+
+	    }elsif ($sortby eq 'name') {
+		$statement .= ' ORDER BY gecos';
+	    }
+	    
+	    ## LIMIT clause
+	    if (defined($rows) and defined($offset)) {
+		$statement .= sprintf " LIMIT %d OFFSET %d", $rows, $offset;
+	    }
+	}
+	push @sth_stack, $sth;
+
+	unless ($sth = $dbh->prepare($statement)) {
+	    do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
 	    return undef;
 	}
-
-	my $doc = $tree->getDocumentElement;
 	
-	my @custom_attr = $doc->getChildrenByTagName('custom_attribute') ;
-	my %ca ;
-	foreach my $ca (@custom_attr) {
-	        my $id = $ca->getAttribute('id');
-	        my $value = $ca->getElementsByTagName('value');
-		$ca{$id} = {value=>$value} ;
+	unless ($sth->execute) {
+	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
+	    return undef;
 	}
-	return %ca ;
-}
-
-# Create an XML Custom attribute to be stored into data base.
-# IN : HASH data storing custome attributes
-# OUT : string, XML formed data to be stored in database
-sub createXMLCustomAttribute {
-	my $custom_attr = shift ;
-	return '<?xml version="1.0" encoding="UTF-8" ?><custom_attributes></custom_attributes>' if (not defined $custom_attr) ;
-	do_log('debug2',"xxxxxxxxxxxxxxxxxxx #createXMLCustomAttribute custom_attribute=$custom_attr");
-	my $XMLstr = '<?xml version="1.0" encoding="UTF-8" ?><custom_attributes>';
-	foreach my $k (sort keys %{$custom_attr} ) {
-		$XMLstr .= "<custom_attribute id=\"$k\"><value>".&tools::escape_html($custom_attr->{$k}{value})."</value></custom_attribute>";
-		do_log('debug2',"xxxxxxxxxxxxxxxxxxx #createXMLCustomAttribute custom_attribute $k : $custom_attr->{$k}{value}");
-	}
-	$XMLstr .= "</custom_attributes>";
 	
-	return $XMLstr ;
+	my $user = $sth->fetchrow_hashref;
+	if (defined $user) {
+	    &do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) 
+		if (! $user->{'email'});
+	    $user->{'reception'} ||= 'mail';
+	    $user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
+	    unless ($self->is_available_reception_mode($user->{'reception'}));
+	    $user->{'update_date'} ||= $user->{'date'};
+
+	    ## In case it was not set in the database
+	    $user->{'subscribed'} = 1
+		if (defined($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
+	}
+	else {
+	    $sth->finish;
+	    $sth = pop @sth_stack;
+	    	    
+	    if ($self->{'admin'}{'user_data_source'} eq 'include2') {
+
+		## Release the Shared lock
+		unless ($lock->unlock()) {
+		    return undef;
+		}
+	    }
+	}
+
+	## If no offset (for LIMIT) was used, update total of subscribers
+	unless ($offset) {
+	    my $total = $self->_load_total_db('nocache');
+	    if ($total != $self->{'total'}) {
+		$self->{'total'} = $total;
+		$self->savestats();
+	    }
+	}
+	
+	return $user;
+    }else {
+	my ($i, $j);
+	my $ref = $self->{'ref'};
+	
+	 if (defined($ref) && $ref->seq($i, $j, R_FIRST) == 0)  {
+	    my %user = split(/\n/, $j);
+
+	    $self->{'_loading_total'} = 1;
+
+	    $user{'reception'} ||= 'mail';
+	    $user{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
+	    unless ($self->is_available_reception_mode($user{'reception'}));
+	    $user{'subscribed'} = 1 if (defined(%user));
+	    return \%user;
+	}
+	return undef;
+    }
 }
 
 ## Returns the first admin_user with $role for the list.
@@ -5178,11 +5392,13 @@ sub get_first_admin_user {
 
     &do_log('debug2', 'List::get_first_admin_user(%s,%s,%s,%d,%d)', $self->{'name'},$role, $sortby, $offset, $rows);
 
-    my $lock = new Lock ($self->{'dir'}.'/include_admin_user');
-    unless (defined $lock) {
-	&do_log('err','Could not create new lock');
+    unless($self->{'admin'}{'user_data_source'} eq 'include2'){
+	&do_log('err', 'List::get_first_admin_user(%s,%s,%s,%d,%d) isn\'t defined when user_data_source is different than include2',
+		 $self->{'name'},$role,$sortby, $offset, $rows); 
 	return undef;
     }
+   
+    my $lock = new Lock ($self->{'dir'}.'/include_admin_user');
     $lock->set_timeout(20); 
 
     ## Get a shared lock
@@ -5212,7 +5428,7 @@ sub get_first_admin_user {
 # and ok ?
     if ($Conf{'db_type'} eq 'Oracle') {
 	
-	$statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", visibility_admin \"visibility\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\" FROM admin_table WHERE (list_admin = %s AND robot_admin = %s %s AND role_admin = %s)", 
+	$statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\" FROM admin_table WHERE (list_admin = %s AND robot_admin = %s %s AND role_admin = %s)", 
 	$date_field, 
 	$update_field, 
 	$dbh->quote($name), 
@@ -5222,7 +5438,7 @@ sub get_first_admin_user {
 	
 	## SORT BY
 	if ($sortby eq 'domain') {
-	    $statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", visibility_admin \"visibility\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\", substr(user_admin,instr(user_admin,'\@')+1) \"dom\"  FROM admin_table WHERE (list_admin = %s AND robot_admin = %s AND role_admin = %s ) ORDER BY \"dom\"", 
+	    $statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\", substr(user_admin,instr(user_admin,'\@')+1) \"dom\"  FROM admin_table WHERE (list_admin = %s AND robot_admin = %s AND role_admin = %s ) ORDER BY \"dom\"", 
 	    $date_field, 
 	    $update_field, 
 	    $dbh->quote($name), 
@@ -5245,7 +5461,7 @@ sub get_first_admin_user {
 	## Sybase
     }elsif ($Conf{'db_type'} eq 'Sybase'){
 	
-	$statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", visibility_admin \"visibility\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\" FROM admin_table WHERE (list_admin = %s AND robot_admin = %s %s AND role_admin = %s)", 
+	$statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\" FROM admin_table WHERE (list_admin = %s AND robot_admin = %s %s AND role_admin = %s)", 
 	$date_field, 
 	$update_field, 
 	$dbh->quote($name), 
@@ -5254,7 +5470,7 @@ sub get_first_admin_user {
 	$dbh->quote($role);
 	## SORT BY
 	if ($sortby eq 'domain') {
-	    $statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", visibility_admin \"visibility\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\", substring(user_admin,charindex('\@',user_admin)+1,100) \"dom\" FROM admin_table WHERE (list_admin = %s  AND robot_admin = %s AND role_admin = %s) ORDER BY \"dom\"", 
+	    $statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\", substring(user_admin,charindex('\@',user_admin)+1,100) \"dom\" FROM admin_table WHERE (list_admin = %s  AND robot_admin = %s AND role_admin = %s) ORDER BY \"dom\"", 
 	    $date_field, 
 	    $update_field, 
 	    $dbh->quote($name), 
@@ -5278,7 +5494,7 @@ sub get_first_admin_user {
 	## mysql
     }elsif ($Conf{'db_type'} eq 'mysql') {
 	
-	$statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, visibility_admin AS visibility, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id  FROM admin_table WHERE (list_admin = %s AND robot_admin = %s %s AND role_admin = %s)", 
+	$statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id  FROM admin_table WHERE (list_admin = %s AND robot_admin = %s %s AND role_admin = %s)", 
 	$date_field, 
 	$update_field, 
 	$dbh->quote($name), 
@@ -5290,7 +5506,7 @@ sub get_first_admin_user {
 	if ($sortby eq 'domain') {
 	    ## Redefine query to set "dom"
 	    
-	    $statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, visibility_admin AS visibility, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id, REVERSE(SUBSTRING(user_admin FROM position('\@' IN user_admin) FOR 50)) AS dom FROM admin_table WHERE (list_admin = %s AND robot_admin = %s AND role_admin = %s ) ORDER BY dom", 
+	    $statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id, REVERSE(SUBSTRING(user_admin FROM position('\@' IN user_admin) FOR 50)) AS dom FROM admin_table WHERE (list_admin = %s AND robot_admin = %s AND role_admin = %s ) ORDER BY dom", 
 	    $date_field, 
 	    $update_field, 
 	    $dbh->quote($name), 
@@ -5319,7 +5535,7 @@ sub get_first_admin_user {
 	## SQLite
     }elsif ($Conf{'db_type'} eq 'SQLite') {
 	
-	$statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, visibility_admin AS visibility, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id  FROM admin_table WHERE (list_admin = %s AND robot_admin = %s %s AND role_admin = %s)", 
+	$statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id  FROM admin_table WHERE (list_admin = %s AND robot_admin = %s %s AND role_admin = %s)", 
 	$date_field, 
 	$update_field, 
 	$dbh->quote($name), 
@@ -5331,7 +5547,7 @@ sub get_first_admin_user {
 	if ($sortby eq 'domain') {
 	    ## Redefine query to set "dom"
 	    
-	    $statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, visibility_admin AS visibility, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id, substr(user_admin,func_index(user_admin,'\@')+1,50) AS dom FROM admin_table WHERE (list_admin = %s AND robot_admin = %s AND role_admin = %s ) ORDER BY dom", 
+	    $statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id, substr(user_admin,func_index(user_admin,'\@')+1,50) AS dom FROM admin_table WHERE (list_admin = %s AND robot_admin = %s AND role_admin = %s ) ORDER BY dom", 
 	    $date_field, 
 	    $update_field, 
 	    $dbh->quote($name), 
@@ -5360,7 +5576,7 @@ sub get_first_admin_user {
 	## Pg    
     }else {
 	
-	$statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, visibility_admin AS visibility, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id FROM admin_table WHERE (list_admin = %s AND robot_admin = %s %s AND role_admin = %s)", 
+	$statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id FROM admin_table WHERE (list_admin = %s AND robot_admin = %s %s AND role_admin = %s)", 
 	$date_field, 
 	$update_field, 
 	$dbh->quote($name), 
@@ -5372,7 +5588,7 @@ sub get_first_admin_user {
 	if ($sortby eq 'domain') {
 	    ## Redefine query to set "dom"
 	    
-	    $statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, visibility_admin AS visibility, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id, SUBSTRING(user_admin FROM position('\@' IN user_admin) FOR 50) AS dom  FROM admin_table WHERE (list_admin = %s AND robot_admin = %s AND role_admin = %s) ORDER BY dom", 
+	    $statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id, SUBSTRING(user_admin FROM position('\@' IN user_admin) FOR 50) AS dom  FROM admin_table WHERE (list_admin = %s AND robot_admin = %s AND role_admin = %s) ORDER BY dom", 
 	    $date_field, 
 	    $update_field, 
 	    $dbh->quote($name), 
@@ -5417,21 +5633,16 @@ sub get_first_admin_user {
 	    if (! $admin_user->{'email'});
 	$admin_user->{'reception'} ||= 'mail';
 	$admin_user->{'update_date'} ||= $admin_user->{'date'};
-
+	
 	## In case it was not set in the database
 	$admin_user->{'subscribed'} = 1
 	    if (defined($admin_user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
-
     }else {
 	$sth->finish;
         $sth = pop @sth_stack;
 
 	## Release the Shared lock
 	my $lock = new Lock($self->{'dir'}.'/include_admin_user');
-	unless (defined $lock) {
-	    &do_log('err','Could not create new lock');
-	    return undef;
-	}
 	
 	unless ($lock->unlock()) {
 	    return undef;
@@ -5446,58 +5657,68 @@ sub get_next_user {
     my $self = shift;
     do_log('debug2', 'List::get_next_user');
 
-    unless (defined $sth) {
-	&do_log('err', 'No handle defined, get_first_user(%s) was not run', $self->{'name'});
+    if (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	($self->{'admin'}{'user_data_source'} eq 'include2')){
+
+	unless (defined $sth) {
+	    &do_log('err', 'No handle defined, get_first_user(%s) was not run', $self->{'name'});
+	    return undef;
+	}
+	
+	my $user = $sth->fetchrow_hashref;
+
+	if (defined $user) {
+	    &do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) 
+		if (! $user->{'email'});
+	    $user->{'reception'} ||= 'mail';
+	    unless ($self->is_available_reception_mode($user->{'reception'})){
+		$user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
+	    }
+	    $user->{'update_date'} ||= $user->{'date'};
+
+	    ## In case it was not set in the database
+	    $user->{'subscribed'} = 1
+		if (defined($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
+	}
+	else {
+	    $sth->finish;
+	    $sth = pop @sth_stack;
+	    	    
+	    if ($self->{'admin'}{'user_data_source'} eq 'include2') {
+
+		## Release lock
+		my $lock = new Lock ($self->{'dir'}.'/include');
+		unless ($lock->unlock()) {
+		    return undef;
+		}
+	    }
+	}
+
+#	$self->{'total'}++;
+
+	return $user;
+    }else {
+	my ($i, $j);
+	my $ref = $self->{'ref'};
+	
+	if ($ref->seq($i, $j, R_NEXT) == 0) {
+	    my %user = split(/\n/, $j);
+
+	    $self->{'_loading_total'}++;
+
+	    $user{'reception'} ||= 'mail';
+	    $user{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
+	      unless ($self->is_available_reception_mode($user{'reception'}));
+	    $user{'subscribed'} = 1 if (defined(%user));
+	    return \%user;
+	}
+	## Update total
+	$self->{'total'} = $self->{'_loading_total'}; 
+	$self->{'_loading_total'} = undef;
+	$self->savestats();
+
 	return undef;
     }
-    
-    my $user = $sth->fetchrow_hashref;
-    
-    if (defined $user) {
-	&do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) 
-	    if (! $user->{'email'});
-	$user->{'reception'} ||= 'mail';
-	unless ($self->is_available_reception_mode($user->{'reception'})){
-	    $user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
-	}
-	$user->{'update_date'} ||= $user->{'date'};
-	
-	## In case it was not set in the database
-	$user->{'subscribed'} = 1
-	    if (defined($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
-
-	do_log('debug2', '(email = %s)', $user->{'email'});
-	if (defined $user->{custom_attribute}) {
-	    do_log('debug2', '1. custom_attribute  = (%s)', $user->{custom_attribute});
-	    my %custom_attr = &parseCustomAttribute($user->{'custom_attribute'});
-	    $user->{'custom_attribute'} = \%custom_attr ;
-	    do_log('debug2', '2. custom_attribute  = (%s)', %custom_attr);
-	    do_log('debug2', '3. custom_attribute  = (%s)', $user->{custom_attribute});
-	    my @k = sort keys %custom_attr ;
-	    do_log('debug2', "keys custom_attribute  = @k");
-	}
-    }
-    else {
-	$sth->finish;
-	$sth = pop @sth_stack;
-	
-	if ($self->{'admin'}{'user_data_source'} eq 'include2') {
-	    
-	    ## Release lock
-	    my $lock = new Lock ($self->{'dir'}.'/include');
-	    unless (defined $lock) {
-		&do_log('err','Could not create new lock');
-		return undef;
-	    }
-	    unless ($lock->unlock()) {
-		return undef;
-	    }
-	}
-    }
-    
-#	$self->{'total'}++;
-    
-    return $user;
 }
 
 ## Loop for all subsequent admin users with the role defined in get_first_admin_user.
@@ -5505,6 +5726,12 @@ sub get_next_admin_user {
     my $self = shift;
     do_log('debug2', 'List::get_next_admin_user'); 
 
+    unless($self->{'admin'}{'user_data_source'} eq 'include2'){
+	&do_log('err', 'List::get_next_admin_user(%s) isn\'t defined when user_data_source is different than include2',
+		$self->{'name'}); 
+	return undef;
+    }
+    
     unless (defined $sth) {
 	&do_log('err','Statement handle not defined in get_next_admin_user for list %s', $self->{'name'});
 	return undef;
@@ -5528,10 +5755,6 @@ sub get_next_admin_user {
 	
 	## Release the Shared lock
 	my $lock = new Lock($self->{'dir'}.'/include_admin_user');
-	unless (defined $lock) {
-	    &do_log('err','Could not create new lock');
-	    return undef;
-	}
 	
 	unless ($lock->unlock()) {
 	    return undef;
@@ -5549,15 +5772,19 @@ sub get_first_bouncing_user {
     do_log('debug2', 'List::get_first_bouncing_user');
 
     my $lock = new Lock ($self->{'dir'}.'/include');
-    unless (defined $lock) {
-	&do_log('err','Could not create new lock');
-	return undef;
-    }
     $lock->set_timeout(10*60); 
 
-    ## Get an Shared lock
-    unless ($lock->lock('read')) {
+    unless (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	    ($self->{'admin'}{'user_data_source'} eq 'include2')){
+	&do_log('info', "Function get_first_bouncing_user not available for list  $self->{'name'} because not in database mode");
 	return undef;
+    }
+    
+    if ($self->{'admin'}{'user_data_source'} eq 'include2') {
+	## Get an Shared lock
+	unless ($lock->lock('read')) {
+	    return undef;
+	}
     }
 
     my $name = $self->{'name'};
@@ -5619,9 +5846,11 @@ sub get_first_bouncing_user {
 	$sth->finish;
 	$sth = pop @sth_stack;
 	
-	## Release the Shared lock
-	unless ($lock->unlock()) {
-	    return undef;
+	if ($self->{'admin'}{'user_data_source'} eq 'include2') {
+	    ## Release the Shared lock
+	    unless ($lock->unlock()) {
+		return undef;
+	    }
 	}
     }
     return $user;
@@ -5631,6 +5860,12 @@ sub get_first_bouncing_user {
 sub get_next_bouncing_user {
     my $self = shift;
     do_log('debug2', 'List::get_next_bouncing_user');
+
+    unless (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	    ($self->{'admin'}{'user_data_source'} eq 'include2')){
+	&do_log('info', 'Function available for lists in database mode only');
+	return undef;
+    }
 
     unless (defined $sth) {
 	&do_log('err', 'No handle defined, get_first_bouncing_user(%s) was not run', $self->{'name'});
@@ -5646,23 +5881,17 @@ sub get_next_bouncing_user {
 	## In case it was not set in the database
 	$user->{'subscribed'} = 1
 	    if (defined ($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));    
-	if (defined $user->{custom_attribute}) {
-	    	my %custom_attr = &parseCustomAttribute($user->{'custom_attribute'});
-	    	$user->{'custom_attribute'} = \%custom_attr ;
-	    }
 
     }else {
 	$sth->finish;
 	$sth = pop @sth_stack;
 	
-	## Release the Shared lock
-	my $lock = new Lock ($self->{'dir'}.'/include');
-	unless (defined $lock) {
-	    &do_log('err','Could not create new lock');
-	    return undef;
-	}
-	unless ($lock->unlock()) {
-	    return undef;
+	if ($self->{'admin'}{'user_data_source'} eq 'include2') {
+	    ## Release the Shared lock
+	    my $lock = new Lock ($self->{'dir'}.'/include');
+	    unless ($lock->unlock()) {
+		return undef;
+	    }
 	}
     }
 
@@ -5691,6 +5920,12 @@ sub get_info {
 sub get_total_bouncing {
     my $self = shift;
     do_log('debug2', 'List::get_total_boucing');
+
+    unless (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	    ($self->{'admin'}{'user_data_source'} eq 'include2')){
+	&do_log('info', 'Function available for lists in database mode only');
+	return undef;
+    }
 
     my $name = $self->{'name'};
     my $statement;
@@ -5774,45 +6009,55 @@ sub is_user {
     
     return undef unless ($self && $who);
     
-    my $statement;
-    my $name = $self->{'name'};
-    
-    ## Use cache
-    if (defined $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who}) {
-	# &do_log('debug3', 'Use cache(%s,%s): %s', $name, $who, $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who});
-	return $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who};
-    }
-    
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &db_connect();
-    }	   
-    
-    ## Query the Database
-    $statement = sprintf "SELECT count(*) FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s AND user_subscriber = %s)",$dbh->quote($name), $dbh->quote($self->{'domain'}), $dbh->quote($who);
-    
-    push @sth_stack, $sth;
-    
-    unless ($sth = $dbh->prepare($statement)) {
-	do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
-	return undef;
-    }
-    
-    unless ($sth->execute) {
-	do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-	return undef;
-    }
-    
-    my $is_user = $sth->fetchrow;
-    
-    $sth->finish();
-    
-    $sth = pop @sth_stack;
-    
-    ## Set cache
-    $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who} = $is_user;
-    
-    return $is_user;
+    if (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	($self->{'admin'}{'user_data_source'} eq 'include2')){
+	
+	my $statement;
+	my $name = $self->{'name'};
+	
+	## Use cache
+	if (defined $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who}) {
+	    # &do_log('debug3', 'Use cache(%s,%s): %s', $name, $who, $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who});
+	    return $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who};
+	}
+	
+	## Check database connection
+	unless ($dbh and $dbh->ping) {
+	    return undef unless &db_connect();
+	}	   
+	
+	## Query the Database
+	$statement = sprintf "SELECT count(*) FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s AND user_subscriber = %s)",$dbh->quote($name), $dbh->quote($self->{'domain'}), $dbh->quote($who);
+	
+	push @sth_stack, $sth;
+	
+	unless ($sth = $dbh->prepare($statement)) {
+	    do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
+	    return undef;
+	}
+	
+	unless ($sth->execute) {
+	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
+	    return undef;
+	}
+	
+	my $is_user = $sth->fetchrow;
+	
+	$sth->finish();
+	
+	$sth = pop @sth_stack;
+
+	## Set cache
+	$list_cache{'is_user'}{$self->{'domain'}}{$name}{$who} = $is_user;
+
+       return $is_user;
+   }else {
+       my $users = $self->{'users'};
+       return 0 unless ($users);
+       
+       return 1 if ($users->{$who});
+       return 0;
+   }
 }
 
 ## Sets new values for the given user (except gecos)
@@ -5823,136 +6068,162 @@ sub update_user {
 
     my ($field, $value);
     
-    my ($user, $statement, $table);
-    my $name = $self->{'name'};
-    
-    ## mapping between var and field names
-    my %map_field = ( reception => 'reception_subscriber',
-		      topics => 'topics_subscriber',
-		      visibility => 'visibility_subscriber',
-		      date => 'date_subscriber',
-		      update_date => 'update_subscriber',
-		      gecos => 'comment_subscriber',
-		      password => 'password_user',
-		      bounce => 'bounce_subscriber',
-		      score => 'bounce_score_subscriber',
-		      email => 'user_subscriber',
-		      subscribed => 'subscribed_subscriber',
-		      included => 'included_subscriber',
-		      id => 'include_sources_subscriber',
-		      bounce_address => 'bounce_address_subscriber',
-		      custom_attribute => 'custom_attribute_subscriber'
-		      );
-    
-    ## mapping between var and tables
-    my %map_table = ( reception => 'subscriber_table',
-		      topics => 'subscriber_table', 
-		      visibility => 'subscriber_table',
-		      date => 'subscriber_table',
-		      update_date => 'subscriber_table',
-		      gecos => 'subscriber_table',
-		      password => 'user_table',
-		      bounce => 'subscriber_table',
-		      score => 'subscriber_table',
-		      email => 'subscriber_table',
-		      subscribed => 'subscriber_table',
-		      included => 'subscriber_table',
-		      id => 'subscriber_table',
-		      bounce_address => 'subscriber_table',
-		      custom_attribute => 'subscriber_table'
-		      );
-    
-    ## additional DB fields
-    if (defined $Conf{'db_additional_subscriber_fields'}) {
-	foreach my $f (split ',', $Conf{'db_additional_subscriber_fields'}) {
-	    $map_table{$f} = 'subscriber_table';
-	    $map_field{$f} = $f;
-	}
-    }
-    
-    if (defined $Conf{'db_additional_user_fields'}) {
-	foreach my $f (split ',', $Conf{'db_additional_user_fields'}) {
-	    $map_table{$f} = 'user_table';
-	    $map_field{$f} = $f;
-	}
-    }
-    
-    do_log('debug2', " custom_attribute id: $Conf{'custom_attribute'}");
-    ## custom attributes
-    if (defined $Conf{'custom_attribute'}){
-	foreach my $f (sort keys %{$Conf{'custom_attribute'}}){
-	    do_log('debug2', "List::update_user custom_attribute id: $Conf{'custom_attribute'}{id} name: $Conf{'custom_attribute'}{name} type: $Conf{'custom_attribute'}{type} ");
-	    	
-	}
-    }
-    
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &db_connect();
-    }	   
-    
-    ## Update each table
-    foreach $table ('user_table','subscriber_table') {
+    ## Subscribers extracted from external data source
+    if ($self->{'admin'}{'user_data_source'} eq 'include') {
+	&do_log('notice', 'Cannot update user in list %s, user_data_source include', $self->{'admin'}{'user_data_source'});
+	return undef;
+
+	## Subscribers stored in database
+    } elsif (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	     ($self->{'admin'}{'user_data_source'} eq 'include2')){
 	
-	my @set_list;
-	while (($field, $value) = each %{$values}) {
-	    
-	    unless ($map_field{$field} and $map_table{$field}) {
-		&do_log('err', 'Unknown database field %s', $field);
-		next;
+	my ($user, $statement, $table);
+	my $name = $self->{'name'};
+	
+	## mapping between var and field names
+	my %map_field = ( reception => 'reception_subscriber',
+			  topics => 'topics_subscriber',
+			  visibility => 'visibility_subscriber',
+			  date => 'date_subscriber',
+			  update_date => 'update_subscriber',
+			  gecos => 'comment_subscriber',
+			  password => 'password_user',
+			  bounce => 'bounce_subscriber',
+			  score => 'bounce_score_subscriber',
+			  email => 'user_subscriber',
+			  subscribed => 'subscribed_subscriber',
+			  included => 'included_subscriber',
+			  id => 'include_sources_subscriber',
+			  bounce_address => 'bounce_address_subscriber'
+			  );
+
+	## mapping between var and tables
+	my %map_table = ( reception => 'subscriber_table',
+			  topics => 'subscriber_table', 
+			  visibility => 'subscriber_table',
+			  date => 'subscriber_table',
+			  update_date => 'subscriber_table',
+			  gecos => 'subscriber_table',
+			  password => 'user_table',
+			  bounce => 'subscriber_table',
+			  score => 'subscriber_table',
+			  email => 'subscriber_table',
+			  subscribed => 'subscriber_table',
+			  included => 'subscriber_table',
+			  id => 'subscriber_table',
+			  bounce_address => 'subscriber_table'
+			  );
+
+	## additional DB fields
+	if (defined $Conf{'db_additional_subscriber_fields'}) {
+	    foreach my $f (split ',', $Conf{'db_additional_subscriber_fields'}) {
+		$map_table{$f} = 'subscriber_table';
+		$map_field{$f} = $f;
 	    }
+	}
+
+	if (defined $Conf{'db_additional_user_fields'}) {
+	    foreach my $f (split ',', $Conf{'db_additional_user_fields'}) {
+		$map_table{$f} = 'user_table';
+		$map_field{$f} = $f;
+	    }
+	}
+	
+	
+	## Check database connection
+	unless ($dbh and $dbh->ping) {
+	    return undef unless &db_connect();
+	}	   
+	
+	## Update each table
+	foreach $table ('user_table','subscriber_table') {
 	    
-	    if ($map_table{$field} eq $table) {
-		if ($field eq 'date') {
-		    $value = sprintf $date_format{'write'}{$Conf{'db_type'}}, $value, $value;
-		}elsif ($field eq 'update_date') {
-		    $value = sprintf $date_format{'write'}{$Conf{'db_type'}}, $value, $value;
-		}elsif ($value eq 'NULL'){
-		    if ($Conf{'db_type'} eq 'mysql') {
-			$value = '\N';
-		    }
-		}else {
-		    if ($numeric_field{$map_field{$field}}) {
-			$value ||= 0; ## Can't have a null value
-		    }else {
-			$value = $dbh->quote($value);
-		    }
+	    my @set_list;
+	    while (($field, $value) = each %{$values}) {
+
+		unless ($map_field{$field} and $map_table{$field}) {
+		    &do_log('err', 'Unknown database field %s', $field);
+		    next;
 		}
-		my $set = sprintf "%s=%s", $map_field{$field}, $value;
-		push @set_list, $set;
+
+		if ($map_table{$field} eq $table) {
+		    if ($field eq 'date') {
+			$value = sprintf $date_format{'write'}{$Conf{'db_type'}}, $value, $value;
+		    }elsif ($field eq 'update_date') {
+			$value = sprintf $date_format{'write'}{$Conf{'db_type'}}, $value, $value;
+		    }elsif ($value eq 'NULL'){
+			if ($Conf{'db_type'} eq 'mysql') {
+			    $value = '\N';
+			}
+		    }else {
+			if ($numeric_field{$map_field{$field}}) {
+			    $value ||= 0; ## Can't have a null value
+			}else {
+			    $value = $dbh->quote($value);
+			}
+		    }
+		    my $set = sprintf "%s=%s", $map_field{$field}, $value;
+		    push @set_list, $set;
+		}
 	    }
-	}
-	next unless @set_list;
-	
-	## Update field
-	if ($table eq 'user_table') {
-	    $statement = sprintf "UPDATE %s SET %s WHERE (email_user=%s)", $table, join(',', @set_list), $dbh->quote($who); 
+	    next unless @set_list;
 	    
-	}elsif ($table eq 'subscriber_table') {
-	    if ($who eq '*') {
-		$statement = sprintf "UPDATE %s SET %s WHERE (list_subscriber=%s AND robot_subscriber = %s)", 
-		$table, 
-		join(',', @set_list), 
-		$dbh->quote($name), 
-		$dbh->quote($self->{'domain'});
-	    }else {
-		$statement = sprintf "UPDATE %s SET %s WHERE (user_subscriber=%s AND list_subscriber=%s AND robot_subscriber = %s)", 
-		$table, 
-		join(',', @set_list), 
-		$dbh->quote($who), 
-		$dbh->quote($name),
-		$dbh->quote($self->{'domain'});
+	    ## Update field
+	    if ($table eq 'user_table') {
+		$statement = sprintf "UPDATE %s SET %s WHERE (email_user=%s)", $table, join(',', @set_list), $dbh->quote($who); 
+
+	    }elsif ($table eq 'subscriber_table') {
+		if ($who eq '*') {
+		    $statement = sprintf "UPDATE %s SET %s WHERE (list_subscriber=%s AND robot_subscriber = %s)", 
+		    $table, 
+		    join(',', @set_list), 
+		    $dbh->quote($name), 
+		    $dbh->quote($self->{'domain'});
+		}else {
+		    $statement = sprintf "UPDATE %s SET %s WHERE (user_subscriber=%s AND list_subscriber=%s AND robot_subscriber = %s)", 
+		    $table, 
+		    join(',', @set_list), 
+		    $dbh->quote($who), 
+		    $dbh->quote($name),
+		    $dbh->quote($self->{'domain'});
+		}
+	    }
+	    
+	    unless ($dbh->do($statement)) {
+		do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
+		return undef;
 	    }
 	}
+
+	## Reset session cache
+	$list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$who} = undef;
+
+	## Subscribers in text file
+    }else {
+	my $user = $self->{'users'}->{$who};
+	return undef unless $user;
 	
-	unless ($dbh->do($statement)) {
-	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-	    return undef;
+	my %u = split(/\n/, $user);
+	my ($i, $j);
+	$u{$i} = $j while (($i, $j) = each %{$values});
+	
+	while (($field, $value) = each %{$values}) {
+	    $u{$field} = $value;
+	}
+	
+	$user = join("\n", %u);      
+	if ($values->{'email'}) {
+
+	    ## Decrease total if new email was already subscriber
+	    if ($self->{'users'}->{$values->{'email'}}) {
+		$self->{'total'}--;
+	    }
+	    delete $self->{'users'}{$who};
+	    $self->{'users'}->{$values->{'email'}} = $user;
+	}else {
+	    $self->{'users'}->{$who} = $user;
 	}
     }
-    
-    ## Reset session cache
-    $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$who} = undef;
     
     return 1;
 }
@@ -5966,12 +6237,16 @@ sub update_admin_user {
 
     my ($field, $value);
     
+    unless($self->{'admin'}{'user_data_source'} eq 'include2'){
+	&do_log('err', 'Cannot update %s in list %s, user_data_source different than include2', $role, $self->{'name'}); 
+	return undef;
+    }
+   
     my ($admin_user, $statement, $table);
     my $name = $self->{'name'};
     
     ## mapping between var and field names
     my %map_field = ( reception => 'reception_admin',
-		      visibility => 'visibility_admin',
 		      date => 'date_admin',
 		      update_date => 'update_admin',
 		      gecos => 'comment_admin',
@@ -5987,7 +6262,6 @@ sub update_admin_user {
     
     ## mapping between var and tables
     my %map_table = ( reception => 'admin_table',
-		      visibility => 'admin_table',
 		      date => 'admin_table',
 		      update_date => 'admin_table',
 		      gecos => 'admin_table',
@@ -6089,7 +6363,6 @@ sub update_admin_user {
 sub update_user_db {
     my($who, $values) = @_;
     do_log('debug2', 'List::update_user_db(%s)', $who);
-
     $who = &tools::clean_email($who);
 
     unless ($List::use_db) {
@@ -6110,8 +6383,7 @@ sub update_user_db {
 		      cookie_delay => 'cookie_delay_user',
 		      lang => 'lang_user',
 		      attributes => 'attributes_user',
-		      email => 'email_user',
-		      data => 'data_user'
+		      email => 'email_user'
 		      );
     
     ## Check database connection
@@ -6136,6 +6408,7 @@ sub update_user_db {
 	}else { 
 	    $set = sprintf '%s=%s', $map_field{$field}, $dbh->quote($value);
 	}
+
 	push @set_list, $set;
     }
     
@@ -6147,7 +6420,6 @@ sub update_user_db {
     $statement = sprintf "UPDATE user_table SET %s WHERE (email_user=%s)"
 	    , join(',', @set_list), $dbh->quote($who); 
     
-    do_log('debug3', 'List::update_user_db()   statement : %s', $statement);
     unless ($dbh->do($statement)) {
 	do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
 	return undef;
@@ -6179,7 +6451,6 @@ sub add_user_db {
     ## mapping between var and field names
     my %map_field = ( email => 'email_user',
 		      gecos => 'gecos_user',
-		      custom_attribute => 'custom_attribute',
 		      password => 'password_user',
 		      cookie_delay => 'cookie_delay_user',
 		      lang => 'lang_user',
@@ -6231,80 +6502,92 @@ sub add_user {
     my $name = $self->{'name'};
     my $total = 0;
     
-    my $subscriptions = $self->get_subscription_requests();
+    if (($self->{'admin'}{'user_data_source'} eq 'database') ||
+	($self->{'admin'}{'user_data_source'} eq 'include2')){
+	
+	## Check database connection
+	unless ($dbh and $dbh->ping) {
+	    return undef unless &db_connect();
+	}	   
+	
+	foreach my $new_user (@new_users) {
+	    my $who = &tools::clean_email($new_user->{'email'});
 
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &db_connect();
-    }	   
-    
-    foreach my $new_user (@new_users) {
-	my $who = &tools::clean_email($new_user->{'email'});
-	
-	next unless $who;
-	
-	$new_user->{'date'} ||= time;
-	$new_user->{'update_date'} ||= $new_user->{'date'};
-	
-	my %custom_attr = %{ $subscriptions->{$who}{'custom_attribute'} } if (defined $subscriptions->{$who}{'custom_attribute'} );
-	$new_user->{'custom_attribute'} ||= &createXMLCustomAttribute(\%custom_attr) ;
-	do_log('debug2', 'List::add_user custom_attribute = %s', $new_user->{'custom_attribute'});
+	    next unless $who;
 
-	my $date_field = sprintf $date_format{'write'}{$Conf{'db_type'}}, $new_user->{'date'}, $new_user->{'date'};
-	my $update_field = sprintf $date_format{'write'}{$Conf{'db_type'}}, $new_user->{'update_date'}, $new_user->{'update_date'};
-	
-	## Crypt password if it was not crypted
-	unless ($new_user->{'password'} =~ /^crypt/) {
-	    $new_user->{'password'} = &tools::crypt_password($new_user->{'password'});
-	}
-	
-	$list_cache{'is_user'}{$self->{'domain'}}{$name}{$who} = undef;
-	
-	my $statement;
-	
-	## Either is_included or is_subscribed must be set
-	## default is is_subscriber for backward compatibility reason
-	unless ($new_user->{'included'}) {
-	    $new_user->{'subscribed'} = 1;
-	}
-	
-	unless ($new_user->{'included'}) {
-	    ## Is the email in user table ?
-	    if (! is_user_db($who)) {
-		## Insert in User Table
-		$statement = sprintf "INSERT INTO user_table (email_user, gecos_user, lang_user, password_user) VALUES (%s,%s,%s,%s)",$dbh->quote($who), $dbh->quote($new_user->{'gecos'}), $dbh->quote($new_user->{'lang'}), $dbh->quote($new_user->{'password'});
-		
-		unless ($dbh->do($statement)) {
-		    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-		    next;
-		}
+	    $new_user->{'date'} ||= time;
+	    $new_user->{'update_date'} ||= $new_user->{'date'};
+	    
+	    my $date_field = sprintf $date_format{'write'}{$Conf{'db_type'}}, $new_user->{'date'}, $new_user->{'date'};
+	    my $update_field = sprintf $date_format{'write'}{$Conf{'db_type'}}, $new_user->{'update_date'}, $new_user->{'update_date'};
+	    
+	    ## Crypt password if it was not crypted
+	    unless ($new_user->{'password'} =~ /^crypt/) {
+		$new_user->{'password'} = &tools::crypt_password($new_user->{'password'});
 	    }
-	}	    
-	
-	$new_user->{'subscribed'} ||= 0;
-	$new_user->{'included'} ||= 0;
-	
-	## Update Subscriber Table
-	$statement = sprintf "INSERT INTO subscriber_table (user_subscriber, comment_subscriber, list_subscriber, robot_subscriber, date_subscriber, update_subscriber, reception_subscriber, topics_subscriber, visibility_subscriber,subscribed_subscriber,included_subscriber,include_sources_subscriber,custom_attribute_subscriber) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
-	$dbh->quote($who), 
-	$dbh->quote($new_user->{'gecos'}), 
-	$dbh->quote($name), 
-	$dbh->quote($self->{'domain'}),
-	$date_field, 
-	$update_field, 
-	$dbh->quote($new_user->{'reception'}), 
-	$dbh->quote($new_user->{'topics'}), 
-	$dbh->quote($new_user->{'visibility'}), 
-	$new_user->{'subscribed'}, 
-	$new_user->{'included'}, 
-	$dbh->quote($new_user->{'id'}),
-	$dbh->quote($new_user->{'custom_attribute'});
-	
-	unless ($dbh->do($statement)) {
-	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-	    next;
+
+	    $list_cache{'is_user'}{$self->{'domain'}}{$name}{$who} = undef;
+	    
+	    my $statement;
+
+	    ## Either is_included or is_subscribed must be set
+	    ## default is is_subscriber for backward compatibility reason
+	    unless ($new_user->{'included'}) {
+		$new_user->{'subscribed'} = 1;
+	    }
+	    
+	    unless ($new_user->{'included'}) {
+		## Is the email in user table ?
+		if (! is_user_db($who)) {
+		    ## Insert in User Table
+		    $statement = sprintf "INSERT INTO user_table (email_user, gecos_user, lang_user, password_user) VALUES (%s,%s,%s,%s)",$dbh->quote($who), $dbh->quote($new_user->{'gecos'}), $dbh->quote($new_user->{'lang'}), $dbh->quote($new_user->{'password'});
+		    
+		    unless ($dbh->do($statement)) {
+			do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
+			next;
+		    }
+		}
+	    }	    
+
+	    $new_user->{'subscribed'} ||= 0;
+ 	    $new_user->{'included'} ||= 0;
+
+	    ## Update Subscriber Table
+	    $statement = sprintf "INSERT INTO subscriber_table (user_subscriber, comment_subscriber, list_subscriber, robot_subscriber, date_subscriber, update_subscriber, reception_subscriber, topics_subscriber, visibility_subscriber,subscribed_subscriber,included_subscriber,include_sources_subscriber) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+	    $dbh->quote($who), 
+	    $dbh->quote($new_user->{'gecos'}), 
+	    $dbh->quote($name), 
+	    $dbh->quote($self->{'domain'}),
+	    $date_field, 
+	    $update_field, 
+	    $dbh->quote($new_user->{'reception'}), 
+	    $dbh->quote($new_user->{'topics'}), 
+	    $dbh->quote($new_user->{'visibility'}), 
+	    $new_user->{'subscribed'}, 
+	    $new_user->{'included'}, 
+	    $dbh->quote($new_user->{'id'});
+	    
+	    unless ($dbh->do($statement)) {
+		do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
+		next;
+	    }
+	    $total++;
 	}
-	$total++;
+    }else {
+	my (%u, $i, $j);
+	
+	foreach my $new_user (@new_users) {
+	    my $who = &tools::clean_email($new_user->{'email'});
+	    
+	    next unless $who;
+	    
+	    $new_user->{'date'} ||= time;
+	    $new_user->{'update_date'} ||= $new_user->{'date'};
+
+	    $total++ unless ($self->{'users'}->{$who});
+	    $u{$i} = $j while (($i, $j) = each %{$new_user});
+	    $self->{'users'}->{$who} = join("\n", %u);
+	}
     }
 
     $self->{'total'} += $total;
@@ -6322,6 +6605,11 @@ sub add_admin_user {
     my $name = $self->{'name'};
     my $total = 0;
     
+    unless($self->{'admin'}{'user_data_source'} eq 'include2'){
+	&do_log('err', 'Cannot add %s in list %s, user_data_source different than include2', $role, $self->{'name'}); 
+	return undef;
+    }
+
     ## Check database connection
     unless ($dbh and $dbh->ping) {
 	return undef unless &db_connect();
@@ -6344,9 +6632,11 @@ sub add_admin_user {
 
 	##  either is_included or is_subscribed must be set
 	## default is is_subscriber for backward compatibility reason
-	unless ($new_admin_user->{'included'}) {
-	    $new_admin_user->{'subscribed'} = 1;
-	}
+#	if ($self->{'admin'}{'user_data_source'} eq 'include2') {
+	    unless ($new_admin_user->{'included'}) {
+		$new_admin_user->{'subscribed'} = 1;
+	    }
+#	}
 	    
 	unless ($new_admin_user->{'included'}) {
 	    ## Is the email in user table ?
@@ -6365,7 +6655,7 @@ sub add_admin_user {
  	$new_admin_user->{'included'} ||= 0;
 
 	## Update Admin Table
-	$statement = sprintf "INSERT INTO admin_table (user_admin, comment_admin, list_admin, robot_admin, date_admin, update_admin, reception_admin, visibility_admin, subscribed_admin,included_admin,include_sources_admin, role_admin, info_admin, profile_admin) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+	$statement = sprintf "INSERT INTO admin_table (user_admin, comment_admin, list_admin, robot_admin, date_admin, update_admin, reception_admin,subscribed_admin,included_admin,include_sources_admin, role_admin, info_admin, profile_admin) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
 	$dbh->quote($who), 
 	$dbh->quote($new_admin_user->{'gecos'}), 
 	$dbh->quote($name), 
@@ -6373,7 +6663,6 @@ sub add_admin_user {
 	$date_field, 
 	$update_field, 
 	$dbh->quote($new_admin_user->{'reception'}), 
-	$dbh->quote($new_admin_user->{'visibility'}), 
 	$new_admin_user->{'subscribed'}, 
 	$new_admin_user->{'included'}, 
 	$dbh->quote($new_admin_user->{'id'}), 
@@ -6423,17 +6712,20 @@ sub rename_list_db {
     }
 
     # admin_table is "alive" only in case include2
-    $statement_admin =  sprintf "UPDATE admin_table SET list_admin=%s, robot_admin=%s WHERE (list_admin=%s AND robot_admin=%s)", 
-    $dbh->quote($new_listname), 
-    $dbh->quote($new_robot),
-    $dbh->quote($self->{'name'}),
-    $dbh->quote($self->{'domain'}) ; 
-    
-    do_log('debug', 'List::rename_list_db statement : %s',  $statement_admin );
-    
-    unless ($dbh->do($statement_admin)) {
-	do_log('err','Unable to execute SQL statement "%s" : %s', $statement_admin, $dbh->errstr);
-	return undef;
+    if ($self->{'admin'}{'user_data_source'} eq 'include2'){
+
+	$statement_admin =  sprintf "UPDATE admin_table SET list_admin=%s, robot_admin=%s WHERE (list_admin=%s AND robot_admin=%s)", 
+	$dbh->quote($new_listname), 
+	$dbh->quote($new_robot),
+	$dbh->quote($self->{'name'}),
+	$dbh->quote($self->{'domain'}) ; 
+
+	do_log('debug', 'List::rename_list_db statement : %s',  $statement_admin );
+
+	unless ($dbh->do($statement_admin)) {
+	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement_admin, $dbh->errstr);
+	    return undef;
+	}
     }
     
     return 1;
@@ -6489,70 +6781,126 @@ sub am_i {
 	return $list_cache{'am_i'}{$function}{$self->{'domain'}}{$self->{'name'}}{$who};
     }
 
-    ##Check editors
-    if ($function =~ /^editor$/i){
-	
-	## Check cache first
-	if ($list_cache{'am_i'}{$function}{$self->{'domain'}}{$self->{'name'}}{$who} == 1) {
-	    return 1;
-	}
-	
-	my $editor = $self->get_admin_user('editor',$who);
-	
-	if (defined $editor) {
-	    return 1;
-	}else {
-	    ## Check if any editor is defined ; if not owners are editors
-	    my $editors = $self->get_editors();
-	    if ($#{$editors} < 0) {
-		
-		# if no editor defined, owners has editor privilege
-		$editor = $self->get_admin_user('owner',$who);
-		if (defined $editor){
-		    ## Update cache
-		    $list_cache{'am_i'}{'editor'}{$self->{'domain'}}{$self->{'name'}}{$who} = 1;
-		    
-		    return 1;
-		}
+    if ($self->{'admin'}{'user_data_source'} eq 'include2'){
+
+	##Check editors
+	if ($function =~ /^editor$/i){
+
+	    ## Check cache first
+ 	    if ($list_cache{'am_i'}{$function}{$self->{'domain'}}{$self->{'name'}}{$who} == 1) {
+ 		return 1;
+ 	    }
+
+	    my $editor = $self->get_admin_user('editor',$who);
+
+	    if (defined $editor) {
+		return 1;
 	    }else {
-		
+ 		## Check if any editor is defined ; if not owners are editors
+ 		my $editors = $self->get_editors();
+ 		if ($#{$editors} < 0) {
+
+		    # if no editor defined, owners has editor privilege
+		    $editor = $self->get_admin_user('owner',$who);
+		    if (defined $editor){
+			## Update cache
+			$list_cache{'am_i'}{'editor'}{$self->{'domain'}}{$self->{'name'}}{$who} = 1;
+
+			return 1;
+		    }
+		}else {
+		    
+		    ## Update cache
+		    $list_cache{'am_i'}{'editor'}{$self->{'domain'}}{$self->{'name'}}{$who} = 0;
+
+		    return undef;
+		}
+	    }
+	}
+	## Check owners
+	if ($function =~ /^owner$/i){
+	    my $owner = $self->get_admin_user('owner',$who);
+	    if (defined $owner) {		    
 		## Update cache
-		$list_cache{'am_i'}{'editor'}{$self->{'domain'}}{$self->{'name'}}{$who} = 0;
-		
+		$list_cache{'am_i'}{'owner'}{$self->{'domain'}}{$self->{'name'}}{$who} = 1;
+
+		return 1;
+	    }else {
+		    
+		## Update cache
+		$list_cache{'am_i'}{'owner'}{$self->{'domain'}}{$self->{'name'}}{$who} = 0;
+
 		return undef;
 	    }
 	}
-    }
-    ## Check owners
-    if ($function =~ /^owner$/i){
-	my $owner = $self->get_admin_user('owner',$who);
-	if (defined $owner) {		    
-	    ## Update cache
-	    $list_cache{'am_i'}{'owner'}{$self->{'domain'}}{$self->{'name'}}{$who} = 1;
-	    
-	    return 1;
-	}else {
-	    
-	    ## Update cache
-	    $list_cache{'am_i'}{'owner'}{$self->{'domain'}}{$self->{'name'}}{$who} = 0;
-	    
+	elsif ($function =~ /^privileged_owner$/i) {
+	    my $privileged = $self->get_admin_user('owner',$who);
+	    if ($privileged->{'profile'} eq 'privileged') {
+		    
+		## Update cache
+		$list_cache{'am_i'}{'privileged_owner'}{$self->{'domain'}}{$self->{'name'}}{$who} = 1;
+
+		return 1;
+	    }else {
+		    
+		## Update cache
+		$list_cache{'am_i'}{'privileged_owner'}{$self->{'domain'}}{$self->{'name'}}{$who} = 0;
+
+		return undef;
+	    }
+	}
+	else {
 	    return undef;
 	}
-    }elsif ($function =~ /^privileged_owner$/i) {
-	my $privileged = $self->get_admin_user('owner',$who);
-	if ($privileged->{'profile'} eq 'privileged') {
-	    
-	    ## Update cache
-	    $list_cache{'am_i'}{'privileged_owner'}{$self->{'domain'}}{$self->{'name'}}{$who} = 1;
-	    
-	    return 1;
-	}else {
-	    
-	    ## Update cache
-	    $list_cache{'am_i'}{'privileged_owner'}{$self->{'domain'}}{$self->{'name'}}{$who} = 0;
-	    
+    }else {
+	my $u;
+
+	if ($function =~ /^editor$/i){
+	    if ($self->{'admin'}{$function} && ($#{$self->{'admin'}{$function}} >= 0)) {
+		foreach $u (@{$self->{'admin'}{$function}}) {
+		    return 1 if (lc($u->{'email'}) eq lc($who));
+		}
+		## if no editor defined, owners has editor privilege
+	    }else{
+		foreach $u (@{$self->{'admin'}{'owner'}}) {
+		    if (ref($u->{'email'})) {
+			foreach my $o (@{$u->{'email'}}) {
+			    return 1 if (lc($o) eq lc($who));
+			}
+		    }else {
+			return 1 if (lc($u->{'email'}) eq lc($who));
+		    }
+		} 
+	    }
 	    return undef;
 	}
+	## Check owners
+	if ($function =~ /^owner$/i){
+	    return undef unless ($self->{'admin'} && $self->{'admin'}{'owner'});
+	    
+	    foreach $u (@{$self->{'admin'}{'owner'}}) {
+		if (ref($u->{'email'})) {
+		    foreach my $o (@{$u->{'email'}}) {
+			return 1 if (lc($o) eq lc($who));
+		    }
+		}else {
+		    return 1 if (lc($u->{'email'}) eq lc($who));
+		}
+	    }
+	}
+	elsif ($function =~ /^privileged_owner$/i) {
+	    foreach $u (@{$self->{'admin'}{'owner'}}) {
+		next unless ($u->{'profile'} =~ 'privileged');
+		if (ref($u->{'email'})) {
+		    foreach my $o (@{$u->{'email'}}) {
+			return 1 if (lc($o) eq lc($who));
+		    }
+		}else {
+		    return 1 if (lc($u->{'email'}) eq lc($who));
+		}
+	    }
+	}
+	return undef;
     }
 }
 
@@ -6566,9 +6914,230 @@ sub check_list_authz {
     my $debug = shift;
     &do_log('debug', 'List::check_list_authz %s,%s',$operation,$auth_method);
 
-    $context->{'list_object'} = $self;
+    $context->{'listname'} = $self->{'name'};
 
-    return &Scenario::request_action($operation, $auth_method, $self->{'domain'}, $context, $debug);
+    return &request_action($operation, $auth_method, $self->{'domain'}, $context, $debug);
+}
+
+####################################################
+# request_action
+####################################################
+# Return the action to perform for 1 sender 
+# using 1 auth method to perform 1 operation
+#
+# IN : -$operation (+) : scalar
+#      -$auth_method (+) : 'smtp'|'md5'|'pgp'|'smime'
+#      -$robot (+) : scalar
+#      -$context (+) : ref(HASH) containing information
+#        to evaluate scenario (scenario var)
+#      -$debug : adds keys in the returned HASH 
+#
+# OUT : undef | ref(HASH) containing keys :
+#        -action : 'do_it'|'reject'|'request_auth'
+#           |'owner'|'editor'|'editorkey'|'listmaster'
+#        -reason : defined if action == 'reject' 
+#           and in scenario : reject(reason='...')
+#           key for template authorization_reject.tt2
+#        -tt2 : defined if action == 'reject'  
+#           and in scenario : reject(tt2='...') or reject('...tt2')
+#           match a key in authorization_reject.tt2
+#        -condition : the checked condition 
+#           (defined if $debug)
+#        -auth_method : the checked auth_method 
+#           (defined if $debug)
+###################################################### 
+sub request_action {
+    my $operation = shift;
+    my $auth_method = shift;
+    my $robot=shift;
+    my $context = shift;
+    my $debug = shift;
+    do_log('debug', 'List::request_action %s,%s,%s',$operation,$auth_method,$robot);
+
+    ## Defining default values for parameters.
+    $context->{'sender'} ||= 'nobody' ;
+    $context->{'email'} ||= $context->{'sender'};
+    $context->{'remote_host'} ||= 'unknown_host' ;
+    $context->{'robot_domain'} = $robot ;
+    $context->{'msg'} = $context->{'message'}->{'msg'} if (defined $context->{'message'});
+    $context->{'msg_encrypted'} = 'smime' if (defined $context->{'message'} && 
+					      $context->{'message'}->{'smime_crypted'} eq 'smime_crypted');
+
+    # do_log('info',"xxxxxxxxxxxxxxxxxx  auth_method='$auth_method'");
+    ## Check that authorization method is one of those known by Sympa
+    unless ( $auth_method =~ /^(smtp|md5|pgp|smime)/) {
+	do_log('info',"fatal error : unknown auth method $auth_method in List::get_action");
+	return undef;
+    }
+    my (@rules, $name) ;
+    my $list;
+
+    ## if we know which list we're working on
+    if ($context->{'listname'}) {
+        unless ( $list = new List ($context->{'listname'}, $robot) ){
+	    do_log('info',"request_action :  unable to create object $context->{'listname'}");
+	    return undef ;
+	}
+    
+	my @operations = split /\./, $operation;
+	# do_log('info',"xxxxxxxxxxxxxxxxxx  operation='$operation'");
+	my $data_ref;
+	if ($#operations == 0) {
+	    $data_ref = $list->{'admin'}{$operation};
+	}else{
+	    $data_ref = $list->{'admin'}{$operations[0]}{$operations[1]};
+	}
+	
+	unless ((defined $data_ref) && (defined $data_ref->{'rules'})) {
+	    do_log('info',"request_action: no entry $operation defined for list");
+	    return undef ;
+	}
+
+	## pending/closed lists => send/visibility are closed
+	unless ($list->{'admin'}{'status'} eq 'open') {
+	    if ($operation =~ /^send|visibility$/) {
+		my $return = {'action' => 'reject',
+			      'reason' => 'list-no-open',
+			      'auth_method' => '',
+			      'condition' => ''
+			      };
+		return $return;
+	    }
+	}
+
+	### the following lines are used by the document sharing action 
+	if (defined $context->{'scenario'}) { 
+	    # information about the  scenario to load
+	    my $s_name = $context->{'scenario'}; 
+	    
+	    # loading of the structure
+	    my  $scenario = &_load_scenario_file ($operations[$#operations], $robot, $s_name,$list->{'dir'});
+	    return undef unless (defined $scenario);
+	    @rules = @{$scenario->{'rules'}};
+	    $name = $scenario->{'name'}; 
+	    $data_ref = $scenario;
+	}
+
+	@rules = @{$data_ref->{'rules'}};
+	$name = $data_ref->{'name'};
+
+    }elsif ($context->{'topicname'}) {
+	# do_log('info',"xxxxxxxxxxxxxxxxxx topicname defined");
+	my $scenario = $list_of_topics{$robot}{$context->{'topicname'}}{'visibility'};
+	@rules = @{$scenario->{'rules'}};
+	$name = $scenario->{'name'};
+
+    }else{	
+	my $scenario;
+	my $p;
+	
+	$p = &Conf::get_robot_conf($robot, $operation);
+	# do_log('info',"xxxxxxxxxxxxxxxxxx  _load_scenario_file ($operation, $robot, $p)");
+	return undef 
+	    unless ($scenario = &_load_scenario_file ($operation, $robot, $p));
+        @rules = @{$scenario->{'rules'}};
+	$name = $scenario->{'name'};
+    }
+
+    unless ($name) {
+	# do_log('err',"internal error : configuration for operation $operation is not yet performed by scenario");
+	return undef;
+    }
+
+    my $return = {};
+    foreach my $rule (@rules) {
+	# do_log('info',"xxxxxxxxxxxxxxx   new rule");
+	next if ($rule eq 'scenario');
+	# &do_log('info', 'List::request_action : verify rule %s',$rule->{'condition'});
+
+	if ($auth_method eq $rule->{'auth_method'}) {
+	    # do_log('info',"xxxxxxxxxxxxxxx   authmethod match : $auth_method ");
+	    # do_log('info',"xxxxxxxxxxxxxxx   check condition : $rule->{'condition'}");
+	    my $result =  &verify ($context,$rule->{'condition'});
+	    if (! defined ($result)) {
+		do_log('info',"error in $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'}" );
+		
+#		if (defined $context->{'listname'}) {
+		&do_log('info', 'Error in %s scenario, in list %s', $context->{'scenario'}, $context->{'listname'});
+#		}
+		
+		if ($debug) {
+		    $return = {'action' => 'reject',
+			       'reason' => 'error-performing-condition',
+			       'auth_method' => $rule->{'auth_method'},
+			       'condition' => $rule->{'condition'}
+			   };
+		    return $return;
+		}
+		unless (&List::send_notify_to_listmaster('error-performing-condition', $robot, [$context->{'listname'}."  ".$rule->{'condition'}] )) {
+		    &do_log('notice',"Unable to send notify 'error-performing-condition' to listmaster");
+		}
+		return undef;
+	    }
+	    if ($result == -1) {
+		# do_log('info',"xxxxxxxxxxxxxxxxxxxxxxxxxx rule $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'} rejected");
+		# do_log('debug3',"rule $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'} rejected");
+		next;
+	    }
+	    
+	    my $action = $rule->{'action'};
+	    # do_log('info',"xxxxxxxxxxxxxx action: $action");
+
+            ## reject : get parameters
+	    if ($action =~/^reject(\((.+)\))?(\s?,\s?(quiet))?/) {
+
+		if ($4 eq 'quiet') { 
+		    $action = 'reject,quiet';
+		} else{
+		    $action = 'reject';	
+		}
+		my @param = split /,/,$2;
+		
+       		foreach my $p (@param){
+		    if  ($p =~ /^reason=\'?(\w+)\'?/){
+			$return->{'reason'} = $1;
+			next;
+			
+		    }elsif ($p =~ /^tt2=\'?(\w+)\'?/){
+			$return->{'tt2'} = $1;
+			next;
+			
+		    }
+		    if ($p =~ /^\'?[^=]+\'?/){
+			$return->{'tt2'} = $p;
+			# keeping existing only, not merging with reject parameters in scenarios
+			last;
+		    }
+		}
+	    }
+
+	    $return->{'action'} = $action;
+	    
+	    if ($result == 1) {
+		&do_log('debug3',"rule $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'} accepted");
+		if ($debug) {
+		    $return->{'auth_method'} = $rule->{'auth_method'};
+		    $return->{'condition'} = $rule->{'condition'};
+		    return $return;
+		}
+
+		## Check syntax of returned action
+		unless ($action =~ /^(do_it|reject|request_auth|owner|editor|editorkey|listmaster)/) {
+		    &do_log('err', "Matched unknown action '%s' in scenario", $rule->{'action'});
+		    return undef;
+		}
+		return $return;
+	    }
+	}
+    }
+    &do_log('debug3',"no rule match, reject");
+
+    $return = {'action' => 'reject',
+	       'reason' => 'no-rule-match',
+			   'auth_method' => 'default',
+			   'condition' => 'default'
+			   };
+    return $return;
 }
 
 ## Initialize internal list cache
@@ -6577,6 +7146,622 @@ sub init_list_cache {
     
     undef %list_cache;
 }
+
+## check if email respect some condition
+sub verify {
+    my ($context, $condition) = @_;
+    # do_log('info', 'xxx  List::verify(%s)', $condition);
+
+    my $robot = $context->{'robot_domain'};
+
+#    while (my($k,$v) = each %{$context}) {
+#	do_log('debug3',"verify: context->{$k} = $v");
+#    }
+
+    unless (defined($context->{'sender'} )) {
+	do_log('info',"internal error, no sender find in List::verify, report authors");
+	return undef;
+    }
+
+    $context->{'execution_date'} = time unless ( defined ($context->{'execution_date'}) );
+
+    if (defined ($context->{'msg'})) {
+	my $header = $context->{'msg'}->head;
+	unless (($header->get('to') && ($header->get('to') =~ /$context->{'listname'}/i)) || 
+		($header->get('cc') && ($header->get('cc') =~ /$context->{'listname'}/i))) {
+	    $context->{'is_bcc'} = 1;
+	}else{
+	    $context->{'is_bcc'} = 0;
+	}
+	
+    }
+    my $list;
+    if (defined ($context->{'listname'})) {
+	$list = new List ($context->{'listname'}, $robot);
+	unless ($list) {
+	    do_log('err','Unable to create list object %s', $context->{'listname'});
+	    return undef;
+	}
+
+	$context->{'host'} = $list->{'admin'}{'host'};
+    }
+
+    unless ($condition =~ /(\!)?\s*(true|is_listmaster|is_editor|is_owner|is_subscriber|match|equal|message|older|newer|all|search|customcondition\:\:\w+)\s*\(\s*(.*)\s*\)\s*/i) {
+	&do_log('err', "error rule syntaxe: unknown condition $condition");
+	return undef;
+    }
+    my $negation = 1 ;
+    if ($1 eq '!') {
+	$negation = -1 ;
+    }
+
+    my $condition_key = lc($2);
+    my $arguments = $3;
+    my @args;
+
+    while ($arguments =~ s/^\s*(
+				\[\w+(\-\>[\w\-]+)?\]
+				|
+				([\w\-\.]+)
+				|
+				'[^,)]*'
+				|
+				"[^,)]*"
+				|
+				\/([^\/\\]+|\\\/|\\)+[^\\]+\/
+				|(\w+)\.ldap
+				|(\w+)\.sql
+				)\s*,?//x) {
+	my $value=$1;
+
+	## Config param
+	if ($value =~ /\[conf\-\>([\w\-]+)\]/i) {
+	    if (my $conf_value = &Conf::get_robot_conf($robot, $1)) {
+		
+		$value =~ s/\[conf\-\>([\w\-]+)\]/$conf_value/;
+	    }else{
+		do_log('debug',"undefine variable context $value in rule $condition");
+		# a condition related to a undefined context variable is always false
+		return -1 * $negation;
+ #		return undef;
+	    }
+
+	    ## List param
+	}elsif ($value =~ /\[list\-\>([\w\-]+)\]/i) {
+	    if ($1 =~ /^name|total$/) {
+		$value =~ s/\[list\-\>([\w\-]+)\]/$list->{$1}/;
+	    }elsif ($list->{'admin'}{$1} and (!ref($list->{'admin'}{$1})) ) {
+		$value =~ s/\[list\-\>([\w\-]+)\]/$list->{'admin'}{$1}/;
+	    }else{
+		do_log('err','Unknown list parameter %s in rule %s', $value, $condition);
+		return undef;
+	    }
+
+	}elsif ($value =~ /\[env\-\>([\w\-]+)\]/i) {
+	    
+	    $value =~ s/\[env\-\>([\w\-]+)\]/$ENV{$1}/;
+
+	    ## Sender's user/subscriber attributes (if subscriber)
+	}elsif ($value =~ /\[user\-\>([\w\-]+)\]/i) {
+
+	    $context->{'user'} ||= &get_user_db($context->{'sender'});	    
+	    $value =~ s/\[user\-\>([\w\-]+)\]/$context->{'user'}{$1}/;
+
+	}elsif ($value =~ /\[user_attributes\-\>([\w\-]+)\]/i) {
+	    
+	    $context->{'user'} ||= &get_user_db($context->{'sender'});
+	    $value =~ s/\[user_attributes\-\>([\w\-]+)\]/$context->{'user'}{'attributes'}{$1}/;
+
+	}elsif (($value =~ /\[subscriber\-\>([\w\-]+)\]/i) && defined ($context->{'sender'} ne 'nobody')) {
+	    
+	    $context->{'subscriber'} ||= $list->get_subscriber($context->{'sender'});
+	    $value =~ s/\[subscriber\-\>([\w\-]+)\]/$context->{'subscriber'}{$1}/;
+
+	    ## SMTP Header field
+	}elsif ($value =~ /\[(msg_header|header)\-\>([\w\-]+)\]/i) {
+	    my $field_name = $2;
+	    if (defined ($context->{'msg'})) {
+		my $header = $context->{'msg'}->head;
+		my @fields = $header->get($field_name);
+
+		$value = \@fields;
+	    }else {
+		return -1 * $negation;
+	    }
+	    
+	}elsif ($value =~ /\[msg_body\]/i) {
+	    return -1 * $negation unless (defined ($context->{'msg'}));
+	    return -1 * $negation unless (defined ($context->{'msg'}->effective_type() =~ /^text/));
+	    return -1 * $negation unless (defined $context->{'msg'}->bodyhandle);
+
+	    $value = $context->{'msg'}->bodyhandle->as_string();
+
+	}elsif ($value =~ /\[msg_part\-\>body\]/i) {
+	    return -1 * $negation unless (defined ($context->{'msg'}));
+	    
+	    my @bodies;
+	    my @parts = $context->{'msg'}->parts();
+	    
+	    ## Should be recurcive...
+	    foreach my $i (0..$#parts) {
+		next unless ($parts[$i]->effective_type() =~ /^text/);
+		next unless (defined $parts[$i]->bodyhandle);
+
+		push @bodies, $parts[$i]->bodyhandle->as_string();
+	    }
+	    $value = \@bodies;
+
+	}elsif ($value =~ /\[msg_part\-\>type\]/i) {
+	    return -1 * $negation unless (defined ($context->{'msg'}));
+	    
+	    my @types;
+	    my @parts = $context->{'msg'}->parts();
+	    foreach my $i (0..$#parts) {
+		push @types, $parts[$i]->effective_type();
+	    }
+	    $value = \@types;
+
+	}elsif ($value =~ /\[current_date\]/i) {
+	    my $time = time;
+	    $value =~ s/\[current_date\]/$time/;
+	    
+	    ## Quoted string
+	}elsif ($value =~ /\[(\w+)\]/i) {
+
+	    if (defined ($context->{$1})) {
+		$value =~ s/\[(\w+)\]/$context->{$1}/i;
+	    }else{
+		do_log('debug',"undefine variable context $value in rule $condition");
+		# a condition related to a undefined context variable is always false
+		return -1 * $negation;
+ #		return undef;
+	    }
+	    
+	}elsif ($value =~ /^'(.*)'$/ || $value =~ /^"(.*)"$/) {
+	    $value = $1;
+	}
+	push (@args,$value);
+	
+    }
+    # condition that require 0 argument
+    if ($condition_key =~ /^true|all$/i) {
+	unless ($#args == -1){ 
+	    do_log('err',"error rule syntaxe : incorrect number of argument or incorrect argument syntaxe $condition") ; 
+	    return undef ;
+	}
+	# condition that require 1 argument
+    }elsif ($condition_key eq 'is_listmaster') {
+	unless ($#args == 0) { 
+	     do_log('err',"error rule syntaxe : incorrect argument number for condition $condition_key") ; 
+	    return undef ;
+	}
+	# condition that require 1 or 2 args (search : historical reasons)
+    }elsif ($condition_key =~ /^search$/o) {
+	unless ($#args == 1 || $#args == 0) {
+	    do_log('err',"error rule syntaxe : Incorrect argument number for condition $condition_key") ; 
+	    return undef ;
+	}
+	# condition that require 2 args
+    }elsif ($condition_key =~ /^is_owner|is_editor|is_subscriber|match|equal|message|newer|older$/o) {
+	unless ($#args == 1) {
+	    do_log('err',"error rule syntaxe : incorrect argument number for condition $condition_key") ; 
+	    return undef ;
+	}
+    }elsif ($condition_key !~ /^customcondition::/o) {
+	do_log('err', "error rule syntaxe : unknown condition $condition_key");
+	return undef;
+    }
+    ## Now eval the condition
+    ##### condition : true
+    if ($condition_key =~ /\s*(true|any|all)\s*/i) {
+	return $negation;
+    }
+    ##### condition is_listmaster
+    if ($condition_key eq 'is_listmaster') {
+	
+	if ($args[0] eq 'nobody') {
+	    return -1 * $negation ;
+	}
+
+	if ( &is_listmaster($args[0],$robot)) {
+	    return $negation;
+	}else{
+	    return -1 * $negation;
+	}
+    }
+
+    ##### condition older
+    if ($condition_key =~ /older|newer/) {
+	 
+	$negation *= -1 if ($condition_key eq 'newer');
+ 	my $arg0 = &tools::epoch_conv($args[0]);
+ 	my $arg1 = &tools::epoch_conv($args[1]);
+ 
+	&do_log('debug4', '%s(%d, %d)', $condition_key, $arg0, $arg1);
+ 	if ($arg0 <= $arg1 ) {
+ 	    return $negation;
+ 	}else{
+ 	    return -1 * $negation;
+ 	}
+     }
+
+
+    ##### condition is_owner, is_subscriber and is_editor
+    if ($condition_key =~ /is_owner|is_subscriber|is_editor/i) {
+
+	my ($list2);
+
+	if ($args[1] eq 'nobody') {
+	    return -1 * $negation ;
+	}
+
+	## The list is local or in another local robot
+	if ($args[0] =~ /\@/) {
+	    $list2 = new List ($args[0]);
+	}else {
+	    $list2 = new List ($args[0], $robot);
+	}
+		
+	if (! $list2) {
+	    do_log('err',"unable to create list object \"$args[0]\"");
+	    return -1 * $negation ;
+	}
+
+	if ($condition_key eq 'is_subscriber') {
+
+	    if ($list2->is_user($args[1])) {
+		return $negation ;
+	    }else{
+		return -1 * $negation ;
+	    }
+
+	}elsif ($condition_key eq 'is_owner') {
+	    if ($list2->am_i('owner',$args[1])) {
+		return $negation ;
+	    }else{
+		return -1 * $negation ;
+	    }
+
+	}elsif ($condition_key eq 'is_editor') {
+	    if ($list2->am_i('editor',$args[1])) {
+		return $negation ;
+	    }else{
+		return -1 * $negation ;
+	    }
+	}
+    }
+    ##### match
+    if ($condition_key eq 'match') {
+	unless ($args[1] =~ /^\/(.*)\/$/) {
+	    &do_log('err', 'Match parameter %s is not a regexp', $args[1]);
+	    return undef;
+	}
+	my $regexp = $1;
+	
+	if ($regexp =~ /\[host\]/) {
+	    my $reghost = &Conf::get_robot_conf($robot, 'host');
+            $reghost =~ s/\./\\./g ;
+            $regexp =~ s/\[host\]/$reghost/g ;
+	}
+
+	if (ref($args[0])) {
+	    foreach my $arg (@{$args[0]}) {
+		return $negation 
+		    if ($arg =~ /$regexp/i);
+	    }
+	}else {
+	    if ($args[0] =~ /$regexp/i) {
+		return $negation ;
+	    }
+	}
+	
+	return -1 * $negation ;
+
+    }
+    
+    ## search rule
+    if ($condition_key eq 'search') {
+	my $val_search;
+ 	# we could search in the family if we got ref on Family object
+ 	if (defined $list){
+ 	    $val_search = &search($args[0],$context,$robot,$list);
+ 	}else {
+ 	    $val_search = &search($args[0],$context,$robot);
+ 	}
+	return undef unless defined $val_search;
+	if($val_search == 1) { 
+	    return $negation;
+	}else {
+	    return -1 * $negation;
+    	}
+    }
+
+    ## equal
+    if ($condition_key eq 'equal') {
+	if (ref($args[0])) {
+	    foreach my $arg (@{$args[0]}) {
+		&do_log('debug3', 'ARG: %s', $arg);
+		return $negation 
+		    if ($arg =~ /^$args[1]$/i);
+	    }
+	}else {
+	    if ($args[0] =~ /^$args[1]$/i) {
+		return $negation ;
+	    }
+	}
+	return -1 * $negation ;
+    }
+
+    ## custom perl module
+    if ($condition_key =~ /^customcondition::(\w+)/o ) {
+    	my $condition = $1;
+    	
+    	my $res = &verify_custom($condition, \@args, $robot, $list);
+	return undef unless defined $res;
+	return $res * $negation ;
+    }
+    return undef;
+}
+
+# eval a custom perl module to verify a scenario condition
+sub verify_custom {
+	my ($condition, $args_ref, $robot, $list) = @_;
+        my $timeout = 3600;
+	
+	my $filter = join ('*', @{$args_ref});
+	&do_log('debug2', 'List::verify_custom(%s,%s,%s,%s)', $condition, $filter, $robot, $list);
+        if (defined ($persistent_cache{'named_filter'}{$condition}{$filter}) &&
+            (time <= $persistent_cache{'named_filter'}{$condition}{$filter}{'update'} + $timeout)){ ## Cache has 1hour lifetime
+            &do_log('notice', 'Using previous custom condition cache %s', $filter);
+            return $persistent_cache{'named_filter'}{$condition}{$filter}{'value'};
+        }
+
+    	# use this if your want per list customization (be sure you know what you are doing)
+	#my $file = &tools::get_filename('etc',{},"custom_conditions/${condition}.pm", $robot, $list);
+	my $file = &tools::get_filename('etc',{},"custom_conditions/${condition}.pm", $robot);
+	unless ($file) {
+	    &do_log('err', 'No module found for %s custom condition', $condition);
+	    return undef;
+	}
+	&do_log('notice', 'Use module %s for custom condition', $file);
+	eval { require "$file"; };
+	if ($@) {
+	    &do_log('err', 'Error requiring %s : %s (%s)', $condition, "$@", ref($@));
+	    return undef;
+	}
+	my $res;
+	eval "\$res = CustomCondition::${condition}::verify(\@{\$args_ref});";
+	if ($@) {
+	    &do_log('err', 'Error evaluating %s : %s (%s)', $condition, "$@", ref($@));
+	    return undef;
+	}
+
+	return undef unless defined $res;
+	
+        $persistent_cache{'named_filter'}{$condition}{$filter}{'value'} = ($res == 1 ? 1 : 0);
+        $persistent_cache{'named_filter'}{$condition}{$filter}{'update'} = time;
+        return $persistent_cache{'named_filter'}{$condition}{$filter}{'value'};
+}
+
+## Verify if a given user is part of an LDAP, SQL or TXT search filter
+sub search{
+    my $filter_file = shift;
+    my $context = shift;
+    my $robot = shift;
+    my $list = shift;
+
+    my $sender = $context->{'sender'};
+
+    &do_log('debug2', 'List::search(%s,%s,%s)', $filter_file, $sender, $robot);
+    
+    if ($filter_file =~ /\.sql$/) {
+ 
+	my $file = &tools::get_filename('etc',{},"search_filters/$filter_file", $robot, $list);
+	
+        my $timeout = 3600;
+        my ($sql_conf, $tsth);
+        my $time = time;
+	
+        unless ($sql_conf = &Conf::load_sql_filter($file)) {
+            $list->send_notify_to_owner('named_filter',{'filter' => $filter_file})
+                if (defined $list && ref($list) eq 'List');
+            return undef;
+        }
+	
+        my $statement = $sql_conf->{'sql_named_filter_query'}->{'statement'};
+        my $filter = $statement;
+	my @statement_args; ## Useful to later quote parameters
+	
+	## Minimalist variable parser ; only parse [x] or [x->y]
+	## should be extended with the code from verify()
+	while ($filter =~ /\[(\w+(\-\>[\w\-]+)?)\]/x) {
+	    my ($full_var) = ($1);
+	    my ($var, $key) = split /\-\>/, $full_var;
+	    
+	    unless (defined $context->{$var}) {
+		&do_log('err', "Failed to parse variable '%s' in filter '%s'", $var, $file);
+		return undef;
+	    }
+
+	    if (defined $key) { ## Should be a hash
+		unless (defined $context->{$var}{$key}) {
+		    &do_log('err', "Failed to parse variable '%s.%s' in filter '%s'", $var, $key, $file);
+		    return undef;
+		}
+
+		$filter =~ s/\[$full_var\]/$context->{$var}{$key}/;
+		$statement =~ s/\[$full_var\]/\%s/;
+		push @statement_args, $context->{$var}{$key};
+	    }else { ## Scalar
+		$filter =~ s/\[$full_var\]/$context->{$var}/;
+		$statement =~ s/\[$full_var\]/\%s/;
+		push @statement_args, $context->{$var};
+
+	    }
+	}
+
+#        $statement =~ s/\[sender\]/%s/g;
+#        $filter =~ s/\[sender\]/$sender/g;
+ 
+        if (defined ($persistent_cache{'named_filter'}{$filter_file}{$filter}) &&
+            (time <= $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} + $timeout)){ ## Cache has 1hour lifetime
+            &do_log('notice', 'Using previous SQL named filter cache');
+            return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
+        }
+	
+	my $ds = new Datasource('SQL', $sql_conf->{'sql_named_filter_query'});
+	unless ($ds->connect() && $ds->ping) {
+            do_log('notice','Unable to connect to the SQL server %s:%d',$sql_conf->{'db_host'}, $sql_conf->{'db_port'});
+            return undef;
+        }
+	
+	## Quote parameters
+	foreach (@statement_args) {
+	    $_ = $ds->quote($_);
+	}
+
+        $statement = sprintf $statement, @statement_args;
+        unless ($ds->query($statement)) {
+            do_log('debug','%s named filter cancelled', $file);
+            return undef;
+        }
+ 
+        my $res = $ds->fetch;
+        $ds->disconnect();
+        do_log('debug2','Result of SQL query : %d = %s', $res->[0], $statement);
+ 
+        if ($res->[0] == 0){
+            $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'} = 0;
+        }else {
+            $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'} = 1;
+       }
+        $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} = time;
+        return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
+ 
+     }elsif ($filter_file =~ /\.ldap$/) {	
+	## Determine full path of the filter file
+	my $file = &tools::get_filename('etc',{},"search_filters/$filter_file", $robot, $list);
+	
+	unless ($file) {
+	    &do_log('err', 'Could not find search filter %s', $filter_file);
+	    return undef;
+	}   
+	my $timeout = 3600;	
+	my $var;
+	my $time = time;
+	my %ldap_conf;
+    
+	return undef unless (%ldap_conf = &Ldap::load($file));
+
+	my $filter = $ldap_conf{'filter'};	
+
+	## Minimalist variable parser ; only parse [x] or [x->y]
+	## should be extended with the code from verify()
+	while ($filter =~ /\[(\w+(\-\>[\w\-]+)?)\]/x) {
+	    my ($full_var) = ($1);
+	    my ($var, $key) = split /\-\>/, $full_var;
+	    
+	    unless (defined $context->{$var}) {
+		&do_log('err', "Failed to parse variable '%s' in filter '%s'", $var, $file);
+		return undef;
+	    }
+
+	    if (defined $key) { ## Should be a hash
+		unless (defined $context->{$var}{$key}) {
+		    &do_log('err', "Failed to parse variable '%s.%s' in filter '%s'", $var, $key, $file);
+		    return undef;
+		}
+
+		$filter =~ s/\[$full_var\]/$context->{$var}{$key}/;
+	    }else { ## Scalar
+		$filter =~ s/\[$full_var\]/$context->{$var}/;
+
+	    }
+	}
+
+#	$filter =~ s/\[sender\]/$sender/g;
+	
+	if (defined ($persistent_cache{'named_filter'}{$filter_file}{$filter}) &&
+	    (time <= $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} + $timeout)){ ## Cache has 1hour lifetime
+	    &do_log('notice', 'Using previous LDAP named filter cache');
+	    return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
+	}
+	
+	my $ldap;
+	my $param = &tools::dup_var(\%ldap_conf);
+	my $ds = new Datasource('LDAP', $param);
+	    
+	unless (defined $ds && ($ldap = $ds->connect())) {
+	    &do_log('err',"Unable to connect to the LDAP server '%s'", $param->{'ldap_host'});
+	    return undef;
+	    }
+	    
+	## The 1.1 OID correponds to DNs ; it prevents the LDAP server from 
+	## preparing/providing too much data
+	    my $mesg = $ldap->search(base => "$ldap_conf{'suffix'}" ,
+				     filter => "$filter",
+				 scope => "$ldap_conf{'scope'}",
+				 attrs => ['1.1']);
+	    unless ($mesg) {
+		do_log('err',"Unable to perform LDAP search");
+		return undef;
+	    }    
+	    unless ($mesg->code == 0) {
+		do_log('err','Ldap search failed');
+		return undef;
+	    }
+
+	    if ($mesg->count() == 0){
+		$persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'} = 0;
+		
+	    }else {
+		$persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'} = 1;
+	    }
+	    
+	$ds->disconnect() or do_log('notice','List::search_ldap.Unbind impossible');
+	    $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} = time;
+	    
+	    return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
+
+    }elsif($filter_file =~ /\.txt$/){ 
+	# &do_log('info', 'List::search: eval %s', $filter_file);
+	my @files = &tools::get_filename('etc',{'order'=>'all'},"search_filters/$filter_file", $robot, $list); 
+
+	## Raise an error except for blacklist.txt
+	unless (@files) {
+	    if ($filter_file eq 'blacklist.txt') {
+		return -1;
+	    }else {
+		&do_log('err', 'Could not find search filter %s', $filter_file);
+		return undef;
+	    }
+	}
+
+	my $sender = lc($sender);
+	foreach my $file (@files) {
+	    &do_log('debug3', 'List::search: found file  %s', $file);
+	    unless (open FILE, $file) {
+		&do_log('err', 'Could not open file %s', $file);
+		return undef;
+	    } 
+	    while (<FILE>) {
+		# &do_log('debug3', 'List::search: eval rule %s', $_);
+		next if (/^\s*$/o || /^[\#\;]/o);
+		my $regexp= $_ ;
+		chomp $regexp;
+		$regexp =~ s/\*/.*/ ; 
+		$regexp = '^'.$regexp.'$';
+		# &do_log('debug3', 'List::search: eval  %s =~ /%s/i', $sender,$regexp);
+		return 1  if ($sender =~ /$regexp/i);
+	    }
+	}
+	return -1;
+    } else {
+	do_log('err',"Unknown filter file type %s", $filter_file);
+    	return undef;
+    }
+}
+
 
 ## May the indicated user edit the indicated list parameter or not ?
 sub may_edit {
@@ -6867,7 +8052,144 @@ sub get_nextdigest {
     return undef;
 }
 
+## load a scenario if not inline (in the list configuration file)
+# if $flush defined  -> return the file content and file path
+sub _load_scenario_file {
+    my ($function, $robot, $name, $directory, $flush)= @_;
+    ## Too much log
+    # do_log('debug3', 'List::_load_scenario_file(%s, %s, %s, %s)', $function, $robot, $name, $directory);
+
+    my $structure;
+    
+    ## List scenario
+
+    # sa tester le chargement de scenario spécifique à un répertoire du shared
+    my $scenario_file = $directory.'/scenari/'.$function.'.'.$name ;
+    unless (($directory) && (open SCENARI, $scenario_file)) {
+	## Robot scenario
+	$scenario_file = "$Conf{'etc'}/$robot/scenari/$function.$name";
+	unless (($robot) && (open SCENARI, $scenario_file)) {
+
+	    ## Site scenario
+	    $scenario_file = "$Conf{'etc'}/scenari/$function.$name";
+	    unless (open SCENARI, $scenario_file) {
+		
+		## Distrib scenario
+		$scenario_file = "--ETCBINDIR--/scenari/$function.$name";
+		unless (open SCENARI,$scenario_file) {
+		    do_log('err',"Unable to open scenario file $function.$name, please report to listmaster") unless ($name =~ /\.header$/) ;
+		    return &_load_scenario ($function,$robot,$name,'true() smtp -> reject', $directory) unless ($function eq 'include');
+		}
+	    }
+	}
+    }
+    if (defined $flush) {
+	my $content ;
+	while (<SCENARI>) {
+	    $content .= $_;
+	}
+        close  SCENARI;
+	return ($content,$scenario_file);
+    }
+    my $paragraph= join '',<SCENARI>;
+    close SCENARI;
+    
+    unless ($structure = &_load_scenario ($function,$robot,$name,$paragraph, $directory)) { 
+	do_log('err',"Error in $function scenario $scenario_file ");
+	return undef;
+    }
+     
+    return $structure ;
+}
+
+sub _load_scenario {
+    my ($function, $robot,$scenario_name, $paragraph, $directory ) = @_;
+    # do_log('debug', 'List::_load_scenario(%s,%s,%s)', $function,$robot,$scenario_name);
+
+    my $structure = {};
+    $structure->{'name'} = $scenario_name ;
+    my @scenario;
+    my @rules = split /\n/, $paragraph;
+
+    ## Following lines are ordered
+    push(@scenario, 'scenario');
+
+    # include a default first rule if configured for this action item
+    if ($Conf{'blacklist'}{$function}) {
+	foreach my $auth ('smtp','md5','pgp','smime'){
+	    my $blackrule = {};
+	    $blackrule->{'condition'}='search(blacklist.txt,[sender])';
+	    $blackrule->{'action'} = 'reject,quiet';
+	    $blackrule->{'auth_method'}=$auth;	
+	    # do_log('info','load rule %s,%s,%s', $blackrule->{'condition'},$blackrule->{'action'},$blackrule->{'auth_method'});
+
+	    push(@scenario,$blackrule);
+	}
+    }
+
+    unless ($function eq 'include') {
+        my $include = &_load_scenario_file ('include',$robot,"$function.header", $directory);
+	push(@scenario,@{$include->{'rules'}}) if ($include);
+    }
+    foreach (@rules) {
+	next if (/^\s*\w+\s*$/o); # skip paragraph name
+	my $rule = {};
+	s/\#.*$//;         # remove comments
+        next if (/^\s*$/); # reject empty lines
+	if (/^\s*title\.gettext\s+(.*)\s*$/i) {
+	    $structure->{'title'}{'gettext'} = $1;
+	    next;
+	}elsif (/^\s*title\.(\w+)\s+(.*)\s*$/i) {
+	    $structure->{'title'}{$1} = $2;
+	    next;
+	}
+        
+        if (/^\s*include\s*(.*)\s*$/i) {
+        ## introducing in few common rules using include
+	    my $include = &_load_scenario_file ('include',$robot,$1, $directory);
+            push(@scenario,@{$include->{'rules'}}) if ($include) ;
+	    next;
+	}
+
+#	unless (/^\s*(.*)\s+(md5|pgp|smtp|smime)\s*->\s*(.*)\s*$/i) {
+	unless (/^\s*(.*)\s+(md5|pgp|smtp|smime)((\s*,\s*(md5|pgp|smtp|smime))*)\s*->\s*(.*)\s*$/i) {
+	    do_log('err', "error rule syntaxe in scenario $function rule line $. expected : <condition> <auth_mod> -> <action>");
+	    do_log('err',"error parsing $rule");
+	    return undef;
+	}
+	$rule->{'condition'}=$1;
+	$rule->{'auth_method'}=$2 || 'smtp';
+	$rule->{'action'} = $6;
+
 	
+#	## Make action an ARRAY
+#	my $action = $6;
+#	my @actions;
+#	while ($action =~ s/^\s*((\w+)(\s?\([^\)]*\))?)(\s|\,|$)//) {
+#	    push @actions, $1;
+#	}
+#	$rule->{action} = \@actions;
+	       
+	push(@scenario,$rule);
+#	do_log('debug3', "load rule 1: $rule->{'condition'} $rule->{'auth_method'} ->$rule->{'action'}");
+
+        my $auth_list = $3 ; 
+        while ($auth_list =~ /\s*,\s*(md5|pgp|smtp|smime)((\s*,\s*(md5|pgp|smtp|smime))*)\s*/i) {
+	    push(@scenario,{'condition' => $rule->{condition}, 
+                            'auth_method' => $1,
+                            'action' => $rule->{action}});
+	    $auth_list = $2;
+#	    do_log('debug3', "load rule ite: $rule->{'condition'} $1 -> $rule->{'action'}");
+	}
+	
+    }
+    
+    ## Restore paragraph mode
+    $structure->{'rules'} = \@scenario;
+   
+    return $structure; 
+}
+
 ## Loads all scenari for an action
 sub load_scenario_list {
     my ($self, $action,$robot) = @_;
@@ -6897,28 +8219,24 @@ sub load_scenario_list {
 	    next if (defined $list_of_scenario{$name});
 	    next if (defined $skip_scenario{$name});
 
-	    my $scenario = new Scenario ('robot' => $robot,
-					 'directory' => $directory,
-					 'function' => $action,
-					 'name' => $name);
+	    my $scenario = &List::_load_scenario_file ($action, $robot, $name, $directory);
 	    $list_of_scenario{$name} = $scenario;
 
 	    ## Set the title in the current language
 	    if (defined  $scenario->{'title'}{&Language::GetLang()}) {
-		$list_of_scenario{$name}{'web_title'} = $scenario->{'title'}{&Language::GetLang()};
+		$list_of_scenario{$name}{'title'} = $scenario->{'title'}{&Language::GetLang()};
 	    }elsif (defined $scenario->{'title'}{'gettext'}) {
-		$list_of_scenario{$name}{'web_title'} = gettext($scenario->{'title'}{'gettext'});
+		$list_of_scenario{$name}{'title'} = gettext($scenario->{'title'}{'gettext'});
 	    }elsif (defined $scenario->{'title'}{'us'}) {
-		$list_of_scenario{$name}{'web_title'} = gettext($scenario->{'title'}{'us'});
+		$list_of_scenario{$name}{'title'} = gettext($scenario->{'title'}{'us'});
 	    }else {
-		$list_of_scenario{$name}{'web_title'} = $name;		     
+		$list_of_scenario{$name}{'title'} = $name;		     
 	    }
 	    $list_of_scenario{$name}{'name'} = $name;	    
 	}
     }
 
-    ## Return a copy of the data to prevent unwanted changes in the central scenario data structure
-    return &tools::dup_var(\%list_of_scenario);
+    return \%list_of_scenario;
 }
 
 sub load_task_list {
@@ -7206,7 +8524,6 @@ sub _include_users_remote_sympa_list {
  	$u{'visibility'} = $user{'visibility'};delete $user{'visibility'};
 	
 	if ($default_user_options->{'mode_force'}) {
-	    $u{'visibility'} = $default_user_options->{'visibility'} if (defined $default_user_options->{'visibility'});
 	    $u{'reception'} = $default_user_options->{'reception'} if (defined $default_user_options->{'reception'});
 	    $u{'profile'} = $default_user_options->{'profile'} if (defined $default_user_options->{'profile'});
 	    $u{'info'} = $default_user_options->{'info'} if (defined $default_user_options->{'info'});
@@ -7273,7 +8590,6 @@ sub _include_users_list {
  	$u{'visibility'} = $user->{'visibility'};
 
 	if ($default_user_options->{'mode_force'}) {
-	    $u{'visibility'} = $default_user_options->{'visibility'} if (defined $default_user_options->{'visibility'});
 	    $u{'reception'} = $default_user_options->{'reception'} if (defined $default_user_options->{'reception'});
 	    $u{'profile'} = $default_user_options->{'profile'} if (defined $default_user_options->{'profile'});
 	    $u{'info'} = $default_user_options->{'info'} if (defined $default_user_options->{'info'});
@@ -7357,7 +8673,6 @@ sub _include_users_file {
 	$u{'id'} = join (',', split(',', $u{'id'}), $id);
 
 	if ($default_user_options->{'mode_force'}) {
-	    $u{'visibility'} = $default_user_options->{'visibility'} if (defined $default_user_options->{'visibility'});
 	    $u{'reception'} = $default_user_options->{'reception'} if (defined $default_user_options->{'reception'});
 	    $u{'profile'} = $default_user_options->{'profile'} if (defined $default_user_options->{'profile'});
 	    $u{'info'} = $default_user_options->{'info'} if (defined $default_user_options->{'info'});
@@ -7434,7 +8749,6 @@ sub _include_users_remote_file {
 	    $u{'id'} = join (',', split(',', $u{'id'}), $id);
 	    
 	    if ($default_user_options->{'mode_force'}) {
-		$u{'visibility'} = $default_user_options->{'visibility'} if (defined $default_user_options->{'visibility'});
 		$u{'reception'} = $default_user_options->{'reception'} if (defined $default_user_options->{'reception'});
 		$u{'profile'} = $default_user_options->{'profile'} if (defined $default_user_options->{'profile'});
 		$u{'info'} = $default_user_options->{'info'} if (defined $default_user_options->{'info'});
@@ -7559,7 +8873,6 @@ sub _include_users_ldap {
 	$u{'id'} = join (',', split(',', $u{'id'}), $id);
 
 	if ($default_user_options->{'mode_force'}) {
-	    $u{'visibility'} = $default_user_options->{'visibility'} if (defined $default_user_options->{'visibility'});
 	    $u{'reception'} = $default_user_options->{'reception'} if (defined $default_user_options->{'reception'});
 	    $u{'profile'} = $default_user_options->{'profile'} if (defined $default_user_options->{'profile'});
 	    $u{'info'} = $default_user_options->{'info'} if (defined $default_user_options->{'info'});
@@ -7721,7 +9034,6 @@ sub _include_users_ldap_2level {
 	$u{'id'} = join (',', split(',', $u{'id'}), $id);
 
 	if ($default_user_options->{'mode_force'}) {
-	    $u{'visibility'} = $default_user_options->{'visibility'} if (defined $default_user_options->{'visibility'});
 	    $u{'reception'} = $default_user_options->{'reception'} if (defined $default_user_options->{'reception'});
 	    $u{'profile'} = $default_user_options->{'profile'} if (defined $default_user_options->{'profile'});
 	    $u{'info'} = $default_user_options->{'info'} if (defined $default_user_options->{'info'});
@@ -7783,7 +9095,6 @@ sub _include_users_sql {
 	$u{'id'} = join (',', split(',', $u{'id'}), $id);
 
 	if ($default_user_options->{'mode_force'}) {
-	    $u{'visibility'} = $default_user_options->{'visibility'} if (defined $default_user_options->{'visibility'});
 	    $u{'reception'} = $default_user_options->{'reception'} if (defined $default_user_options->{'reception'});
 	    $u{'profile'} = $default_user_options->{'profile'} if (defined $default_user_options->{'profile'});
 	    $u{'info'} = $default_user_options->{'info'} if (defined $default_user_options->{'info'});
@@ -7848,12 +9159,9 @@ sub _load_users_include {
 	foreach my $type ('include_list','include_remote_sympa_list','include_file','include_ldap_query','include_ldap_2level_query','include_sql_query','include_remote_file') {
 	    last unless (defined $total);
 	    
-	    foreach my $tmp_incl (@{$admin->{$type}}) {
+	    foreach my $incl (@{$admin->{$type}}) {
 		my $included;
 		
-		## Work with a copy of admin hash branch to avoid including temporary variables into the actual admin hash.[bug #3182]
-		my $incl = &tools::dup_var($tmp_incl);
-
 		## get the list of users
 		if ($type eq 'include_sql_query') {
 		    $included = _include_users_sql(\%users, $incl, $admin->{'default_user_options'}, 'tied');
@@ -7963,10 +9271,8 @@ sub _load_users_include2 {
     foreach my $type ('include_list','include_remote_sympa_list','include_file','include_ldap_query','include_ldap_2level_query','include_sql_query','include_remote_file') {
 	last unless (defined $total);
 	    
-	foreach my $tmp_incl (@{$admin->{$type}}) {
+	foreach my $incl (@{$admin->{$type}}) {
 	    my $included;
-	    ## Work with a copy of admin hash branch to avoid including temporary variables into the actual admin hash.[bug #3182]
-	    my $incl = &tools::dup_var($tmp_incl);
 
 	    ## get the list of users
 	    if ($type eq 'include_sql_query') {
@@ -8023,6 +9329,12 @@ sub _load_admin_users_include {
     my $list_admin = $self->{'admin'};
     my $dir = $self->{'dir'};
 
+    unless($self->{'admin'}{'user_data_source'} eq 'include2'){
+	&do_log('err', '_load_admin_users_include isn\'t defined when user_data_source is different than include2 for list %s',
+	 $self->{'name'}); 
+	return undef;
+    }
+
     foreach my $entry (@{$list_admin->{$role."_include"}}) {
     
 	next unless (defined $entry); 
@@ -8030,7 +9342,6 @@ sub _load_admin_users_include {
 	my %option;
 	$option{'mode_force'} = 1; # to force option values in _include_..._query
 	$option{'reception'} = $entry->{'reception'} if (defined $entry->{'reception'});
-	$option{'visibility'} = $entry->{'visibility'} if (defined $entry->{'visibility'});
 	$option{'profile'} = $entry->{'profile'} if (defined $entry->{'profile'} && ($role eq 'owner'));
 	
 
@@ -8067,12 +9378,9 @@ sub _load_admin_users_include {
 	foreach my $type ('include_list','include_remote_sympa_list','include_file','include_ldap_query','include_ldap_2level_query','include_sql_query','include_remote_file') {
 	    last unless (defined $total);
 	    
-	    foreach my $tmp_incl (@{$include_admin_user->{$type}}) {
+	    foreach my $incl (@{$include_admin_user->{$type}}) {
 		my $included;
 		
-		## Work with a copy of admin hash branch to avoid including temporary variables into the actual admin hash.[bug #3182]
-		my $incl = &tools::dup_var($tmp_incl);
-
 		## get the list of admin users
 		## does it need to define a 'default_admin_user_option' ?
 		if ($type eq 'include_sql_query') {
@@ -8150,7 +9458,7 @@ sub _load_include_admin_user_file {
 	}
 	
 	## Just in case...
-	local $/ = "\n";
+	$/ = "\n";
 	
 	## Split in paragraphs
 	my $i = 0;
@@ -8348,10 +9656,6 @@ sub sync_include {
 
     ## Get an Exclusive lock
     my $lock = new Lock ($self->{'dir'}.'/include');
-    unless (defined $lock) {
-	&do_log('err','Could not create new lock');
-	return undef;
-    }
     $lock->set_timeout(10*60); 
 
     unless ($lock->lock('write')) {
@@ -8467,29 +9771,7 @@ sub sync_include {
     return 1;
 }
 
-## The previous function (sync_include) is to be called by the task_manager.
-## This one is to be called from anywhere else. This function deletes the scheduled
-## sync_include task. If this deletion happened in sync_include(), it would disturb
-## the normal task_manager.pl functionning.
 
-sub on_the_fly_sync_include {
-    my $self = shift;
-    my %options = @_;
-
-    my $pertinent_ttl = $self->{'admin'}{'distribution_ttl'}||$self->{'admin'}{'ttl'};
-    &do_log('debug2','List::on_the_fly_sync_include(%s)',$pertinent_ttl);
-    if ( $options{'use_ttl'} != 1 || $self->{'last_sync'} < time - $pertinent_ttl) { 
-	&do_log('notice', "Synchronizing list members...");
-	if ($self->sync_include()) {
-	    $self->remove_task('sync_include');
-	    return 1;
-	}
-	else {
-	    return undef;
-	}
-    }
-    return 1;
-}
 
 sub sync_include_admin {
     my ($self) = shift;
@@ -8497,6 +9779,11 @@ sub sync_include_admin {
     
     my $name=$self->{'name'};
     &do_log('debug2', 'List:sync_include_admin(%s)', $name);
+
+    unless($self->{'admin'}{'user_data_source'} eq 'include2'){
+	&do_log('debug', 'sync_include_admin failed ; user_data_source for list %s is set to %s', $self->{'name'}, $self->{'admin'}{'user_data_source'}); 
+	return 0;
+    }
 
     ## don't care about listmaster role
     foreach my $role ('owner','editor'){
@@ -8538,10 +9825,6 @@ sub sync_include_admin {
 	
 	## Get an Exclusive lock
 	my $lock = new Lock ($self->{'dir'}.'/include_admin_user');
-	unless (defined $lock) {
-	    &do_log('err','Could not create new lock');
-	    return undef;
-	}
 	$lock->set_timeout(20); 
 	unless ($lock->lock('write')) {
 	    return undef;
@@ -8553,7 +9836,7 @@ sub sync_include_admin {
 	    # included and subscribed
 	    if (defined $new_admin_users_config->{$email}) {
 		my $param;
-		foreach my $p ('reception','visibility','gecos','info','profile') {
+		foreach my $p ('reception','gecos','info','profile') {
 		    #  config parameters have priority on include parameters in case of conflict
 		    $param->{$p} = $new_admin_users_config->{$email}{$p} if (defined $new_admin_users_config->{$email}{$p});
 		    $param->{$p} ||= $new_admin_users_include->{$email}{$p};
@@ -8738,7 +10021,6 @@ sub _load_admin_users_config {
   
 	$u{'email'} = $email;
 	$u{'reception'} = $entry->{'reception'};
-	$u{'visibility'} = $entry->{'visibility'};
 	$u{'gecos'} = $entry->{'gecos'};
 	$u{'info'} = $entry->{'info'};
 	$u{'profile'} = $entry->{'profile'} if ($role eq 'owner');
@@ -8759,7 +10041,7 @@ sub is_update_param {
 
     &do_log('debug2', 'List::is_update_param ');  
 
-    foreach my $p ('reception','visibility','gecos','info','profile','id','included','subscribed') {
+    foreach my $p ('reception','gecos','info','profile','id','included','subscribed') {
 	if (defined $new_param->{$p}) {
 	    if ($new_param->{$p} ne $old_param->{$p}) {
 		$resul->{$p} = $new_param->{$p};
@@ -8786,9 +10068,15 @@ sub _inclusion_loop {
     my $name = shift;
     my $incl = shift;
     my $depend_on = shift;
+    # do_log('debug2', 'xxxxxxxxxxx _inclusion_loop(%s,%s)',$name,$incl);
+    # do_log('debug2', 'xxxxxxxxxxx DEPENDANCE :');
+    # foreach my $dpe (keys  %{$depend_on}) {
+    #   do_log('debug2', "xxxxxxxxxxx ----$dpe----");
+    # }
 
     return 1 if ($depend_on->{$incl}) ; 
     
+    # do_log('notice', 'xxxxxxxx pas de PB pour inclure %s dans %s %s',$incl, $name);
     return undef;
 }
 
@@ -8804,6 +10092,7 @@ sub _load_total_db {
     
     ## Use session cache
     if (($option ne 'nocache') && (defined $list_cache{'load_total_db'}{$self->{'domain'}}{$self->{'name'}})) {
+#	&do_log('debug3', 'xxx Use cache(load_total_db, %s)', $self->{'name'});
 	return $list_cache{'load_total_db'}{$self->{'domain'}}{$self->{'name'}};
     }
 
@@ -8959,37 +10248,29 @@ sub get_lists {
     
     foreach my $robot (@robots) {
     
-	## Check cache first
-	if (defined $list_cache{'get_lists'}{$robot}) {
-	    push @lists, @{$list_cache{'get_lists'}{$robot}};
-	}else {
-	    my $robot_dir =  $Conf{'home'}.'/'.$robot ;
-	    $robot_dir = $Conf{'home'}  unless ((-d $robot_dir) || ($robot ne $Conf{'host'}));
-	    
-	    unless (-d $robot_dir) {
-		do_log('err',"unknown robot $robot, Unable to open $robot_dir");
-		return undef ;
-	    }
-	    
-	    unless (opendir(DIR, $robot_dir)) {
-		do_log('err',"Unable to open $robot_dir");
-		return undef;
-	    }
-	    foreach my $l (sort readdir(DIR)) {
-		next if (($l =~ /^\./o) || (! -d "$robot_dir/$l") || (! -f "$robot_dir/$l/config"));
-		
-		my $list = new List ($l, $robot, $options);
-		
-		next unless (defined $list);
-		
-		push @lists, $list;
-		
-		## Also feed the cache
-		push @{$list_cache{'get_lists'}{$robot}}, $list;
-		
-	    }
-	    closedir DIR;
+	my $robot_dir =  $Conf{'home'}.'/'.$robot ;
+	$robot_dir = $Conf{'home'}  unless ((-d $robot_dir) || ($robot ne $Conf{'host'}));
+	
+	unless (-d $robot_dir) {
+	    do_log('err',"unknown robot $robot, Unable to open $robot_dir");
+	    return undef ;
 	}
+	
+	unless (opendir(DIR, $robot_dir)) {
+	    do_log('err',"Unable to open $robot_dir");
+	    return undef;
+	}
+	foreach my $l (sort readdir(DIR)) {
+	    next if (($l =~ /^\./o) || (! -d "$robot_dir/$l") || (! -f "$robot_dir/$l/config"));
+
+	    my $list = new List ($l, $robot, $options);
+
+	    next unless (defined $list);
+
+	    push @lists, $list;
+	    
+	}
+	closedir DIR;
     }
     return \@lists;
 }
@@ -9063,6 +10344,8 @@ sub get_which_db {
 	    $which{$robot}{$name}{'included'} = $l->{'included_subscriber'};
 	    $which{$robot}{$name}{'subscribed'} = $l->{'subscribed_subscriber'};
 	    $which{$robot}{$name}{'include_sources'} = $l->{'include_sources_subscriber'};
+	    # do_log('info','xxxxx reception : %s bounce: %s topic : %s include_source : %s subscribed : %s inclueded : %s ', $which{$robot}{$name}{'reception'}, $which{$robot}{$name}{'bounce'}, $which{$robot}{$name}{'topic'}, $which{$robot}{$name}{'include_sources'},$which{$robot}{$name}{'subscribed'},$which{$robot}{$name}{'included'});
+
 	}	
 	$sth->finish();	
 	$sth = pop @sth_stack;
@@ -9188,9 +10471,7 @@ sub get_which {
 	$db_which = &get_which_db($email,  $function);
     }
 
-    ## This call is required to 
     my $all_lists = &get_lists($robot);
-
     foreach my $list (@$all_lists){
  
 	my $l = $list->{'name'};
@@ -9202,42 +10483,59 @@ sub get_which {
 	}
 
         if ($function eq 'member') {
-	    if ($db_which->{$robot}{$l}{'member'}) {
-		$list->{'user'}{'reception'} = $db_which->{$robot}{$l}{'reception'};
-		$list->{'user'}{'topic'} = $db_which->{$robot}{$l}{'topic'};
-		$list->{'user'}{'bounce'} = $db_which->{$robot}{$l}{'bounce'};
-		$list->{'user'}{'subscribed'} = $db_which->{$robot}{$l}{'subscribed'};
-		$list->{'user'}{'included'} = $db_which->{$robot}{$l}{'included'};
-		
-		push @which, $list ;
-		
-		## Update cache
-		$list_cache{'is_user'}{$list->{'domain'}}{$l}{$email} = 1;
+	    if (($list->{'admin'}{'user_data_source'} eq 'database') ||
+		($list->{'admin'}{'user_data_source'} eq 'include2')){
+		if ($db_which->{$robot}{$l}{'member'}) {
+		    # my $reception = $db_which->{$robot}{$l}{'reception'};
+		    # my $bounce = $db_which->{$robot}{$l}{'bounce'};
+		    # my $topic  = $db_which->{$robot}{$l}{'topic'};
+		    # my $subscribed =  $db_which->{$robot}{$l}{'subscribed'};
+		    # do_log('info',"xxxxx xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx reception $reception  , topic $topic,  bounce $reception subscribed $subscribed");
+		    $list->{'user'}{'reception'} = $db_which->{$robot}{$l}{'reception'};
+		    $list->{'user'}{'topic'} = $db_which->{$robot}{$l}{'topic'};
+		    $list->{'user'}{'bounce'} = $db_which->{$robot}{$l}{'bounce'};
+		    $list->{'user'}{'subscribed'} = $db_which->{$robot}{$l}{'subscribed'};
+		    $list->{'user'}{'included'} = $db_which->{$robot}{$l}{'included'};
+
+		    push @which, $list ;
+
+		    ## Update cache
+		    $list_cache{'is_user'}{$list->{'domain'}}{$l}{$email} = 1;
+		}else {
+		    ## Update cache
+		    $list_cache{'is_user'}{$list->{'domain'}}{$l}{$email} = 0;		    
+		}
 	    }else {
-		## Update cache
-		$list_cache{'is_user'}{$list->{'domain'}}{$l}{$email} = 0;		    
+		push @which, $list if ($list->is_user($email));
 	    }
-	    
 	}elsif ($function eq 'owner') {
-	    if ($db_which->{$robot}{$l}{'owner'} == 1) {
-		push @which, $list ;
-		
-		## Update cache
-		$list_cache{'am_i'}{'owner'}{$list->{'domain'}}{$l}{$email} = 1;
-	    }else {
-		## Update cache
-		$list_cache{'am_i'}{'owner'}{$list->{'domain'}}{$l}{$email} = 0;		    
-	    }
+	    if ($list->{'admin'}{'user_data_source'} eq 'include2'){
+ 		if ($db_which->{$robot}{$l}{'owner'} == 1) {
+  		    push @which, $list ;
+ 		    
+ 		    ## Update cache
+ 		    $list_cache{'am_i'}{'owner'}{$list->{'domain'}}{$l}{$email} = 1;
+ 		}else {
+ 		    ## Update cache
+ 		    $list_cache{'am_i'}{'owner'}{$list->{'domain'}}{$l}{$email} = 0;		    
+ 		}
+  	    }else {	    
+  		push @which, $list if ($list->am_i('owner',$email,{'strict' => 1}));
+  	    }
 	}elsif ($function eq 'editor') {
-	    if ($db_which->{$robot}{$l}{'editor'} == 1) {
-		push @which, $list ;
-		
-		## Update cache
-		$list_cache{'am_i'}{'editor'}{$list->{'domain'}}{$l}{$email} = 1;
-	    }else {
-		## Update cache
-		$list_cache{'am_i'}{'editor'}{$list->{'domain'}}{$l}{$email} = 0;		    
-	    }
+  	    if ($list->{'admin'}{'user_data_source'} eq 'include2'){
+ 		if ($db_which->{$robot}{$l}{'editor'} == 1) {
+  		    push @which, $list ;
+ 		    
+ 		    ## Update cache
+ 		    $list_cache{'am_i'}{'editor'}{$list->{'domain'}}{$l}{$email} = 1;
+  		}else {
+ 		    ## Update cache
+ 		    $list_cache{'am_i'}{'editor'}{$list->{'domain'}}{$l}{$email} = 0;		    
+ 		}
+  	    }else {	    
+   		push @which, $list if ($list->am_i('editor',$email,{'strict' => 1}));
+  	    }
 	}else {
 	    do_log('err',"Internal error, unknown or undefined parameter $function  in get_which");
             return undef ;
@@ -9270,18 +10568,13 @@ sub get_mod_spool_size {
 
 ### moderation for shared
 
-# return the status of the shared
-sub get_shared_status {
+# return 1 if the shared is open
+sub is_shared_open {
     my $self = shift;
-    do_log('debug3', '(%s)', $self->{'name'});
+    do_log('debug3', 'List::is_shared_open()');  
+    my $dir = $self->{'dir'}.'/shared';
     
-    if (-e $self->{'dir'}.'/shared') {
-	return 'exist';
-    }elsif (-e $self->{'dir'}.'/pending.shared') {
-	return 'deleted';
-    }else{
-	return 'none';
-    }
+    return (-e "$dir/shared");
 }
 
 # return the list of documents shared waiting for moderation 
@@ -9515,8 +10808,7 @@ sub load_topics {
 	    if ($#tree == 0) {
 		my $title = _get_topic_titles($topic);
 		$list_of_topics{$robot}{$tree[0]}{'title'} = $title;
-		$list_of_topics{$robot}{$tree[0]}{'visibility'} = $topic->{'visibility'}||'default';
-		#$list_of_topics{$robot}{$tree[0]}{'visibility'} = &_load_scenario_file('topics_visibility', $robot,$topic->{'visibility'}||'default');
+		$list_of_topics{$robot}{$tree[0]}{'visibility'} = &_load_scenario_file('topics_visibility', $robot,$topic->{'visibility'}||'default');
 		$list_of_topics{$robot}{$tree[0]}{'order'} = $topic->{'order'};
 	    }else {
 		my $subtopic = join ('/', @tree[1..$#tree]);
@@ -9528,7 +10820,7 @@ sub load_topics {
 	## Set undefined Topic (defined via subtopic)
 	foreach my $t (keys %{$list_of_topics{$robot}}) {
 	    unless (defined $list_of_topics{$robot}{$t}{'visibility'}) {
-		#$list_of_topics{$robot}{$t}{'visibility'} = &_load_scenario_file('topics_visibility', $robot,'default');
+		$list_of_topics{$robot}{$t}{'visibility'} = &_load_scenario_file('topics_visibility', $robot,'default');
 	    }
 	    
 	    unless (defined $list_of_topics{$robot}{$t}{'title'}) {
@@ -9805,15 +11097,7 @@ sub _load_list_param {
     ## Scenario
     if ($p->{'scenario'}) {
 	$value =~ y/,/_/;
-	my $scenario = new Scenario ('function' => $p->{'scenario'},
-				     'robot' => $robot, 
-				     'name' => $value, 
-				     'directory' => $directory);
-
-	## We store the path of the scenario in the sstructure
-	## Later &Scenario::request_action() will look for the scenario in %Scenario::all_scenarios through Scenario::new()
-	$value = {'file_path' => $scenario->{'file_path'},
-		  'name' => $scenario->{'name'}};
+	$value = &List::_load_scenario_file ($p->{'scenario'},$robot, $value, $directory);
     }elsif ($p->{'task'}) {
 	$value = {'name' => $value};
     }
@@ -9892,7 +11176,7 @@ sub get_cert {
     return @cert;
 }
 
-## Load a config file of a list
+## Load a config file
 sub _load_admin_file {
     my ($directory,$robot, $file) = @_;
     do_log('debug3', 'List::_load_admin_file(%s, %s, %s)', $directory, $robot, $file);
@@ -9903,7 +11187,7 @@ sub _load_admin_file {
     my (@paragraphs);
 
     ## Just in case...
-    local $/ = "\n";
+    $/ = "\n";
 
     ## Set defaults to 1
     foreach my $pname (keys %::pinfo) {       
@@ -10811,8 +12095,8 @@ sub _urlize_part {
 }
 
 sub store_subscription_request {
-    my ($self, $email, $gecos, $custom_attr) = @_;
-    do_log('debug2', '(%s, %s, %s)', $self->{'name'}, $email, $gecos, $custom_attr);
+    my ($self, $email, $gecos) = @_;
+    do_log('debug2', 'List::store_subscription_request(%s, %s, %s)', $self->{'name'}, $email, $gecos);
 
     my $filename = $Conf{'queuesubscribe'}.'/'.$self->get_list_id().'.'.time.'.'.int(rand(1000));
     
@@ -10821,12 +12105,7 @@ sub store_subscription_request {
 	return undef;
     }
 
-    ## First line of the file contains the user email address + his/her name
     printf REQUEST "$email\t$gecos\n";
-
-    ## Following lines may contain custom attributes in an XML format
-    printf REQUEST "$custom_attr\n";
-
     close REQUEST;
 
     return 1;
@@ -10844,32 +12123,21 @@ sub get_subscription_requests {
     }
 
     foreach my $filename (sort grep(/^$self->{'name'}(\@$self->{'domain'})?\.\d+\.\d+$/, readdir SPOOL)) {
-	unless (open REQUEST, "<:bytes", "$Conf{'queuesubscribe'}/$filename") {
+	unless (open REQUEST, "$Conf{'queuesubscribe'}/$filename") {
 	    do_log('err', 'Could not open %s', $filename);
 	    closedir SPOOL;
 	    next;
 	}
-
-	## First line of the file contains the user email address + his/her name
 	my $line = <REQUEST>;
-	my ($email, $gecos);
-	if ($line =~ /^((\S+|\".*\")\@\S+)\s*([^\t]*)\t(.*)$/) {
-	    ($email, $gecos) = ($1, $3); 
-	    
-	}else {
-	    &do_log('err', "Failed to parse subscription request %s",$filename);
-	    next;
-	}
-
-	## Following lines may contain custom attributes in an XML format
-	my %xml = &parseCustomAttribute(\*REQUEST) ;
+	$line =~ /^((\S+|\".*\")\@\S+)\s*(.*)$/;
+	my $email = $1;
+	$subscriptions{$email} = {'gecos' => $3};
 	
-	$subscriptions{$email} = {'gecos' => $gecos,
-				  'custom_attribute' => \%xml};
 	unless($subscriptions{$email}{'gecos'}) {
 		my $user = get_user_db($email);
 		if ($user->{'gecos'}) {
-			$subscriptions{$email}{'gecos'} = $user->{'gecos'};
+			$subscriptions{$email} = {'gecos' => $user->{'gecos'}};
+#			&do_log('info', 'get_user_db %s : no gecos',$email);
 		}
 	}
 
@@ -10903,8 +12171,8 @@ sub get_subscription_request_count {
 } 
 
 sub delete_subscription_request {
-    my ($self, @list_of_email) = @_;
-    do_log('debug2', 'List::delete_subscription_request(%s, %s)', $self->{'name'}, join(',',@list_of_email));
+    my ($self, $email) = @_;
+    do_log('debug2', 'List::delete_subscription_request(%s, %s)', $self->{'name'}, $email);
 
     unless (opendir SPOOL, $Conf{'queuesubscribe'}) {
 	&do_log('info', 'Unable to read spool %s', $Conf{'queuesubscribe'});
@@ -10912,35 +12180,31 @@ sub delete_subscription_request {
     }
 
     my $removed_file = 0;
-
-    foreach my $email (@list_of_email) {
-
-	foreach my $filename (sort grep(/^$self->{'name'}(\@$self->{'domain'})?\.\d+\.\d+$/, readdir SPOOL)) {
-	    unless (open REQUEST, "$Conf{'queuesubscribe'}/$filename") {
-		do_log('notice', 'Could not open %s', $filename);
-		closedir SPOOL;
-		return undef;
-	    }
-	    my $line = <REQUEST>;
-	    my $email_regexp = &tools::get_regexp('email');
-	    unless ($line =~ /^($email_regexp)\s*/ &&
-		    ($1 eq $email)) {
-		next;
-	    }
-	    
-	    close REQUEST;
-	    
-	    unless (unlink "$Conf{'queuesubscribe'}/$filename") {
-		do_log('err', 'Could not delete file %s', $filename);
-		next;
-	    }
-	    $removed_file++;
+    foreach my $filename (sort grep(/^$self->{'name'}(\@$self->{'domain'})?\.\d+\.\d+$/, readdir SPOOL)) {
+	unless (open REQUEST, "$Conf{'queuesubscribe'}/$filename") {
+	    do_log('notice', 'Could not open %s', $filename);
+	    closedir SPOOL;
+	    return undef;
 	}
+	my $line = <REQUEST>;
+	my $email_regexp = &tools::get_regexp('email');
+	unless ($line =~ /^($email_regexp)\s*/ &&
+		($1 eq $email)) {
+	    next;
+	}
+	    
+	close REQUEST;
+
+	unless (unlink "$Conf{'queuesubscribe'}/$filename") {
+	    do_log('err', 'Could not delete file %s', $filename);
+	    next;
+	}
+	$removed_file++;
     }
     closedir SPOOL;
     
     unless ($removed_file > 0) {
-	do_log('err', 'No pending subscription was found for users %s', join(',',@list_of_email));
+	do_log('err', 'No pending subscription was found for user %s', $email);
 	return undef;
     }
 
@@ -10999,7 +12263,7 @@ sub remove_task {
     closedir DIR;
 
     foreach my $task_file (@tasks) {
-	if ($task_file =~ /^(\d+)\.\w*\.$task\.$self->{'name'}\@$self->{'domain'}$/) {
+	if ($task_file =~ /^(\d+)\.\w*\.$task\.$self->{'name'}$/) {
 	    unless (unlink("$Conf{'queuetask'}/$task_file")) {
 		&do_log('err', 'Unable to remove task file %s : %s', $task_file, $!);
 		return undef;
@@ -11237,58 +12501,7 @@ sub get_list_id {
     return $self->{'name'}.'@'.$self->{'domain'};
 }
 
-###### END of the List package ######
-
-## This package handles Sympa virtual robots
-## It should :
-##   * provide access to global conf parameters,
-##   * deliver the list of lists
-##   * determine the current robot, given a host
-package Robot;
-
-use Conf;
-
-## Constructor of a Robot instance
-sub new {
-    my($pkg, $name) = @_;
-
-    my $robot = {'name' => $name};
-    &Log::do_log('debug2', '');
-    
-    unless (defined $name && $Conf::Conf{'robots'}{$name}) {
-	&Log::do_log('err',"Unknown robot '$name'");
-	return undef;
-    }
-
-    ## The default robot
-    if ($name eq $Conf::Conf{'host'}) {
-	$robot->{'home'} = $Conf{'home'};
-    }else {
-	$robot->{'home'} = $Conf{'home'}.'/'.$name;
-	unless (-d $robot->{'home'}) {
-	    &Log::do_log('err', "Missing directory '$robot->{'home'}' for robot '$name'");
-	    return undef;
-	}
-    }
-
-    ## Initialize internal list cache
-    undef %list_cache;
-
-    # create a new Robot object
-    bless $robot, $pkg;
-
-    return $robot;
-}
-
-## load all lists belonging to this robot
-sub get_lists {
-    my $self = shift;
-
-    return &List::get_lists($self->{'name'});
-}
-
-
-###### END of the Robot package ######
+#################################################################
 
 ## Packages must return true.
 1;

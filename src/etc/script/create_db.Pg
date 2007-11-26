@@ -13,7 +13,6 @@ CREATE TABLE user_table (
         password_user		varchar (40),
         lang_user               varchar (10),
 	attributes_user		varchar (255),
-	data_user	        varchar (255),
 	CONSTRAINT ind_user PRIMARY KEY (email_user)
 );
 
@@ -21,7 +20,6 @@ DROP TABLE subscriber_table;
 CREATE TABLE subscriber_table (
   	list_subscriber       	varchar (50) NOT NULL,
 	user_subscriber		varchar (100) NOT NULL,
-  	custom_attribute_subscriber varchar (500),
 	robot_subscriber	varchar (80) NOT NULL,
 	date_subscriber		timestamp with time zone NOT NULL,
 	update_subscriber 	timestamp with time zone,
@@ -35,11 +33,9 @@ CREATE TABLE subscriber_table (
 	subscribed_subscriber 	smallint,
 	included_subscriber 	smallint,
 	include_sources_subscriber varchar(50),
-	CONSTRAINT ind_subscriber PRIMARY KEY (robot_subscriber,list_subscriber,user_subscriber)
+	CONSTRAINT ind_subscriber PRIMARY KEY (list_subscriber, user_subscriber, robot_subscriber)
 );
-CREATE INDEX subscriber_idx ON subscriber_table (robot_subscriber,list_subscriber,user_subscriber);
-CREATE INDEX subscriber_idx2 ON subscriber_table (user_subscriber);
-
+CREATE INDEX subscriber_idx ON subscriber_table (user_subscriber,list_subscriber,robot_subscriber);
 
 DROP TABLE admin_table;
 CREATE TABLE admin_table (
@@ -50,17 +46,15 @@ CREATE TABLE admin_table (
 	date_admin 		timestamp with time zone NOT NULL,
 	update_admin 		timestamp with time zone,
 	reception_admin 	varchar(20),
-	visibility_admin 	varchar(20),
 	comment_admin 		varchar(150),
 	subscribed_admin  	smallint,
 	included_admin  	smallint,
 	include_sources_admin  	varchar(50),
 	info_admin   		varchar(150),
 	profile_admin  		varchar(15),
-        CONSTRAINT ind_admin PRIMARY KEY (robot_admin, list_admin, role_admin, user_admin)
+        CONSTRAINT ind_admin PRIMARY KEY (list_admin, user_admin, robot_admin, role_admin)
 );
-CREATE	INDEX admin_idx ON admin_table(robot_admin, list_admin, role_admin, user_admin);
-CREATE	INDEX admin_idx2 ON admin_table(user_admin);
+CREATE	INDEX admin_idx ON admin_table(list_admin, user_admin,robot_admin, role_admin);
  
 DROP TABLE netidmap_table;
 CREATE TABLE netidmap_table (
@@ -90,16 +84,3 @@ CREATE TABLE logs_table (
         CONSTRAINT ind_logs PRIMARY KEY (id_logs)
 );
 CREATE	INDEX logs_idx ON logs_table(id_logs);
-
-CREATE TABLE session_table (
-	id_session			int4 NOT NULL,
-	start_date_session		int4 NOT NULL,
-	date_session		        int4 NOT NULL,
-	remote_addr_session		varchar(60),
-	robot_session		        varchar(80),
-	email_session		        varchar(100),
-	hit_session     	        int4,
-	data_session		        varchar(255),
-	CONSTRAINT ind_session PRIMARY KEY (id_session)
-);
-CREATE	INDEX session_idx ON session_table(id_session);
