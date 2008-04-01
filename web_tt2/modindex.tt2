@@ -13,7 +13,7 @@
   <input class="MainMenuLinks" type="submit" name="action_distribute" value="[%|loc%]Distribute[%END%]" />
  [%- END -%]
   <input class="MainMenuLinks" type="submit" name="action_reject.quiet" value="[%|loc%]Reject[%END%]" />
-  <input class="MainMenuLinks" type="submit" name="action_reject" value="[%|loc%]Notified reject[%END%]" onclick="return check_reject_spams(moderate_mails,'[%|loc %]You should probably not reject message detected as spam with notification because the message sender is probably spoofed. Do you really want to reject thoses messages with notification ?[%END%]')" />
+  <input class="MainMenuLinks" type="submit" name="action_reject" value="[%|loc%]Notified reject[%END%]" />
 [% IF conf.use_blacklist != 'none' %]
   <input class="MainMenuLinks" type="submit" name="action_reject.quiet.blacklist" value="[%|loc%]Reject and blacklist sender[%END%]" />
   <input class="MainMenuLinks" type="submit" name="action_blacklist" value="[%|loc%]edit blacklist[%END%]" />
@@ -34,11 +34,8 @@
 
  <table summary="[%|loc%]Listing messages to moderate[%END%]" class="listOfItems">
       <tr>
-     [%- IF conf.antispam_feature == 'on' -%]
-	<th colspan="2">X</th>	
-     [%- ELSE -%]
+
 	<th>X</th>
-     [%- END -%]
         <th>[%|loc%]Date[%END%]</th>
 	<th>[%|loc%]Author[%END%]</th>
 	<th>[%|loc%]Subject[%END%]</th>
@@ -52,17 +49,10 @@
 	  [% dark = '1' %]
           <tr class="color0">
 	[% END %]
+
          <td>
-	[%- IF msg.value.spam_status == 'spam' -%][% idname = 'idspam' %][% therissomespam = '1' %][% ELSE %][% idname = 'id' %][% therissomeham = '1' %][% END %]
-            <input type="checkbox" name="[% idname %]" value="[% msg.key %]" />
+            <input type="checkbox" name="id" value="[% msg.key %]" />
 	 </td>
-        [%- IF conf.antispam_feature == 'on' -%]	
-	 <td>
-	  [%- IF msg.value.spam_status == 'spam' -%]<img src="[% icons_url %]/junk.png" alt="junk" />
-	  [%- ELSE -%]&nbsp;
-	  [%- END -%]
-	[%- END -%]
-	</td>
 	  <td>
 	    [% IF msg.value.date %]
 	      [% msg.value.date %]
@@ -95,11 +85,8 @@
 [% END %]
 <br />
 [% END %]
-   <input class="MainMenuLinks" type="button" value="[%|loc%]Toggle Selection[%END%]" onclick="toggle_selection(document.moderate_mails.id); toggle_selection(document.moderate_mails.idspam)" />
-[%- IF therissomespam  -%]
-   <input class="MainMenuLinks" type="button" value="[%|loc%]Toggle spams[%END%]" onclick="toggle_selection(document.moderate_mails.idspam)" />
-[%- END -%]
-<br />
+
+   <input class="MainMenuLinks" type="button" value="[%|loc%]Toggle Selection[%END%]" onclick="toggle_selection(document.moderate_mails.id)" /><br />
 
 </fieldset>
 </form>
