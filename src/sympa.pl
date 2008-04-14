@@ -33,7 +33,6 @@ use File::Path;
 use Commands;
 use Conf;
 use Auth;
-use SympaSession;
 use Language;
 use Log;
 use Version;
@@ -84,7 +83,6 @@ Options:
    --dump=list\@dom|ALL                  : dumps subscribers 
    --make_alias_file                     : create file in /tmp with all aliases (usefull when aliases.tpl is changed)
    --lowercase                           : lowercase email addresses in database
-   --md5_encode_password                 : rewrite password in database using md5 fingerprint. YOU CAN'T UNDO unless you save this table first
    --create_list --robot=robot_name --input_file=/path/to/file.xml 
                                          : create a list with the xml file under robot_name
    --instantiate_family=family_name  --robot=robot_name --input_file=/path/to/file.xml [--close_unknown] [--quiet]
@@ -121,7 +119,7 @@ encryption.
 ## Check --dump option
 my %options;
 unless (&GetOptions(\%main::options, 'dump=s', 'debug|d', ,'log_level=s','foreground', 'service=s','config|f=s', 
-		    'lang|l=s', 'mail|m', 'keepcopy|k=s', 'help', 'version', 'import=s','make_alias_file','lowercase','md5_encode_password',
+		    'lang|l=s', 'mail|m', 'keepcopy|k=s', 'help', 'version', 'import=s','make_alias_file','lowercase',
 		    'close_list=s','purge_list=s','create_list','instantiate_family=s','robot=s','add_list=s','modify_list=s','close_family=s','md5_digest=s',
 		    'input_file=s','sync_include=s','upgrade','from=s','to=s','reload_list_config','list=s','quiet','close_unknown')) {
     &fatal_err("Unknown options.");
@@ -137,7 +135,6 @@ $main::options{'batch'} = 1 if ($main::options{'dump'} ||
 				$main::options{'import'} || 
 				$main::options{'make_alias_file'} ||
 				$main::options{'lowercase'} ||
-				$main::options{'md5_encode_password'} ||
 				$main::options{'close_list'} ||
 				$main::options{'purge_list'} ||
 				$main::options{'create_list'} ||
@@ -465,17 +462,6 @@ if ($main::options{'dump'}) {
     printf STDERR "Total imported subscribers: %d\n", $total;
 
     exit 0;
-}elsif ($main::options{'md5_encode_password'}) {
-
-    unless ($List::use_db) {
-	&fatal_err("You don't have a database setup, can't lowercase email addresses");
-    }
-    
-    my $total=&Upgrade::md5_encode_password();
-    printf STDERR "Total password re-encoded using md5: %d\n", $total;
-    
-    exit 0;
-    
 }elsif ($main::options{'lowercase'}) {
     
     unless ($List::use_db) {
@@ -1518,12 +1504,6 @@ sub DoForward {
     my $hdr = $msg->head;
     my $messageid = $hdr->get('Message-Id');
     my $msg_string = $msg->as_string;
-
-    if ($msg->{'spam_status'} eq 'spam'){
-	&do_log('notice', "Message for %s-%s ignored, because tagued as spam (Message-id: %s)",$name, $function,$messageid);
-	return undef;
-    }
-
     ##  Search for the list
     my ($list, $admin, $host, $recepient, $priority);
 
@@ -1533,7 +1513,7 @@ sub DoForward {
 	$priority = 0;
     }else {
 	unless ($list = new List ($name, $robot)) {
-	    &do_log('notice', "Message for %s-%s ignored, unknown list %s (Message-id: %s)",$name, $function, $name,$messageid);
+	    &do_log('notice', "Message for %s-%s ignored, unknown list %s",$name, $function, $name );
 	    my $sender = $hdr->get('From');
 	    chomp $sender;
 	    my $sympa_email = &Conf::get_robot_conf($robot, 'sympa');
@@ -1556,7 +1536,7 @@ sub DoForward {
 
     my @rcpt;
     
-    &do_log('info', "Processing message for %s with priority %s, (Message-id:%s)", $recepient, $priority, $messageid );
+    &do_log('info', "Processing message for %s with priority %s, %s", $recepient, $priority, $messageid );
     
     $hdr->add('X-Loop', "$name-$function\@$host");
     $hdr->delete('X-Sympa-To');
@@ -1584,7 +1564,7 @@ sub DoForward {
     ## Did we find a recipient?
     if ($#rcpt < 0) {
 	if ($function ne "listmaster") {
-	    &do_log('err', "No recipient available for %s-%s in list %s. Trying to proceed ignoring nomail option (message-id %s)", $name, $function, $name,$messageid);
+	    &do_log('err', "No recipient available for %s-%s in list %s. Trying to proceed ignoring nomail option", $name, $function, $name);
 	    
 	    if ($function eq "request") {
 		@rcpt = $list->get_owners_email({'ignore_nomail',1});
@@ -1866,8 +1846,7 @@ sub DoMessage{
 
 	&do_log('info', 'Key %s for list %s from %s sent to editors, %s', $key, $listname, $sender, $message->{'filename'});
 	
-	# do not report to the sender if the message was tagued as a spam
-	unless (($2 eq 'quiet')||($message->{'spam_status'} eq 'spam')) {
+	unless ($2 eq 'quiet') {
 	    unless (&report::notice_report_msg('moderating_message',$sender,{'message' => $message},$robot,$list)) {
 		&do_log('notice',"sympa::DoMessage(): Unable to send template 'message_report', entry 'moderating_message' to $sender");
 	    }
@@ -1885,8 +1864,7 @@ sub DoMessage{
 
 	&do_log('info', 'Message for %s from %s sent to editors', $listname, $sender);
 	
-	# do not report to the sender if the message was tagued as a spam
-	unless (($2 eq 'quiet')||($message->{'spam_status'} eq 'spam')) {
+	unless ($2 eq 'quiet') {
 	    unless (&report::notice_report_msg('moderating_message',$sender,{'message' => $message},$robot,$list)) {
 		&do_log('notice',"sympa::DoMessage(): Unable to send template 'message_report', type 'success', entry 'moderating_message' to $sender");
 	    }
@@ -1895,9 +1873,7 @@ sub DoMessage{
     }elsif($action =~ /^reject(,(quiet))?/) {
 
 	&do_log('notice', 'Message for %s from %s rejected(%s) because sender not allowed', $listname, $sender, $result->{'tt2'});
-
-	# do not report to the sender if the message was tagued as a spam
-	unless (($2 eq 'quiet')||($message->{'spam_status'} eq 'spam')) {
+	unless ($2 eq 'quiet') {
 	    if (defined $result->{'tt2'}) {
 		unless ($list->send_file($result->{'tt2'}, $sender, $robot, {})) {
 		    &do_log('notice',"sympa::DoMessage(): Unable to send template '$result->{'tt2'}' to $sender");
@@ -1954,11 +1930,6 @@ sub DoCommand {
     &do_log('debug', "Processing command with priority %s, %s", $Conf{'sympa_priority'}, $messageid );
     
     my $sender = $message->{'sender'};
-
-    if ($msg->{'spam_status'} eq 'spam'){
-	&do_log('notice', "Message for robot %s@%s ignored, because tagued as spam (Message-id: %s)",$rcpt,$robot,$messageid);
-	return undef;
-    }
 
     ## Detect loops
     if ($msgid_table{'sympa@'.$robot}{$messageid}) {

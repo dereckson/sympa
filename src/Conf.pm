@@ -60,9 +60,7 @@ my @valid_options = qw(
 		       spool queue queuedistribute queueauth queuetask queuebounce queuedigest queueautomatic
 		       queuemod queuetopic queuesubscribe queueoutgoing tmpdir lock_method
 		       loop_command_max loop_command_sampling_delay loop_command_decrease_factor loop_prevention_regex
-		       purge_user_table_task purge_logs_table_task 
-		       purge_session_table_task session_table_ttl anonymous_session_table_ttl 
-                       purge_one_time_ticket_table_task one_time_ticket_table_ttl
+		       purge_user_table_task purge_logs_table_task purge_session_table_task session_table_ttl anonymous_session_table_ttl
                        purge_orphan_bounces_task eval_bouncers_task process_bouncers_task
 		       minimum_bouncing_count minimum_bouncing_period bounce_delay 
 		       default_bounce_level1_rate default_bounce_level2_rate 
@@ -76,8 +74,7 @@ my @valid_options = qw(
 		       ldap_export_name ldap_export_host ldap_export_suffix ldap_export_password
 		       ldap_export_dnmanager ldap_export_connection_timeout update_db_field_types urlize_min_size
 		       list_check_smtp list_check_suffixes filesystem_encoding spam_protection web_archive_spam_protection soap_url
-		       use_blacklist 
-		       antispam_feature antispam_tag_header_name antispam_tag_header_spam_regexp antispam_tag_header_ham_regexp
+		       use_blacklist
 );
 
 my %old_options = ('trusted_ca_options' => 'capath,cafile',
@@ -230,8 +227,6 @@ my %Default_Conf =
      'logs_expiration_period' => 3, #3 months
      'purge_session_table_task' => 'daily',
      'session_table_ttl' => '2d', #
-     'purge_one_time_ticket_table_task' => 'daily',
-     'one_time_ticket_table_ttl' => '10d', #
      'anonymous_session_table_ttl' => '1h', #
      'purge_challenge_table_task' => 'daily',
      'challenge_table_ttl' => '5d', # 
@@ -277,11 +272,7 @@ my %Default_Conf =
      'cache_list_config' => 'none', ## none | binary_file
      'lock_method' => 'flock', ## flock | nfs
      'ignore_x_no_archive_header_feature' => 'off',
-     'alias_manager' => '--SBINDIR--/alias_manager.pl',
-     'antispam_feature' => 'off',
-     'antispam_tag_header_name' => 'X-Spam-Status',
-     'antispam_tag_header_spam_regexp' => '^\s*Yes',
-     'antispam_tag_header_ham_regexp' => '^\s*No'
+     'alias_manager' => '--SBINDIR--/alias_manager.pl'
      );
    
 
@@ -751,15 +742,10 @@ sub checkfiles_as_root {
 	print ALIASES "## You should edit your sendmail.mc or sendmail.cf file to declare it\n";
 	close ALIASES;
 	&do_log('notice', "Created missing file %s", $Conf{'sendmail_aliases'});
-	unless (&tools::set_file_rights(file => $Conf{'sendmail_aliases'},
-					user => '--USER--',
-					group => '--GROUP--',
-					mode => 0644,
-					))
-	{
-	    &do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	    return undef;
-	}
+	`chown --USER-- $Conf{'sendmail_aliases'}`;
+	`chgrp --GROUP-- $Conf{'sendmail_aliases'}`;
+	chmod 0644, $Conf{'sendmail_aliases'}
+	
     }
 
     foreach my $robot (keys %{$Conf{'robots'}}) {
@@ -773,14 +759,9 @@ sub checkfiles_as_root {
 		$config_err++;
 	    }
 
-	    unless (&tools::set_file_rights(file => $dir,
-					    user => '--USER--',
-					    group => '--GROUP--',
-					    ))
-	    {
-		&do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-		return undef;
-	    }
+	    # printf STDERR 'created directory %s',$Conf{'static_content_path'};
+	    `chown --USER-- $dir`;
+	    `chgrp --GROUP-- $dir`;
 	}
     }
 
@@ -1084,8 +1065,7 @@ sub _load_auth {
 					    'force_email_verify' => '1',
 					    'internal_email_by_netid' => '1',
 					    'netid_http_header' => '\w+',
-					},
-			  'authentication_info_url' => 'http(s)?:/.*'
+					}
 			  );
     
 
@@ -1107,10 +1087,7 @@ sub _load_auth {
 	$line_num++;
 	next if (/^\s*[\#\;]/o);		
 
-	if (/^\s*authentication_info_url\s+(.*\S)\s*$/o){
-	    $Conf{'authentication_info_url'}{$robot} = $1;
-	    next;
-	}elsif (/^\s*(ldap|cas|user_table|generic_sso)\s*$/io) {
+	if (/^\s*(ldap|cas|user_table|generic_sso)\s*$/io) {
 	    $current_paragraph->{'auth_type'} = lc($1);
 	}elsif (/^\s*(\S+)\s+(.*\S)\s*$/o){
 	    my ($keyword,$value) = ($1,$2);
