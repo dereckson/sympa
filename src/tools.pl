@@ -68,40 +68,6 @@ my %openssl_errors = (1 => 'an error occurred parsing the command options',
 		      4 => 'an error occurred decrypting or verifying the message',
 		      5 => 'the message was verified correctly but an error occurred writing out the signers certificates');
 
-## Sets owner and/or access rights on a file.
-sub set_file_rights {
-    my %param = @_;
-    my ($uid, $gid);
-
-    if ($param{'user'}){
-	unless ($uid = (getpwnam($param{'user'}))[2]) {
-	    &do_log('err', "User %s can't be found in passwd file",$param{'user'});
-	    return undef;
-	}
-    }else {
-	$uid = -1;# "A value of -1 is interpreted by most systems to leave that value unchanged".
-    }
-    if ($param{'group'}) {
-	unless ($gid = (getgrnam($param{'group'}))[2]) {
-	    &do_log('err', "Group %s can't be found",$param{'group'});
-	    return undef;
-	}
-    }else {
-	$gid = -1;# "A value of -1 is interpreted by most systems to leave that value unchanged".
-    }
-    unless (chown($uid,$gid, $param{'file'})){
-	&do_log('err', "Can't give ownership of file %s to %s.%s: %s",$param{'file'},$param{'user'},$param{'group'}, $!);
-	return undef;
-    }
-    if ($param{'mode'}){
-	unless (chmod($param{'mode'}, $param{'file'})){
-	    &do_log('err', "Can't change rights of file %s: %s",$Conf{'db_name'}, $!);
-	    return undef;
-	}
-    }
-    return 1;
-}
-
 ## Returns an HTML::StripScripts::Parser object built with  the parameters provided as arguments.
 sub _create_xss_parser {
     my %parameters = @_;
@@ -493,14 +459,14 @@ sub mk_parent_dir {
     my $file = shift;
     $file =~ /^(.*)\/([^\/])*$/ ;
     my $dir = $1;
-
-    return 1 if (-d $dir);
-    &mkdir_all($dir, 0755);
+    return if (-d $dir);
+    return undef unless (mkdir ($dir, 0755));
 }
 
 ## Recursively create directory and all parent directories
 sub mkdir_all {
     my ($path, $mode) = @_;
+
     my $status = 1;
 
     ## Change umask to fully apply modes of mkdir()
@@ -2241,9 +2207,12 @@ sub is_a_crawler {
 }
 
 sub write_pid {
-    my ($pidfile, $pid, $options) = @_;
+    my ($pidfile, $pid) = @_;
 
-   my $piddir = $pidfile;
+    my $uid = (getpwnam('--USER--'))[2];
+    my $gid = (getgrnam('--GROUP--'))[2];
+
+    my $piddir = $pidfile;
     $piddir =~ s/\/[^\/]+$//;
 
     ## Create piddir
@@ -2251,14 +2220,7 @@ sub write_pid {
 	mkdir $piddir, 0755;
     }
     
-    unless (&tools::set_file_rights(file => $piddir,
-				    user => '--USER--',
-				    group => '--GROUP--',
-				    ))
-    {
-	&do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	return undef;
-    }
+    chown $uid, $gid, $piddir;
 
     ## If pidfile exists, read the PID and get date
     my ($other_pid);
@@ -2304,28 +2266,12 @@ sub write_pid {
     print LCK "$pid\n";
     close(LCK);
     
-    unless (&tools::set_file_rights(file => $pidfile,
-				    user => '--USER--',
-				    group => '--GROUP--',
-				    ))
-    {
-	&do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	return undef;
-    }
+    chown $uid, $gid, $pidfile;
 
     ## Error output is stored in a file with PID-based name
     ## Usefull if process crashes
-    unless ($options->{'stderr_to_tty'}) {
-      open(STDERR, '>>',  $Conf{'tmpdir'}.'/'.$pid.'.stderr') unless ($main::options{'foreground'});
-      unless (&tools::set_file_rights(file => $Conf{'tmpdir'}.'/'.$pid.'.stderr',
-				      user => '--USER--',
-				      group => '--GROUP--',
-				     ))
-	{
-	  &do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	  return undef;
-	}
-    }
+    open(STDERR, '>>',  $Conf{'tmpdir'}.'/'.$pid.'.stderr') unless ($main::options{'foreground'});
+    chown $uid, $gid, $Conf{'tmpdir'}.'/'.$pid.'.stderr';
 
     return 1;
 }

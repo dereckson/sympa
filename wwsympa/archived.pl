@@ -83,7 +83,7 @@ $adrlist = {};
 # Load WWSympa configuration
 unless ($wwsconf = &wwslib::load_config($wwsympa_conf)) {
     print STDERR 'unable to load config file';
-    exit -1;
+    exit;
 }
 
 # Load sympa.conf
@@ -96,15 +96,7 @@ if ($wwsconf->{'arc_path'}) {
     unless (-d $wwsconf->{'arc_path'}) {
 	printf STDERR "Creating missing %s directory\n", $wwsconf->{'arc_path'};
 	mkdir $wwsconf->{'arc_path'}, 0775;
-	unless (&tools::set_file_rights(file => $wwsconf->{'arc_path'},
-					 user => '--USER--',
-					 group => '--GROUP--',
-					 mode => 0775,
-					 ))
-	{
-	    &do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	    exit -1;
-	}
+	chown '--USER--', '--GROUP--', $wwsconf->{'arc_path'};
     }
 }
 
@@ -129,12 +121,8 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
    }
 }
 
-## If process is running in foreground, don't write STDERR to a dedicated file
-my $options;
-$options->{'stderr_to_tty'} = 1 if ($main::options{'foreground'});
-
 ## Create and write the pidfile
-&tools::write_pid($wwsconf->{'archived_pidfile'}, $$, $options);
+&tools::write_pid($wwsconf->{'archived_pidfile'}, $$);
 
 # setting log_level using conf unless it is set by calling option
 if ($main::options{'log_level'}) {

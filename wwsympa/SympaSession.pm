@@ -295,59 +295,6 @@ sub purge_old_sessions {
     return $total+$anonymous_total;
 }
 
-
-## remove old one_time_ticket from a particular robot or from all robots. delay is a parameter in seconds
-## 
-sub purge_old_tickets {
-
-    my $robot = shift;
-
-    do_log('info', 'SympaSession::purge_old_tickets(%s,%s)',$robot);
-
-    my $delay = &tools::duration_conv($Conf{'one_time_ticket_table_ttl'}) ; 
-
-    unless ($delay) { do_log('info', 'SympaSession::purge_old_tickets(%s) exit with delay null',$robot); return;}
-
-    my @tickets ;
-    my  $sth;
-
-    my $dbh = &List::db_get_handler();
-
-    my $robot_condition = sprintf "robot_one_time_ticket = %s", $dbh->quote($robot) unless (($robot eq '*')||($robot));
-    my $delay_condition = time-$delay.' > date_one_time_ticket' if ($delay);
-    my $and = ' AND ' if (($delay_condition) && ($robot_condition));
-    my $count_statement = sprintf "SELECT count(*) FROM one_time_ticket_table WHERE $robot_condition $and $delay_condition";
-    my $statement = sprintf "DELETE FROM one_time_ticket_table WHERE $robot_condition $and $delay_condition";
-
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &List::db_connect();
-    }	   
-    unless ($sth = $dbh->prepare($count_statement)) {
-	do_log('err','Unable to prepare SQL statement %s : %s',$count_statement, $dbh->errstr);
-	return undef;
-    }
-    
-    unless ($sth->execute) {
-	do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-	return undef;
-    }    
-    my $total =  $sth->fetchrow;
-    if ($total == 0) {
-	do_log('debug','SympaSession::purge_old_tickets no tickets to expire');
-    }else{
-	unless ($sth = $dbh->prepare($statement)) {
-	    do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
-	    return undef;
-	}
-	unless ($sth->execute) {
-	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-	    return undef;
-	}    
-    }
-    return $total;
-}
-
 # list sessions for $robot where last access is newer then $delay. List is limited to connected users if $connected_only
 sub list_sessions {
     my $delay = shift;
@@ -466,18 +413,6 @@ sub get_random {
      my $random = int(rand(10**7)).int(rand(10**7)); ## Concatenates 2 integers for a better entropy
      $random =~ s/^0(\.|\,)//;
      return ($random)
-}
-
-## Return the session object content, as a hashref
-sub as_hashref {
-  my $self = shift;
-  my $data;
-  
-  foreach my $key (keys %{$self}) {
-    $data->{$key} = $self->{$key};
-  }
-  
-  return $data;
 }
 
 1;

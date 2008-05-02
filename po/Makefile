@@ -9,8 +9,8 @@ MOFILES = $(MOBASICFILES) $(MOHELPFILES)
 DEPENDON = $(shell cd .. ; ls src/*.p? wwsympa/wwsympa.fcgi wwsympa/*.p? web_tt2/*.tt2 mail_tt2/*.tt2 src/etc/mhonarc-ressources.tt2 src/etc/scenari/*)
 
 MSGMERGE = msgmerge
-MSGCAT = msgcat
 MSGFMT   = msgfmt
+MSGCAT   = msgcat
 MSGATTRIB = msgattrib
 XGETTEXT = po/xgettext.pl
 
