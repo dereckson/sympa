@@ -29,7 +29,7 @@ lib_SRC		=	admin.pm Archive.pm Commands.pm Conf.pm CAS.pm Config_XML.pm \
 			Family.pm Language.pm List.pm Log.pm mail.pm Ldap.pm Upgrade.pm \
 			tools.pl Version.pm Fetch.pm Message.pm Task.pm Datasource.pm SQLSource.pm \
 			LDAPSource.pm Scenario.pm \
-			PlainDigest.pm tt2.pl report.pm time_utils.pl Lock.pm
+			PlainDigest.pm tt2.pl parser.pl report.pm time_utils.pl Lock.pm
 
 libexec_SRC	=	aliaswrapper virtualwrapper
 
@@ -235,7 +235,6 @@ subst:
 		VIRTUAL_ALIASES=$(VIRTUAL_ALIASES); export VIRTUAL_ALIASES;\
 		SPOOLDIR=$(SPOOLDIR); export SPOOLDIR;\
 		COOKIE=$(COOKIE); export COOKIE;\
-		OPENSSL=$(OPENSSL); export OPENSSL;\
 		$(PERL) ../subst.pl $(sbin_SRC) \
 	)
 	@echo "Doing multiple substitutions while installing libraries ..."

@@ -8,4 +8,3 @@ the subscriber database. The list is no longer public on the site.[%END%]
 [% ELSE %]
  [%|loc%]You should remove list aliases manually[%END%]
 [% END %]
-<!-- end close_list.tt2 -->

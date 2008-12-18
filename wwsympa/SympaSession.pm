@@ -37,15 +37,7 @@ use strict ;
 
 
 # this structure is used to define which session attributes are stored in a dedicated database col where others are compiled in col 'data_session'
-my %session_hard_attributes = ('id_session' => 1, 
-			       'date' => 1, 
-			       'remote_addr'  => 1,
-			       'robot'  => 1,
-			       'email' => 1, 
-			       'start_date' => 1, 
-			       'hit' => 1,
-			       'new_session' => 1,
-			      );
+my %session_hard_attributes = ('id_session' => 1, 'date' => 1, 'remote_addr'  => 1,'robot'  => 1,'email' => 1, 'start_date' => 1, 'hit' => 1);
 
 
 sub new {
@@ -78,23 +70,20 @@ sub new {
     # if a session cookie exist, try to restore an existing session, don't store sessions from bots
     if (($cookie)&&($session->{'passive_session'} != 1)){
 	my $status ;
-	$status = $session->load($cookie);
+	$status = $session->load($cookie) ;
 	unless (defined $status) {
 	    return undef;
 	}
 	if ($status eq 'not_found') {
-	    do_log('info',"SympaSession::new ignoring unknown session cookie '$cookie'" ); # start a new session (may ne a fake cookie)
+	    do_log('info','SympaSession::new ignoring unknown session cookie'); # start a new session (may ne a fake cookie)
 	    return (new SympaSession ($robot));
 	}
-	# checking if the client host is unchanged during the session brake sessions when using multiple proxy with
-        # load balancing (round robin, etc). This check is removed until we introduce some other method
-	# if($session->{'remote_addr'} ne $ENV{'REMOTE_ADDR'}){
-	#    do_log('info','SympaSession::new ignoring session cookie because remote host %s is not the original host %s', $ENV{'REMOTE_ADDR'},$session->{'remote_addr'}); # start a new session
-	#    return (new SympaSession ($robot));
-	#}
+	if($session->{'remote_addr'} ne $ENV{'REMOTE_ADDR'}){
+	    do_log('info','SympaSession::new ignoring session cookie because remote host %s is not the original host %s', $ENV{'REMOTE_ADDR'},$session->{'remote_addr'}); # start a new session
+	    return (new SympaSession ($robot));
+	}
     }else{
 	# create a new session context
-      $session->{'new_session'} = 1; ## Tag this session as new, ie no data in the DB exist
         $session->{'id_session'} = &get_random();
 	$session->{'email'} = 'nobody';
         $session->{'remote_addr'} = $ENV{'REMOTE_ADDR'};
@@ -120,8 +109,12 @@ sub load {
     
     my $statement ;
 
-    $statement = "SELECT id_session AS id_session, date_session AS date, remote_addr_session AS remote_addr, robot_session AS robot, email_session AS email, data_session AS data, hit_session AS hit, start_date_session AS start_date FROM session_table WHERE id_session = ?";
-
+    if ($Conf{'db_type'} eq 'Oracle') {
+	## "AS" not supported by Oracle
+	$statement = "SELECT id_session \"id_session\", date_session \"date\", remote_addr_session \"remote_addr\", robot_session \"robot\", email_session \"email\", data_session \"data\", hit_session \"hit\", start_date_session \"start_date\" FROM session_table WHERE id_session = ?";
+    }else {
+	$statement = "SELECT id_session AS id_session, date_session AS date, remote_addr_session AS remote_addr, robot_session AS robot, email_session AS email, data_session AS data, hit_session AS hit, start_date_session AS start_date FROM session_table WHERE id_session = ?";
+    }    
     my $dbh = &List::db_get_handler();
     my $sth;
 
@@ -158,11 +151,11 @@ sub load {
     return ($self);
 }
 
-## This method will both store the session information in the database
+
 sub store {
 
     my $self = shift;
-    do_log('debug', '');
+    do_log('debug', 'SympaSession::store()');
 
     return undef unless ($self->{'id_session'});
     return if ($self->{'is_a_crawler'}); # do not create a session in session table for crawlers; 
@@ -183,71 +176,39 @@ sub store {
 	return undef unless &List::db_connect();
     }	   
 
-    ## If this is a new session, then perform an INSERT
-    if ($self->{'new_session'}) {
+#    my $count_statement = sprintf "SELECT count(*) FROM session_table WHERE (id_session=%s)",$self->{'id_session'};
+#    
+#    unless ($sth = $dbh->prepare($count_statement)) {
+#      	do_log('err','Unable to prepare SQL statement %s : %s',$count_statement, $dbh->errstr);
+#	return undef;
+#    }
+#    
+#    unless ($sth->execute) {
+#	do_log('err','Unable to execute SQL statement "%s" : %s', $count_statement, $dbh->errstr);
+#	return undef;
+#    }    
+#    my $total =  $sth->fetchrow;
+#    if ($total != 0) {
+#	my $del_statement = sprintf "DELETE FROM session_table WHERE (id_session=%s)",$self->{'id_session'};
+#	do_log('debug3', 'SympaSession::store() : removing existing Session del_statement = %s',$del_statement);	
+#	unless ($dbh->do($del_statement)) {
+#	    do_log('info','SympaSession::store unable to remove existing session %s to update it',$self->{'id_session'});
+#	    return undef;
+#	}	
+#    }
 
-      ## Store the new session ID in the DB
-      my $add_statement = sprintf "INSERT INTO session_table (id_session, date_session, remote_addr_session, robot_session, email_session, start_date_session, hit_session, data_session) VALUES (%s,%d,%s,%s,%s,%d,%d,%s)",$dbh->quote($self->{'id_session'}),time,$dbh->quote($ENV{'REMOTE_ADDR'}),$dbh->quote($self->{'robot'}),$dbh->quote($self->{'email'}),$self->{'start_date'},$self->{'hit'}, $dbh->quote($data_string);
-      
-      unless ($dbh->do($add_statement)) {
+    my $del_statement = sprintf "DELETE FROM session_table WHERE (id_session=%s)",$self->{'id_session'};
+    unless ($dbh->do($del_statement)) {
+	    do_log('debug3','SympaSession::store unable to remove session %s, new session ?',$self->{'id_session'});
+	}	 
+    # in order to prevent session hijacking, the session_id (used as http cookie) is renewed for each clic
+    $self->{'id_session'} = &get_random();
+
+    my $add_statement = sprintf "INSERT INTO session_table (id_session, date_session, remote_addr_session, robot_session, email_session, start_date_session, hit_session, data_session) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s')",$self->{'id_session'},time,$ENV{'REMOTE_ADDR'},$self->{'robot'},$self->{'email'},$self->{'start_date'},$self->{'hit'}, $data_string;
+    unless ($dbh->do($add_statement)) {
 	do_log('err','Unable to update session information in database while execute SQL statement "%s" : %s', $add_statement, $dbh->errstr);
 	return undef;
-      }    
-
-      ## If the session already exists in DB, then perform an UPDATE
-    }else {
-      
-      ## Update the new session in the DB
-      my $update_statement = sprintf "UPDATE session_table SET date_session=%d, remote_addr_session=%s, robot_session=%s, email_session=%s, start_date_session=%d, hit_session=%d, data_session=%s WHERE (id_session=%s)",time,$dbh->quote($ENV{'REMOTE_ADDR'}),$dbh->quote($self->{'robot'}),$dbh->quote($self->{'email'}),$self->{'start_date'},$self->{'hit'}, $dbh->quote($data_string), $dbh->quote($self->{'id_session'});
-      
-      unless ($dbh->do($update_statement)) {
-	do_log('err','Unable to update session information in database while execute SQL statement "%s" : %s', $update_statement, $dbh->errstr);
-	return undef;
-      }    
-    }
-
-    return 1;
-}
-
-## This method will renew the session ID 
-sub renew {
-
-    my $self = shift;
-    do_log('debug', '');
-
-    return undef unless ($self->{'id_session'});
-    return if ($self->{'is_a_crawler'}); # do not create a session in session table for crawlers; 
-    return if ($self->{'passive_session'}); # do not create a session in session table for action such as RSS or CSS or wsdlthat do not require this sophistication; 
-
-    my %hash ;    
-    foreach my $var (keys %$self ) {
-	next if ($session_hard_attributes{$var});
-	next unless ($var);
-	$hash{$var} = $self->{$var};
-    }
-    my $data_string = &tools::hash_2_string (\%hash);
-    my $dbh = &List::db_get_handler();
-    my $sth;
-
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &List::db_connect();
-    }	   
-
-    ## Renew the session ID in order to prevent session hijacking
-    my $new_id = &get_random();
-
-    ## First remove the DB entry for the previous session ID
-    my $update_statement = sprintf "UPDATE session_table SET id_session=%s WHERE (id_session=%s)",$dbh->quote($new_id), $dbh->quote($self->{'id_session'});
-    unless ($dbh->do($update_statement)) {
-      do_log('err','Unable to renew session ID for session %s',$self->{'id_session'});
-      return undef;
-    }	 
-
-    ## Renew the session ID in order to prevent session hijacking
-    $self->{'id_session'} = $new_id;
-
-    return 1;
+    }    
 }
 
 ## remove old sessions from a particular robot or from all robots. delay is a parameter in seconds
@@ -332,59 +293,6 @@ sub purge_old_sessions {
 	return undef;
     }    
     return $total+$anonymous_total;
-}
-
-
-## remove old one_time_ticket from a particular robot or from all robots. delay is a parameter in seconds
-## 
-sub purge_old_tickets {
-
-    my $robot = shift;
-
-    do_log('info', 'SympaSession::purge_old_tickets(%s,%s)',$robot);
-
-    my $delay = &tools::duration_conv($Conf{'one_time_ticket_table_ttl'}) ; 
-
-    unless ($delay) { do_log('info', 'SympaSession::purge_old_tickets(%s) exit with delay null',$robot); return;}
-
-    my @tickets ;
-    my  $sth;
-
-    my $dbh = &List::db_get_handler();
-
-    my $robot_condition = sprintf "robot_one_time_ticket = %s", $dbh->quote($robot) unless (($robot eq '*')||($robot));
-    my $delay_condition = time-$delay.' > date_one_time_ticket' if ($delay);
-    my $and = ' AND ' if (($delay_condition) && ($robot_condition));
-    my $count_statement = sprintf "SELECT count(*) FROM one_time_ticket_table WHERE $robot_condition $and $delay_condition";
-    my $statement = sprintf "DELETE FROM one_time_ticket_table WHERE $robot_condition $and $delay_condition";
-
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &List::db_connect();
-    }	   
-    unless ($sth = $dbh->prepare($count_statement)) {
-	do_log('err','Unable to prepare SQL statement %s : %s',$count_statement, $dbh->errstr);
-	return undef;
-    }
-    
-    unless ($sth->execute) {
-	do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-	return undef;
-    }    
-    my $total =  $sth->fetchrow;
-    if ($total == 0) {
-	do_log('debug','SympaSession::purge_old_tickets no tickets to expire');
-    }else{
-	unless ($sth = $dbh->prepare($statement)) {
-	    do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
-	    return undef;
-	}
-	unless ($sth->execute) {
-	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-	    return undef;
-	}    
-    }
-    return $total;
 }
 
 # list sessions for $robot where last access is newer then $delay. List is limited to connected users if $connected_only
@@ -505,18 +413,6 @@ sub get_random {
      my $random = int(rand(10**7)).int(rand(10**7)); ## Concatenates 2 integers for a better entropy
      $random =~ s/^0(\.|\,)//;
      return ($random)
-}
-
-## Return the session object content, as a hashref
-sub as_hashref {
-  my $self = shift;
-  my $data;
-  
-  foreach my $key (keys %{$self}) {
-    $data->{$key} = $self->{$key};
-  }
-  
-  return $data;
 }
 
 1;

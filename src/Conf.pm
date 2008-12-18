@@ -46,28 +46,26 @@ sub DAEMON_ALL {7};
 my @valid_options = qw(
 		       allow_subscribe_if_pending avg alias_manager bounce_warn_rate bounce_halt_rate bounce_email_prefix chk_cert_expiration_task expire_bounce_task
 		       cache_list_config
-		       clean_delay_queue clean_delay_queueauth clean_delay_queuemod clean_delay_queuesubscribe clean_delay_queueautomatic clean_delay_queuetopic clean_delay_queuebounce clean_delay_queueoutgoing clean_delay_tmpdir default_remind_task
+		       clean_delay_queue clean_delay_queueauth clean_delay_queuemod clean_delay_queuesubscribe clean_delay_queueautomatic clean_delay_queuetopic clean_delay_queuebounce clean_delay_queueother clean_delay_queueoutgoing clean_delay_tmpdir default_remind_task
 		       cookie cookie_cas_expire create_list automatic_list_feature automatic_list_creation automatic_list_removal crl_dir crl_update_task db_host db_env db_name db_timeout
 		       db_options db_passwd db_type db_user db_port db_additional_subscriber_fields db_additional_user_fields
 		       default_shared_quota default_archive_quota default_list_priority distribution_mode edit_list email etc
-		       global_remind home host ignore_x_no_archive_header_feature domain lang listmaster listmaster_email localedir log_socket_type log_level
-		       logo_html_definition 
+		       global_remind home host ignore_x_no_archive_header_feature domain lang listmaster listmaster_email localedir log_socket_type log_level 
+		       logo_html_definition logs_expiration_period
                        main_menu_custom_button_1_title main_menu_custom_button_1_url main_menu_custom_button_1_target 
                        main_menu_custom_button_2_title main_menu_custom_button_2_url main_menu_custom_button_2_target 
                        main_menu_custom_button_3_title main_menu_custom_button_3_url main_menu_custom_button_3_target  
                        misaddressed_commands misaddressed_commands_regexp max_size maxsmtp nrcpt 
 		       owner_priority pidfile pidfile_distribute pidfile_creation
 		       spool queue queuedistribute queueauth queuetask queuebounce queuedigest queueautomatic
-		       queuemod queuetopic queuesubscribe queueoutgoing tmpdir logs_expiration_period lock_method
+		       queuemod queuetopic queuesubscribe queueoutgoing tmpdir lock_method
 		       loop_command_max loop_command_sampling_delay loop_command_decrease_factor loop_prevention_regex
-		       purge_user_table_task purge_logs_table_task 
-		       purge_session_table_task session_table_ttl anonymous_session_table_ttl 
-                       purge_one_time_ticket_table_task one_time_ticket_table_ttl
+		       purge_user_table_task purge_logs_table_task purge_session_table_task session_table_ttl anonymous_session_table_ttl
                        purge_orphan_bounces_task eval_bouncers_task process_bouncers_task
 		       minimum_bouncing_count minimum_bouncing_period bounce_delay 
 		       default_bounce_level1_rate default_bounce_level2_rate 
 		       remind_return_path request_priority return_path_suffix rfc2369_header_fields sendmail sendmail_args sleep 
-		       sort sympa_priority supported_lang syslog log_smtp log_module log_condition umask verp_rate welcome_return_path wwsympa_url
+		       sort sympa_priority supported_lang syslog log_smtp umask verp_rate welcome_return_path wwsympa_url
                        openssl capath cafile  key_passwd ssl_cert_dir remove_headers remove_outgoing_headers
 		       antivirus_path antivirus_args antivirus_notify anonymous_header_fields sendmail_aliases
 		       dark_color light_color text_color bg_color error_color selected_color shaded_color
@@ -76,14 +74,12 @@ my @valid_options = qw(
 		       ldap_export_name ldap_export_host ldap_export_suffix ldap_export_password
 		       ldap_export_dnmanager ldap_export_connection_timeout update_db_field_types urlize_min_size
 		       list_check_smtp list_check_suffixes filesystem_encoding spam_protection web_archive_spam_protection soap_url
-		       use_blacklist 
-		       antispam_feature antispam_tag_header_name antispam_tag_header_spam_regexp antispam_tag_header_ham_regexp
+		       use_blacklist
 );
 
 my %old_options = ('trusted_ca_options' => 'capath,cafile',
 		   'msgcat' => 'localedir',
 		   'queueexpire' => '',
-		   'clean_delay_queueother' => '',
 		   'web_recode_to' => 'filesystem_encoding',
 		   );
 ## These parameters now have a hard-coded value
@@ -139,13 +135,12 @@ my %Default_Conf =
      'clean_delay_queuesubscribe' => 10,
      'clean_delay_queueautomatic' => 10,
      'clean_delay_queueauth' => 3,
-     'clean_delay_queuebounce'   => 10,
+     'clean_delay_queuebounce'   => 1,
+     'clean_delay_queueother'   => 30,
      'clean_delay_queueoutgoing'   => 1,
      'clean_delay_tmpdir'   => 7,
      'log_socket_type'      => 'unix',
      'log_smtp'      => '',
-     'log_module'      => '',
-     'log_condition'      => '',
      'remind_return_path' => 'owner',
      'welcome_return_path' => 'owner',
      'db_type' => '',
@@ -232,8 +227,6 @@ my %Default_Conf =
      'logs_expiration_period' => 3, #3 months
      'purge_session_table_task' => 'daily',
      'session_table_ttl' => '2d', #
-     'purge_one_time_ticket_table_task' => 'daily',
-     'one_time_ticket_table_ttl' => '10d', #
      'anonymous_session_table_ttl' => '1h', #
      'purge_challenge_table_task' => 'daily',
      'challenge_table_ttl' => '5d', # 
@@ -279,11 +272,7 @@ my %Default_Conf =
      'cache_list_config' => 'none', ## none | binary_file
      'lock_method' => 'flock', ## flock | nfs
      'ignore_x_no_archive_header_feature' => 'off',
-     'alias_manager' => '--SBINDIR--/alias_manager.pl',
-     'antispam_feature' => 'off',
-     'antispam_tag_header_name' => 'X-Spam-Status',
-     'antispam_tag_header_spam_regexp' => '^\s*Yes',
-     'antispam_tag_header_ham_regexp' => '^\s*No'
+     'alias_manager' => '--SBINDIR--/alias_manager.pl'
      );
    
 
@@ -494,18 +483,6 @@ sub load {
 	$Conf{'blacklist'}{$action} = 1;
     }
 
-    foreach my $log_module (split(/,/, $Conf{'log_module'})) {
-	$Conf{'loging_for_module'}{$log_module} = 1;
-    }
-    foreach my $log_condition (split(/,/, $Conf{'log_condition'})) {
-	chomp $log_condition;
-	if ($log_condition =~ /^\s*(ip|email)\s*\=\s*(.*)\s*$/i) { 	    
-	    $Conf{'loging_condition'}{$1} = $2;
-	}else{
-	    &do_log('err',"unrecognized log_condition token %s ; ignored",$log_condition);
-	}
-    }    
-
     $Conf{'listmaster'} =~ s/\s//g ;
     @{$Conf{'listmasters'}} = split(/,/, $Conf{'listmaster'});
 
@@ -592,8 +569,6 @@ sub load_robots {
 				  default_home    => 1,
 				  cookie_domain   => 1,
 				  log_smtp        => 1,
-				  log_module    => 1,
-				  log_condition    => 1,
 				  log_level       => 1,
 				  create_list     => 1,
 				  automatic_list_feature     => 1,
@@ -693,8 +668,6 @@ sub load_robots {
 	$robot_conf->{$robot}{'lang'} ||= $Conf{'lang'};
 	$robot_conf->{$robot}{'email'} ||= $Conf{'email'};
 	$robot_conf->{$robot}{'log_smtp'} ||= $Conf{'log_smtp'};
-	$robot_conf->{$robot}{'log_module'} ||= $Conf{'log_module'};
-	$robot_conf->{$robot}{'log_condition'} ||= $Conf{'log_module'};
 	$robot_conf->{$robot}{'log_level'} ||= $Conf{'log_level'};
 	$robot_conf->{$robot}{'wwsympa_url'} ||= 'http://'.$robot_conf->{$robot}{'http_host'}.'/sympa';
 
@@ -727,12 +700,6 @@ sub load_robots {
 	}else {
 	    ($host, $path) = ($robot_conf->{$robot}{'http_host'}, '/');
 	}
-
-	## Warn listmaster if another virtual host is defined with the same host+path
-	if (defined $Conf{'robot_by_http_host'}{$host}{$path}) {
-	  printf STDERR "Error: two virtual hosts (%s and %s) are mapped via a single URL '%s%s'", $Conf{'robot_by_http_host'}{$host}{$path}, $robot, $host, $path;
-	}
-
 	$Conf{'robot_by_http_host'}{$host}{$path} = $robot ;
 	
 	## Create a hash to deduce robot from SOAP url
@@ -775,15 +742,10 @@ sub checkfiles_as_root {
 	print ALIASES "## You should edit your sendmail.mc or sendmail.cf file to declare it\n";
 	close ALIASES;
 	&do_log('notice', "Created missing file %s", $Conf{'sendmail_aliases'});
-	unless (&tools::set_file_rights(file => $Conf{'sendmail_aliases'},
-					user => '--USER--',
-					group => '--GROUP--',
-					mode => 0644,
-					))
-	{
-	    &do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	    return undef;
-	}
+	`chown --USER-- $Conf{'sendmail_aliases'}`;
+	`chgrp --GROUP-- $Conf{'sendmail_aliases'}`;
+	chmod 0644, $Conf{'sendmail_aliases'}
+	
     }
 
     foreach my $robot (keys %{$Conf{'robots'}}) {
@@ -797,14 +759,9 @@ sub checkfiles_as_root {
 		$config_err++;
 	    }
 
-	    unless (&tools::set_file_rights(file => $dir,
-					    user => '--USER--',
-					    group => '--GROUP--',
-					    ))
-	    {
-		&do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-		return undef;
-	    }
+	    # printf STDERR 'created directory %s',$Conf{'static_content_path'};
+	    `chown --USER-- $dir`;
+	    `chgrp --GROUP-- $dir`;
 	}
     }
 
@@ -1108,8 +1065,7 @@ sub _load_auth {
 					    'force_email_verify' => '1',
 					    'internal_email_by_netid' => '1',
 					    'netid_http_header' => '\w+',
-					},
-			  'authentication_info_url' => 'http(s)?:/.*'
+					}
 			  );
     
 
@@ -1131,10 +1087,7 @@ sub _load_auth {
 	$line_num++;
 	next if (/^\s*[\#\;]/o);		
 
-	if (/^\s*authentication_info_url\s+(.*\S)\s*$/o){
-	    $Conf{'authentication_info_url'}{$robot} = $1;
-	    next;
-	}elsif (/^\s*(ldap|cas|user_table|generic_sso)\s*$/io) {
+	if (/^\s*(ldap|cas|user_table|generic_sso)\s*$/io) {
 	    $current_paragraph->{'auth_type'} = lc($1);
 	}elsif (/^\s*(\S+)\s+(.*\S)\s*$/o){
 	    my ($keyword,$value) = ($1,$2);

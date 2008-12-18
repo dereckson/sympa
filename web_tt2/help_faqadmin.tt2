@@ -1,5 +1,4 @@
-<!-- $Id$ -->
-
+<!-- RCS Identication ; $Revision$ ; $Date$ -->
 		<h3 class="block">[%|helploc%]Administrators Frequently Asked Questions[%END%]</h3>
 
 		<h4>[%|helploc%]A subscriber does not receive the list messages[%END%]</h4>
@@ -12,4 +11,3 @@
 			<li>[%|helploc%]As a last resort, <strong>contact the listmaster</strong>, who will check the mail server logs in order to find the cause of the problem.[%END%]</li>
 		</ol>
 
-<!-- end help_faqadmin.tt2 -->

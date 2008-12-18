@@ -56,4 +56,3 @@
         [% INSERT 'config' %]
 </pre>
 </div>
-<!-- end set_pending_list_request.tt2 -->

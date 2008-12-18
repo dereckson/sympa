@@ -1,7 +1,7 @@
 From: SYMPA <[% conf.email %]@[% conf.host %]>
 To: [% FILTER qencode %][%|loc%]Listmaster[%END%] <[% to %]>[%END%]
 [% IF type == 'request_list_creation' -%]
-Subject: [% FILTER qencode %][%|loc(list.name,list.host,email)%]List "%1@%2" creation request from %3[%END%][%END%]
+Subject: [% FILTER qencode %][%|loc(list.name)%]List "%1" creation request[%END%][%END%]
 
 [%|loc(email,list.name)%]%1 requested creation of list "%2"[%END%]
 
@@ -10,19 +10,16 @@ Subject: [% FILTER qencode %][%|loc(list.name,list.host,email)%]List "%1@%2" cre
 [% conf.wwsympa_url %]/info/[% list.name %]
 
 [%|loc%]To activate/delete this mailing list :[%END%]
-[% conf.wwsympa_url %]/ticket/[%one_time_ticket%]
+[% conf.wwsympa_url %]/get_pending_lists
+
 
 [% ELSIF type == 'request_list_renaming' -%]
 Subject: [% FILTER qencode %][%|loc(list.name)%]List "%1" renaming[%END%][%END%]
 
-[% IF is_a_copy %]
-[%|loc(email,list.name,new_listname)%]%1 has copied list "%2" as a new list "%3"[%END%]
-[% ELSE %]
 [%|loc(email,list.name,new_listname)%]%1 has renamed list "%2" to "%3"[%END%]
-[% END %]
 
 [%|loc%]To activate/delete this mailing list :[%END%]
-[% conf.wwsympa_url %]/ticket/[%one_time_ticket%]
+[% conf.wwsympa_url %]/get_pending_lists
 
 [% ELSIF type == 'no_db' -%]
 Subject: [% FILTER qencode %][%|loc%]No DataBase[%END%][%END%]
@@ -165,18 +162,10 @@ Subject: [% FILTER qencode %][%|loc(param0)%]list %1 in status error_config[%END
 [% ELSIF type == 'listowner_email_changed' -%]
 Subject: [% FILTER qencode %][%|loc(param0)%]List owner/editor email changes[%END%][%END%]
 
-[%|loc(previous_email,new_email)%]Member %1 has changed his owner/editor email address to %2. This change has been performed for the following lists :[%END%]
+[%|loc(previous_email,new_email)%]User %1 has changed his owner/editor email address to %2. This changed has been performed to the following lists :[%END%]
 [% FOREACH updated_list = updated_lists -%]
 [% updated_list %]
 [% END %]
-
-
-[% ELSIF type == 'failed_to_change_included_admin' -%]
-Subject: [% FILTER qencode %][%|loc(list.name)%]List %1 : Failed to change admin email address[%END%][%END%]
-
-[%|loc(current_email,new_email,datasource)%]Admin %1 could not change his admin email address (new email address is %2) because he is included via a the following data sources: %3.
-
-If you are able to do so, you should probably update these data sources with this person's new email address.[%END%]
 
 
 [% ELSIF type == 'error_copy_file' -%]

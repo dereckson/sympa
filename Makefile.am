@@ -129,6 +129,7 @@ VIRTUAL_ALIASES=	@VIRTUAL_ALIASES@
 OPENSSL	=	@OPENSSL@
 SSLCERTDIR =	$(EXPL_DIR)/X509-user-certs
 
+SH	=	@SH@
 CC	=	@CC@
 CFLAGS	=	-g
 
@@ -269,7 +270,7 @@ install: importantchanges installdir installsrc installwws installwebtt2 install
 nextstep: 
 	@echo ""
 	@echo "** You can find documentation at:"
-	@echo "** http://www.sympa.org/documentation/manual/sympa-$(SYMPA_VERSION).pdf"
+	@echo "** http://www.sympa.org/documentation/manual/sympa-$(VERSION).pdf"
 	@echo ""
 	@echo "#########################################################"
 	@echo "# If you install Sympa for the first time on this server"
@@ -325,7 +326,7 @@ installsrc:
 	ETCBINDIR='${ETCBINDIR}' ETCDIR='${ETCDIR}' SENDMAIL_ALIASES='${SENDMAIL_ALIASES}' \
 	VIRTUAL_ALIASES='${VIRTUAL_ALIASES}'  HOST='${HOST}' COOKIE='${COOKIE}' \
 	SPOOLDIR='${SPOOLDIR}' LOG_SOCKET_TYPE='${LOG_SOCKET_TYPE}' \
-	SSLCERTDIR='${SSLCERTDIR}' OPENSSL='${OPENSSL}' \
+	SSLCERTDIR='${SSLCERTDIR}' \
 	PODIR='${prefix}/po' \
 	USER='${USER}' GROUP='${GROUP}' newinstall) || exit 1;
 
