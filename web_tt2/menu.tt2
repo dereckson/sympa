@@ -1,5 +1,6 @@
 <!-- $Id$ -->
 
+<!-- begin menu.tt2 -->
 <div class="navBar printNone">
 <ul id="MainMenuLinks">	
 
@@ -35,5 +36,5 @@
 
 
 </div>
-
+<!-- </div> -->
 <!-- end menu.tt2 -->

@@ -133,7 +133,7 @@ sub parse {
 	  
 	   $cmd_line = $i;
 	   $status = & {$comms{$j}}($args, $robot, $sign_mod, $message);
-	   
+
 	   return $status ;
        }
    }
@@ -195,7 +195,6 @@ sub help {
 	$data->{'user'} =  &List::get_user_db($sender);
 	&Language::SetLang($data->{'user'}{'lang'}) if $data->{'user'}{'lang'};
 	$data->{'subject'} = gettext("User guide");
-	$data->{'auto_submitted'} = 'auto-replied';
 
 	unless(&List::send_global_file("helpfile", $sender, $robot, $data)){
 	    &do_log('notice',"Unable to send template 'helpfile' to $sender");
@@ -212,7 +211,6 @@ sub help {
 	$data->{'is_owner'} = 1 if ($#owner > -1);
 	$data->{'is_editor'} = 1 if ($#editor > -1);
 	$data->{'subject'} = gettext("User guide");
-	$data->{'auto_submitted'} = 'auto-replied';
 	unless (&List::send_global_file("helpfile", $sender, $robot, $data)){
 	    &do_log('notice',"Unable to send template 'helpfile' to $sender");
 	    &report::reject_report_cmd('intern_quiet','',{},$cmd_line,$sender,$robot);
@@ -272,8 +270,7 @@ sub lists {
 								     'who' => $sender,
 								     'cmd' => $cmd_line,
 								     'list' => $list,
-								     'action' => 'Command process',
-								     'auto_submitted' => 'auto-replied'});
+								     'action' => 'Command process'});
 	    next;
 	}
 
@@ -285,7 +282,6 @@ sub lists {
 
     my $data = {};
     $data->{'lists'} = $lists;
-    $data->{'auto_submitted'} = 'auto-replied';
     
     unless (&List::send_global_file('lists', $sender, $robot, $data)){
 	&do_log('notice',"Unable to send template 'lists' to $sender");
@@ -345,7 +341,7 @@ sub stats {
 
     if ($action =~ /reject/i) {
 	if (defined $result->{'tt2'}) {
-	    unless ($list->send_file($result->{'tt2'}, $sender, $robot, {'auto_submitted' => 'auto-replied'})) {
+	    unless ($list->send_file($result->{'tt2'}, $sender, $robot, {})) {
 		&do_log('notice',"Unable to send template '$tpl' to $sender");
 		&report::reject_report_cmd('auth',$result->{'reason'},{},$cmd_line);
 	    }
@@ -362,8 +358,7 @@ sub stats {
 		     );
 	
 	unless ($list->send_file('stats_report', $sender, $robot, {'stats' => \%stats, 
-								   'subject' => "STATS $list->{'name'}",
-								   'auto_submitted' => 'auto-replied'})) {
+								   'subject' => "STATS $list->{'name'}"})) {
 	    &do_log('notice',"Unable to send template 'stats_reports' to $sender");
 	    &report::reject_report_cmd('intern_quiet','',{'listname'=> $l},$cmd_line,$sender,$robot);
 	}
@@ -531,7 +526,7 @@ sub index {
     }
 
     my @l = $list->archive_ls();
-    unless ($list->send_file('index_archive',$sender,$robot,{'archives' => \@l,'auto_submitted' => 'auto-replied' })) {
+    unless ($list->send_file('index_archive',$sender,$robot,{'archives' => \@l })) {
 	&do_log('notice',"Unable to send template 'index_archive' to $sender");
 	&report::reject_report_cmd('intern_quiet','',{'listname'=> $list->{'name'}},$cmd_line,$sender,$robot);
     }
@@ -607,7 +602,7 @@ sub review {
     }
     if ($action =~ /reject/i) {
 	if (defined $result->{'tt2'}) {
-	    unless ($list->send_file($result->{'tt2'}, $sender, $robot, {'auto_submitted' => 'auto-replied'})) {
+	    unless ($list->send_file($result->{'tt2'}, $sender, $robot, {})) {
 		&do_log('notice',"Unable to send template '$tpl' to $sender");
 		&report::reject_report_cmd('auth',$result->{'reason'},{},$cmd_line);  
 	    }
@@ -638,9 +633,8 @@ sub review {
 	    }
 	} while ($user = $list->get_next_user());
 	unless ($list->send_file('review', $sender, $robot, {'users' => \@users, 
-							     'total' => $list->get_total(),
-							     'subject' => "REVIEW $listname",
-							     'auto_submitted' => 'auto-replied'})) {
+					     'total' => $list->get_total(),
+							     'subject' => "REVIEW $listname"})) {
 	    &do_log('notice',"Unable to send template 'review' to $sender");
 	    &report::reject_report_cmd('intern_quiet','',{'listname'=>$listname},$cmd_line,$sender,$robot);
 	}
@@ -758,7 +752,7 @@ sub subscribe {
     
     if ($action =~ /reject/i) {
 	if (defined $result->{'tt2'}) {
-	    unless ($list->send_file($result->{'tt2'}, $sender, $robot, {'auto_submitted' => 'auto-replied'})) {
+	    unless ($list->send_file($result->{'tt2'}, $sender, $robot, {})) {
 		&do_log('notice',"Unable to send template '$tpl' to $sender");
 		&report::reject_report_cmd('auth',$result->{'reason'},{},$cmd_line);
 	    }	    
@@ -1301,22 +1295,9 @@ sub add {
 					   'password' => $u->{'password'} || &tools::tmp_passwd($email)
 					    });
 	}
-	
-	my $visi_result = $list->check_list_authz('visibility', 'smtp',
-					     {'sender' => $email});
-	
-	my $visible_action;
-	$visible_action = $visi_result->{'action'} if (ref($visi_result) eq 'HASH');
-	
-	unless (defined $visible_action) {
-	    my $error = "Unable to evaluate scenario 'visibility' for list $list->{'name'}";
-	    &List::send_notify_to_listmaster('intern_error',$list->{'domain'}, {'error' => $error,
-										'who' => $email,
-										'list' => $list,
-										'action' => 'User add'});
-	}
-	## Now send the welcome file to the user if it exists and notification is supposed to be sent.
-	unless ($quiet || ($action =~ /quiet/i || $visible_action =~ /reject/i)) {
+
+	## Now send the welcome file to the user if it exists.
+	unless ($quiet || ($action =~ /quiet/i )) {
 	    unless ($list->send_file('welcome', $email, $robot,{})) {
 		&do_log('notice',"Unable to send template 'welcome' to $email");
 	    }
@@ -1587,20 +1568,7 @@ sub remind {
     }
 
 
-    my $visi_result = $list->check_list_authz('visibility', 'smtp',
-					 {'sender' => $email});
-    
-    my $visible_action;
-    $visible_action = $visi_result->{'action'} if (ref($visi_result) eq 'HASH');
-    
-    unless (defined $visible_action) {
-	my $error = "Unable to evaluate scenario 'visibility' for list $list->{'name'}";
-	&List::send_notify_to_listmaster('intern_error',$list->{'domain'}, {'error' => $error,
-									    'who' => $email,
-									    'list' => $list,
-									    'action' => 'User add'});
-    }
-    if ($action =~ /reject/i || $visible_action =~ /reject/i) {
+    if ($action =~ /reject/i) {
 	&do_log ('info',"Remind for list $listname from $sender refused");
 	if (defined $result->{'tt2'}) {
 	    unless ($list->send_file($result->{'tt2'}, $sender, $robot, {})) {
@@ -1861,22 +1829,9 @@ sub del {
 	    }
 	}
 
-	my $visi_result = $list->check_list_authz('visibility', 'smtp',
-						  {'sender' => $email});
-	
-	my $visible_action;
-	$visible_action = $visi_result->{'action'} if (ref($visi_result) eq 'HASH');
-	
-	unless (defined $visible_action) {
-	    my $error = "Unable to evaluate scenario 'visibility' for list $list->{'name'}";
-	    &List::send_notify_to_listmaster('intern_error',$list->{'domain'}, {'error' => $error,
-										'who' => $email,
-										'list' => $list,
-										'action' => 'User del'});
-	}
 	## Send a notice to the removed user, unless the owner indicated
 	## quiet del.
-	unless ($quiet || ($action =~ /quiet/i || $visible_action =~ /reject/i)) {
+	unless ($quiet || ($action =~ /quiet/i )) {
 	    unless ($list->send_file('removed', $who, $robot, {})) {
 		&do_log('notice',"Unable to send template 'removed' to $who");
 	    }
@@ -2324,7 +2279,7 @@ sub confirm {
 		&report::notice_report_msg('message_confirmed_and_in_distribution_spool',$sender,{'key' => $key,'message' => $message},$robot,$list);
 	    }
 
-	    &do_log('info', 'Message for list %s from %s confirmed ; file %s moved to spool %s for distribution message-id=%s', $name, $sender, $file, $Conf{'queuedistribute'},$hdr->get('Message-Id'));
+	    &do_log('info', 'Message for %s from %s moved in spool %s for distribution message-id=%s', $name, $sender, $Conf{'queuedistribute'},$hdr->get('Message-Id'));
 	}
 	unlink($file);
 	
@@ -2348,8 +2303,6 @@ sub confirm {
 sub reject {
     my $what = shift;
     my $robot = shift;
-    shift;
-    my $editor_msg = shift;
 
     &do_log('debug', 'Commands::reject(%s,%s)', $what, $robot);
 
@@ -2418,8 +2371,6 @@ sub reject {
 	$context{'subject'} = &MIME::EncWords::decode_mimewords($message->head->get('subject'), Charset=>'utf8');
 	chomp($context{'subject'});
 	$context{'rejected_by'} = $sender;
-	$context{'editor_msg_body'} = $editor_msg->{'msg'}->body_as_string if ($editor_msg) ;
-	
 	&do_log('debug2', 'message %s by %s rejected sender %s',$context{'subject'},$context{'rejected_by'},$rejected_sender);
 
 	## Notify author of message

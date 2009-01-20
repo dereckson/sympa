@@ -1,8 +1,5 @@
-<!-- $Id$ -->
+<!-- RCS Identication ; $Revision$ ; $Date$ -->
 
-<h3>[%|loc%]Manage bouncing list members[%END%] <a class="input" href="[% path_cgi %]/nomenu/help/admin#manage_bounces" title="[%|loc%]Open in a new window[%END%]" onclick="window.open('','wws_help','toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no,width=400,height=200')" target="wws_help">[%|loc%]Help[%END%]</a></h3>
-
-<br />
 <a class="actionMenuLinks" href="[% path_cgi %]/dump/[% list %]/bounce">[%|loc%]Dump[%END%]</a>
 
 <form action="[% path_cgi %]" method="post"> 
@@ -22,6 +19,8 @@
 </fieldset>  
 </form>	
 <br />
+
+
 
 <form action="[% path_cgi %]">
 <fieldset>
@@ -57,17 +56,10 @@
      <input type="hidden" name="previous_action" value="reviewbouncing" /> 	 
   <table summary="[%|loc%]Table which display list bounces[%END%]" class="listOfItems">
       <tr>
-	<th rowspan="2">X</th>
-        <th rowspan="2">[%|loc%]Email[%END%]</th>
-	<th rowspan="2">[%|loc%]Bounce score[%END%]</th>
-	<th colspan="3">[%|loc%]Details[%END%]</th>
+	<th>X</th>
+        <th>[%|loc%]Email[%END%]</th>
+	<th>[%|loc%]bounce score[%END%]</th>
       </tr>
-      <tr>
-	<th>[%|loc%]# of bounces[%END%]</th>
-	<th>[%|loc%]First bounce[%END%]</th>
-	<th>[%|loc%]Last bounce[%END%]</th>
-      </tr>
-
       
       [% FOREACH u = members %]
       
@@ -91,16 +83,9 @@
 	    bounce_level1
 	  [% END %]
 	  ">
-             [% IF ! u.bounce_score %]
-              [%|loc%]no score[%END%]
-             [% ELSE %]
   	      [% u.bounce_score %]
-             [% END %]
 	  </td>
-          <td>[% u.bounce_count %]</td>
-          <td>[% u.first_bounce %]</td>
-          <td>[% u.last_bounce %]</td>
-       </tr>
+        </tr>
 
         [% IF dark == '1' %]
 	  [% SET dark = 0 %]
@@ -131,4 +116,6 @@
   <input class="MainMenuLinks" type="button" value="[%|loc%]Toggle Selection[%END%]" onclick="toggle_selection(document.myform.email)" />
 </fieldset>
 </form>
-<!-- end reviewbouncing.tt2 -->
+
+
+

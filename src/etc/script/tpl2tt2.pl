@@ -219,15 +219,7 @@ foreach my $tpl (@templates) {
 	    printf STDERR "Error : Cannot create $dest_path directory : $!\n";
 	    next;
 	}
-	unless (&tools::set_file_rights(file => $dest_path,
-					user => '--USER--',
-					group => '--GROUP--',
-					mode => 0755,
-					))
-	{
-	    &do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	    next;
-	}
+	chown '--USER--', '--GROUP--', $dest_path;
     }
 
     my $tt2 = "$dest_path/$dest_file";
@@ -251,12 +243,12 @@ sub convert {
     ## Convert tpl file
     unless (open TPL, $in_file) {
 	print STDERR "Cannot open $in_filel : $!\n";
-	return undef;
+	next;
     }
     if ($out_file) {
 	unless (open TT2, ">$out_file") {
 	    print STDERR "Cannot create $out_file : $!\n";
-	    return undef;
+	    next;
 	}
     }
 
@@ -272,14 +264,7 @@ sub convert {
 
     printf "Template file $in_file has been converted to $out_file\n";
     
-    unless (&tools::set_file_rights(file => $out_file;
-				    user => '--USER--',
-				    group => '--GROUP--',
-				    ))
-    {
-	&do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	return undef;
-    }
+    chown '--USER--', '--GROUP--', $out_file;    
 }
 
 ## Create root folders if required

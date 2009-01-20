@@ -1,3161 +1,1018 @@
 ------------------------------------------------------------------------
-r5417 | david.verdin | 2008-12-19 12:14:17 +0100 (Fri, 19 Dec 2008) | 2 lines
+r5442 | sympa-authors | 2009-01-16 16:13:23 +0100 (Fri, 16 Jan 2009) | 2 lines
 Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help_af.po
-   M /trunk/po/web_help_ar.po
-   M /trunk/po/web_help_bg.po
-   M /trunk/po/web_help_br.po
-   M /trunk/po/web_help_ca.po
-   M /trunk/po/web_help_cs.po
-   M /trunk/po/web_help_de.po
-   M /trunk/po/web_help_el.po
-   M /trunk/po/web_help_en_US.po
-   M /trunk/po/web_help_es.po
-   M /trunk/po/web_help_et.po
-   M /trunk/po/web_help_eu.po
-   M /trunk/po/web_help_fi.po
-   M /trunk/po/web_help_fr.po
-   M /trunk/po/web_help_hu.po
-   M /trunk/po/web_help_id.po
-   M /trunk/po/web_help_it.po
-   M /trunk/po/web_help_ja.po
-   M /trunk/po/web_help_ko.po
-   M /trunk/po/web_help_ml.po
-   M /trunk/po/web_help_nb_NO.po
-   M /trunk/po/web_help_nl.po
-   M /trunk/po/web_help_nn_NO.po
-   M /trunk/po/web_help_oc.po
-   M /trunk/po/web_help_pl.po
-   M /trunk/po/web_help_pt.po
-   M /trunk/po/web_help_pt_BR.po
-   M /trunk/po/web_help_ro.po
-   M /trunk/po/web_help_ru.po
-   M /trunk/po/web_help_sv.po
-   M /trunk/po/web_help_tr.po
-   M /trunk/po/web_help_vi.po
-   M /trunk/po/web_help_zh_CN.po
-   M /trunk/po/web_help_zh_TW.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
+   M /branches/sympa-5.4-branch/src/List.pm
 
-[-change] retrieving updated translations from Pootle.
+[bug][Reported by F. Perrichon, univ. Lille 2 and C. Zimmer, univ. Nice Sophia Antipolis] LDAP 2 level queries failed as soon as one of the queries failed during the second passe. Sympa now just issues a warning in the logs, specifying that a part of the second passe was not successful.
 
 ------------------------------------------------------------------------
-r5416 | david.verdin | 2008-12-19 11:53:11 +0100 (Fri, 19 Dec 2008) | 2 lines
+r5440 | sympa-authors | 2009-01-16 16:08:32 +0100 (Fri, 16 Jan 2009) | 2 lines
 Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help_af.po
-   M /trunk/po/web_help_ar.po
-   M /trunk/po/web_help_bg.po
-   M /trunk/po/web_help_br.po
-   M /trunk/po/web_help_ca.po
-   M /trunk/po/web_help_cs.po
-   M /trunk/po/web_help_de.po
-   M /trunk/po/web_help_el.po
-   M /trunk/po/web_help_en_US.po
-   M /trunk/po/web_help_es.po
-   M /trunk/po/web_help_et.po
-   M /trunk/po/web_help_eu.po
-   M /trunk/po/web_help_fi.po
-   M /trunk/po/web_help_fr.po
-   M /trunk/po/web_help_hu.po
-   M /trunk/po/web_help_id.po
-   M /trunk/po/web_help_it.po
-   M /trunk/po/web_help_ja.po
-   M /trunk/po/web_help_ko.po
-   M /trunk/po/web_help_ml.po
-   M /trunk/po/web_help_nb_NO.po
-   M /trunk/po/web_help_nl.po
-   M /trunk/po/web_help_nn_NO.po
-   M /trunk/po/web_help_oc.po
-   M /trunk/po/web_help_pl.po
-   M /trunk/po/web_help_pt.po
-   M /trunk/po/web_help_pt_BR.po
-   M /trunk/po/web_help_ro.po
-   M /trunk/po/web_help_ru.po
-   M /trunk/po/web_help_sv.po
-   M /trunk/po/web_help_tr.po
-   M /trunk/po/web_help_vi.po
-   M /trunk/po/web_help_zh_CN.po
-   M /trunk/po/web_help_zh_TW.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
+   M /branches/sympa-5.4-branch/web_tt2/edit_list_request.tt2
+
+[bug] Parameters units were not on the right line in the web edition page of the list configuration. Also removed spare "br/> tags.
+
+------------------------------------------------------------------------
+r5432 | sympa-authors | 2009-01-07 17:38:14 +0100 (Wed, 07 Jan 2009) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
+
+[bug][#4430][Reported by O. Berger, IT Sud Paris] Some development traces remained in wwsympa.fcgi, by which the process wrote in the /tmp directory, leading to potential data loss due to symlink attacks.
+
+------------------------------------------------------------------------
+r5431 | sympa-authors | 2009-01-07 16:33:31 +0100 (Wed, 07 Jan 2009) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/src/task_manager.pl
+
+[bug] When removing the last data source by manual edition of the config file, the task manager didn't do the last synchronization needed to remove the last included subscribers. Fixed by checking if a data source still exist after each synchronization (instead of before).
+
+------------------------------------------------------------------------
+r5429 | sympa-authors | 2009-01-07 10:43:29 +0100 (Wed, 07 Jan 2009) | 3 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/src/task_manager.pl
+
+[bug] Restoring controls for sync_include task creations to avoid overwhelming number of task creations ins the spools.
+
+
+------------------------------------------------------------------------
+r5427 | sympa-authors | 2009-01-06 15:53:07 +0100 (Tue, 06 Jan 2009) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/src/task_manager.pl
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
+
+[bug][Reported by V. Mathieu, univ. Nancy 2] When deleting the last data source, the subscribers list was not correctly updated. Fixed by restoring a faulty test in wwsympa.fcgi.
+------------------------------------------------------------------------
+r5423 | sympa-authors | 2009-01-05 15:18:02 +0100 (Mon, 05 Jan 2009) | 3 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/src/etc/script/ldap_alias_manager.pl
+
+[bug] fix a bug related to empty lines in list_aliases.tt2 when processing it with ldap_alias_manager.pl
+
+
+------------------------------------------------------------------------
+r5422 | sympa-authors | 2009-01-05 08:20:34 +0100 (Mon, 05 Jan 2009) | 3 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
+
+[bug] Fix a bug in blacklist edition (see http://sourcesup.cru.fr/tracker/?func=detail&atid=167&aid=5203&group_id=23)
+
+
+------------------------------------------------------------------------
+r5412 | sympa-authors | 2008-12-18 14:00:26 +0100 (Thu, 18 Dec 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/.version
+   M /branches/sympa-5.4-branch/ChangeLog
+   M /branches/sympa-5.4-branch/NEWS
+
+[-feature]Preparing version 5.4.4
+
+------------------------------------------------------------------------
+r5411 | sympa-authors | 2008-12-18 13:54:08 +0100 (Thu, 18 Dec 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/po/fr.po
+
+[-bug] Fixing typos in french translations.
+
+------------------------------------------------------------------------
+r5410 | sympa-authors | 2008-12-18 11:22:50 +0100 (Thu, 18 Dec 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/po/af.po
+   M /branches/sympa-5.4-branch/po/ar.po
+   M /branches/sympa-5.4-branch/po/bg.po
+   M /branches/sympa-5.4-branch/po/br.po
+   M /branches/sympa-5.4-branch/po/ca.po
+   M /branches/sympa-5.4-branch/po/cs.po
+   M /branches/sympa-5.4-branch/po/de.po
+   M /branches/sympa-5.4-branch/po/el.po
+   M /branches/sympa-5.4-branch/po/en_US.po
+   M /branches/sympa-5.4-branch/po/es.po
+   M /branches/sympa-5.4-branch/po/et.po
+   M /branches/sympa-5.4-branch/po/eu.po
+   M /branches/sympa-5.4-branch/po/fi.po
+   M /branches/sympa-5.4-branch/po/fr.po
+   M /branches/sympa-5.4-branch/po/hu.po
+   M /branches/sympa-5.4-branch/po/id.po
+   M /branches/sympa-5.4-branch/po/it.po
+   M /branches/sympa-5.4-branch/po/ja.po
+   M /branches/sympa-5.4-branch/po/ko.po
+   M /branches/sympa-5.4-branch/po/ml.po
+   M /branches/sympa-5.4-branch/po/nb_NO.po
+   M /branches/sympa-5.4-branch/po/nl.po
+   M /branches/sympa-5.4-branch/po/nn_NO.po
+   M /branches/sympa-5.4-branch/po/oc.po
+   M /branches/sympa-5.4-branch/po/pl.po
+   M /branches/sympa-5.4-branch/po/pt.po
+   M /branches/sympa-5.4-branch/po/pt_BR.po
+   M /branches/sympa-5.4-branch/po/ro.po
+   M /branches/sympa-5.4-branch/po/ru.po
+   M /branches/sympa-5.4-branch/po/sv.po
+   M /branches/sympa-5.4-branch/po/sympa.pot
+   M /branches/sympa-5.4-branch/po/tr.po
+   M /branches/sympa-5.4-branch/po/vi.po
+   M /branches/sympa-5.4-branch/po/web_help_af.po
+   M /branches/sympa-5.4-branch/po/web_help_ar.po
+   M /branches/sympa-5.4-branch/po/web_help_bg.po
+   M /branches/sympa-5.4-branch/po/web_help_br.po
+   M /branches/sympa-5.4-branch/po/web_help_ca.po
+   M /branches/sympa-5.4-branch/po/web_help_cs.po
+   M /branches/sympa-5.4-branch/po/web_help_de.po
+   M /branches/sympa-5.4-branch/po/web_help_el.po
+   M /branches/sympa-5.4-branch/po/web_help_en_US.po
+   M /branches/sympa-5.4-branch/po/web_help_es.po
+   M /branches/sympa-5.4-branch/po/web_help_et.po
+   M /branches/sympa-5.4-branch/po/web_help_eu.po
+   M /branches/sympa-5.4-branch/po/web_help_fi.po
+   M /branches/sympa-5.4-branch/po/web_help_fr.po
+   M /branches/sympa-5.4-branch/po/web_help_hu.po
+   M /branches/sympa-5.4-branch/po/web_help_id.po
+   M /branches/sympa-5.4-branch/po/web_help_it.po
+   M /branches/sympa-5.4-branch/po/web_help_ja.po
+   M /branches/sympa-5.4-branch/po/web_help_ko.po
+   M /branches/sympa-5.4-branch/po/web_help_ml.po
+   M /branches/sympa-5.4-branch/po/web_help_nb_NO.po
+   M /branches/sympa-5.4-branch/po/web_help_nl.po
+   M /branches/sympa-5.4-branch/po/web_help_nn_NO.po
+   M /branches/sympa-5.4-branch/po/web_help_oc.po
+   M /branches/sympa-5.4-branch/po/web_help_pl.po
+   M /branches/sympa-5.4-branch/po/web_help_pt.po
+   M /branches/sympa-5.4-branch/po/web_help_pt_BR.po
+   M /branches/sympa-5.4-branch/po/web_help_ro.po
+   M /branches/sympa-5.4-branch/po/web_help_ru.po
+   M /branches/sympa-5.4-branch/po/web_help_sv.po
+   M /branches/sympa-5.4-branch/po/web_help_tr.po
+   M /branches/sympa-5.4-branch/po/web_help_vi.po
+   M /branches/sympa-5.4-branch/po/web_help_zh_CN.po
+   M /branches/sympa-5.4-branch/po/web_help_zh_TW.po
+   M /branches/sympa-5.4-branch/po/zh_CN.po
+   M /branches/sympa-5.4-branch/po/zh_TW.po
 
 [-change] Retrieving latest translations from Pootle.
 
 ------------------------------------------------------------------------
-r5415 | david.verdin | 2008-12-18 17:18:58 +0100 (Thu, 18 Dec 2008) | 2 lines
+r5409 | olivier.salaun | 2008-12-18 09:40:42 +0100 (Thu, 18 Dec 2008) | 2 lines
 Changed paths:
-   M /trunk/configure.ac
+   M /branches/sympa-5.4-branch/po/af.po
+   M /branches/sympa-5.4-branch/po/ar.po
+   M /branches/sympa-5.4-branch/po/bg.po
+   M /branches/sympa-5.4-branch/po/br.po
+   M /branches/sympa-5.4-branch/po/ca.po
+   M /branches/sympa-5.4-branch/po/cs.po
+   M /branches/sympa-5.4-branch/po/de.po
+   M /branches/sympa-5.4-branch/po/el.po
+   M /branches/sympa-5.4-branch/po/en_US.po
+   M /branches/sympa-5.4-branch/po/es.po
+   M /branches/sympa-5.4-branch/po/et.po
+   M /branches/sympa-5.4-branch/po/eu.po
+   M /branches/sympa-5.4-branch/po/fi.po
+   M /branches/sympa-5.4-branch/po/fr.po
+   M /branches/sympa-5.4-branch/po/hu.po
+   M /branches/sympa-5.4-branch/po/id.po
+   M /branches/sympa-5.4-branch/po/it.po
+   M /branches/sympa-5.4-branch/po/ja.po
+   M /branches/sympa-5.4-branch/po/ko.po
+   M /branches/sympa-5.4-branch/po/ml.po
+   M /branches/sympa-5.4-branch/po/nb_NO.po
+   M /branches/sympa-5.4-branch/po/nl.po
+   M /branches/sympa-5.4-branch/po/nn_NO.po
+   M /branches/sympa-5.4-branch/po/oc.po
+   M /branches/sympa-5.4-branch/po/pl.po
+   M /branches/sympa-5.4-branch/po/pt.po
+   M /branches/sympa-5.4-branch/po/pt_BR.po
+   M /branches/sympa-5.4-branch/po/ro.po
+   M /branches/sympa-5.4-branch/po/ru.po
+   M /branches/sympa-5.4-branch/po/sv.po
+   M /branches/sympa-5.4-branch/po/tr.po
+   M /branches/sympa-5.4-branch/po/vi.po
+   M /branches/sympa-5.4-branch/po/web_help_af.po
+   M /branches/sympa-5.4-branch/po/web_help_ar.po
+   M /branches/sympa-5.4-branch/po/web_help_bg.po
+   M /branches/sympa-5.4-branch/po/web_help_br.po
+   M /branches/sympa-5.4-branch/po/web_help_ca.po
+   M /branches/sympa-5.4-branch/po/web_help_cs.po
+   M /branches/sympa-5.4-branch/po/web_help_de.po
+   M /branches/sympa-5.4-branch/po/web_help_el.po
+   M /branches/sympa-5.4-branch/po/web_help_en_US.po
+   M /branches/sympa-5.4-branch/po/web_help_es.po
+   M /branches/sympa-5.4-branch/po/web_help_et.po
+   M /branches/sympa-5.4-branch/po/web_help_eu.po
+   M /branches/sympa-5.4-branch/po/web_help_fi.po
+   M /branches/sympa-5.4-branch/po/web_help_fr.po
+   M /branches/sympa-5.4-branch/po/web_help_hu.po
+   M /branches/sympa-5.4-branch/po/web_help_id.po
+   M /branches/sympa-5.4-branch/po/web_help_it.po
+   M /branches/sympa-5.4-branch/po/web_help_ja.po
+   M /branches/sympa-5.4-branch/po/web_help_ko.po
+   M /branches/sympa-5.4-branch/po/web_help_ml.po
+   M /branches/sympa-5.4-branch/po/web_help_nb_NO.po
+   M /branches/sympa-5.4-branch/po/web_help_nl.po
+   M /branches/sympa-5.4-branch/po/web_help_nn_NO.po
+   M /branches/sympa-5.4-branch/po/web_help_oc.po
+   M /branches/sympa-5.4-branch/po/web_help_pl.po
+   M /branches/sympa-5.4-branch/po/web_help_pt.po
+   M /branches/sympa-5.4-branch/po/web_help_pt_BR.po
+   M /branches/sympa-5.4-branch/po/web_help_ro.po
+   M /branches/sympa-5.4-branch/po/web_help_ru.po
+   M /branches/sympa-5.4-branch/po/web_help_sv.po
+   M /branches/sympa-5.4-branch/po/web_help_tr.po
+   M /branches/sympa-5.4-branch/po/web_help_vi.po
+   M /branches/sympa-5.4-branch/po/web_help_zh_CN.po
+   M /branches/sympa-5.4-branch/po/web_help_zh_TW.po
+   M /branches/sympa-5.4-branch/po/zh_CN.po
+   M /branches/sympa-5.4-branch/po/zh_TW.po
 
-[bug][#4786][Submitted by Charles Paul, evil-wire.org] Sympa did not build properly due to missing VERSION in /configure.ac
+[-change] Retrieving latest translations from Pootle.
 
 ------------------------------------------------------------------------
-r5414 | david.verdin | 2008-12-18 17:14:21 +0100 (Thu, 18 Dec 2008) | 2 lines
+r5408 | olivier.salaun | 2008-12-18 09:22:22 +0100 (Thu, 18 Dec 2008) | 6 lines
 Changed paths:
-   M /trunk/doc/man8/Makefile.am
-
-[bug][#4786][Submitted by Charles Paul, evil-wire.org] Sympa did not build properly, due to a typo in doc/man8/Makefile.
-
-------------------------------------------------------------------------
-r5407 | david.verdin | 2008-12-17 18:01:29 +0100 (Wed, 17 Dec 2008) | 5 lines
-Changed paths:
-   M /trunk/web_tt2/admin.tt2
-   M /trunk/web_tt2/list_admin_menu.tt2
-   M /trunk/web_tt2/review.tt2
+   M /branches/sympa-5.4-branch/web_tt2/admin.tt2
+   M /branches/sympa-5.4-branch/web_tt2/list_admin_menu.tt2
+   M /branches/sympa-5.4-branch/web_tt2/review.tt2
 
 [bug][#4577][Reported by F. Guilleux] the W3C gives recommendations for the use of GET and POST: http://www.w3.org/2001/tag/doc/whenToUseGet.html#checklist
 
 Sympa was not fully compliant to these recommendations, leading for example to possible unwanted list deletion by administrators using prefetching tools. Fixed by replacing all the threatening GET requests by POST requests.
 
 
-------------------------------------------------------------------------
-r5406 | olivier.salaun | 2008-12-12 11:04:24 +0100 (Fri, 12 Dec 2008) | 3 lines
-Changed paths:
-   M /trunk/Makefile.am
-   M /trunk/doc/Makefile.am
-
-[bug][Reported by epsas@evil-wire.org]The installation was choking on a missing sympa.pdf file; Fixed by removing all references to this file and adding a link to the PDF file on the Sympa website.
-
 
 ------------------------------------------------------------------------
-r5403 | david.verdin | 2008-12-09 15:05:39 +0100 (Tue, 09 Dec 2008) | 2 lines
+r5405 | olivier.salaun | 2008-12-12 10:34:38 +0100 (Fri, 12 Dec 2008) | 2 lines
 Changed paths:
-   M /trunk/src/List.pm
+   M /branches/sympa-5.4-branch/Makefile.am
+   M /branches/sympa-5.4-branch/Makefile.in
+   M /branches/sympa-5.4-branch/doc/Makefile
+
+[bug] The installation was choking on a missing sympa.pdf file; Fixed by removing all references to this file and adding a link to the PDF file on the Sympa website.
+
+------------------------------------------------------------------------
+r5404 | olivier.salaun | 2008-12-09 15:06:48 +0100 (Tue, 09 Dec 2008) | 3 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/src/List.pm
 
 [bug][#4672][Submitted by O. Menkens, Fraunhofer IAIS] Wrong error handling of LDAP searches caused Sympa to be unable to sychronize sources. Some attributes in the LDAP search were not correctly passed to the function.
 
-------------------------------------------------------------------------
-r5402 | david.verdin | 2008-12-03 11:23:21 +0100 (Wed, 03 Dec 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/Auth.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[bug][#4555] When a user connected to the Sympa web interface clicked on a ticket for the second time, she was issued an error message. As she was connected already, the normal evaluation of the authorization scenario should ensue, instead of simply refusing to execute it. This was fixed by evaluating the existence of the ticket. Now, Sympa behaves like this: If a non connected user clicks on a ticket link, if it is the first time the ticket is clicked, the user is connected using the email of the ticket context. If the ticket has been previously used, the user is not connected and an error is issued. If the user is connected already when she clicks the ticket, the action is executed, with the authorization being checked using the email the user was authentified with at the time she clicked the ticket.
 
 ------------------------------------------------------------------------
-r5401 | david.verdin | 2008-11-28 16:59:56 +0100 (Fri, 28 Nov 2008) | 2 lines
+r5400 | olivier.salaun | 2008-11-28 16:40:56 +0100 (Fri, 28 Nov 2008) | 3 lines
 Changed paths:
-   M /trunk/web_tt2/add_request.tt2
-   M /trunk/web_tt2/javascript.tt2
-
-[bug] When using the multiple add form, it was difficult to create a list by copy / paste, because a javascript erased any data in the textarea on click event. Fixed by modifying said javascript.
-
-------------------------------------------------------------------------
-r5399 | david.verdin | 2008-11-28 16:23:16 +0100 (Fri, 28 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/SympaSession.pm
+   M /branches/sympa-5.4-branch/src/List.pm
+   M /branches/sympa-5.4-branch/wwsympa/SympaSession.pm
 
 [bug][reported by T. Retout] SQL injection threat removed by using place holders instead of direct sprint in a query.
 
-------------------------------------------------------------------------
-r5396 | david.verdin | 2008-11-25 17:34:39 +0100 (Tue, 25 Nov 2008) | 3 lines
-Changed paths:
-   M /trunk/soap/sympasoap.pm
-   M /trunk/src/Commands.pm
-   M /trunk/src/List.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[change] Notifications are now sent to users, for remind, add and del commands, only if the visibility is set to true for these users.
-[feature] Notifications can now be sent to users included by external data sources, when they are added or removed from user list.
 
 ------------------------------------------------------------------------
-r5330 | david.verdin | 2008-11-18 16:10:29 +0100 (Tue, 18 Nov 2008) | 2 lines
+r5208 | olivier.salaun | 2008-11-07 16:05:10 +0100 (Fri, 07 Nov 2008) | 3 lines
 Changed paths:
-   M /trunk/src/List.pm
-   M /trunk/web_tt2/error.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[bug][#4516] It was possible to manually remove all the list owners. This is now impossible by taking into account the minimal cardionality of complex list parameters.
-
-------------------------------------------------------------------------
-r5329 | david.verdin | 2008-11-18 09:41:48 +0100 (Tue, 18 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[-change] Cosmetic commit: correcting indentations.
-
-------------------------------------------------------------------------
-r5328 | david.verdin | 2008-11-18 09:16:49 +0100 (Tue, 18 Nov 2008) | 3 lines
-Changed paths:
-   M /trunk/src/List.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[bug][#4437][Submitted by M. Keisler, mitsein.net] Sympa refused to save topics which contained dashes in their name, due to an excessively selective regexp. Consequently, it was showing lists with such topics as topicsless. Fixed by accepting dashes in their regexp. Topics can now contain any alphanumeric, plus '-' and '_'. That should be enough for most needs.
-
-
-------------------------------------------------------------------------
-r5311 | david.verdin | 2008-11-14 16:54:56 +0100 (Fri, 14 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/src/List.pm
-
-[bug][#4437][Reported by M. Keisler, mitsein.net] Sympa refused to save topics chich contained dashes in their name, due to an excessively selective regexp. Fixed by accepting dashes in theis regexp. Topics can now contain any alphanumeric, plus '-' and '_'. That should be enough for most needs.
-
-------------------------------------------------------------------------
-r5310 | olivier.salaun | 2008-11-14 15:22:04 +0100 (Fri, 14 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk
-
-[-change] ignore again.
-
-------------------------------------------------------------------------
-r5309 | olivier.salaun | 2008-11-14 15:20:33 +0100 (Fri, 14 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/doc/man8
-   M /trunk/soap
-   M /trunk/wwsympa
-
-[-change]End of ignore list update.
-
-------------------------------------------------------------------------
-r5308 | olivier.salaun | 2008-11-14 15:17:48 +0100 (Fri, 14 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/doc
-   M /trunk/mail_tt2
-   M /trunk/soap
-   M /trunk/src/etc/sample
-   M /trunk/src/etc/script
-   M /trunk/web_tt2
-   M /trunk/wwsympa
-
-[-change]Adding new ignore files.
-
-------------------------------------------------------------------------
-r5307 | olivier.salaun | 2008-11-14 15:14:26 +0100 (Fri, 14 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/src
-
-[-feature] Added new ignore properties.
-
-------------------------------------------------------------------------
-r5306 | david.verdin | 2008-11-14 14:43:49 +0100 (Fri, 14 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/compose_mail.tt2
-
-[-bug] Closing a tag in compose mail form.
-
-------------------------------------------------------------------------
-r5305 | david.verdin | 2008-11-14 12:20:47 +0100 (Fri, 14 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk
-
-[-change]Adding generated files to ignore list.
-
-------------------------------------------------------------------------
-r5304 | david.verdin | 2008-11-14 12:19:58 +0100 (Fri, 14 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/ticket.tt2
-   M /trunk/wwsympa/Auth.pm
-
-[bug][#4555] When clicking a one-time ticket past the first time, users got an error, even if they were connected. Fixed by modifying the template so that a user logged in will have different messages according to what its connected status.
-
-------------------------------------------------------------------------
-r5303 | david.verdin | 2008-11-14 09:25:29 +0100 (Fri, 14 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/src/etc/script/sympa
-
-[bug][#4559][Submitted by P. Brown, univ. Southern California] init script sympa was broken for Solaris. It used some syntaxes not supported by this OS' shell language.
-
-------------------------------------------------------------------------
-r5294 | david.verdin | 2008-11-13 16:26:22 +0100 (Thu, 13 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/Auth.pm
-
-[feature][#4645][Submitted by N. Bertrand, univ. Minnesota] Basic logs in debug don't issue the password unencrypted in the logs for function Auth::ldap_authentication. This way, this password won't be sent unencrypted to a possible syslog server.
-
-------------------------------------------------------------------------
-r5210 | olivier.salaun | 2008-11-07 17:44:37 +0100 (Fri, 07 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/src/List.pm
-   M /trunk/wwsympa/Auth.pm
-   M /trunk/wwsympa/Challenge.pm
-   M /trunk/wwsympa/SympaSession.pm
-
-[change][#1167] Recent versions of Oracle do support the AS clause
-
-------------------------------------------------------------------------
-r5209 | olivier.salaun | 2008-11-07 17:43:51 +0100 (Fri, 07 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/home.tt2
-
-[-change][proposed by R.Touchais, U.Paris sud] remove reference to the service email address from the web homepage
-
-------------------------------------------------------------------------
-r5205 | david.verdin | 2008-11-07 15:54:55 +0100 (Fri, 07 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/src/Commands.pm
-
-[bug][#4544][Reported by T. Berry, JPL, NASA] When a mail set command failed, the mail report contained a faulty email address or no eamil address at all. Fixed by changing the var reference passed to the templates.
-
-------------------------------------------------------------------------
-r5204 | david.verdin | 2008-11-07 14:35:51 +0100 (Fri, 07 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/reviewbouncing.tt2
-
-[bug][#4579][Reported by F. Guilleux, CRU] In the array of the bouncers management page, a header contained the statement "First bounce" instead "Last bounce".
-
-------------------------------------------------------------------------
-r5203 | david.verdin | 2008-11-07 14:33:20 +0100 (Fri, 07 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/po/fr.po
-
-[-bug]Adding a missing linebreak.
-
-------------------------------------------------------------------------
-r5202 | david.verdin | 2008-11-07 13:59:36 +0100 (Fri, 07 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help.pot
-   M /trunk/po/web_help_af.po
-   M /trunk/po/web_help_ar.po
-   M /trunk/po/web_help_bg.po
-   M /trunk/po/web_help_br.po
-   M /trunk/po/web_help_ca.po
-   M /trunk/po/web_help_cs.po
-   M /trunk/po/web_help_de.po
-   M /trunk/po/web_help_el.po
-   M /trunk/po/web_help_en_US.po
-   M /trunk/po/web_help_es.po
-   M /trunk/po/web_help_et.po
-   M /trunk/po/web_help_eu.po
-   M /trunk/po/web_help_fi.po
-   M /trunk/po/web_help_fr.po
-   M /trunk/po/web_help_hu.po
-   M /trunk/po/web_help_id.po
-   M /trunk/po/web_help_it.po
-   M /trunk/po/web_help_ja.po
-   M /trunk/po/web_help_ko.po
-   M /trunk/po/web_help_ml.po
-   M /trunk/po/web_help_nb_NO.po
-   M /trunk/po/web_help_nl.po
-   M /trunk/po/web_help_nn_NO.po
-   M /trunk/po/web_help_oc.po
-   M /trunk/po/web_help_pl.po
-   M /trunk/po/web_help_pt.po
-   M /trunk/po/web_help_pt_BR.po
-   M /trunk/po/web_help_ro.po
-   M /trunk/po/web_help_ru.po
-   M /trunk/po/web_help_sv.po
-   M /trunk/po/web_help_tr.po
-   M /trunk/po/web_help_vi.po
-   M /trunk/po/web_help_zh_CN.po
-   M /trunk/po/web_help_zh_TW.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[-change] Récupération des dernières traductions.
-
-------------------------------------------------------------------------
-r5201 | david.verdin | 2008-11-07 10:43:31 +0100 (Fri, 07 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/po/nb_NO.po
-
-[-change]Committing latest translations.
-
-------------------------------------------------------------------------
-r5200 | david.verdin | 2008-11-07 09:42:58 +0100 (Fri, 07 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/Auth.pm
-
-[bug][reported by S. Bilbeau, univ. Rennes 1] For trusted applications, when declaring an application in trusted_applicaitons.conf, if the app name contained a higher case character, the application was not found, because Sympa compared the app name to its lower-cased version. Fixed by comparing two lower case strings, thus making the app name completely case insensitive for Sympa.
-
-------------------------------------------------------------------------
-r5199 | david.verdin | 2008-11-06 16:32:28 +0100 (Thu, 06 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
 [bug][#4605][Reported by F. Guilleux, CRU] Searching for a string containing some special characters provoked various errors. Fixed by escaping characters at the moment we use the search engine and not just when parising the characters.
 
-------------------------------------------------------------------------
-r5198 | david.verdin | 2008-11-03 17:06:31 +0100 (Mon, 03 Nov 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/active_lists.tt2
-   M /trunk/web_tt2/add_request.tt2
-   M /trunk/web_tt2/admin.tt2
-   M /trunk/web_tt2/admin_menu.tt2
-   M /trunk/web_tt2/arc.tt2
-   M /trunk/web_tt2/arc_manage.tt2
-   M /trunk/web_tt2/arc_protect.tt2
-   M /trunk/web_tt2/arcsearch.tt2
-   M /trunk/web_tt2/arcsearch_form.tt2
-   M /trunk/web_tt2/blacklist.tt2
-   M /trunk/web_tt2/button_footer.tt2
-   M /trunk/web_tt2/button_header.tt2
-   M /trunk/web_tt2/change_email.tt2
-   M /trunk/web_tt2/change_email_request.tt2
-   M /trunk/web_tt2/choosepasswd.tt2
-   M /trunk/web_tt2/close_list.tt2
-   M /trunk/web_tt2/compose_mail.tt2
-   M /trunk/web_tt2/copy_template.tt2
-   M /trunk/web_tt2/create_list.tt2
-   M /trunk/web_tt2/create_list_request.tt2
-   M /trunk/web_tt2/d_control.tt2
-   M /trunk/web_tt2/d_editfile.tt2
-   M /trunk/web_tt2/d_install_shared.tt2
-   M /trunk/web_tt2/d_properties.tt2
-   M /trunk/web_tt2/d_read.tt2
-   M /trunk/web_tt2/d_upload.tt2
-   M /trunk/web_tt2/dump_scenario.tt2
-   M /trunk/web_tt2/dumpvars.tt2
-   M /trunk/web_tt2/edit_attributes.tt2
-   M /trunk/web_tt2/edit_list_request.tt2
-   M /trunk/web_tt2/edit_template.tt2
-   M /trunk/web_tt2/editfile.tt2
-   M /trunk/web_tt2/editsubscriber.tt2
-   M /trunk/web_tt2/error.tt2
-   M /trunk/web_tt2/footer.tt2
-   M /trunk/web_tt2/get_closed_lists.tt2
-   M /trunk/web_tt2/get_inactive_lists.tt2
-   M /trunk/web_tt2/get_latest_lists.tt2
-   M /trunk/web_tt2/get_pending_lists.tt2
-   M /trunk/web_tt2/help.tt2
-   M /trunk/web_tt2/help_admin.tt2
-   M /trunk/web_tt2/help_arc.tt2
-   M /trunk/web_tt2/help_editfile.tt2
-   M /trunk/web_tt2/help_editlist.tt2
-   M /trunk/web_tt2/help_faqadmin.tt2
-   M /trunk/web_tt2/help_faquser.tt2
-   M /trunk/web_tt2/help_introduction.tt2
-   M /trunk/web_tt2/help_listconfig.tt2
-   M /trunk/web_tt2/help_mail_commands.tt2
-   M /trunk/web_tt2/help_sendmsg.tt2
-   M /trunk/web_tt2/help_shared.tt2
-   M /trunk/web_tt2/help_user.tt2
-   M /trunk/web_tt2/help_user_options.tt2
-   M /trunk/web_tt2/home.tt2
-   M /trunk/web_tt2/info.tt2
-   M /trunk/web_tt2/install_pending_list.tt2
-   M /trunk/web_tt2/javascript.tt2
-   M /trunk/web_tt2/latest_arc.tt2
-   M /trunk/web_tt2/latest_d_read.tt2
-   M /trunk/web_tt2/latest_lists.tt2
-   M /trunk/web_tt2/list_admin_menu.tt2
-   M /trunk/web_tt2/list_button_footer.tt2
-   M /trunk/web_tt2/list_button_header.tt2
-   M /trunk/web_tt2/list_menu.tt2
-   M /trunk/web_tt2/list_panel.tt2
-   M /trunk/web_tt2/lists.tt2
-   M /trunk/web_tt2/login.tt2
-   M /trunk/web_tt2/login_menu.tt2
-   M /trunk/web_tt2/loginbanner.tt2
-   M /trunk/web_tt2/loginrequest.tt2
-   M /trunk/web_tt2/ls_templates.tt2
-   M /trunk/web_tt2/main.tt2
-   M /trunk/web_tt2/maintenance.tt2
-   M /trunk/web_tt2/manage_template.tt2
-   M /trunk/web_tt2/menu.tt2
-   M /trunk/web_tt2/modindex.tt2
-   M /trunk/web_tt2/notice.tt2
-   M /trunk/web_tt2/picture_upload.tt2
-   M /trunk/web_tt2/pref.tt2
-   M /trunk/web_tt2/remove_arc.tt2
-   M /trunk/web_tt2/rename_list_request.tt2
-   M /trunk/web_tt2/renewpasswd.tt2
-   M /trunk/web_tt2/request_topic.tt2
-   M /trunk/web_tt2/requestpasswd.tt2
-   M /trunk/web_tt2/review.tt2
-   M /trunk/web_tt2/review_family.tt2
-   M /trunk/web_tt2/reviewbouncing.tt2
-   M /trunk/web_tt2/rss_request.tt2
-   M /trunk/web_tt2/scenario_test.tt2
-   M /trunk/web_tt2/search_user.tt2
-   M /trunk/web_tt2/serveradmin.tt2
-   M /trunk/web_tt2/set_pending_list_request.tt2
-   M /trunk/web_tt2/setlang.tt2
-   M /trunk/web_tt2/show_cert.tt2
-   M /trunk/web_tt2/show_sessions.tt2
-   M /trunk/web_tt2/sigrequest.tt2
-   M /trunk/web_tt2/skinsedit.tt2
-   M /trunk/web_tt2/sso_login.tt2
-   M /trunk/web_tt2/stats.tt2
-   M /trunk/web_tt2/subindex.tt2
-   M /trunk/web_tt2/suboptions.tt2
-   M /trunk/web_tt2/subrequest.tt2
-   M /trunk/web_tt2/ticket.tt2
-   M /trunk/web_tt2/tt2_error.tt2
-   M /trunk/web_tt2/viewbounce.tt2
-   M /trunk/web_tt2/your_lists.tt2
-
-[bug]Adding HTML comments in web templates to help users spotting which template is used for customizing purpose.
 
 ------------------------------------------------------------------------
-r5197 | david.verdin | 2008-11-03 16:19:22 +0100 (Mon, 03 Nov 2008) | 2 lines
+r5207 | olivier.salaun | 2008-11-07 16:01:01 +0100 (Fri, 07 Nov 2008) | 3 lines
 Changed paths:
-   M /trunk/web_tt2/view_template.tt2
-   M /trunk/web_tt2/viewlogs.tt2
-   M /trunk/web_tt2/viewmod.tt2
+   M /branches/sympa-5.4-branch/wwsympa/Auth.pm
 
-[bug]Adding HTML comments to help users find their way in the web templates.
-
-------------------------------------------------------------------------
-r5196 | olivier.salaun | 2008-10-29 11:25:15 +0100 (Wed, 29 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[bug] lowercase email address before running change_email
-
-------------------------------------------------------------------------
-r5194 | olivier.salaun | 2008-10-28 09:50:34 +0100 (Tue, 28 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/ChangeLog
-
-[change] update Changelog for 6.0a.4
-
-------------------------------------------------------------------------
-r5193 | olivier.salaun | 2008-10-28 09:49:14 +0100 (Tue, 28 Oct 2008) | 3 lines
-Changed paths:
-   M /trunk/configure.ac
-   M /trunk/mail_tt2/invite.tt2
-   M /trunk/mail_tt2/listowner_notification.tt2
-   M /trunk/mail_tt2/moderate.tt2
-   M /trunk/mail_tt2/sendpasswd.tt2
-   M /trunk/mail_tt2/user_notification.tt2
-   M /trunk/web_tt2/change_email.tt2
-   M /trunk/web_tt2/change_email_request.tt2
-   M /trunk/web_tt2/notice.tt2
-   M /trunk/web_tt2/renewpasswd.tt2
-   M /trunk/web_tt2/requestpasswd.tt2
-   M /trunk/web_tt2/sigrequest.tt2
-   M /trunk/web_tt2/subrequest.tt2
-   M /trunk/web_tt2/ticket.tt2
-   M /trunk/wwsympa/Auth.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[change] Use homogenous terminology for authentication.
-Also use one-time tickets for web signoff now
-
-------------------------------------------------------------------------
-r5192 | olivier.salaun | 2008-10-27 18:27:24 +0100 (Mon, 27 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/po/web_help_fr.po
-
-[change] update French terminology for login => connexioin
-
-------------------------------------------------------------------------
-r5191 | olivier.salaun | 2008-10-27 17:14:24 +0100 (Mon, 27 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/po/fr.po
-
-[change] updated French translations
-
-------------------------------------------------------------------------
-r5190 | olivier.salaun | 2008-10-27 15:56:17 +0100 (Mon, 27 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[change] Merged with POT file
-
-------------------------------------------------------------------------
-r5189 | olivier.salaun | 2008-10-27 15:54:00 +0100 (Mon, 27 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[change] Get updates from pootle
-
-------------------------------------------------------------------------
-r5188 | olivier.salaun | 2008-10-27 15:50:04 +0100 (Mon, 27 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/terminology.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[change] using better terminology concerning authentication
-
-------------------------------------------------------------------------
-r5187 | olivier.salaun | 2008-10-24 10:33:00 +0200 (Fri, 24 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help_ja.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[change] regenerate pot and po files
-
-------------------------------------------------------------------------
-r5186 | olivier.salaun | 2008-10-24 10:21:23 +0200 (Fri, 24 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/po/Makefile
-
-[change] adding export of the terminology.pot file
-
-------------------------------------------------------------------------
-r5185 | olivier.salaun | 2008-10-24 10:13:40 +0200 (Fri, 24 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/po/ru.po
-   A /trunk/po/terminology.pot
-   M /trunk/po/web_help_ja.po
-
-[change] get updates from Pootle + add the terminology template
-
-------------------------------------------------------------------------
-r5184 | olivier.salaun | 2008-10-24 08:30:43 +0200 (Fri, 24 Oct 2008) | 3 lines
-Changed paths:
-   M /trunk/web_tt2/css.tt2
-   M /trunk/web_tt2/javascript.tt2
-   M /trunk/web_tt2/main.tt2
-   M /trunk/web_tt2/skinsedit.tt2
-   A /trunk/wwsympa/icons/crosshairs.png
-   A /trunk/wwsympa/icons/h.png
-   A /trunk/wwsympa/icons/position.png
-   A /trunk/wwsympa/icons/sv.png
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[feature] New inline color editor (skin section from "sympa admin")
+[bug][reported by S. Bilbeau, univ. Rennes 1] For trusted applications, when declaring an application in trusted_applicaitons.conf, if the app name contained a higher case character, the application was not found, because Sympa compared the app name to its lower-cased version. Fixed by comparing two lower case strings, thus making the app name completely case insensitive for Sympa.
 
 
 ------------------------------------------------------------------------
-r5183 | olivier.salaun | 2008-10-24 08:28:07 +0200 (Fri, 24 Oct 2008) | 2 lines
+r5206 | olivier.salaun | 2008-11-07 15:57:47 +0100 (Fri, 07 Nov 2008) | 3 lines
 Changed paths:
-   M /trunk/web_tt2/error.tt2
+   M /branches/sympa-5.4-branch/src/Commands.pm
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
-[bug] fix syntaxique bug
-
-------------------------------------------------------------------------
-r5182 | olivier.salaun | 2008-10-15 16:30:20 +0200 (Wed, 15 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/error.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[bug]Add an appropriate error message whenever an identity provider does not provide the user email address, when using generic_sso authentication method.
-
-------------------------------------------------------------------------
-r5180 | olivier.salaun | 2008-10-14 16:26:05 +0200 (Tue, 14 Oct 2008) | 3 lines
-Changed paths:
-   M /trunk/src/Conf.pm
-   M /trunk/src/Log.pm
-   M /trunk/src/etc/global_task_models/purge_logs_table.daily.task
-
-[bug] 'logs_expiration_period' sympa.conf parameter was not loaded. As a result DB logs were expired every day.
-Also added an error message if two virtual hosts use the same URL.
-
-------------------------------------------------------------------------
-r5179 | olivier.salaun | 2008-10-14 09:28:20 +0200 (Tue, 14 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/viewmod.tt2
-
-[bug] fixed form parameters
-
-------------------------------------------------------------------------
-r5178 | olivier.salaun | 2008-10-09 18:01:46 +0200 (Thu, 09 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/src/Upgrade.pm
-
-[bug] While running sympa.pl --md5_encode_password, most MD5-encoded passwords were re-encoded because of a regexp error. Also fixed the Upgrade::md5_encode_password() code to skip empty passwords
-
-------------------------------------------------------------------------
-r5177 | olivier.salaun | 2008-10-08 10:02:42 +0200 (Wed, 08 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/src/Makefile.am
-
-[*change] [reported by Micah Anderson, Riseup] Micah reported problems with the use of $* instead of /m in the parser.pl module. It was a good oportunity to remove the old parser code that was used by the task_manager only. The task_manager now uses the TT2 parser. It forces us to change the task template format for structured variables : [x->y] should now be written [x.y].
-
-------------------------------------------------------------------------
-r5176 | olivier.salaun | 2008-10-08 10:02:23 +0200 (Wed, 08 Oct 2008) | 2 lines
-Changed paths:
-   D /trunk/src/parser.pl
-   M /trunk/src/sympa.pl
-
-[*change] [reported by Micah Anderson, Riseup] Micah reported problems with the use of $* instead of /m in the parser.pl module. It was a good oportunity to remove the old parser code that was used by the task_manager only. The task_manager now uses the TT2 parser. It forces us to change the task template format for structured variables : [x->y] should now be written [x.y].
-
-------------------------------------------------------------------------
-r5175 | olivier.salaun | 2008-10-08 09:59:48 +0200 (Wed, 08 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/src/etc/list_task_models/sync_include.ttl.task
-   M /trunk/src/task_manager.pl
-
-[*change] [reported by Micah Anderson, Riseup] Micah reported problems with the use of $* instead of /m in the parser.pl module. It was a good oportunity to remove the old parser code that was used by the task_manager only. The task_manager now uses the TT2 parser. It forces us to change the task template format for structured variables : [x->y] should now be written [x.y].
-
-------------------------------------------------------------------------
-r5173 | olivier.salaun | 2008-10-07 18:00:27 +0200 (Tue, 07 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/src/sympa.pl
-
-[bug] [reported by Micah Anderson, Riseup] No more force $/ and $* variables. This had been introduced in 1999 to fix a bug on Solaris platform.
-
-------------------------------------------------------------------------
-r5172 | sympa-authors | 2008-10-06 11:40:59 +0200 (Mon, 06 Oct 2008) | 5 lines
-Changed paths:
-   M /trunk/src/Commands.pm
-
-[feature] When rejecting a message by email reject command, the message body is 
-transmisted to the tt2 parser so it is now possible to print the message body in the
-notification sent to the original message sender. The tt2 var to use is [editor_msg_body]
+[bug][#4544][Reported by T. Berry, JPL, NASA] When a mail set command failed, the mail report contained a faulty email address or no eamil address at all. Fixed by changing the var reference passed to the templates.
 
 
 ------------------------------------------------------------------------
-r5171 | sympa-authors | 2008-10-03 08:06:56 +0200 (Fri, 03 Oct 2008) | 3 lines
+r5181 | olivier.salaun | 2008-10-14 16:28:01 +0200 (Tue, 14 Oct 2008) | 3 lines
 Changed paths:
-   M /trunk/src/SQLSource.pm
+   M /branches/sympa-5.4-branch/src/Conf.pm
 
-[feature] Thanks to Ryan Fox submit who submit  this patch for informix  external data source.
-
+[bug] 'logs_expiration_period' sympa.conf parameter was not loaded. As a result DB logs were exp
+ired every day.
 
 ------------------------------------------------------------------------
-r5169 | olivier.salaun | 2008-10-02 15:10:05 +0200 (Thu, 02 Oct 2008) | 3 lines
+r5174 | olivier.salaun | 2008-10-08 09:40:28 +0200 (Wed, 08 Oct 2008) | 2 lines
 Changed paths:
-   M /trunk/src/Conf.pm
-   M /trunk/wwsympa/Auth.pm
+   M /branches/sympa-5.4-branch/src/sympa.pl
+
+[bug] [reported by Micah Anderson, Riseup] No more force $/ and $* variables. This had been introduced in 1999 to fix a bug on Solaris platform. 
+
+------------------------------------------------------------------------
+r5170 | olivier.salaun | 2008-10-02 15:10:39 +0200 (Thu, 02 Oct 2008) | 3 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/src/Conf.pm
+   M /branches/sympa-5.4-branch/wwsympa/Auth.pm
 
 [bug][#4543] When multiple "ldap" entries were defined in the auth.conf file, only the first one was queried.
 Also fixed a bug with the default scope being "base", now "sub".
 
 ------------------------------------------------------------------------
-r5168 | olivier.salaun | 2008-10-02 15:02:23 +0200 (Thu, 02 Oct 2008) | 2 lines
+r5162 | olivier.salaun | 2008-10-01 14:38:06 +0200 (Wed, 01 Oct 2008) | 2 lines
 Changed paths:
-   M /trunk/configure.ac
+   M /branches/sympa-5.4-branch/src/List.pm
 
-[feature] preparing 6.0a.3
+[bug] define missing LOCK_UN
 
 ------------------------------------------------------------------------
-r5167 | olivier.salaun | 2008-10-02 15:01:12 +0200 (Thu, 02 Oct 2008) | 2 lines
+r5161 | olivier.salaun | 2008-10-01 14:34:09 +0200 (Wed, 01 Oct 2008) | 2 lines
 Changed paths:
-   M /trunk/ChangeLog
+   M /branches/sympa-5.4-branch/src/Lock.pm
 
-[change] updated
+[bug] import missing LOCK_UN from Fcntl
 
 ------------------------------------------------------------------------
-r5166 | olivier.salaun | 2008-10-02 11:45:47 +0200 (Thu, 02 Oct 2008) | 2 lines
+r5141 | olivier.salaun | 2008-09-15 17:01:17 +0200 (Mon, 15 Sep 2008) | 2 lines
 Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[-bug] fixed typo logued
-
-------------------------------------------------------------------------
-r5163 | olivier.salaun | 2008-10-01 15:06:11 +0200 (Wed, 01 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/login_menu.tt2
-   M /trunk/web_tt2/loginbanner.tt2
-
-[bug] fix misplaced </div>
-
-------------------------------------------------------------------------
-r5160 | olivier.salaun | 2008-10-01 11:28:27 +0200 (Wed, 01 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/manage_template.tt2
-
-[bug] One string not tagged with [loc]
-
-------------------------------------------------------------------------
-r5157 | olivier.salaun | 2008-10-01 11:24:16 +0200 (Wed, 01 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/modindex.tt2
-
-[-bug] moved h2 to the right place
-
-------------------------------------------------------------------------
-r5154 | olivier.salaun | 2008-10-01 11:20:06 +0200 (Wed, 01 Oct 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/modindex.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[change] Allow access to modindex page even with empty spool. It allows to access the manage_template link
-
-------------------------------------------------------------------------
-r5150 | olivier.salaun | 2008-09-30 17:05:11 +0200 (Tue, 30 Sep 2008) | 10 lines
-Changed paths:
-   M /trunk/mail_tt2/listmaster_notification.tt2
-   M /trunk/mail_tt2/listowner_notification.tt2
-   M /trunk/mail_tt2/moderate.tt2
-   M /trunk/mail_tt2/user_notification.tt2
-   M /trunk/src/List.pm
-   M /trunk/src/Log.pm
-   M /trunk/src/sympa.pl
-   M /trunk/src/tools.pl
-   M /trunk/web_tt2/change_email.tt2
-   A /trunk/web_tt2/change_email_request.tt2
-   M /trunk/web_tt2/editfile.tt2
-   M /trunk/web_tt2/error.tt2
-   M /trunk/web_tt2/help_admin.tt2
-   M /trunk/web_tt2/lists.tt2
-   M /trunk/web_tt2/login_menu.tt2
-   M /trunk/web_tt2/manage_template.tt2
-   M /trunk/web_tt2/modindex.tt2
-   M /trunk/web_tt2/pref.tt2
-   M /trunk/web_tt2/search_user.tt2
-   M /trunk/web_tt2/serveradmin.tt2
-   M /trunk/wwsympa/Auth.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[feature] The change_email feature has been rewritten as follows :
-  - using authenticating URLs to check the new user email (instead of collecting his password)
-  - provide an equivalent listmaster feature to change a user's email address
-  - check if user is included ; if so, notify the list owner
-  - rename list member picture if he changes his member email address
-Also removed old code for the following actions : change_identity, unify_email, record_email
-
-New feature to define custom moderation rejection messages. 
-
-
-------------------------------------------------------------------------
-r5149 | olivier.salaun | 2008-09-30 16:59:06 +0200 (Tue, 30 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/po/fr.po
-
-[change] Completed French translations
-
-------------------------------------------------------------------------
-r5148 | olivier.salaun | 2008-09-30 15:13:48 +0200 (Tue, 30 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help.pot
-   M /trunk/po/web_help_af.po
-   M /trunk/po/web_help_ar.po
-   M /trunk/po/web_help_bg.po
-   M /trunk/po/web_help_br.po
-   M /trunk/po/web_help_ca.po
-   M /trunk/po/web_help_cs.po
-   M /trunk/po/web_help_de.po
-   M /trunk/po/web_help_el.po
-   M /trunk/po/web_help_en_US.po
-   M /trunk/po/web_help_es.po
-   M /trunk/po/web_help_et.po
-   M /trunk/po/web_help_eu.po
-   M /trunk/po/web_help_fi.po
-   M /trunk/po/web_help_fr.po
-   M /trunk/po/web_help_hu.po
-   M /trunk/po/web_help_id.po
-   M /trunk/po/web_help_it.po
-   M /trunk/po/web_help_ja.po
-   M /trunk/po/web_help_ko.po
-   M /trunk/po/web_help_ml.po
-   M /trunk/po/web_help_nb_NO.po
-   M /trunk/po/web_help_nl.po
-   M /trunk/po/web_help_nn_NO.po
-   M /trunk/po/web_help_oc.po
-   M /trunk/po/web_help_pl.po
-   M /trunk/po/web_help_pt.po
-   M /trunk/po/web_help_pt_BR.po
-   M /trunk/po/web_help_ro.po
-   M /trunk/po/web_help_ru.po
-   M /trunk/po/web_help_sv.po
-   M /trunk/po/web_help_tr.po
-   M /trunk/po/web_help_vi.po
-   M /trunk/po/web_help_zh_CN.po
-   M /trunk/po/web_help_zh_TW.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[change] Update POT and PO files
-
-------------------------------------------------------------------------
-r5147 | olivier.salaun | 2008-09-30 15:11:00 +0200 (Tue, 30 Sep 2008) | 1 line
-Changed paths:
-   M /trunk/po/de.po
-   M /trunk/po/ru.po
-
-[change] [Chernysh, Riseup collective] new Russian translations
-------------------------------------------------------------------------
-r5146 | olivier.salaun | 2008-09-25 11:49:10 +0200 (Thu, 25 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/src/sympa.pl
-
-[-bug] ths --foreground option was not documented
-
-------------------------------------------------------------------------
-r5143 | olivier.salaun | 2008-09-18 13:49:22 +0200 (Thu, 18 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/src/tools.pl
-
-[-change] made duration_conv() more readable
-
-------------------------------------------------------------------------
-r5142 | sympa-authors | 2008-09-16 08:06:42 +0200 (Tue, 16 Sep 2008) | 3 lines
-Changed paths:
-   M /trunk/wwsympa/SympaSession.pm
-
-[bug] Remove check of client @IP because it may brake sessions while using several proxy or NAT or ...
-
-
-------------------------------------------------------------------------
-r5140 | olivier.salaun | 2008-09-15 16:20:01 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[change] [submitted by Peter Langhans, univ Zurich] in create_list form, bring back the form if a parameter is missing
-
-------------------------------------------------------------------------
-r5139 | olivier.salaun | 2008-09-15 16:08:37 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/check_perl_modules.pl
+   M /branches/sympa-5.4-branch/check_perl_modules.pl
 
 [-bug] fixed typo for HTML::FormatText perl module
 
 ------------------------------------------------------------------------
-r5138 | olivier.salaun | 2008-09-15 12:04:14 +0200 (Mon, 15 Sep 2008) | 2 lines
+r5126 | olivier.salaun | 2008-09-12 17:46:04 +0200 (Fri, 12 Sep 2008) | 4 lines
 Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[-change] ran make pot;make update-po
-
-------------------------------------------------------------------------
-r5137 | olivier.salaun | 2008-09-15 11:36:49 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/edit_list_request.tt2
-
-[-bug] </br> moved after units
-
-------------------------------------------------------------------------
-r5136 | olivier.salaun | 2008-09-15 11:25:05 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/po/ja.po
-
-[-bug] fixed duplicate entries
-
-------------------------------------------------------------------------
-r5135 | olivier.salaun | 2008-09-15 11:11:14 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/po/sympa.pot
-   M /trunk/po/xgettext.pl
-   M /trunk/src/List.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[feature][proposed by Peter Langhans, univ Zurich] made units for list parameters translatable
-
-------------------------------------------------------------------------
-r5134 | olivier.salaun | 2008-09-15 11:03:08 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help_en_US.po
-   M /trunk/po/web_help_fr.po
-   M /trunk/po/web_help_ru.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[change] ran "make pot ; make update-po"
-
-------------------------------------------------------------------------
-r5133 | olivier.salaun | 2008-09-15 10:47:50 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/po/ca.po
-   M /trunk/po/et.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/ja.po
-   M /trunk/po/ru.po
-   M /trunk/po/web_help_ru.po
-
-[change] downloaded translations from pootle.sympa.org
-
-------------------------------------------------------------------------
-r5132 | olivier.salaun | 2008-09-15 10:16:52 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[-bug] [submitted by Peter Langhans, univ Zurich] minor bugfix in check_list_authz() call
-
-------------------------------------------------------------------------
-r5131 | olivier.salaun | 2008-09-15 10:12:49 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[-bug] [submitted by Peter Langhans, univ Zurich] do not log any kind of password + fixed a typo in a return command
-
-------------------------------------------------------------------------
-r5130 | olivier.salaun | 2008-09-15 10:02:22 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/list_admin_menu.tt2
-
-[-bug] [submitted by Peter Langhans, univ Zurich] typo
-
-------------------------------------------------------------------------
-r5129 | olivier.salaun | 2008-09-15 10:00:16 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/src/etc/script/arc2webarc.pl
-
-[-bug] [submitted by Peter Langhans, univ Zurich] Using a better method to determine the UID
-
-------------------------------------------------------------------------
-r5128 | olivier.salaun | 2008-09-15 09:56:18 +0200 (Mon, 15 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/src/etc/script/arc2webarc.pl
-
-[-bug] [submitted by Peter Langhans, univ Zurich] initialize $msg_count
-
-------------------------------------------------------------------------
-r5127 | olivier.salaun | 2008-09-12 17:46:17 +0200 (Fri, 12 Sep 2008) | 4 lines
-Changed paths:
-   M /trunk/src/Log.pm
+   M /branches/sympa-5.4-branch/src/Log.pm
 
 [bug] [submitted by Peter Langhans, univ Zurich] fixed oracl-related issues :
   * $parameter longer than 100 chars would make errors
   * "date" is a reserved keyword with Oracle
 
 ------------------------------------------------------------------------
-r5125 | olivier.salaun | 2008-09-11 11:50:09 +0200 (Thu, 11 Sep 2008) | 2 lines
+r5124 | olivier.salaun | 2008-09-11 11:40:54 +0200 (Thu, 11 Sep 2008) | 2 lines
 Changed paths:
-   M /trunk/src/tt2.pl
-
-[-change] remove strange POD comment
-
-------------------------------------------------------------------------
-r5123 | olivier.salaun | 2008-09-11 11:40:13 +0200 (Thu, 11 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/src/sympa_wizard.pl
-   M /trunk/src/tools.pl
+   M /branches/sympa-5.4-branch/src/sympa_wizard.pl
+   M /branches/sympa-5.4-branch/src/tools.pl
 
 [bug] [#4439] [#4440] [reported by O.Berger] security vulnerability which use a file in /tmp.
 
 ------------------------------------------------------------------------
-r5122 | olivier.salaun | 2008-09-10 13:51:41 +0200 (Wed, 10 Sep 2008) | 2 lines
+r5119 | olivier.salaun | 2008-09-05 17:04:13 +0200 (Fri, 05 Sep 2008) | 3 lines
 Changed paths:
-   M /trunk/src/Commands.pm
+   M /branches/sympa-5.4-branch/check_perl_modules.pl
 
-[-feature]added the file name in log when a message is confirmed
+[bug][#4453][reported by Chris Hastie] The PlainDigest.pm module is able to convert text/html message parts to text/plai
+n. It requires modules HTML::TreeBuilder and HTML::FormatText to be installed.
 
 ------------------------------------------------------------------------
-r5121 | sympa-authors | 2008-09-10 10:16:26 +0200 (Wed, 10 Sep 2008) | 3 lines
+r5116 | olivier.salaun | 2008-09-02 11:47:22 +0200 (Tue, 02 Sep 2008) | 2 lines
 Changed paths:
-   M /trunk/web_tt2/get_closed_lists.tt2
+   M /branches/sympa-5.4-branch/src/etc/scenari/d_edit.private-https
 
-[feature] add "toggle selection" button in list of closed lists
-
+[bug][B.Kosaras, healthnet]fixed typo in rejection reason
 
 ------------------------------------------------------------------------
-r5120 | olivier.salaun | 2008-09-09 09:34:46 +0200 (Tue, 09 Sep 2008) | 2 lines
+r5085 | olivier.salaun | 2008-08-06 14:28:25 +0200 (Wed, 06 Aug 2008) | 2 lines
 Changed paths:
-   M /trunk/src/admin.pm
-   M /trunk/web_tt2/create_list.tt2
-   M /trunk/web_tt2/error.tt2
-   M /trunk/web_tt2/install_pending_list.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[change]Now raising an error if alias_manager failed to install new aliases
-
-------------------------------------------------------------------------
-r5118 | olivier.salaun | 2008-09-05 16:58:54 +0200 (Fri, 05 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/check_perl_modules.pl
-
-[bug][#4453][reported by Chris Hastie] The PlainDigest.pm module is able to convert text/html message parts to text/plain. It requires modules HTML::TreeBuilder and HTML::FormatText to be installed.
-
-------------------------------------------------------------------------
-r5117 | sympa-authors | 2008-09-03 08:59:33 +0200 (Wed, 03 Sep 2008) | 3 lines
-Changed paths:
-   M /trunk/src/admin.pm
-
-[bug] Fix a bug related to copy list feature where the mandatory file "info" was not copied and also message.footer and message.header that are optional but should be duplicated when copying a list.
-
-
-------------------------------------------------------------------------
-r5115 | olivier.salaun | 2008-09-02 11:45:23 +0200 (Tue, 02 Sep 2008) | 1 line
-Changed paths:
-   M /trunk/src/etc/scenari/d_edit.private-https
-
-[bug][B.Kosaras, AED-SATELLIFE]fixed typo in rejection reason
-------------------------------------------------------------------------
-r5114 | olivier.salaun | 2008-09-02 09:31:38 +0200 (Tue, 02 Sep 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/login_menu.tt2
-   M /trunk/web_tt2/loginbanner.tt2
-   M /trunk/web_tt2/loginrequest.tt2
-
-[-change] removed duplicated login form
-
-------------------------------------------------------------------------
-r5112 | sympa-authors | 2008-08-25 10:38:57 +0200 (Mon, 25 Aug 2008) | 3 lines
-Changed paths:
-   M /trunk/src/mail.pm
-
-[bug] Undo the change :  http://sourcesup.cru.fr/cgi/viewvc.cgi/trunk/src/mail.pm?r1=5064&r2=5071 because this block "QUIET DISTRIBUTE command message done from wwwsympa.fcgi so web moderation is out of order. This need a beter fix later.
-
-
-------------------------------------------------------------------------
-r5111 | olivier.salaun | 2008-08-14 17:13:48 +0200 (Thu, 14 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/src/sympa.pl
-
-[bug][#4430] sote temporary files in Sympa's own tmp directory instead of /tmp to prevent symlink attacks
-
-------------------------------------------------------------------------
-r5110 | olivier.salaun | 2008-08-14 16:46:58 +0200 (Thu, 14 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[change][#4430] Removed debug code
-
-------------------------------------------------------------------------
-r5109 | olivier.salaun | 2008-08-14 16:28:08 +0200 (Thu, 14 Aug 2008) | 1 line
-Changed paths:
-   M /trunk/src/etc/script/testlogs.pl
-
-[bug][Balazs Kosaras, AED-SATELLIFE] testlogs.pl would not work with non-default specified conf path
-------------------------------------------------------------------------
-r5108 | olivier.salaun | 2008-08-14 16:10:10 +0200 (Thu, 14 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/soap/SympaTransport.pm
-
-[-change] added session Id renewal
-
-------------------------------------------------------------------------
-r5107 | olivier.salaun | 2008-08-14 16:09:11 +0200 (Thu, 14 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/SympaSession.pm
-
-[-change] added session Id to log message
-
-------------------------------------------------------------------------
-r5106 | olivier.salaun | 2008-08-13 16:43:44 +0200 (Wed, 13 Aug 2008) | 3 lines
-Changed paths:
-   M /trunk/src/tools.pl
-   M /trunk/web_tt2/error.tt2
-   M /trunk/web_tt2/help_admin.tt2
-   A /trunk/web_tt2/manage_template.tt2 (from /branches/sympa-altemail/web_tt2/manage_template.tt2:5072)
-   M /trunk/web_tt2/modindex.tt2
-   M /trunk/web_tt2/review.tt2
-   M /trunk/web_tt2/viewmod.tt2
-   M /trunk/wwsympa/Challenge.pm
-   M /trunk/wwsympa/SympaSession.pm
-   M /trunk/wwsympa/cookielib.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[feature] Added a new function for the moderation of messages. On rejection of messages personalised messages can be created and saved and used to give more information as to why these messages were refused by the moderator.
-(change] Extended web session management to store 'cas-server', 'sso-id', 'do_not_use_cas' and 'checked_csa' data in the session table instead of HTTP cookies (as it used to do). Also changed the SympaSession methods to have separate store() and renew() methods.
-
-------------------------------------------------------------------------
-r5105 | olivier.salaun | 2008-08-11 16:56:00 +0200 (Mon, 11 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help.pot
-   M /trunk/po/web_help_af.po
-   M /trunk/po/web_help_ar.po
-   M /trunk/po/web_help_bg.po
-   M /trunk/po/web_help_br.po
-   M /trunk/po/web_help_ca.po
-   M /trunk/po/web_help_cs.po
-   M /trunk/po/web_help_de.po
-   M /trunk/po/web_help_el.po
-   M /trunk/po/web_help_en_US.po
-   M /trunk/po/web_help_es.po
-   M /trunk/po/web_help_et.po
-   M /trunk/po/web_help_eu.po
-   M /trunk/po/web_help_fi.po
-   M /trunk/po/web_help_fr.po
-   M /trunk/po/web_help_hu.po
-   M /trunk/po/web_help_id.po
-   M /trunk/po/web_help_it.po
-   M /trunk/po/web_help_ja.po
-   M /trunk/po/web_help_ko.po
-   M /trunk/po/web_help_ml.po
-   M /trunk/po/web_help_nb_NO.po
-   M /trunk/po/web_help_nl.po
-   M /trunk/po/web_help_nn_NO.po
-   M /trunk/po/web_help_oc.po
-   M /trunk/po/web_help_pl.po
-   M /trunk/po/web_help_pt.po
-   M /trunk/po/web_help_pt_BR.po
-   M /trunk/po/web_help_ro.po
-   M /trunk/po/web_help_ru.po
-   M /trunk/po/web_help_sv.po
-   M /trunk/po/web_help_tr.po
-   M /trunk/po/web_help_vi.po
-   M /trunk/po/web_help_zh_CN.po
-   M /trunk/po/web_help_zh_TW.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[feature] [Peter Hart] Added a new function for the moderation of messages. On rejection of messages personalised messages can be created and saved and used to give more information as to why these messages were refused by the moderator.
-
-------------------------------------------------------------------------
-r5104 | olivier.salaun | 2008-08-11 15:38:10 +0200 (Mon, 11 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/src/List.pm
-
-[-bug][Peter Hart] Fix typos
-
-------------------------------------------------------------------------
-r5103 | olivier.salaun | 2008-08-11 15:37:16 +0200 (Mon, 11 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/check_perl_modules.pl
-
-[-change] added dependency for Net::Netmask required for new verify_netmask() scenario condition
-
-------------------------------------------------------------------------
-r5102 | olivier.salaun | 2008-08-11 15:25:24 +0200 (Mon, 11 Aug 2008) | 3 lines
-Changed paths:
-   M /trunk/src/Scenario.pm
-   M /trunk/src/etc/scenari/create_list.intranet
-   M /trunk/src/etc/scenari/review.intranet
-   M /trunk/src/etc/scenari/subscribe.intranet
-   M /trunk/src/etc/scenari/subscribe.intranetorowner
-   M /trunk/src/etc/scenari/visibility.intranet
-
-[feature] [Peter Hart] New scenario condition verify_netmask. exemple :  verify_netmask('1.12.123.00/24')  (changes in intanet scenrii ar
-e just comment because we don't have access to the local netmask of installation)
-
-------------------------------------------------------------------------
-r5101 | olivier.salaun | 2008-08-11 14:17:11 +0200 (Mon, 11 Aug 2008) | 1 line
-Changed paths:
-   A /trunk/src/etc/ldap_alias_entry.tt2
-   M /trunk/src/etc/ldap_alias_manager.conf
-   M /trunk/src/etc/script/ldap_alias_manager.pl
-
-[feature] [Roland Hopferwieser] Extended the ldap_alias_manager.pl to use template to create LDAP entries. Also added a simulation mode for debug purpose.
-------------------------------------------------------------------------
-r5099 | olivier.salaun | 2008-08-08 16:55:39 +0200 (Fri, 08 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/SympaSession.pm
-
-[-change] add comments ; remove commented code
-
-------------------------------------------------------------------------
-r5098 | olivier.salaun | 2008-08-08 16:55:09 +0200 (Fri, 08 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/mail_tt2/listowner_notification.tt2
-
-[-change] remove leading blank line
-
-------------------------------------------------------------------------
-r5097 | olivier.salaun | 2008-08-08 16:19:19 +0200 (Fri, 08 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help.pot
-   M /trunk/po/web_help_af.po
-   M /trunk/po/web_help_ar.po
-   M /trunk/po/web_help_bg.po
-   M /trunk/po/web_help_br.po
-   M /trunk/po/web_help_ca.po
-   M /trunk/po/web_help_cs.po
-   M /trunk/po/web_help_de.po
-   M /trunk/po/web_help_el.po
-   M /trunk/po/web_help_en_US.po
-   M /trunk/po/web_help_es.po
-   M /trunk/po/web_help_et.po
-   M /trunk/po/web_help_eu.po
-   M /trunk/po/web_help_fi.po
-   M /trunk/po/web_help_fr.po
-   M /trunk/po/web_help_hu.po
-   M /trunk/po/web_help_id.po
-   M /trunk/po/web_help_it.po
-   M /trunk/po/web_help_ja.po
-   M /trunk/po/web_help_ko.po
-   M /trunk/po/web_help_ml.po
-   M /trunk/po/web_help_nb_NO.po
-   M /trunk/po/web_help_nl.po
-   M /trunk/po/web_help_nn_NO.po
-   M /trunk/po/web_help_oc.po
-   M /trunk/po/web_help_pl.po
-   M /trunk/po/web_help_pt.po
-   M /trunk/po/web_help_pt_BR.po
-   M /trunk/po/web_help_ro.po
-   M /trunk/po/web_help_ru.po
-   M /trunk/po/web_help_sv.po
-   M /trunk/po/web_help_tr.po
-   M /trunk/po/web_help_vi.po
-   M /trunk/po/web_help_zh_CN.po
-   M /trunk/po/web_help_zh_TW.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[-change] small changes
-
-------------------------------------------------------------------------
-r5096 | olivier.salaun | 2008-08-08 16:06:46 +0200 (Fri, 08 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/po/fr.po
-   M /trunk/po/web_help_fr.po
-
-[change] installed French translations from Pootle
-
-------------------------------------------------------------------------
-r5095 | olivier.salaun | 2008-08-08 16:05:38 +0200 (Fri, 08 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/help_user.tt2
-
-[-bug] fix typos
-
-------------------------------------------------------------------------
-r5094 | olivier.salaun | 2008-08-08 15:08:21 +0200 (Fri, 08 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/mail_tt2/moderate.tt2
-   M /trunk/mail_tt2/modindex.tt2
-   M /trunk/web_tt2/arc.tt2
-   M /trunk/web_tt2/arc_manage.tt2
-   M /trunk/web_tt2/arcsearch_form.tt2
-   M /trunk/web_tt2/compose_mail.tt2
-   M /trunk/web_tt2/create_list_request.tt2
-   M /trunk/web_tt2/d_control.tt2
-   M /trunk/web_tt2/d_editfile.tt2
-   M /trunk/web_tt2/d_properties.tt2
-   M /trunk/web_tt2/d_read.tt2
-   M /trunk/web_tt2/edit_list_request.tt2
-   M /trunk/web_tt2/editfile.tt2
-   M /trunk/web_tt2/modindex.tt2
-   M /trunk/web_tt2/pref.tt2
-   M /trunk/web_tt2/rename_list_request.tt2
-   M /trunk/web_tt2/review.tt2
-   M /trunk/web_tt2/reviewbouncing.tt2
-
-[feature] added contextual help links whenever appropriate
-
-------------------------------------------------------------------------
-r5093 | olivier.salaun | 2008-08-08 14:51:36 +0200 (Fri, 08 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help.pot
-   M /trunk/po/web_help_af.po
-   M /trunk/po/web_help_ar.po
-   M /trunk/po/web_help_bg.po
-   M /trunk/po/web_help_br.po
-   M /trunk/po/web_help_ca.po
-   M /trunk/po/web_help_cs.po
-   M /trunk/po/web_help_de.po
-   M /trunk/po/web_help_el.po
-   M /trunk/po/web_help_en_US.po
-   M /trunk/po/web_help_es.po
-   M /trunk/po/web_help_et.po
-   M /trunk/po/web_help_eu.po
-   M /trunk/po/web_help_fi.po
-   M /trunk/po/web_help_fr.po
-   M /trunk/po/web_help_hu.po
-   M /trunk/po/web_help_id.po
-   M /trunk/po/web_help_it.po
-   M /trunk/po/web_help_ja.po
-   M /trunk/po/web_help_ko.po
-   M /trunk/po/web_help_ml.po
-   M /trunk/po/web_help_nb_NO.po
-   M /trunk/po/web_help_nl.po
-   M /trunk/po/web_help_nn_NO.po
-   M /trunk/po/web_help_oc.po
-   M /trunk/po/web_help_pl.po
-   M /trunk/po/web_help_pt.po
-   M /trunk/po/web_help_pt_BR.po
-   M /trunk/po/web_help_ro.po
-   M /trunk/po/web_help_ru.po
-   M /trunk/po/web_help_sv.po
-   M /trunk/po/web_help_tr.po
-   M /trunk/po/web_help_vi.po
-   M /trunk/po/web_help_zh_CN.po
-   M /trunk/po/web_help_zh_TW.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[change] updates the .pot and .po files
-
-------------------------------------------------------------------------
-r5092 | olivier.salaun | 2008-08-08 14:45:45 +0200 (Fri, 08 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/po/es.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/it.po
-   M /trunk/po/ko.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/pt.po
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help_nb_NO.po
-   M /trunk/po/web_help_pt.po
-
-[change] Include latest translations from pootle.sympa.org
-
-------------------------------------------------------------------------
-r5091 | olivier.salaun | 2008-08-07 11:44:32 +0200 (Thu, 07 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[-bug] Fixed bugs introduced by latest changes in edit_list actions
-
-------------------------------------------------------------------------
-r5090 | olivier.salaun | 2008-08-07 10:07:40 +0200 (Thu, 07 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/mail_tt2/user_notification.tt2
-   M /trunk/web_tt2/notice.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[feature] [#713] Now notifying new list owners/moderators.
-
-------------------------------------------------------------------------
-r5089 | olivier.salaun | 2008-08-06 17:52:34 +0200 (Wed, 06 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[-bug] $owner_update and $editor_update variables were never set
-
-------------------------------------------------------------------------
-r5088 | olivier.salaun | 2008-08-06 17:33:45 +0200 (Wed, 06 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/mail_tt2/welcome.tt2
-
-[-bug] Fix TT2 error
-
-------------------------------------------------------------------------
-r5087 | olivier.salaun | 2008-08-06 17:10:32 +0200 (Wed, 06 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/mail_tt2/welcome.tt2
-
-[change] Added link to ML introduction ; also turned the content-type from multipart/alternative to text/plain
-
-------------------------------------------------------------------------
-r5086 | olivier.salaun | 2008-08-06 17:05:26 +0200 (Wed, 06 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/help_user.tt2
-
-[-bug] Update the documentation according to the new password allocation scenario
-
-------------------------------------------------------------------------
-r5084 | olivier.salaun | 2008-08-06 14:27:01 +0200 (Wed, 06 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
 [bug] Default value for parameters like owner/visibility are now compliant with the default value defined in %List::pinfo.
 
 ------------------------------------------------------------------------
-r5083 | olivier.salaun | 2008-08-06 11:28:56 +0200 (Wed, 06 Aug 2008) | 2 lines
+r5081 | olivier.salaun | 2008-08-05 17:44:34 +0200 (Tue, 05 Aug 2008) | 2 lines
 Changed paths:
-   M /trunk/web_tt2/reviewbouncing.tt2
-
-[change] [#534] added more informations to the reviewbouncing page (bounce total, first bounce and last bounce date). Now printing "no score" when the bounce score could not be computed
-
-------------------------------------------------------------------------
-r5080 | olivier.salaun | 2008-08-05 17:42:29 +0200 (Tue, 05 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/mail_tt2/info_report.tt2
-   M /trunk/src/Commands.pm
+   M /branches/sympa-5.4-branch/mail_tt2/info_report.tt2
+   M /branches/sympa-5.4-branch/src/Commands.pm
 
 [bug] INFO command failed to provide scenario titles since recent changes in Scenario code
 
 ------------------------------------------------------------------------
-r5079 | olivier.salaun | 2008-08-04 14:38:52 +0200 (Mon, 04 Aug 2008) | 2 lines
+r5076 | olivier.salaun | 2008-08-01 15:25:08 +0200 (Fri, 01 Aug 2008) | 2 lines
 Changed paths:
-   M /trunk/web_tt2/help_faquser.tt2
-   M /trunk/web_tt2/loginbanner.tt2
-   M /trunk/web_tt2/ticket.tt2
-
-[bug] removed references to old remindpasswd.tt2 template. Also adapted some of the documentation
-
-------------------------------------------------------------------------
-r5078 | olivier.salaun | 2008-08-04 14:25:49 +0200 (Mon, 04 Aug 2008) | 3 lines
-Changed paths:
-   M /trunk/web_tt2/css.tt2
-   M /trunk/web_tt2/edit_list_request.tt2
-   M /trunk/web_tt2/error.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[bug] is the edit_list context, some unedited parameters were shown as edited. This has been fixed.
-Also changed the style of edited entries.
-
-------------------------------------------------------------------------
-r5075 | olivier.salaun | 2008-08-01 15:23:13 +0200 (Fri, 01 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
 [bug] list owner was brought back to incorrect page after editsubscriber was performed. Fiwed management of previous _action variable
 
 ------------------------------------------------------------------------
-r5074 | olivier.salaun | 2008-08-01 14:51:05 +0200 (Fri, 01 Aug 2008) | 2 lines
+r5048 | olivier.salaun | 2008-06-05 09:27:30 +0200 (Thu, 05 Jun 2008) | 2 lines
 Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[change] no more notify listmaster when arcsearch cannot find an archived message
-
-------------------------------------------------------------------------
-r5073 | olivier.salaun | 2008-08-01 13:59:51 +0200 (Fri, 01 Aug 2008) | 2 lines
-Changed paths:
-   M /trunk/src/mail.pm
-
-[-bug]Fixed previous changes : mail::mail_forward() did not set the auto-submitted header field
-
-------------------------------------------------------------------------
-r5071 | olivier.salaun | 2008-07-31 17:33:12 +0200 (Thu, 31 Jul 2008) | 3 lines
-Changed paths:
-   M /trunk/soap/sympasoap.pm
-   M /trunk/src/Commands.pm
-   M /trunk/src/List.pm
-   M /trunk/src/mail.pm
-   M /trunk/src/report.pm
-   M /trunk/src/sympa.pl
-   M /trunk/src/task_manager.pl
-
-[feature][#3984][requested by S.Kristoffersen, Univ. Oslo] Sympa is now setting the Auto-Submitted SMTP header field for messages it generates. It also prevents loops for incoming message that have this header field set.
-See related draft http://www.tools.ietf.org/html/draft-palme-autosub-01
-
-------------------------------------------------------------------------
-r5064 | olivier.salaun | 2008-07-04 14:04:04 +0200 (Fri, 04 Jul 2008) | 2 lines
-Changed paths:
-   M /trunk/src/mail.pm
-
-[-feature] Added initial comments from Soji Ikeda explaining the concerns about charset management.
-
-------------------------------------------------------------------------
-r5058 | sympa-authors | 2008-06-17 11:37:00 +0200 (Tue, 17 Jun 2008) | 4 lines
-Changed paths:
-   M /trunk/mail_tt2/listmaster_notification.tt2
-   M /trunk/src/List.pm
-   M /trunk/web_tt2/create_list_request.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[feature] notify list creation and list copy to listmasters with one_time_ticket
-[-bug] Fix notification of copy list
-
-
-------------------------------------------------------------------------
-r5057 | serge.aumont | 2008-06-16 15:36:56 +0200 (Mon, 16 Jun 2008) | 10 lines
-Changed paths:
-   M /trunk/src/Conf.pm
-   M /trunk/src/Scenario.pm
-
-[feature] New sympa;conf parameters log_module and log_condition. log_module is used to activate logs for a specific module. 
-Current version provide only logs for scenario . log_condition is used to controle in which case logs are applied. Both are multivaluated (list of values comma separated).
-exemple : 
-log_module scenario,smtp
-
-log_condition ip=127.0.0.1,email=foo@domain
-
-log_module is not implemented for most modules. 'log_module smtp' should replace the option sympa.pl -m
-
-
-------------------------------------------------------------------------
-r5056 | david.verdin | 2008-06-16 12:21:20 +0200 (Mon, 16 Jun 2008) | 2 lines
-Changed paths:
-   M /trunk/src/List.pm
-
-[bug]When storing subscription requests, Sympa ignored subscription request if an user had already asked for a subscription, event if the new request was for another list. Fixed by checking the list name before searching previous subscription requests for the user.
-
-------------------------------------------------------------------------
-r5055 | olivier.salaun | 2008-06-12 17:42:07 +0200 (Thu, 12 Jun 2008) | 3 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[bug][#3917] Changing language after a search in the archives results in an
-error. Now redirecting to 'arc' function instead
-
-------------------------------------------------------------------------
-r5054 | olivier.salaun | 2008-06-12 17:41:13 +0200 (Thu, 12 Jun 2008) | 4 lines
-Changed paths:
-   M /trunk/web_tt2/create_list_request.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[-change] changed description of the feature
-No more use hidden parameter new_robot
-Show the feature if user is list owner only
-
-------------------------------------------------------------------------
-r5053 | serge.aumont | 2008-06-12 17:34:32 +0200 (Thu, 12 Jun 2008) | 3 lines
-Changed paths:
-   M /trunk/check_perl_modules.pl
-
-[bug] list File-Copy-RecursiveOK (0.36) a a new required cpan module
-
-
-------------------------------------------------------------------------
-r5052 | serge.aumont | 2008-06-12 11:06:20 +0200 (Thu, 12 Jun 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/css.tt2
-
-[bug] bettre display of large table 
-
-------------------------------------------------------------------------
-r5051 | serge.aumont | 2008-06-12 08:14:27 +0200 (Thu, 12 Jun 2008) | 3 lines
-Changed paths:
-   M /trunk/web_tt2/review.tt2
-
-[feature] Show custom attributes as cells in the list members html table. Now it can be copy&paste in openoffice or exel. 
-
-
-------------------------------------------------------------------------
-r5050 | serge.aumont | 2008-06-09 16:51:20 +0200 (Mon, 09 Jun 2008) | 3 lines
-Changed paths:
-   M /trunk/mail_tt2/listowner_notification.tt2
-   M /trunk/src/List.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[feature] Use one time ticket method when notifying subscription request to list owners
-
-
-------------------------------------------------------------------------
-r5049 | olivier.salaun | 2008-06-09 09:27:21 +0200 (Mon, 09 Jun 2008) | 2 lines
-Changed paths:
-   M /trunk/src/List.pm
-   M /trunk/src/Lock.pm
-
-[-bug] Also import LOCK_UN symbol from Fcntl
-
-------------------------------------------------------------------------
-r5047 | olivier.salaun | 2008-06-05 09:26:35 +0200 (Thu, 05 Jun 2008) | 2 lines
-Changed paths:
-   M /trunk/src/List.pm
-   M /trunk/src/Lock.pm
+   M /branches/sympa-5.4-branch/src/List.pm
+   M /branches/sympa-5.4-branch/src/Lock.pm
 
 [bug][#3953] Lock.pm imports some constants from Fnctl module and used to redefine them. it resulted in warnings while running wwsympa.fcgi : "Prototype mismatch: sub Lock::LOCK_SH () vs none at /usr/share/sympa/lib/Lock.pm line 38. Constant subroutine LOCK_SH redefined at /usr/share/sympa/lib/Lock.pm line 38.". Removed duplicate definitions.
 
 ------------------------------------------------------------------------
-r5046 | olivier.salaun | 2008-06-05 09:14:10 +0200 (Thu, 05 Jun 2008) | 2 lines
+r5027 | olivier.salaun | 2008-05-28 17:02:26 +0200 (Wed, 28 May 2008) | 2 lines
 Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[-bug] reveiewbouncing page was raising errors because bounce_total parameter was considered required
-
-------------------------------------------------------------------------
-r5045 | sympa-authors | 2008-06-04 17:14:48 +0200 (Wed, 04 Jun 2008) | 3 lines
-Changed paths:
-   M /trunk/src/admin.pm
-   M /trunk/src/tools.pl
-   M /trunk/web_tt2/create_list_request.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[feature] A new way to create lists : creation list form allows now to clone a list as a new empty list, all config and customization are copied but not subscribers, archives and shared
-
-
-------------------------------------------------------------------------
-r5044 | david.verdin | 2008-06-04 13:14:36 +0200 (Wed, 04 Jun 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/subrequest.tt2
-
-[-bug]Uncomplete message in web template.
-
-------------------------------------------------------------------------
-r5043 | sympa-authors | 2008-06-04 13:03:45 +0200 (Wed, 04 Jun 2008) | 2 lines
-Changed paths:
-   M /trunk/mail_tt2/sendpasswd.tt2
-   M /trunk/web_tt2/subrequest.tt2
-   M /trunk/wwsympa/Auth.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[bug]When an user tried to subscribe to a list and (s)he hadn't an account on the server already, the server sent a message with a password for a new acount. Since we switched to not reversible password encoding, it is impossible to send such a message, resulting in new users receiving messages with an empty password. This message is now replaced with the sending of an authenticating URL.
-
-------------------------------------------------------------------------
-r5042 | david.verdin | 2008-06-02 15:08:43 +0200 (Mon, 02 Jun 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[bug]When searching a list, the result were not displayed in the result window because the ordered list of lists was not passed to the TT2.
-
-------------------------------------------------------------------------
-r5041 | david.verdin | 2008-05-30 14:22:10 +0200 (Fri, 30 May 2008) | 2 lines
-Changed paths:
-   A /trunk/doc/sympa.pdf
-
-[-feature]Reintroducing the Sympa manual PDF file.
-
-------------------------------------------------------------------------
-r5039 | sympa-authors | 2008-05-30 12:45:21 +0200 (Fri, 30 May 2008) | 1 line
-Changed paths:
-   M /trunk/ChangeLog
-
-[-feature]Preparing version 6.0a.2
-------------------------------------------------------------------------
-r5038 | sympa-authors | 2008-05-30 12:26:18 +0200 (Fri, 30 May 2008) | 1 line
-Changed paths:
-   M /trunk/ChangeLog
-
-[-feature]Preparing version 6.0a.2
-------------------------------------------------------------------------
-r5037 | sympa-authors | 2008-05-30 12:26:04 +0200 (Fri, 30 May 2008) | 1 line
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[-feature]Committing updated catalogues from Pootle
-------------------------------------------------------------------------
-r5036 | sympa-authors | 2008-05-30 12:23:26 +0200 (Fri, 30 May 2008) | 1 line
-Changed paths:
-   M /trunk/ChangeLog
-   M /trunk/po/ja.po
-   M /trunk/po/sympa.pot
-
-[-feature]Committing latest translations from Pootle
-------------------------------------------------------------------------
-r5035 | sympa-authors | 2008-05-30 12:17:36 +0200 (Fri, 30 May 2008) | 1 line
-Changed paths:
-   M /trunk/configure.ac
-   M /trunk/po/en_US.po
-   M /trunk/po/fr.po
-   M /trunk/po/it.po
-   M /trunk/po/vi.po
-
-[-feature]Committing latest translations from Pootle
-------------------------------------------------------------------------
-r5034 | david.verdin | 2008-05-30 11:15:29 +0200 (Fri, 30 May 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[-bug] A typo prevented made wwsympa fail to moderate messages.
-
-------------------------------------------------------------------------
-r5033 | david.verdin | 2008-05-29 15:46:03 +0200 (Thu, 29 May 2008) | 2 lines
-Changed paths:
-   M /trunk/mail_tt2/invite.tt2
-
-[-bug] Typo in a message.
-
-------------------------------------------------------------------------
-r5032 | david.verdin | 2008-05-29 15:03:56 +0200 (Thu, 29 May 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwslib.pm
-
-[bug] Passwords were lower-cased by default when compared to the password stored in the database. This was completely incompatible with the new password storage as a MD5 hash. Fixed by removing this lower-casing.
-
-------------------------------------------------------------------------
-r5031 | david.verdin | 2008-05-29 10:39:56 +0200 (Thu, 29 May 2008) | 2 lines
-Changed paths:
-   M /trunk/src/Upgrade.pm
-
-[bug]Escaping single quotes in emails when switching passwords to MD5.
-
-------------------------------------------------------------------------
-r5029 | david.verdin | 2008-05-28 17:49:12 +0200 (Wed, 28 May 2008) | 2 lines
-Changed paths:
-   M /trunk/configure.ac
-
-[-change]Changing version number from 5.5a.1 to 6.0a.1.
-
-------------------------------------------------------------------------
-r5028 | david.verdin | 2008-05-28 17:47:05 +0200 (Wed, 28 May 2008) | 2 lines
-Changed paths:
-   M /trunk/ChangeLog
-   M /trunk/NEWS
-
-[-change]Update Changelog and NEWS files.
-
-------------------------------------------------------------------------
-r5026 | olivier.salaun | 2008-05-28 17:01:50 +0200 (Wed, 28 May 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
 [bug] web authentication using the generic_sso method was broken because session was not properly initialized
 
 ------------------------------------------------------------------------
-r5025 | david.verdin | 2008-05-28 16:09:22 +0200 (Wed, 28 May 2008) | 2 lines
+r5018 | olivier.salaun | 2008-05-27 17:46:43 +0200 (Tue, 27 May 2008) | 2 lines
 Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/sympa.pot
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
+   M /branches/sympa-5.4-branch/soap/sympasoap.pm
+   M /branches/sympa-5.4-branch/web_tt2/login_menu.tt2
 
-[-feature] Updating translations
+[bug][C.Jewell] output of createList() was badly typed data
 
 ------------------------------------------------------------------------
-r5024 | david.verdin | 2008-05-28 16:02:43 +0200 (Wed, 28 May 2008) | 2 lines
+r4999 | olivier.salaun | 2008-05-16 16:31:12 +0200 (Fri, 16 May 2008) | 3 lines
 Changed paths:
-   M /trunk/po/zh_CN.po
-
-[-feature]Retrieving translation from pootle server.
-
-------------------------------------------------------------------------
-r5023 | olivier.salaun | 2008-05-28 12:15:04 +0200 (Wed, 28 May 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/login_menu.tt2
-
-[bug] login banner was shown even though no user_table entry was listed in auth.conf
-
-------------------------------------------------------------------------
-r5022 | david.verdin | 2008-05-28 11:55:43 +0200 (Wed, 28 May 2008) | 2 lines
-Changed paths:
-   M /trunk/NEWS
-
-[-feature]Updating NEWS file
-
-------------------------------------------------------------------------
-r5021 | david.verdin | 2008-05-28 11:45:26 +0200 (Wed, 28 May 2008) | 2 lines
-Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/web_help_fr.po
-   M /trunk/po/web_help_ja.po
-   M /trunk/po/web_help_pt_BR.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
-
-[-change]Retrieving updated translations from pootle
-
-------------------------------------------------------------------------
-r5020 | serge.aumont | 2008-05-28 11:25:46 +0200 (Wed, 28 May 2008) | 3 lines
-Changed paths:
-   M /trunk/web_tt2/login_menu.tt2
-   D /trunk/web_tt2/remindpasswd.tt2
-   A /trunk/web_tt2/renewpasswd.tt2
-   A /trunk/web_tt2/requestpasswd.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[bug] Fix web pages in order to give appropriate messages when requesting first password or password renewal. 
-
-
-------------------------------------------------------------------------
-r5019 | serge.aumont | 2008-05-28 10:17:40 +0200 (Wed, 28 May 2008) | 3 lines
-Changed paths:
-   M /trunk/src/List.pm
-
-[bug] Fix incorrect password storage when crating a new user (add_user_db did not use password finger print as update_user_db does)
-
-
-------------------------------------------------------------------------
-r5017 | olivier.salaun | 2008-05-23 18:08:48 +0200 (Fri, 23 May 2008) | 5 lines
-Changed paths:
-   M /trunk/soap/SympaTransport.pm
-   M /trunk/soap/sympa_soap_client.pl
-   M /trunk/soap/sympasoap.pm
-   M /trunk/wwsympa/SympaSession.pm
-   M /trunk/wwsympa/cookielib.pm
-
-[change] Changes regarding SOAP session management :
- * SOAP session now uses the session DB table
- * session_id can be validated, checked, used in authenticateAndRun()
- * sympa_soap_client.pl has been extended : new --session_id option, new supported service --service=getUserEmailByCookie
-
-------------------------------------------------------------------------
-r5016 | olivier.salaun | 2008-05-23 09:06:02 +0200 (Fri, 23 May 2008) | 2 lines
-Changed paths:
-   M /trunk/INSTALL
-
-[-change] remove test
-
-------------------------------------------------------------------------
-r5015 | olivier.salaun | 2008-05-23 08:44:39 +0200 (Fri, 23 May 2008) | 2 lines
-Changed paths:
-   M /trunk/INSTALL
-
-[-change]Test pre-commit hook
-
-------------------------------------------------------------------------
-r5014 | olivier.salaun | 2008-05-21 09:30:39 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   M /trunk/configure.ac
-
-[-change] changed version number to 5.5a.1
-
-------------------------------------------------------------------------
-r5013 | olivier.salaun | 2008-05-21 09:22:22 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   M /trunk/doc/Makefile.am
-   M /trunk/doc/man8/Makefile.am
-
-[change] no more install sympa.pdf
-
-------------------------------------------------------------------------
-r5012 | olivier.salaun | 2008-05-21 08:22:29 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   M /trunk/configure.ac
-
-[change] [G.Rousse, INRIA] Turned Makefile files into Makefile.am. Added the list of Makefile files to create in configure.ac (via AC_CONFIG_FILES)
-
-------------------------------------------------------------------------
-r5011 | olivier.salaun | 2008-05-21 08:21:23 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   D /trunk/mail_tt2/Makefile
-   A /trunk/mail_tt2/Makefile.am (from /trunk/mail_tt2/Makefile:5010)
-
-[change] [G.Rousse, INRIA] Turned Makefile into a Makefile.am
-
-------------------------------------------------------------------------
-r5010 | olivier.salaun | 2008-05-21 08:20:57 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   D /trunk/wwsympa/Makefile
-   A /trunk/wwsympa/Makefile.am (from /trunk/wwsympa/Makefile:5009)
-
-[change] [G.Rousse, INRIA] Turned Makefile into a Makefile.am
-
-------------------------------------------------------------------------
-r5009 | olivier.salaun | 2008-05-21 08:20:35 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   D /trunk/web_tt2/Makefile
-   A /trunk/web_tt2/Makefile.am (from /trunk/web_tt2/Makefile:5008)
-
-[change] [G.Rousse, INRIA] Turned Makefile into a Makefile.am
-
-------------------------------------------------------------------------
-r5008 | olivier.salaun | 2008-05-21 08:20:11 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   D /trunk/doc/Makefile
-   A /trunk/doc/Makefile.am (from /trunk/doc/Makefile:5007)
-
-[change] [G.Rousse, INRIA] Turned Makefile into a Makefile.am
-
-------------------------------------------------------------------------
-r5007 | olivier.salaun | 2008-05-21 08:19:54 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   D /trunk/doc/man8/Makefile
-   A /trunk/doc/man8/Makefile.am (from /trunk/doc/man8/Makefile:5006)
-
-[change] [G.Rousse, INRIA] Turned Makefile into a Makefile.am
-
-------------------------------------------------------------------------
-r5006 | olivier.salaun | 2008-05-21 08:19:27 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   D /trunk/soap/Makefile
-   A /trunk/soap/Makefile.am (from /trunk/soap/Makefile:5005)
-
-[change] [G.Rousse, INRIA] Turned Makefile into a Makefile.am
-
-------------------------------------------------------------------------
-r5005 | olivier.salaun | 2008-05-21 08:19:01 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   D /trunk/src/etc/script/Makefile
-   A /trunk/src/etc/script/Makefile.am (from /trunk/src/etc/script/Makefile:5004)
-
-[change] [G.Rousse, INRIA] Turned Makefile into a Makefile.am
-
-------------------------------------------------------------------------
-r5004 | olivier.salaun | 2008-05-21 08:18:33 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   D /trunk/src/etc/sample/Makefile
-   A /trunk/src/etc/sample/Makefile.am (from /trunk/src/etc/sample/Makefile:5003)
-
-[change] [G.Rousse, INRIA] Turned Makefile into a Makefile.am
-
-------------------------------------------------------------------------
-r5003 | olivier.salaun | 2008-05-21 08:17:55 +0200 (Wed, 21 May 2008) | 2 lines
-Changed paths:
-   D /trunk/src/Makefile
-   A /trunk/src/Makefile.am (from /trunk/src/Makefile:5002)
-
-[change] [G.Rousse, INRIA] Turned Makefile into a Makefile.am
-
-------------------------------------------------------------------------
-r5002 | serge.aumont | 2008-05-20 17:22:01 +0200 (Tue, 20 May 2008) | 3 lines
-Changed paths:
-   M /trunk/mail_tt2/listmaster_notification.tt2
-
-[-feature] bettre subject in notification message for list creation
-
-
-------------------------------------------------------------------------
-r5001 | serge.aumont | 2008-05-20 09:13:10 +0200 (Tue, 20 May 2008) | 2 lines
-Changed paths:
-   M /trunk/src/tools.pl
-
-[bug] fix size limit of list name according to database definition (50)
-
-------------------------------------------------------------------------
-r5000 | olivier.salaun | 2008-05-16 17:27:51 +0200 (Fri, 16 May 2008) | 2 lines
-Changed paths:
-   M /trunk/src/Conf.pm
-   M /trunk/src/Upgrade.pm
-   M /trunk/src/task_manager.pl
-   M /trunk/wwsympa/bounced.pl
-
-[change] no more store unknown bounces in OTHER directories. They are now kept in a bad/ subdirectory in the bounce spool.
-
-------------------------------------------------------------------------
-r4998 | olivier.salaun | 2008-05-16 16:30:36 +0200 (Fri, 16 May 2008) | 3 lines
-Changed paths:
-   M /trunk/wwsympa/bounced.pl
+   M /branches/sympa-5.4-branch/wwsympa/bounced.pl
 
 [bug] [reported by H.Rousseau]: bounced.pl would fail to create files in OTHER/ if From contained incorrect chars. The bounced.pl process would loop on these files.
 Now such bounce files are moved to the bad/ subdirectory.
 
 ------------------------------------------------------------------------
-r4996 | olivier.salaun | 2008-05-16 13:26:10 +0200 (Fri, 16 May 2008) | 3 lines
+r4997 | olivier.salaun | 2008-05-16 13:27:39 +0200 (Fri, 16 May 2008) | 3 lines
 Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
 [bug] [#4022]: the anti-XSS mecanism HTML-escape outgoing parameters before web pages are parsed. This leads to quotes '"' replaced with &quot; while editing list parameters. This could break SQL queries for example.
 The fix consists in unescaping HTML characters in edit_list function.
 
 ------------------------------------------------------------------------
-r4995 | olivier.salaun | 2008-05-13 10:46:30 +0200 (Tue, 13 May 2008) | 2 lines
+r4994 | sympa-authors | 2008-05-07 13:17:41 +0200 (Wed, 07 May 2008) | 3 lines
 Changed paths:
-   M /trunk/src/List.pm
+   M /branches/sympa-5.4-branch/src/List.pm
 
-[bug] [submitted by A.de Bignicourt, UREC] : fixed a charset problem with custom attributes
+Bug fix from Alice de Bignicourt (urec) about charset encoding of custom attributes
+
 
 ------------------------------------------------------------------------
-r4993 | david.verdin | 2008-05-05 16:06:21 +0200 (Mon, 05 May 2008) | 2 lines
+r4992 | sympa-authors | 2008-05-05 16:06:16 +0200 (Mon, 05 May 2008) | 2 lines
 Changed paths:
-   M /trunk/src/List.pm
-   M /trunk/web_tt2/list_menu.tt2
-   M /trunk/web_tt2/subrequest.tt2
+   M /branches/sympa-5.4-branch/src/List.pm
+   M /branches/sympa-5.4-branch/web_tt2/list_menu.tt2
+   M /branches/sympa-5.4-branch/web_tt2/subrequest.tt2
 
 [change] When subscribing to a list, the confirmation popup now shows up only if no custom attributes will be used; Otherwise, this would require that the user confirm twice : first in the popup, then in the custom attributes form; Also adapted the text displayed in the submission form to custom attributes.
 
 ------------------------------------------------------------------------
-r4985 | david.verdin | 2008-05-02 12:06:27 +0200 (Fri, 02 May 2008) | 2 lines
+r4990 | sympa-authors | 2008-05-02 15:11:48 +0200 (Fri, 02 May 2008) | 1 line
 Changed paths:
-   M /trunk/wwsympa/archived.pl
+   M /branches/sympa-5.4-branch/.version
+   M /branches/sympa-5.4-branch/ChangeLog
+   M /branches/sympa-5.4-branch/NEWS
+
+Preparing version 5.4.3
+------------------------------------------------------------------------
+r4989 | sympa-authors | 2008-05-02 15:01:56 +0200 (Fri, 02 May 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/po/Makefile
+
+[bug] the "update-po" target tried to use the ${MSGCAT} var which was not initialized. Fixed by setting this variable's value.
+
+------------------------------------------------------------------------
+r4988 | sympa-authors | 2008-05-02 14:49:07 +0200 (Fri, 02 May 2008) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/po/ja.po
+   M /branches/sympa-5.4-branch/po/web_help_ja.po
+
+Committing updated catalogues from Pootle
+------------------------------------------------------------------------
+r4987 | sympa-authors | 2008-05-02 14:47:03 +0200 (Fri, 02 May 2008) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/po/ja.po
+   M /branches/sympa-5.4-branch/po/ru.po
+   M /branches/sympa-5.4-branch/po/web_help_fr.po
+   M /branches/sympa-5.4-branch/po/web_help_ja.po
+
+Committing latest translations from Pootle
+------------------------------------------------------------------------
+r4986 | david.verdin | 2008-05-02 12:06:30 +0200 (Fri, 02 May 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/wwsympa/archived.pl
 
 [bug][Reported by M. Kretchner, INRIA] It was impossible to remove a message from web archvives or to rebuild them. this was due to a regexp to prevent archived.pl from using dot-starting files added by some Linux distribution (as Gentoo). Fixed by extending the regexp.
 
 ------------------------------------------------------------------------
-r4983 | david.verdin | 2008-05-02 10:31:43 +0200 (Fri, 02 May 2008) | 2 lines
+r4984 | david.verdin | 2008-05-02 10:31:47 +0200 (Fri, 02 May 2008) | 2 lines
 Changed paths:
-   M /trunk/src/Commands.pm
+   M /branches/sympa-5.4-branch/src/Commands.pm
 
 [#3990][Submitted by A. Berstein, electricembers.net] The quiet option had been deactivated from the "reject" mail command.
 
 ------------------------------------------------------------------------
-r4982 | olivier.salaun | 2008-04-30 17:46:24 +0200 (Wed, 30 Apr 2008) | 2 lines
+r4974 | sympa-authors | 2008-04-17 08:50:01 +0200 (Thu, 17 Apr 2008) | 3 lines
 Changed paths:
-   M /trunk/Makefile.am
-   M /trunk/src/Makefile
-   M /trunk/src/sympa_wizard.pl
+   M /branches/sympa-5.4-branch/check_perl_modules.pl
 
-[#3989][reported by M.Deranek][fix] using OPENSSL variable set by --with-openssl configure switch to initialize openssl sympa.conf variable via the sympa_wizard.pl script
+[bug][Reported by M. Gorecka-Wolniewicz, Nicolaus Copernicus univ., Torun] In some cases, CAS logout didn't work, due to a value of "0" transformed into an empty string in the session cookie. Fixed by upgrading CGI version.
+
 
 ------------------------------------------------------------------------
-r4981 | olivier.salaun | 2008-04-30 17:21:48 +0200 (Wed, 30 Apr 2008) | 2 lines
+r4972 | sympa-authors | 2008-04-16 11:27:37 +0200 (Wed, 16 Apr 2008) | 3 lines
 Changed paths:
-   M /trunk/src/etc/script/sympa.spec
-   M /trunk/wwsympa/Auth.pm
-   M /trunk/wwsympa/wwslib.pm
-
-[#3989][reported by M.Deranek][fix] No more require Net::SSLeay perl module. Using LWP::UserAgent instead
-
-------------------------------------------------------------------------
-r4980 | olivier.salaun | 2008-04-30 15:54:49 +0200 (Wed, 30 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/SympaSession.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-[fix] session variables were not listed in dump of variables. Now exporting them as a hashref
-
-------------------------------------------------------------------------
-r4979 | olivier.salaun | 2008-04-30 14:31:01 +0200 (Wed, 30 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/src/sympa.pl
-   M /trunk/src/task_manager.pl
-   M /trunk/src/tools.pl
-   M /trunk/wwsympa/archived.pl
-   M /trunk/wwsympa/bounced.pl
-
-[fix] STDERR is no more directed to a file if process run in foreground
-
-------------------------------------------------------------------------
-r4978 | olivier.salaun | 2008-04-30 14:30:28 +0200 (Wed, 30 Apr 2008) | 5 lines
-Changed paths:
-   M /trunk/src/Language.pm
-
-[#3919][reported by M.Denarek][fix] Error "missing locale parameter" would
-happen whenever a notification is sent to the listmaster before the current
-language et set. Now using the default language when set. Also initialized
-the default language with 'en'.
-
-------------------------------------------------------------------------
-r4977 | olivier.salaun | 2008-04-25 16:21:50 +0200 (Fri, 25 Apr 2008) | 3 lines
-Changed paths:
-   M /trunk/configure.ac
-
-[fix] AC_HELP_STRING is obsolete, replaced with AS_HELP_STRING.
-See http://www.gnu.org/software/autoconf/manual/autoconf.html#index-AC_005fHELP_005fSTRING-1639
-
-------------------------------------------------------------------------
-r4976 | olivier.salaun | 2008-04-25 16:17:15 +0200 (Fri, 25 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/Makefile.am
-   M /trunk/configure.ac
-   M /trunk/src/etc/script/sympa
-   M /trunk/src/etc/script/sympa.generic
-
-[change][G.Rousse, INRIA][patch sympa-trunk-7-dont-search-for-shell.patch] : POSIX defines that /bin/sh is available on every OS, therefore it does not need to be defined via a variable
-
-------------------------------------------------------------------------
-r4975 | olivier.salaun | 2008-04-25 16:06:49 +0200 (Fri, 25 Apr 2008) | 5 lines
-Changed paths:
-   M /trunk/src/tools.pl
-   M /trunk/wwsympa/wwsympa.fcgi
-
-Copy_template failed when multiple directories had to be created
-(mail_tt2/ll_CC for example). Now calling mkdir_all() from
-tools::mk_parent_dir().
-Also fixed a type regarding authz errors handling
-
-------------------------------------------------------------------------
-r4973 | david.verdin | 2008-04-17 08:48:06 +0200 (Thu, 17 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/check_perl_modules.pl
-
-[Reported by M. Gorecka-Wolniewicz, Nicolaus Copernicus univ., Torun] In some cases, CAS logout didn't work, due to a value of "0" trnaformed into an empty string in the session cookie. Fixed by upgrading CGI version.
-
-------------------------------------------------------------------------
-r4971 | david.verdin | 2008-04-16 11:27:36 +0200 (Wed, 16 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/src/task_manager.pl
-   M /trunk/wwsympa/archived.pl
-   M /trunk/wwsympa/bounced.pl
+   M /branches/sympa-5.4-branch
+   M /branches/sympa-5.4-branch/doc
+   M /branches/sympa-5.4-branch/src/task_manager.pl
+   M /branches/sympa-5.4-branch/wwsympa/archived.pl
+   M /branches/sympa-5.4-branch/wwsympa/bounced.pl
 
 [#3957][Reported by O. Berger, Telecom & Management SudParis] When launching Sympa daemons (other than sympa.pl) with an unknown option, the daemon was still launched instead of failing to launch.
 
+
 ------------------------------------------------------------------------
-r4962 | david.verdin | 2008-04-11 11:38:27 +0200 (Fri, 11 Apr 2008) | 2 lines
+r4970 | sympa-authors | 2008-04-15 09:54:01 +0200 (Tue, 15 Apr 2008) | 2 lines
 Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/NEWS
+
+Confusion between traditional and simplified Chinese.
+
+------------------------------------------------------------------------
+r4966 | sympa-authors | 2008-04-14 15:35:06 +0200 (Mon, 14 Apr 2008) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/.version
+   M /branches/sympa-5.4-branch/ChangeLog
+   M /branches/sympa-5.4-branch/NEWS
+
+Preparing version 5.4.2
+------------------------------------------------------------------------
+r4965 | sympa-authors | 2008-04-14 15:26:05 +0200 (Mon, 14 Apr 2008) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/po/af.po
+   M /branches/sympa-5.4-branch/po/ar.po
+   M /branches/sympa-5.4-branch/po/bg.po
+   M /branches/sympa-5.4-branch/po/br.po
+   M /branches/sympa-5.4-branch/po/ca.po
+   M /branches/sympa-5.4-branch/po/cs.po
+   M /branches/sympa-5.4-branch/po/de.po
+   M /branches/sympa-5.4-branch/po/el.po
+   M /branches/sympa-5.4-branch/po/en_US.po
+   M /branches/sympa-5.4-branch/po/es.po
+   M /branches/sympa-5.4-branch/po/et.po
+   M /branches/sympa-5.4-branch/po/eu.po
+   M /branches/sympa-5.4-branch/po/fi.po
+   M /branches/sympa-5.4-branch/po/fr.po
+   M /branches/sympa-5.4-branch/po/hu.po
+   M /branches/sympa-5.4-branch/po/id.po
+   M /branches/sympa-5.4-branch/po/it.po
+   M /branches/sympa-5.4-branch/po/ja.po
+   M /branches/sympa-5.4-branch/po/ko.po
+   M /branches/sympa-5.4-branch/po/ml.po
+   M /branches/sympa-5.4-branch/po/nb_NO.po
+   M /branches/sympa-5.4-branch/po/nl.po
+   M /branches/sympa-5.4-branch/po/nn_NO.po
+   M /branches/sympa-5.4-branch/po/oc.po
+   M /branches/sympa-5.4-branch/po/pl.po
+   M /branches/sympa-5.4-branch/po/pt.po
+   M /branches/sympa-5.4-branch/po/pt_BR.po
+   M /branches/sympa-5.4-branch/po/ro.po
+   M /branches/sympa-5.4-branch/po/ru.po
+   M /branches/sympa-5.4-branch/po/sv.po
+   M /branches/sympa-5.4-branch/po/sympa.pot
+   M /branches/sympa-5.4-branch/po/tr.po
+   M /branches/sympa-5.4-branch/po/vi.po
+   M /branches/sympa-5.4-branch/po/zh_CN.po
+   M /branches/sympa-5.4-branch/po/zh_TW.po
+
+Committing updated catalogues from Pootle
+------------------------------------------------------------------------
+r4964 | sympa-authors | 2008-04-14 15:23:55 +0200 (Mon, 14 Apr 2008) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/po/zh_CN.po
+
+Committing latest translations from Pootle
+------------------------------------------------------------------------
+r4963 | david.verdin | 2008-04-11 11:42:53 +0200 (Fri, 11 Apr 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
 [bug][#3947][Reported by S. costard Univ. Haute Bretagne] In the case of CAS authentication, a CAS ticket was requested for any request in the web interface. Fixed by ensuring that the user email is attached to the session.
 
 ------------------------------------------------------------------------
-r4961 | david.verdin | 2008-04-10 17:15:31 +0200 (Thu, 10 Apr 2008) | 2 lines
+r4958 | sympa-authors | 2008-04-10 11:26:52 +0200 (Thu, 10 Apr 2008) | 2 lines
 Changed paths:
-   M /trunk/src/Conf.pm
-   M /trunk/src/Upgrade.pm
-   M /trunk/src/etc/script/tpl2tt2.pl
-   M /trunk/src/tools.pl
-   M /trunk/wwsympa/archived.pl
-
-[Change][#3116][Reported by S. Hornburg, C. Cat and M. Deranek]Replacing usage of chmod and chown shell calls by the corresponding perl functions. Usage factorized in tools::_set_file_rights() function.
-
-------------------------------------------------------------------------
-r4960 | david.verdin | 2008-04-10 14:54:51 +0200 (Thu, 10 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/src/tools.pl
-
-[#3116] Fix bad usage of ampersands in tools.pl.
-
-------------------------------------------------------------------------
-r4959 | david.verdin | 2008-04-10 14:36:10 +0200 (Thu, 10 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/src/Upgrade.pm
-   M /trunk/src/tools.pl
-
-[Change][#3116][Reported by C. Cat] Adds a new function, tools::_set_file_rights(), that sets the ownership and mode for a file. Also fixed some bugs in the setting of owner and mode for SQLite support.
-
-------------------------------------------------------------------------
-r4957 | david.verdin | 2008-04-10 11:26:49 +0200 (Thu, 10 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/src/List.pm
-   M /trunk/src/Upgrade.pm
+   M /branches/sympa-5.4-branch/src/List.pm
+   M /branches/sympa-5.4-branch/src/Upgrade.pm
 
 [change][Reported by L. Gentis, IUFM Lorraine]When updating a config file while the upgrade process, the "email" parameter value of the "update" paragraph was set to 'listmaster'. However, this value was validated against a regexp for emails. this produced an error log, as 'listmaster' is not a valid email address. Fixed by allowing 'listamster' and 'automatic' strings in this regexp. 'automatic will be used to designate updates done by processes instead of users.
 
 ------------------------------------------------------------------------
-r4956 | david.verdin | 2008-04-10 10:46:27 +0200 (Thu, 10 Apr 2008) | 2 lines
+r4945 | sympa-authors | 2008-04-08 17:31:30 +0200 (Tue, 08 Apr 2008) | 2 lines
 Changed paths:
-   M /trunk/src/Upgrade.pm
-
-[#3116]Error in bug fix (bad calls to getpwnam and getgrnam).
-
-------------------------------------------------------------------------
-r4955 | olivier.salaun | 2008-04-10 10:13:49 +0200 (Thu, 10 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/INSTALL
-
-added --add-missing arg to automake call
-
-------------------------------------------------------------------------
-r4954 | david.verdin | 2008-04-10 09:29:13 +0200 (Thu, 10 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/src/Upgrade.pm
-
-[Change][#3116][Reported by S. Hornburg, and M. Deranek, slonko.net] Now Upgrade.pm uses chmod and chown perl functions to set the rights to the SQLite database directory.
-
-------------------------------------------------------------------------
-r4953 | olivier.salaun | 2008-04-09 11:31:32 +0200 (Wed, 09 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/configure.ac
-
-[change][G.Rousse, INRIA][patch sympa-trunk-9-use-ac_help_macro.patch] use AC_HELP_STRING macro
-
-------------------------------------------------------------------------
-r4952 | olivier.salaun | 2008-04-09 11:27:57 +0200 (Wed, 09 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/configure.ac
-
-[change][G.Rousse, INRIA][patch sympa-trunk-8-indent-configure-file.patch] Better indentation of directives
-
-------------------------------------------------------------------------
-r4951 | olivier.salaun | 2008-04-09 11:11:30 +0200 (Wed, 09 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/configure.ac
-
-[change][G.Rousse, INRIA][patch sympa-trunk-6-no-maintainer-mode.patch] Remove AM_MAINTAINER_MODE  to prevent automatic makefile rebuild/configure re-invocation
-
-------------------------------------------------------------------------
-r4950 | olivier.salaun | 2008-04-09 09:12:05 +0200 (Wed, 09 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/configure.ac
-
-[change][G.Rousse, INRIA][patch sympa-trunk-3-correct-autoconf-prolog-and-epilog.patch] Use the standard autoconf method to declare the software version, instead of using the .version file
-
-------------------------------------------------------------------------
-r4949 | olivier.salaun | 2008-04-09 09:11:47 +0200 (Wed, 09 Apr 2008) | 2 lines
-Changed paths:
-   D /trunk/.version
-
-[change][G.Rousse, INRIA][patch sympa-trunk-3-correct-autoconf-prolog-and-epilog.patch] Use the standard autoconf method to declare the software version, instead of using the .version file
-
-------------------------------------------------------------------------
-r4948 | olivier.salaun | 2008-04-08 17:57:50 +0200 (Tue, 08 Apr 2008) | 2 lines
-Changed paths:
-   A /trunk/configure.ac (from /trunk/configure.in:4947)
-   D /trunk/configure.in
-
-[change][G.Rousse, INRIA][patch sympa-trunk-2-rename-autoconf-configuration-file.patch] Renamed configure.in to configure.ac to adopt new GNU naming convention
-
-------------------------------------------------------------------------
-r4947 | olivier.salaun | 2008-04-08 17:52:43 +0200 (Tue, 08 Apr 2008) | 2 lines
-Changed paths:
-   D /trunk/Makefile.in
-   D /trunk/aclocal.m4
-   D /trunk/config.guess
-   D /trunk/config.sub
-   D /trunk/configure
-   D /trunk/doc/man8/alias_manager.8
-   D /trunk/doc/man8/archived.8
-   D /trunk/doc/man8/bounced.8
-   D /trunk/doc/man8/sympa.8
-   D /trunk/install-sh
-   D /trunk/missing
-
-[change][G.Rousse, INRIA] Remove automake and autoconf generated files
-
-------------------------------------------------------------------------
-r4946 | david.verdin | 2008-04-08 17:31:34 +0200 (Tue, 08 Apr 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/archived.pl
-   M /trunk/wwsympa/bounced.pl
+   M /branches/sympa-5.4-branch/wwsympa/archived.pl
+   M /branches/sympa-5.4-branch/wwsympa/bounced.pl
 
 [bug][Submitted by M. deranek, slonko.net] The gentoo distribution generates files starting with dots. These files generated error messages from Sympa daemons using spools.
 
 ------------------------------------------------------------------------
-r4944 | david.verdin | 2008-04-08 15:19:06 +0200 (Tue, 08 Apr 2008) | 3 lines
+r4943 | sympa-authors | 2008-04-08 15:18:17 +0200 (Tue, 08 Apr 2008) | 3 lines
 Changed paths:
-   M /trunk/src/tools.pl
+   M /branches/sympa-5.4-branch/src/tools.pl
 
 [bug][Submitted by W. Werner, Fraunhofer-Institut SIT] Message signature verification didn't work if user used different certificate for signing and encrypting AND didn't send both in each message, like Kmail does.
 
 
 ------------------------------------------------------------------------
-r4941 | david.verdin | 2008-04-08 15:06:28 +0200 (Tue, 08 Apr 2008) | 2 lines
+r4942 | sympa-authors | 2008-04-08 15:06:29 +0200 (Tue, 08 Apr 2008) | 3 lines
 Changed paths:
-   M /trunk/src/List.pm
+   M /branches/sympa-5.4-branch/src/List.pm
 
 [bug][Submitted by W. Werner, Fraunhofer-Institut SIT] The path that Sympa used to look for encryption keys had '.enc' instead of a '@enc' in the file name.
 
+
 ------------------------------------------------------------------------
-r4939 | david.verdin | 2008-04-03 14:11:36 +0200 (Thu, 03 Apr 2008) | 3 lines
+r4940 | sympa-authors | 2008-04-03 14:11:41 +0200 (Thu, 03 Apr 2008) | 3 lines
 Changed paths:
-   M /trunk/src/Upgrade.pm
+   M /branches/sympa-5.4-branch/src/Upgrade.pm
 
 [#3915][Submitted by M. Deranek, slonko.net]Fix: inconsistency between Upgrade .pm and create_db.SQLite for custom_attribute_subscriber field.
 
 
 ------------------------------------------------------------------------
-r4937 | david.verdin | 2008-04-03 13:51:55 +0200 (Thu, 03 Apr 2008) | 2 lines
+r4938 | sympa-authors | 2008-04-03 13:52:19 +0200 (Thu, 03 Apr 2008) | 2 lines
 Changed paths:
-   M /trunk/src/Upgrade.pm
-   M /trunk/src/etc/script/create_db.SQLite
+   M /branches/sympa-5.4-branch/src/Upgrade.pm
+   M /branches/sympa-5.4-branch/src/etc/script/create_db.SQLite
 
 [#3915][Submitted by M. Deranek, slonko.net]Fix: SQLite support was broken for the session table.
 
 ------------------------------------------------------------------------
-r4935 | david.verdin | 2008-04-02 09:18:31 +0200 (Wed, 02 Apr 2008) | 2 lines
+r4936 | sympa-authors | 2008-04-02 09:19:32 +0200 (Wed, 02 Apr 2008) | 3 lines
 Changed paths:
-   M /trunk/src/task_manager.pl
+   M /branches/sympa-5.4-branch/src/task_manager.pl
 
-[Reported by O. Eyb]Fix: task_manager.pl didn't check that the bounces/OTHER direcory existed prior to clean it, leading to numerous logs from the CleanSpool function cliaming that it couldn't open this directory.
+[Reported by O. Eyb]Fix: task_manager.pl didn't check that the bounces/OTHER direcory existed prior to clean it, leading to numerous logs from the CleanSpool function claiming that it couldn't open this directory.
+
 
 ------------------------------------------------------------------------
-r4925 | david.verdin | 2008-04-01 11:52:05 +0200 (Tue, 01 Apr 2008) | 2 lines
+r4932 | sympa-authors | 2008-04-01 17:18:34 +0200 (Tue, 01 Apr 2008) | 2 lines
 Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/NEWS
+
+Updating NEWS file.
+
+------------------------------------------------------------------------
+r4931 | sympa-authors | 2008-04-01 17:13:52 +0200 (Tue, 01 Apr 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/NEWS
+
+Updating the NEWS file.
+
+------------------------------------------------------------------------
+r4929 | sympa-authors | 2008-04-01 12:16:23 +0200 (Tue, 01 Apr 2008) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/.version
+   M /branches/sympa-5.4-branch/ChangeLog
+
+Preparing version 5.4.1
+------------------------------------------------------------------------
+r4928 | sympa-authors | 2008-04-01 12:16:14 +0200 (Tue, 01 Apr 2008) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/po/ru.po
+
+Committing updated catalogues from Pootle
+------------------------------------------------------------------------
+r4927 | sympa-authors | 2008-04-01 12:14:04 +0200 (Tue, 01 Apr 2008) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/po/ru.po
+
+Committing latest translations from Pootle
+------------------------------------------------------------------------
+r4926 | sympa-authors | 2008-04-01 11:53:08 +0200 (Tue, 01 Apr 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
 [Reported by J.M. Beuken, univ. cat. Louvain] Fix: When copying a template through the web interface, HTML was not unescaped before writing the file. c onsequently, the file used to reload the page for template edition had escaped HTML. for critical files such as main.tt2 or title.tt2, this caused the web page diaply to choke on tt2 parse errors.
 
 ------------------------------------------------------------------------
-r4924 | david.verdin | 2008-03-28 11:48:51 +0100 (Fri, 28 Mar 2008) | 2 lines
+r4922 | sympa-authors | 2008-03-28 11:12:36 +0100 (Fri, 28 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/src/List.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-Removing development traces.
-
-------------------------------------------------------------------------
-r4923 | david.verdin | 2008-03-28 11:36:03 +0100 (Fri, 28 Mar 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/lists.tt2
-
-Fix: Bad layout of lists in the letter-ordered version. Plus making this page W3C compliant.
-
-------------------------------------------------------------------------
-r4921 | david.verdin | 2008-03-28 11:11:56 +0100 (Fri, 28 Mar 2008) | 2 lines
-Changed paths:
-   M /trunk/src/Lock.pm
+   M /branches/sympa-5.4-branch/src/Lock.pm
 
 Increasing log levels in low level functions of Log.pm.
 
 ------------------------------------------------------------------------
-r4920 | serge.aumont | 2008-03-28 10:32:09 +0100 (Fri, 28 Mar 2008) | 4 lines
+r4918 | sympa-authors | 2008-03-27 17:41:49 +0100 (Thu, 27 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/web_tt2/lists.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-
-Alphabetical index of lists in lists action.
-
-
-------------------------------------------------------------------------
-r4919 | david.verdin | 2008-03-27 17:42:32 +0100 (Thu, 27 Mar 2008) | 2 lines
-Changed paths:
-   M /trunk/check_perl_modules.pl
+   M /branches/sympa-5.4-branch/check_perl_modules.pl
 
 [#3898][Submitted by M. Keisler, mitsein.net] Fix: When checking perl version, Sympa was using human readable version notation (5.8.8 for example) instead of the format returned by $] (5.008008 for example).
 
 ------------------------------------------------------------------------
-r4910 | david.verdin | 2008-03-25 12:07:32 +0100 (Tue, 25 Mar 2008) | 2 lines
+r4916 | sympa-authors | 2008-03-27 12:07:47 +0100 (Thu, 27 Mar 2008) | 1 line
 Changed paths:
-   M /trunk/web_tt2/serveradmin.tt2
+   M /branches/sympa-5.4-branch/ChangeLog
+   M /branches/sympa-5.4-branch/NEWS
 
-Change: Reorganize and rename lists administration button in the admin page.
+Preparing version 5.4
+------------------------------------------------------------------------
+r4915 | sympa-authors | 2008-03-27 12:04:27 +0100 (Thu, 27 Mar 2008) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/po/af.po
+   M /branches/sympa-5.4-branch/po/ar.po
+   M /branches/sympa-5.4-branch/po/bg.po
+   M /branches/sympa-5.4-branch/po/br.po
+   M /branches/sympa-5.4-branch/po/ca.po
+   M /branches/sympa-5.4-branch/po/cs.po
+   M /branches/sympa-5.4-branch/po/de.po
+   M /branches/sympa-5.4-branch/po/el.po
+   M /branches/sympa-5.4-branch/po/en_US.po
+   M /branches/sympa-5.4-branch/po/es.po
+   M /branches/sympa-5.4-branch/po/et.po
+   M /branches/sympa-5.4-branch/po/eu.po
+   M /branches/sympa-5.4-branch/po/fi.po
+   M /branches/sympa-5.4-branch/po/fr.po
+   M /branches/sympa-5.4-branch/po/hu.po
+   M /branches/sympa-5.4-branch/po/id.po
+   M /branches/sympa-5.4-branch/po/it.po
+   M /branches/sympa-5.4-branch/po/ja.po
+   M /branches/sympa-5.4-branch/po/ko.po
+   M /branches/sympa-5.4-branch/po/ml.po
+   M /branches/sympa-5.4-branch/po/nb_NO.po
+   M /branches/sympa-5.4-branch/po/nl.po
+   M /branches/sympa-5.4-branch/po/nn_NO.po
+   M /branches/sympa-5.4-branch/po/oc.po
+   M /branches/sympa-5.4-branch/po/pl.po
+   M /branches/sympa-5.4-branch/po/pt.po
+   M /branches/sympa-5.4-branch/po/pt_BR.po
+   M /branches/sympa-5.4-branch/po/ro.po
+   M /branches/sympa-5.4-branch/po/ru.po
+   M /branches/sympa-5.4-branch/po/sv.po
+   M /branches/sympa-5.4-branch/po/tr.po
+   M /branches/sympa-5.4-branch/po/vi.po
+   M /branches/sympa-5.4-branch/po/zh_CN.po
+   M /branches/sympa-5.4-branch/po/zh_TW.po
+
+Committing updated catalogues from Pootle
+------------------------------------------------------------------------
+r4914 | sympa-authors | 2008-03-27 12:00:55 +0100 (Thu, 27 Mar 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/po/Makefile
+
+New "clean-po" option in Makefile.
 
 ------------------------------------------------------------------------
-r4907 | david.verdin | 2008-03-25 11:12:19 +0100 (Tue, 25 Mar 2008) | 2 lines
+r4913 | sympa-authors | 2008-03-27 11:56:39 +0100 (Thu, 27 Mar 2008) | 1 line
 Changed paths:
-   M /trunk/wwsympa/bounced.pl
+   M /branches/sympa-5.4-branch/po/sympa.pot
+
+Committing updated catalogues from Pootle
+------------------------------------------------------------------------
+r4912 | sympa-authors | 2008-03-27 11:54:56 +0100 (Thu, 27 Mar 2008) | 1 line
+Changed paths:
+   M /branches/sympa-5.4-branch/po/ru.po
+
+Committing latest translations from Pootle
+------------------------------------------------------------------------
+r4909 | david.verdin | 2008-03-25 11:27:46 +0100 (Tue, 25 Mar 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/web_tt2/pref.tt2
+
+Change: As alt emails aren't mature enough, removing them from the 5.4 release.
+
+------------------------------------------------------------------------
+r4908 | david.verdin | 2008-03-25 11:17:10 +0100 (Tue, 25 Mar 2008) | 2 lines
+Changed paths:
+   M /branches/sympa-5.4-branch/wwsympa/bounced.pl
 
 Fix: When a bounce file could not be created, nothing was done, so at the next bounced.pl iteration, the faulty report was still present. In such a case, the bounce report is now moved to bad.
 
 ------------------------------------------------------------------------
-r4906 | david.verdin | 2008-03-25 11:10:11 +0100 (Tue, 25 Mar 2008) | 2 lines
+r4903 | olivier.salaun | 2008-03-12 13:51:40 +0100 (Wed, 12 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
-Updated catalogues.
+Change: while processing a subscription request, first check if user is member of the list
 
 ------------------------------------------------------------------------
-r4905 | serge.aumont | 2008-03-14 10:27:51 +0100 (Fri, 14 Mar 2008) | 3 lines
+r4896 | david.verdin | 2008-03-07 12:40:53 +0100 (Fri, 07 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/soap/sympasoap.pm
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
-Fix a bug related to the wrong type return when creating a list
-
+Fix: XSS filtering had been reitroduced in the shared directory for HTML documents. It settles too much troubles compared to the benefits. Removing.
 
 ------------------------------------------------------------------------
-r4904 | david.verdin | 2008-03-12 14:02:11 +0100 (Wed, 12 Mar 2008) | 2 lines
+r4895 | david.verdin | 2008-03-07 11:47:21 +0100 (Fri, 07 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/po/Makefile
+   M /branches/sympa-5.4-branch/po/en_US.po
+   M /branches/sympa-5.4-branch/po/fr.po
 
-New make command: "clean-po". Updates the PO catalogues but doesn't try to save strings that disappeared in this version.
+Updating to latest translations.
 
 ------------------------------------------------------------------------
-r4902 | david.verdin | 2008-03-11 17:19:54 +0100 (Tue, 11 Mar 2008) | 2 lines
+r4894 | david.verdin | 2008-03-07 11:46:26 +0100 (Fri, 07 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/po/Makefile
-   M /trunk/po/af.po
-   M /trunk/po/ar.po
-   M /trunk/po/bg.po
-   M /trunk/po/br.po
-   M /trunk/po/ca.po
-   M /trunk/po/cs.po
-   M /trunk/po/de.po
-   M /trunk/po/el.po
-   M /trunk/po/en_US.po
-   M /trunk/po/es.po
-   M /trunk/po/et.po
-   M /trunk/po/eu.po
-   M /trunk/po/fi.po
-   M /trunk/po/fr.po
-   M /trunk/po/hu.po
-   M /trunk/po/id.po
-   M /trunk/po/it.po
-   M /trunk/po/ja.po
-   M /trunk/po/ko.po
-   M /trunk/po/ml.po
-   M /trunk/po/nb_NO.po
-   M /trunk/po/nl.po
-   M /trunk/po/nn_NO.po
-   M /trunk/po/oc.po
-   M /trunk/po/pl.po
-   M /trunk/po/pt.po
-   M /trunk/po/pt_BR.po
-   M /trunk/po/ro.po
-   M /trunk/po/ru.po
-   M /trunk/po/sv.po
-   M /trunk/po/tr.po
-   M /trunk/po/vi.po
-   M /trunk/po/zh_CN.po
-   M /trunk/po/zh_TW.po
+   M /branches/sympa-5.4-branch/po/af.po
+   M /branches/sympa-5.4-branch/po/ar.po
+   M /branches/sympa-5.4-branch/po/bg.po
+   M /branches/sympa-5.4-branch/po/br.po
+   M /branches/sympa-5.4-branch/po/ca.po
+   M /branches/sympa-5.4-branch/po/cs.po
+   M /branches/sympa-5.4-branch/po/de.po
+   M /branches/sympa-5.4-branch/po/el.po
+   M /branches/sympa-5.4-branch/po/en_US.po
+   M /branches/sympa-5.4-branch/po/es.po
+   M /branches/sympa-5.4-branch/po/et.po
+   M /branches/sympa-5.4-branch/po/eu.po
+   M /branches/sympa-5.4-branch/po/fi.po
+   M /branches/sympa-5.4-branch/po/fr.po
+   M /branches/sympa-5.4-branch/po/hu.po
+   M /branches/sympa-5.4-branch/po/id.po
+   M /branches/sympa-5.4-branch/po/it.po
+   M /branches/sympa-5.4-branch/po/ja.po
+   M /branches/sympa-5.4-branch/po/ko.po
+   M /branches/sympa-5.4-branch/po/ml.po
+   M /branches/sympa-5.4-branch/po/nb_NO.po
+   M /branches/sympa-5.4-branch/po/nl.po
+   M /branches/sympa-5.4-branch/po/nn_NO.po
+   M /branches/sympa-5.4-branch/po/oc.po
+   M /branches/sympa-5.4-branch/po/pl.po
+   M /branches/sympa-5.4-branch/po/pt.po
+   M /branches/sympa-5.4-branch/po/pt_BR.po
+   M /branches/sympa-5.4-branch/po/ro.po
+   M /branches/sympa-5.4-branch/po/ru.po
+   M /branches/sympa-5.4-branch/po/sv.po
+   M /branches/sympa-5.4-branch/po/sympa.pot
+   M /branches/sympa-5.4-branch/po/tr.po
+   M /branches/sympa-5.4-branch/po/vi.po
+   M /branches/sympa-5.4-branch/po/zh_CN.po
+   M /branches/sympa-5.4-branch/po/zh_TW.po
 
-Updating internationalization catalogues.
+Committing updated catalogues.
 
 ------------------------------------------------------------------------
-r4901 | david.verdin | 2008-03-11 17:04:52 +0100 (Tue, 11 Mar 2008) | 2 lines
+r4892 | david.verdin | 2008-03-07 11:23:46 +0100 (Fri, 07 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/po/sympa.pot
+   M /branches/sympa-5.4-branch/po/ru.po
 
-Updating sympa.pot.
+Integrating latest translations.
 
 ------------------------------------------------------------------------
-r4900 | david.verdin | 2008-03-11 17:04:06 +0100 (Tue, 11 Mar 2008) | 2 lines
+r4891 | david.verdin | 2008-03-07 11:20:23 +0100 (Fri, 07 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/po/Makefile
-
-Change: Now, when performing "make update-po", the catalogue file to update is temporarily saved to avoid losing strings from beta version when updating stable version, or vice-versa. Both updated and saved files are then merged.
-
-------------------------------------------------------------------------
-r4899 | david.verdin | 2008-03-11 17:01:56 +0100 (Tue, 11 Mar 2008) | 2 lines
-Changed paths:
-   M /trunk/src/sympa.pl
-
-Fix: spam_status was badly tested.
-
-------------------------------------------------------------------------
-r4898 | david.verdin | 2008-03-11 17:01:13 +0100 (Tue, 11 Mar 2008) | 2 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
-
-Re-de-activating XSS protection for HTML files in the shared, until a better solution is found.
-
-------------------------------------------------------------------------
-r4897 | serge.aumont | 2008-03-10 15:52:54 +0100 (Mon, 10 Mar 2008) | 3 lines
-Changed paths:
-   M /trunk/src/etc/mhonarc-ressources.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
-
-New view message source feature if is list owner when viewing archives
-
-
-------------------------------------------------------------------------
-r4893 | david.verdin | 2008-03-07 11:41:22 +0100 (Fri, 07 Mar 2008) | 2 lines
-Changed paths:
-   M /trunk/web_tt2/setlang.tt2
+   M /branches/sympa-5.4-branch/web_tt2/setlang.tt2
 
 The button to submit languages preference was not conform to the button global design. In addition, it must be hidden if javascript is enabled.
 
 ------------------------------------------------------------------------
-r4890 | olivier.salaun | 2008-03-07 10:16:10 +0100 (Fri, 07 Mar 2008) | 2 lines
+r4884 | david.verdin | 2008-03-06 10:43:41 +0100 (Thu, 06 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/NEWS
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
-removed spaces before ***** in NEWS file, so that the related information is correctly shown during the upgrade process
+Fix: Anybody loading a page from the web archives would presented a HTTP header for the page expiration corresponding to the last time the archive file was modified (this was introduced to limit multiple harvesting of hte same page by web crawlers). The drawback was that, when browsing archives, all the page is not staitc, just the part related to archives. This posed problems for session management. Fixed by testing if a user is a crawler prior to define the expiration header.
 
 ------------------------------------------------------------------------
-r4889 | serge.aumont | 2008-03-07 08:33:52 +0100 (Fri, 07 Mar 2008) | 3 lines
+r4883 | david.verdin | 2008-03-06 10:40:33 +0100 (Thu, 06 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/src/sympa.pl
+   M /branches/sympa-5.4-branch/mail_tt2/invite.tt2
 
-If a message is tagued as a spam and if it is to be moderated or rejected, do not send a report information to the message sender even if the scenario did not return 'quiet' directive
- 
+Missing argument in a message.
 
 ------------------------------------------------------------------------
-r4888 | serge.aumont | 2008-03-07 08:00:45 +0100 (Fri, 07 Mar 2008) | 4 lines
+r4882 | david.verdin | 2008-03-05 16:20:16 +0100 (Wed, 05 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/mail_tt2/moderate.tt2
-   M /trunk/src/List.pm
+   M /branches/sympa-5.4-branch/po/en_US.po
+   M /branches/sympa-5.4-branch/po/fr.po
+   M /branches/sympa-5.4-branch/po/web_help_fr.po
 
-Now message for moderation is not attached in the message sent to the moderator if tagued as spam.
-
-
+Committing updated translations.
 
 ------------------------------------------------------------------------
-r4887 | serge.aumont | 2008-03-07 07:59:46 +0100 (Fri, 07 Mar 2008) | 3 lines
+r4881 | david.verdin | 2008-03-05 16:00:25 +0100 (Wed, 05 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/web_tt2/modindex.tt2
+   M /branches/sympa-5.4-branch/po/af.po
+   M /branches/sympa-5.4-branch/po/ar.po
+   M /branches/sympa-5.4-branch/po/bg.po
+   M /branches/sympa-5.4-branch/po/br.po
+   M /branches/sympa-5.4-branch/po/ca.po
+   M /branches/sympa-5.4-branch/po/cs.po
+   M /branches/sympa-5.4-branch/po/de.po
+   M /branches/sympa-5.4-branch/po/el.po
+   M /branches/sympa-5.4-branch/po/en_US.po
+   M /branches/sympa-5.4-branch/po/es.po
+   M /branches/sympa-5.4-branch/po/et.po
+   M /branches/sympa-5.4-branch/po/eu.po
+   M /branches/sympa-5.4-branch/po/fi.po
+   M /branches/sympa-5.4-branch/po/fr.po
+   M /branches/sympa-5.4-branch/po/hu.po
+   M /branches/sympa-5.4-branch/po/id.po
+   M /branches/sympa-5.4-branch/po/it.po
+   M /branches/sympa-5.4-branch/po/ja.po
+   M /branches/sympa-5.4-branch/po/ko.po
+   M /branches/sympa-5.4-branch/po/ml.po
+   M /branches/sympa-5.4-branch/po/nb_NO.po
+   M /branches/sympa-5.4-branch/po/nl.po
+   M /branches/sympa-5.4-branch/po/nn_NO.po
+   M /branches/sympa-5.4-branch/po/oc.po
+   M /branches/sympa-5.4-branch/po/pl.po
+   M /branches/sympa-5.4-branch/po/pt.po
+   M /branches/sympa-5.4-branch/po/pt_BR.po
+   M /branches/sympa-5.4-branch/po/ro.po
+   M /branches/sympa-5.4-branch/po/ru.po
+   M /branches/sympa-5.4-branch/po/sv.po
+   M /branches/sympa-5.4-branch/po/sympa.pot
+   M /branches/sympa-5.4-branch/po/tr.po
+   M /branches/sympa-5.4-branch/po/vi.po
+   M /branches/sympa-5.4-branch/po/zh_CN.po
+   M /branches/sympa-5.4-branch/po/zh_TW.po
 
-Apply javascript to confirm reject with notification for spam message
-
+Updated catalogues by new pot file.
 
 ------------------------------------------------------------------------
-r4886 | serge.aumont | 2008-03-07 07:58:39 +0100 (Fri, 07 Mar 2008) | 3 lines
+r4880 | david.verdin | 2008-03-05 15:56:22 +0100 (Wed, 05 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/web_tt2/javascript.tt2
+   M /branches/sympa-5.4-branch/po/af.po
+   M /branches/sympa-5.4-branch/po/ar.po
+   M /branches/sympa-5.4-branch/po/bg.po
+   M /branches/sympa-5.4-branch/po/br.po
+   M /branches/sympa-5.4-branch/po/ca.po
+   M /branches/sympa-5.4-branch/po/cs.po
+   M /branches/sympa-5.4-branch/po/de.po
+   M /branches/sympa-5.4-branch/po/el.po
+   M /branches/sympa-5.4-branch/po/en_US.po
+   M /branches/sympa-5.4-branch/po/es.po
+   M /branches/sympa-5.4-branch/po/et.po
+   M /branches/sympa-5.4-branch/po/eu.po
+   M /branches/sympa-5.4-branch/po/fi.po
+   M /branches/sympa-5.4-branch/po/fr.po
+   M /branches/sympa-5.4-branch/po/hu.po
+   M /branches/sympa-5.4-branch/po/id.po
+   M /branches/sympa-5.4-branch/po/it.po
+   M /branches/sympa-5.4-branch/po/ja.po
+   M /branches/sympa-5.4-branch/po/ko.po
+   M /branches/sympa-5.4-branch/po/ml.po
+   M /branches/sympa-5.4-branch/po/nb_NO.po
+   M /branches/sympa-5.4-branch/po/nl.po
+   M /branches/sympa-5.4-branch/po/nn_NO.po
+   M /branches/sympa-5.4-branch/po/oc.po
+   M /branches/sympa-5.4-branch/po/pl.po
+   M /branches/sympa-5.4-branch/po/pt.po
+   M /branches/sympa-5.4-branch/po/pt_BR.po
+   M /branches/sympa-5.4-branch/po/ro.po
+   M /branches/sympa-5.4-branch/po/ru.po
+   M /branches/sympa-5.4-branch/po/sv.po
+   M /branches/sympa-5.4-branch/po/sympa.pot
+   M /branches/sympa-5.4-branch/po/tr.po
+   M /branches/sympa-5.4-branch/po/vi.po
+   M /branches/sympa-5.4-branch/po/web_help_pt_BR.po
+   M /branches/sympa-5.4-branch/po/zh_CN.po
+   M /branches/sympa-5.4-branch/po/zh_TW.po
 
-In modindex page, an javascript confirm is requested when validating a set of messages containing one message tagued as spam
-
+Committing updated translations.
 
 ------------------------------------------------------------------------
-r4885 | serge.aumont | 2008-03-06 11:58:58 +0100 (Thu, 06 Mar 2008) | 6 lines
+r4879 | david.verdin | 2008-03-05 15:31:40 +0100 (Wed, 05 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/po/de.po
 
-Now archives by thread or by chronologie is a session attribute (and a user preference). 
-
-This feature also fix a bug related to the way archives are cached by client. Now page are "static" for robots (as detected by SympaSession) and dynamic for any others.
- 
-
+Intergrating latest translations in the stable branch.
 
 ------------------------------------------------------------------------
-r4878 | serge.aumont | 2008-03-05 14:51:55 +0100 (Wed, 05 Mar 2008) | 3 lines
+r4868 | david.verdin | 2008-03-03 17:54:09 +0100 (Mon, 03 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/web_tt2/modindex.tt2
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/important_changes.pl
 
- New button to toogle select/unselect all spams in modindex page
-
+Removing trace.
 
 ------------------------------------------------------------------------
-r4877 | serge.aumont | 2008-03-05 13:41:43 +0100 (Wed, 05 Mar 2008) | 7 lines
+r4867 | david.verdin | 2008-03-03 17:49:51 +0100 (Mon, 03 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/src/sympa.pl
+   M /branches/sympa-5.4-branch/NEWS
+   M /branches/sympa-5.4-branch/important_changes.pl
 
-Now if antispam_feature is configured, sympa robot will ignore incomming command messages if tagued as spam. 
-By the same way, spam messages for listmaster, list-request and list-editor will be ignored.
-
-Such messages are moved in spool bad and message-id is loggued.  
-
-
+Fix: Sympa would not display critical upgrade informations for version 5.4.
 
 ------------------------------------------------------------------------
-r4876 | serge.aumont | 2008-03-05 11:01:07 +0100 (Wed, 05 Mar 2008) | 11 lines
+r4865 | david.verdin | 2008-03-03 14:05:37 +0100 (Mon, 03 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/src/Conf.pm
-   M /trunk/src/Message.pm
-   M /trunk/src/sympa_wizard.pl
-   M /trunk/web_tt2/modindex.tt2
-   A /trunk/wwsympa/icons/junk.png
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/.version
+   M /branches/sympa-5.4-branch/ChangeLog
+   M /branches/sympa-5.4-branch/NEWS
 
-New propertie in object message : spam_status .  This feature is used in modindex (listing of message waiting for moderation) to show message tagued as spam.
-
-4 new parameters :
-      antispam_feature default off
-      antispam_tag_header_name default X-Spam-Status 
-      antispam_tag_header_spam_regexp default ^\s*Yes
-      antispam_tag_header_ham_regexp default ^\s*No
-
-If you change antispam_feature to value 'on' the other parameters default are compatible with spamassassin defaults.
-
+Preparing version 5.4.
 
 ------------------------------------------------------------------------
-r4875 | olivier.salaun | 2008-03-04 15:16:23 +0100 (Tue, 04 Mar 2008) | 2 lines
+r4862 | david.verdin | 2008-03-03 09:17:38 +0100 (Mon, 03 Mar 2008) | 2 lines
 Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/po/el.po
+   M /branches/sympa-5.4-branch/po/fr.po
+   M /branches/sympa-5.4-branch/po/it.po
+   M /branches/sympa-5.4-branch/po/nl.po
+   M /branches/sympa-5.4-branch/po/pt_BR.po
+   M /branches/sympa-5.4-branch/po/ru.po
+   M /branches/sympa-5.4-branch/po/web_help_pt_BR.po
 
-New structure %required_args defining required parameters, %required_privileges defines required privileges to run actions and new subroutine check_action_parameters() that does the checking. Removed 1200 lines of code in wwsympa.fcgi
+Updating internationalization data.
 
 ------------------------------------------------------------------------
-r4874 | olivier.salaun | 2008-03-04 11:39:34 +0100 (Tue, 04 Mar 2008) | 2 lines
+r4861 | david.verdin | 2008-02-29 12:34:07 +0100 (Fri, 29 Feb 2008) | 4 lines
 Changed paths:
-   M /trunk/wwsympa/Auth.pm
-
-Fix: error log did not refer to the right variable
-
-------------------------------------------------------------------------
-r4873 | serge.aumont | 2008-03-04 08:42:35 +0100 (Tue, 04 Mar 2008) | 4 lines
-Changed paths:
-   M /trunk/src/etc/script/create_db.Pg
-   M /trunk/src/etc/script/create_db.SQLite
-   M /trunk/src/etc/script/create_db.Sybase
-   M /trunk/src/etc/script/create_db.mysql
-
-
-Fix wrong column name dat_one_time_ticket -> date_one_time_ticket
-
-
-------------------------------------------------------------------------
-r4872 | serge.aumont | 2008-03-04 08:37:56 +0100 (Tue, 04 Mar 2008) | 3 lines
-Changed paths:
-   M /trunk/src/Upgrade.pm
-   M /trunk/src/etc/script/create_db.Oracle
-   M /trunk/src/etc/script/create_db.Pg
-   M /trunk/src/etc/script/create_db.SQLite
-   M /trunk/src/etc/script/create_db.Sybase
-   M /trunk/src/etc/script/create_db.mysql
-
-Fix wrong column name in table one_table_ticket : status_addr_one_time_ticket must be replaced by status_one_time_ticket
-
-
-------------------------------------------------------------------------
-r4869 | serge.aumont | 2008-03-04 08:16:29 +0100 (Tue, 04 Mar 2008) | 3 lines
-Changed paths:
-   A /trunk/web_tt2/ticket.tt2
-
-New template
-
-
-------------------------------------------------------------------------
-r4859 | david.verdin | 2008-02-29 12:05:26 +0100 (Fri, 29 Feb 2008) | 4 lines
-Changed paths:
-   M /trunk/wwsympa/wwsympa.fcgi
+   M /branches/sympa-5.4-branch/wwsympa/wwsympa.fcgi
 
 [#3790][Reported by R. Tassoni, National Library of Australia and T. Danel] Fix: When displaying a message to moderate in the web interface, if a document was attached to the message, the link to display the message lead to empty documents.
 This was because we didn't take into account the fact that MHonArc put the file in a subdirectory.
 Fixed by changing the kind of ergument file passed from scalar to vector.
 
 ------------------------------------------------------------------------
-r4858 | serge.aumont | 2008-02-29 11:37:00 +0100 (Fri, 29 Feb 2008) | 4 lines
+r4856 | david.verdin | 2008-02-27 15:03:03 +0100 (Wed, 27 Feb 2008) | 2 lines
 Changed paths:
-   M /trunk/src/Upgrade.pm
-   M /trunk/src/etc/script/create_db.Oracle
-   M /trunk/src/etc/script/create_db.Pg
-   M /trunk/src/etc/script/create_db.SQLite
-   M /trunk/src/etc/script/create_db.Sybase
-   M /trunk/src/etc/script/create_db.mysql
-
-
-Fix bug related to the new cilumn las_login_date_user and last_login_host_user
-
-
-------------------------------------------------------------------------
-r4857 | serge.aumont | 2008-02-28 12:09:33 +0100 (Thu, 28 Feb 2008) | 16 lines
-Changed paths:
-   M /trunk/mail_tt2/moderate.tt2
-   M /trunk/mail_tt2/sendpasswd.tt2
-   M /trunk/src/Conf.pm
-   M /trunk/src/List.pm
-   M /trunk/src/Upgrade.pm
-   A /trunk/src/etc/global_task_models/purge_one_time_ticket_table.daily.task
-   M /trunk/src/etc/script/create_db.Oracle
-   M /trunk/src/etc/script/create_db.Pg
-   M /trunk/src/etc/script/create_db.SQLite
-   M /trunk/src/etc/script/create_db.Sybase
-   M /trunk/src/etc/script/create_db.mysql
-   M /trunk/src/sympa.pl
-   M /trunk/src/task_manager.pl
-   M /trunk/web_tt2/choosepasswd.tt2
-   M /trunk/web_tt2/login_menu.tt2
-   M /trunk/web_tt2/loginbanner.tt2
-   M /trunk/web_tt2/notice.tt2
-   M /trunk/web_tt2/remindpasswd.tt2
-   M /trunk/wwsympa/Auth.pm
-   M /trunk/wwsympa/SympaSession.pm
-   M /trunk/wwsympa/wwsympa.fcgi
-
-***** Replace storage of password with encryption by md5 fingerprint. This 
-***** make remind password impossible. So now a one time ticket table is created
-***** ticket are  sent by email as an authentication token. Ticket can be used 
-***** for lost password, create account, moderation request . It should be
-***** generalized to all operation that need a email chalenge.
-*****
-***** sympa.pl --md5_encode_password change password encoding in the database using md5.So IT IS NOT REVERSIBLE,
-***** so you should save the database (in a safe place to protect password) 
-
-  -  new login method include now "last login from [HOST] at [date]" information  message
-  -  new daily task to remove tickets older than 10d (task parameters in conf.pm): 
-       - purge_one_time_ticket_table_task default daily
-       - one_time_ticket_table_ttl default 10d
-
-
-
-------------------------------------------------------------------------
-r4855 | david.verdin | 2008-02-27 15:02:52 +0100 (Wed, 27 Feb 2008) | 2 lines
-Changed paths:
-   M /trunk/important_changes.pl
-   M /trunk/src/Upgrade.pm
+   M /branches/sympa-5.4-branch/important_changes.pl
+   M /branches/sympa-5.4-branch/src/Upgrade.pm
 
 Fix: Upgrade process failed to spot version number due to new use of strict vars, and a character cas problem occured while parsing the database structure.
+
+------------------------------------------------------------------------
+r4854 | david.verdin | 2008-02-26 12:04:15 +0100 (Tue, 26 Feb 2008) | 2 lines
+Changed paths:
+   A /branches/sympa-5.4-branch (from /trunk:4853)
+
+Creating the stabilisation branch for version 5.4 of Sympa
 
 ------------------------------------------------------------------------
 r4852 | olivier.salaun | 2008-02-13 16:04:53 +0100 (Wed, 13 Feb 2008) | 2 lines

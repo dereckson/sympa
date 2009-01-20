@@ -49,8 +49,6 @@ use CPAN;
 	     'MIME::Base64' => '3.03',
 	     'MIME::Charset' => '0.04.1',
 	     'MIME::EncWords' => '0.040',
-	     'File::Copy::Recursive' => '0.36',
-	     'Net::Netmask' => '1.9015',
 	     );
 
 ### key:left "module" used by SYMPA, 
@@ -78,8 +76,6 @@ use CPAN;
 	     'MIME::Charset' => 'MIME-Charset',
 	     'MIME::EncWords' => 'MIME-EncWords',
 	     'HTML::StripScripts::Parser' => 'HTML-StripScripts-Parser',
-	     'File::Copy::Recursive' => 'File-Copy-Recursive',
-	     'Net::Netmask' => 'Net-Netmask',
 	     'HTML::TreeBuilder' => 'HTML-Tree',
 	     'HTML::FormatText' => 'HTML-Format',
 	     );
@@ -95,9 +91,7 @@ use CPAN;
 	     'Net::SSLeay' => 'NET-SSLeay',
 	     'Bundle::LWP' => 'LWP',
 	     'SOAP::Lite' => 'SOAP-Lite',
-	     'File::NFSLock' => 'File-NFSLock',
-	     'File::Copy::Recursive' => 'File-Copy-Recursive',
-	     );
+	     'File::NFSLock' => 'File-NFSLock');
 
 %opt_features = ('DBI' => 'a generic Database Driver, required by Sympa to access Subscriber information and User preferences. An additional Database Driver is required for each database type you wish to connect to.',
 		 'DBD::mysql' => 'Mysql database driver, required if you connect to a Mysql database.\nYou first need to install the Mysql server and have it started before installing the Perl DBD module.',
