@@ -1,6 +1,0 @@
-<!-- $Id$ -->
-
-<div id="Footer">
-     <a href="http://www.sympa.org">Powered by Sympa [% version %]</a>
-</div>
-<!-- end footer.tt2 -->
