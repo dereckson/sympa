@@ -1,5 +1,6 @@
 <!-- $Id$ -->
 
+
 <h2>
  [% IF count %]
    [%|loc(count)%] The %1 most recent shared documents [%END%] 
@@ -48,4 +49,3 @@
  [% END %]  
 
 </table>
-<!-- end latest_d_read.tt2 -->

@@ -9,8 +9,8 @@ MOFILES = $(MOBASICFILES) $(MOHELPFILES)
 DEPENDON = $(shell cd .. ; ls src/*.p? wwsympa/wwsympa.fcgi wwsympa/*.p? web_tt2/*.tt2 mail_tt2/*.tt2 src/etc/mhonarc-ressources.tt2 src/etc/scenari/*)
 
 MSGMERGE = msgmerge
-MSGCAT = msgcat
 MSGFMT   = msgfmt
+MSGCAT   = msgcat
 MSGATTRIB = msgattrib
 XGETTEXT = po/xgettext.pl
 
@@ -99,7 +99,6 @@ export:
 	mkdir /tmp/sympa-po; \
 	mkdir /tmp/sympa-po/sympa; \
 	mkdir /tmp/sympa-po/web_help; \
-	mkdir /tmp/sympa-po/terminology; \
 	languages='$(LINGUAS)'; \
 	for lang in $$languages; do \
 		mkdir /tmp/sympa-po/sympa/$$lang; \
@@ -109,10 +108,8 @@ export:
 	done
 	mkdir /tmp/sympa-po/sympa/templates; \
 	mkdir /tmp/sympa-po/web_help/templates; \
-	mkdir /tmp/sympa-po/terminology/templates; \
 	cp sympa.pot /tmp/sympa-po/sympa/templates/sympa.pot; \
 	cp web_help.pot /tmp/sympa-po/web_help/templates/web_help.pot; \
-	cp terminology.pot /tmp/sympa-po/terminology/templates/terminology.pot; \
 	(cd /tmp/sympa-po; tar -zcvf /tmp/sympa-po.tar.gz *)
 
 ## Check translations, coming from Rosetta for instance

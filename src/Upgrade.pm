@@ -636,26 +636,6 @@ sub upgrade {
 	}
     }
     
-    if (&tools::lower_version($previous_version, '5.5a.1')) {
-
-      ## Remove OTHER/ subdirectories in bounces
-      &do_log('notice', "Removing obsolete OTHER/ bounce directories");
-      if (opendir BOUNCEDIR, &Conf::get_robot_conf($Conf{'host'}, 'bounce_path')) {
-	
-	foreach my $subdir (sort grep (!/^\.+$/,readdir(BOUNCEDIR))) {
-	  my $other_dir = &Conf::get_robot_conf($Conf{'host'}, 'bounce_path').'/'.$subdir.'/OTHER';
-	  if (-d $other_dir) {
-	    &tools::remove_dir($other_dir) && &do_log('notice', "Directory $other_dir removed");
-	  }
-	}
-	
-	close BOUNCEDIR;
- 
-      }else {
-	&do_log('err', "Failed to open directory $Conf{'queuebounce'} : $!");	
-      }
-
-   }
 
     return 1;
 }
@@ -668,8 +648,6 @@ sub probe_db {
     my %db_struct = ('mysql' => {'user_table' => {'email_user' => 'varchar(100)',
 						  'gecos_user' => 'varchar(150)',
 						  'password_user' => 'varchar(40)',
-						  'last_login_date_user' => 'int(11)',
-						  'last_login_host_user' => 'varchar(60)',
 						  'cookie_delay_user' => 'int(11)',
 						  'lang_user' => 'varchar(10)',
 						  'attributes_user' => 'text',
@@ -728,33 +706,12 @@ sub probe_db {
 						  'status_logs' => 'varchar(10)',
 						  'error_type_logs' => 'varchar(150)',
 						  'client_logs' => 'varchar(100)',
-						  'daemon_logs' => 'varchar(10)'},
-				 'one_time_ticket_table' => {'ticket_one_time_ticket' => 'varchar(30)',
-							     'email_one_time_ticket' => 'varchar(100)',
-							     'robot_one_time_ticket' => 'varchar(80)',
-							     'date_one_time_ticket' => 'int(11)',
-							     'data_one_time_ticket' => 'varchar(200)',
-							     'remote_addr_one_time_ticket' => 'varchar(60)',
-							     'status_one_time_ticket' => 'varchar(60)'},
-				 'bulkmailer_table' => {'messagekey_bulkmailer' => 'varchar(80)',
-							'packetid_bulkmailer' => 'varchar(33)',
-							'receipients_bulkmailer' => 'text',
-							'returnpath_bulkmailer' => 'varchar(100)',
-							'robot_bulkmailer' => 'varchar(80)',
-							'listname_bulkmailer' => 'varchar(50)',
-							'verp_bulkmailer' => 'int(1)',
-							'priority_bulkmailer' => 'smallint(10)',
-							'date_bulkmailer' => 'int(11)',
-							'lock_bulkmailer' => 'varchar(30)'},
-				 'bulkspool_table' => {'messagekey_bulkspool' => 'varchar(33)',
-						       'message_bulkspool' => 'longtext',
-						       'lock_bulkspool' => 'int(1)',},
+						  'daemon_logs' => 'varchar(10)'						  
+						  },				 
 			     },
 		     'SQLite' => {'user_table' => {'email_user' => 'varchar(100)',
 						   'gecos_user' => 'varchar(150)',
 						   'password_user' => 'varchar(40)',
-						   'last_login_date_user' => 'integer',
-						   'last_login_host_user' => 'varchar(60)',
 						   'cookie_delay_user' => 'integer',
 						   'lang_user' => 'varchar(10)',
 						   'attributes_user' => 'varchar(255)',
@@ -813,28 +770,9 @@ sub probe_db {
 						   'status_logs' => 'varchar(10)',
 						   'error_type_logs' => 'varchar(150)',
 						   'client_logs' => 'varchar(100)',
-						   'daemon_logs' => 'varchar(10)'},
-				 'one_time_ticket_table' => {'ticket_one_time_ticket' => 'varchar(30)',
-						       'robot_one_time_ticket' => 'varchar(80)',
-						       'email_one_time_ticket' => 'varchar(100)',
-						       'date_one_time_ticket' => 'integer',
-						       'data_one_time_ticket' => 'varchar(200)',
-						       'remote_addr_one_time_ticket' => 'varchar(60)',
-						       'status_one_time_ticket' => 'varchar(60)',				  
-							 },				 
-				  'bulkmailer_table' => {'messagekey_bulkmailer' => 'varchar(80)',
-							 'packetid_bulkmailer' => 'varchar(33)',
-							 'receipients_bulkmailer' => 'text',
-							 'returnpath_bulkmailer' => 'varchar(100)',
-							 'robot_bulkmailer' => 'varchar(80)',
-							 'listname_bulkmailer' => 'varchar(50)',
-							 'verp_bulkmailer' => 'integer',
-							 'priority_bulkmailer' => 'integer',
-							 'date_bulkmailer' => 'integer',
-							 'lock_bulkmailer' => 'varchar(30)'},
-				  'bulkspool_table' => {'messagekey_bulkspool' => 'varchar(33)',
-							'message_bulkspool' => 'text',
-							'lock_bulkspool' => 'integer',},
+						   'daemon_logs' => 'varchar(10)'						  
+						  },				 
+
 			      },
 		     );
     
@@ -859,9 +797,6 @@ sub probe_db {
 		    'id_session' => 1,
 		    'start_date_session' => 1,
 		    'date_session' => 1,
-		    'messagekey_bulkmailer' => 1,
-		    'packetid_bulkmailer' => 1,
-		    'messagekey_bulkspool' => 1,
 		    );
     
     my %primary = ('user_table' => ['email_user'],
@@ -869,10 +804,7 @@ sub probe_db {
 		   'admin_table' => ['robot_admin','list_admin','role_admin','user_admin'],
 		   'netidmap_table' => ['netid_netidmap','serviceid_netidmap','robot_netidmap'],
 		   'logs_table' => ['id_logs'],
-		   'session_table' => ['id_session'],
-		   'one_time_ticket_table' => ['ticket_one_time_ticket'],
-		   'bulkmailer_table' => ['messagekey_bulkmailer','packetid_bulkmailer'],
-		   'bulkspool_table' => ['messagekey_bulkspool'],
+		   'session_table' => ['id_session']
 		   );
 
     ## List the required INDEXES
@@ -1343,17 +1275,10 @@ sub probe_db {
 	## SQLite :  the only access permissions that can be applied are 
 	##           the normal file access permissions of the underlying operating system
 	if (($Conf{'db_type'} eq 'SQLite') &&  (-f $Conf{'db_name'})) {
-	    unless (&tools::set_file_rights(file => $Conf{'db_name'},
-					    user => '--USER--',
-					    group => '--GROUP--',
-					    mode => 0664,
-					    ))
-	    {
-		&do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-		return undef;
-	    }
+	    `chown --USER-- $Conf{'db_name'}`; ## Failed with chmod() perl subroutine
+	    `chgrp --GROUP-- $Conf{'db_name'}`; ## Failed with chmod() perl subroutine
 	}
-	
+
     }elsif ($found_tables < 3) {
 	&do_log('err', 'Missing required tables in the database ; you should create them with create_db.%s script', $Conf{'db_type'});
 	return undef;
@@ -1429,6 +1354,8 @@ sub to_utf8 {
 
     my $with_attachments = qr{ archive.tt2 | digest.tt2 | get_archive.tt2 | listmaster_notification.tt2 | 
 				   message_report.tt2 | moderate.tt2 |  modindex.tt2 | send_auth.tt2 }x;
+    my $uid = (getpwnam('--USER--'))[2];
+    my $gid = (getgrnam('--GROUP--'))[2];        
     my $total;
     
     foreach my $pair (@{$files}) {
@@ -1509,15 +1436,8 @@ sub to_utf8 {
 	}
 	print TEMPLATE $text;
 	close TEMPLATE;
-	unless (&tools::set_file_rights(file => $file,
-					user => '--USER--',
-					group => '--GROUP--',
-					mode => 0644,
-					))
-	{
-	    &do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	    next;
-	}
+	chown $uid, $gid, $file;
+	chmod 0644, $file;
 	&do_log('notice','Modified file %s ; original file kept as %s', $file, $file.'@'.$date);
 	
 	$total++;
@@ -1526,74 +1446,5 @@ sub to_utf8 {
     return $total;
 }
 
-
-# md5_encode_password : Version later than 5.4 uses md5 fingerprint instead of symetric crypto to store password.
-#  This require to rewrite paassword in database. This upgrade IS NOT REVERSIBLE
-sub md5_encode_password {
-
-    my $total = 0;
-
-    &do_log('notice', 'Upgrade::md5_encode_password() recoding password using md5 fingerprint');
-    
-    unless (&List::check_db_connect()) {
-	return undef;
-    }
-
-    my $dbh = &List::db_get_handler();
-
-    my $sth;
-    unless ($sth = $dbh->prepare("SELECT email_user,password_user from user_table")) {
-	do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
-	return undef;
-    }
-
-    unless ($sth->execute) {
-	do_log('err','Unable to execute SQL statement : %s', $dbh->errstr);
-	return undef;
-    }
-
-    my $total = 0;
-    my $total_md5 = 0 ;
-
-    while (my $user = $sth->fetchrow_hashref) {
-
-	my $clear_password ;
-	if ($user->{'password_user'} =~ /^[1-9a-f]{32}/){
-	    do_log('info','password from %s already encoded as md5 fingerprint',$user->{'email_user'});
-	    $total_md5++ ;
-	    next;
-	}	
-	
-	## Ignore empty passwords
-	next if ($user->{'password_user'} =~ /^$/);
-
-	if ($user->{'password_user'} =~ /^crypt.(.*)$/) {
-	    $clear_password = &tools::decrypt_password($user->{'password_user'});
-	}else{ ## Old style cleartext passwords
-	    $clear_password = $user->{'password_user'};
-	}
-
-	$total++;
-
-	## Updating Db
-	my $escaped_email =  $user->{'email_user'};
-	$escaped_email =~ s/\'/''/g;
-	my $statement = sprintf "UPDATE user_table SET password_user='%s' WHERE (email_user='%s')", &tools::md5_fingerprint($clear_password), $escaped_email ;
-	
-	unless ($dbh->do($statement)) {
-	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
-	    return undef;
-	}
-    }
-    $sth->finish();
-    
-    do_log('info',"Updating password storage in table user_table using md5 for %d users",$total) ;
-    if ($total_md5) {
-	do_log('info',"Found in table user %d password stored using md5, did you run Sympa before upgrading ?", $total_md5 );
-    }    
-    return $total;
-}
-
- 
 ## Packages must return true.
 1;

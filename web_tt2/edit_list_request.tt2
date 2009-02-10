@@ -1,8 +1,5 @@
 <!-- $Id$ -->
 
-<h2>[%|loc%]Configuring the list[%END%] <a class="input" href="[% path_cgi %]/nomenu/help/listconfig" title="[%|loc%]Open in a new window[%END%]" onclick="window.open('','wws_help','toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no,width=400,height=200')" target="wws_help">[%|loc%]Help[%END%]</a></h2>
-<br />
-
 [% IF !group %]
   [%|loc%]You can choose below a subset of parameters to edit :[%END%] 
   <ul>
@@ -23,7 +20,7 @@
         [% IF p.may_edit != 'hidden' %]
 
           [% IF p.changed == '1' %]
-  	    <div class="CurrentBlock">
+  	    <div class="ErrorBlock">
           [% ELSE %]
             <div class="block">
           [% END %]
@@ -422,4 +419,4 @@
   </form>
 [% END %]
 
-<!-- end edit_list_request.tt2 -->
+

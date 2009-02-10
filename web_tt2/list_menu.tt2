@@ -1,5 +1,7 @@
 <!-- $Id$ -->
 
+<!-- begin list_menu.tt2 -->
+
 <div class="MenuBlock">
 [% PROCESS 'list_panel.tt2' %]
 

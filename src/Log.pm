@@ -275,7 +275,7 @@ sub db_log {
 
 # delete logs in RDBMS
 sub db_log_del {
-    my $exp = &Conf::get_robot_conf('*','logs_expiration_period');
+    my $exp = &Conf::get_robot_conf($Conf::Conf{'host'},'logs_expiration_period');
     my $date = time - ($exp * 30 * 24 * 60 * 60);
 
     my $dbh = &List::db_get_handler();
@@ -313,7 +313,7 @@ sub get_first_db_log {
 				     'DoCommand','SendDigest'],
 		       'authentication' => ['login','logout','loginrequest','sendpasswd',
 					    'ssologin','ssologin_succeses','remindpasswd',
-					    'choosepasswd'],
+					    'change_identity','choosepasswd'],
 		       'subscription' => ['subscribe','signoff','add','del','ignoresub',
 					  'subindex'],
 		       'list_management' => ['create_list','rename_list','close_list',
@@ -321,7 +321,7 @@ sub get_first_db_log {
 					     'purge_list','edit_template','copy_template',
 					     'remove_template'],
 		       'bounced' => ['resetbounce','get_bounce'],
-		       'preferences' => ['set','setpref','pref','change_email','setpasswd','editsubscriber'],
+		       'preferences' => ['set','setpref','pref','change_email','setpasswd','record_email','editsubscriber'],
 		       'shared' => ['d_unzip','d_upload','d_read','d_delete','d_savefile',
 				    'd_overwrite','d_create_dir','d_set_owner','d_change_access',
 				    'd_describe','d_rename','d_editfile','d_admin',

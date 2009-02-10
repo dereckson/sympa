@@ -26,7 +26,6 @@ package tools;
 use strict;
 
 use POSIX;
-use Sys::Hostname;
 use Mail::Internet;
 use Mail::Header;
 use Conf;
@@ -36,7 +35,6 @@ use Time::Local;
 use File::Find;
 use Digest::MD5;
 use HTML::StripScripts::Parser;
-use File::Copy::Recursive;
 
 use Encode::Guess; ## Usefull when encoding should be guessed
 use Encode::MIME::Header;
@@ -54,10 +52,9 @@ my $separator="------- CUT --- CUT --- CUT --- CUT --- CUT --- CUT --- CUT -----
 ## also be changed
 my %regexp = ('email' => '([\w\-\_\.\/\+\=\'\&]+|\".*\")\@[\w\-]+(\.[\w\-]+)+',
 	      'family_name' => '[a-z0-9][a-z0-9\-\.\+_]*', 
-	      'template_name' => '[a-zA-Z0-9][a-zA-Z0-9\-\.\+_\s]*', ## Allow \s
 	      'host' => '[\w\.\-]+',
 	      'multiple_host_with_port' => '[\w\.\-]+(:\d+)?(,[\w\.\-]+(:\d+)?)*',
-	      'listname' => '[a-z0-9][a-z0-9\-\.\+_]{0,49}',
+	      'listname' => '[a-z0-9][a-z0-9\-\.\+_]*',
 	      'sql_query' => '(SELECT|select).*',
 	      'scenario' => '[\w,\.\-]+',
 	      'task' => '\w+',
@@ -70,40 +67,6 @@ my %openssl_errors = (1 => 'an error occurred parsing the command options',
 		      3 => 'an error occurred creating the PKCS#7 file or when reading the MIME message',
 		      4 => 'an error occurred decrypting or verifying the message',
 		      5 => 'the message was verified correctly but an error occurred writing out the signers certificates');
-
-## Sets owner and/or access rights on a file.
-sub set_file_rights {
-    my %param = @_;
-    my ($uid, $gid);
-
-    if ($param{'user'}){
-	unless ($uid = (getpwnam($param{'user'}))[2]) {
-	    &do_log('err', "User %s can't be found in passwd file",$param{'user'});
-	    return undef;
-	}
-    }else {
-	$uid = -1;# "A value of -1 is interpreted by most systems to leave that value unchanged".
-    }
-    if ($param{'group'}) {
-	unless ($gid = (getgrnam($param{'group'}))[2]) {
-	    &do_log('err', "Group %s can't be found",$param{'group'});
-	    return undef;
-	}
-    }else {
-	$gid = -1;# "A value of -1 is interpreted by most systems to leave that value unchanged".
-    }
-    unless (chown($uid,$gid, $param{'file'})){
-	&do_log('err', "Can't give ownership of file %s to %s.%s: %s",$param{'file'},$param{'user'},$param{'group'}, $!);
-	return undef;
-    }
-    if ($param{'mode'}){
-	unless (chmod($param{'mode'}, $param{'file'})){
-	    &do_log('err', "Can't change rights of file %s: %s",$Conf{'db_name'}, $!);
-	    return undef;
-	}
-    }
-    return 1;
-}
 
 ## Returns an HTML::StripScripts::Parser object built with  the parameters provided as arguments.
 sub _create_xss_parser {
@@ -491,31 +454,19 @@ sub get_list_list_tpl {
     return ($list_templates);
 }
 
-
-#copy a directory and it's content
-sub copy_dir {
-    my $dir1 = shift;
-    my $dir2 = shift;
-    &do_log('info','copy_dir %1 %2',$dir1,$dir2);
-
-    return undef unless (-d $dir1) ;
-    #return undef unless (-d $dir2) ;
-    return (&File::Copy::Recursive::dircopy($dir1,$dir2)) ;
-}
-
 #to be used before creating a file in a directory that may not exist already. 
 sub mk_parent_dir {
     my $file = shift;
     $file =~ /^(.*)\/([^\/])*$/ ;
     my $dir = $1;
-
-    return 1 if (-d $dir);
-    &mkdir_all($dir, 0755);
+    return if (-d $dir);
+    return undef unless (mkdir ($dir, 0755));
 }
 
 ## Recursively create directory and all parent directories
 sub mkdir_all {
     my ($path, $mode) = @_;
+
     my $status = 1;
 
     ## Change umask to fully apply modes of mkdir()
@@ -594,7 +545,6 @@ sub get_templates_list {
     my $type = shift;
     my $robot = shift;
     my $list = shift;
-    my $options = shift;
 
     my $listdir;
 
@@ -608,14 +558,10 @@ sub get_templates_list {
     my $robot_dir = $Conf{'etc'}.'/'.$robot.'/'.$type.'_tt2';
 
     my @try;
-
-    ## The 'ignore_global' option allows to look for files at list level only
-    unless ($options->{'ignore_global'}) {
-	push @try, $distrib_dir ;
-	push @try, $site_dir ;
-	push @try, $robot_dir;
-    }    
-
+    push @try, $distrib_dir ;
+    push @try, $site_dir ;
+    push @try, $robot_dir;
+    
     if (defined $list) {
 	$listdir = $list->{'dir'}.'/'.$type.'_tt2';	
 	push @try, $listdir ;
@@ -653,7 +599,6 @@ sub get_templates_list {
     return ($tpl);
 
 }
-
 
 # return the path for a specific template
 sub get_template_path {
@@ -739,10 +684,10 @@ sub smime_sign {
 	    do_log('notice', 'Unable to make fifo for %s',$temporary_pwd);
 	}
     }
-    &do_log('debug', "$Conf{'openssl'} smime -sign -rand $Conf{'tmpdir'}"."/rand -signer $cert $pass_option -inkey $key -in $temporary_file");    
-    unless (open (NEWMSG,"$Conf{'openssl'} smime -sign  -rand $Conf{'tmpdir'}"."/rand -signer $cert $pass_option -inkey $key -in $temporary_file |")) {
-    	&do_log('notice', 'Cannot sign message (open pipe)');
-	return undef;
+
+     &do_log('debug3', "$Conf{'openssl'} smime -sign -signer $cert $pass_option -inkey $key -in $temporary_file");
+     unless (open (NEWMSG,"$Conf{'openssl'} smime -sign -signer $cert $pass_option -inkey $key -in $temporary_file |")) {
+    	&do_log('notice', 'Cannot sign message');
     }
 
     if ($Conf{'key_passwd'} ne '') {
@@ -762,10 +707,7 @@ sub smime_sign {
 	do_log('notice', 'Unable to parse message');
 	return undef;
     }
-    unless (close NEWMSG){
-	&do_log('notice', 'Cannot sign message (close pipe)');
-	return undef;
-    } 
+    close NEWMSG ;
 
     my $status = $?/256 ;
     unless ($status == 0) {
@@ -784,8 +726,6 @@ sub smime_sign {
     foreach my $header ($in_msg->head->tags) {
 	$signed_msg->head->add($header,$in_msg->head->get($header)) unless $predefined_headers->{$header} ;
     }
-    
-    my $messageasstring = $signed_msg->as_string ;
 
     return $signed_msg;
 }
@@ -1954,7 +1894,9 @@ sub duration_conv {
     $arg =~ /(\d+y)?(\d+m)?(\d+w)?(\d+d)?(\d+h)?(\d+min)?(\d+sec)?$/i ;
     my @date = ("$1", "$2", "$3", "$4", "$5", "$6", "$7");
     for (my $i = 0; $i < 7; $i++) {
-      $date[$i] =~ s/[a-z]+$//; ## Remove trailing units
+	chop ($date[$i]);
+	if (($i == 5) || ($i == 6)) {chop ($date[$i]); chop ($date[$i]);}
+	$date[$i] = 0 unless ($date[$i]);
     }
     
     my $duration = $date[6]+60*($date[5]+60*($date[4]+24*($date[3]+7*$date[2]+365*$date[0])));
@@ -2265,9 +2207,12 @@ sub is_a_crawler {
 }
 
 sub write_pid {
-    my ($pidfile, $pid, $options) = @_;
+    my ($pidfile, $pid) = @_;
 
-   my $piddir = $pidfile;
+    my $uid = (getpwnam('--USER--'))[2];
+    my $gid = (getgrnam('--GROUP--'))[2];
+
+    my $piddir = $pidfile;
     $piddir =~ s/\/[^\/]+$//;
 
     ## Create piddir
@@ -2275,14 +2220,7 @@ sub write_pid {
 	mkdir $piddir, 0755;
     }
     
-    unless (&tools::set_file_rights(file => $piddir,
-				    user => '--USER--',
-				    group => '--GROUP--',
-				    ))
-    {
-	&do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	return undef;
-    }
+    chown $uid, $gid, $piddir;
 
     ## If pidfile exists, read the PID and get date
     my ($other_pid);
@@ -2328,28 +2266,12 @@ sub write_pid {
     print LCK "$pid\n";
     close(LCK);
     
-    unless (&tools::set_file_rights(file => $pidfile,
-				    user => '--USER--',
-				    group => '--GROUP--',
-				    ))
-    {
-	&do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	return undef;
-    }
+    chown $uid, $gid, $pidfile;
 
     ## Error output is stored in a file with PID-based name
     ## Usefull if process crashes
-    unless ($options->{'stderr_to_tty'}) {
-      open(STDERR, '>>',  $Conf{'tmpdir'}.'/'.$pid.'.stderr') unless ($main::options{'foreground'});
-      unless (&tools::set_file_rights(file => $Conf{'tmpdir'}.'/'.$pid.'.stderr',
-				      user => '--USER--',
-				      group => '--GROUP--',
-				     ))
-	{
-	  &do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	  return undef;
-	}
-    }
+    open(STDERR, '>>',  $Conf{'tmpdir'}.'/'.$pid.'.stderr') unless ($main::options{'foreground'});
+    chown $uid, $gid, $Conf{'tmpdir'}.'/'.$pid.'.stderr';
 
     return 1;
 }
@@ -2917,14 +2839,14 @@ sub change_x_sympa_to {
     
     ## Change X-Sympa-To
     unless (open FILE, $file) {
-	&do_log('err', "Unable to open '%s' : %s", $file, $!);
+	&wwslog('err', "Unable to open '%s' : %s", $file, $!);
 	next;
     }	 
     my @content = <FILE>;
     close FILE;
     
     unless (open FILE, ">$file") {
-	&do_log('err', "Unable to open '%s' : %s", "$file", $!);
+	&wwslog('err', "Unable to open '%s' : %s", "$file", $!);
 	next;
     }	 
     foreach (@content) {
@@ -3363,9 +3285,4 @@ sub CleanSpool {
     return 1;
 }
 
-
-# return a lockname that is a uniq id of a processus (hostname + pid) ; hostname (20) and pid(10) are truncated in order to store lockname in database varchar(30)
-sub get_lockname (){
-    return substr(substr(hostname(), 0, 20).$$,0,30);   
-}
 1;

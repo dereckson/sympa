@@ -2,10 +2,6 @@
 
 [% PROCESS picture_upload.tt2 %]
 
-[% IF is_owner %]
-<h3>[%|loc%]Manage list members[%END%] <a class="input" href="[% path_cgi %]/nomenu/help/admin#manage_members" title="[%|loc%]Open in a new window[%END%]" onclick="window.open('','wws_help','toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no,width=400,height=200')" target="wws_help">[%|loc%]Help[%END%]</a></h3>
-[% END %]
-
 [% IF action != 'search' %]
 <div class="search_form">
   <form action="[% path_cgi %]">
@@ -69,8 +65,7 @@
    <input type="hidden" name="action" value="add" />
    <label for="email_search">[%|loc%]Add an user: [%END%]</label>
    <input id="email_search" type="text" name="email" size="35" />
-   <input class="MainMenuLinks" type="submit" name="action_add" value="[%|loc%]Add[%END%]" />
-   <input id="quietly" type="checkbox" name="quiet" /> <label for="quietly">[%|loc%]quiet[%END%]</label>
+   <input class="MainMenuLinks" type="submit" name="action_add" value="[%|loc%]Add[%END%]" /> <input id="quietly" type="checkbox" name="quiet" /> <label for="quietly">[%|loc%]quiet[%END%]</label>
    &nbsp;&nbsp;<a class="actionMenuLinks" href="[% path_cgi %]/add_request/[% list %]">[%|loc%]Multiple add[%END%]</a>
   </fieldset>
   </form>
@@ -167,7 +162,9 @@
 	  [% IF additional_fields %]
 	    <th>[% additional_fields %]</th>
 	  [% END %]
-          [% FOREACH ca_k IN list_conf.custom_attribute %]<th>[% ca_k.name %]</th>[% END %]
+	  <th>
+	      [%|loc%]Additional information[%END%]
+	  </th>
         [% END %]
       </tr>
       
@@ -254,7 +251,9 @@
 	      [% u.additional %]
 	     </td>
 	  [% END %]
-	  [% FOREACH ca_k IN list_conf.custom_attribute %]<td>[% SET id = ca_k.id %][% u.custom_attribute.$id.value %]</td>[% END %]
+	  <td class="text_left">
+	  	 [% FOREACH ca_k IN list_conf.custom_attribute %]<b>[% ca_k.name %] : </b>[% SET id = ca_k.id %][% u.custom_attribute.$id.value %]<br/>[% END %]
+	</td>
        	  [% END %]
         </tr>
 
@@ -290,4 +289,9 @@
 
    </fieldset>
    </form>
-<!-- end review.tt2 (distrib) -->
+
+
+
+
+
+
