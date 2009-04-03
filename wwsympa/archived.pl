@@ -83,7 +83,7 @@ $adrlist = {};
 # Load WWSympa configuration
 unless ($wwsconf = &wwslib::load_config($wwsympa_conf)) {
     print STDERR 'unable to load config file';
-    exit -1;
+    exit;
 }
 
 # Load sympa.conf
@@ -96,15 +96,7 @@ if ($wwsconf->{'arc_path'}) {
     unless (-d $wwsconf->{'arc_path'}) {
 	printf STDERR "Creating missing %s directory\n", $wwsconf->{'arc_path'};
 	mkdir $wwsconf->{'arc_path'}, 0775;
-	unless (&tools::set_file_rights(file => $wwsconf->{'arc_path'},
-					 user => '--USER--',
-					 group => '--GROUP--',
-					 mode => 0775,
-					 ))
-	{
-	    &do_log('err','Unable to set rights on %s',$Conf{'db_name'});
-	    exit -1;
-	}
+	chown '--USER--', '--GROUP--', $wwsconf->{'arc_path'};
     }
 }
 
@@ -129,12 +121,8 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
    }
 }
 
-## If process is running in foreground, don't write STDERR to a dedicated file
-my $options;
-$options->{'stderr_to_tty'} = 1 if ($main::options{'foreground'});
-
 ## Create and write the pidfile
-&tools::write_pid($wwsconf->{'archived_pidfile'}, $$, $options);
+&tools::write_pid($wwsconf->{'archived_pidfile'}, $$);
 
 # setting log_level using conf unless it is set by calling option
 if ($main::options{'log_level'}) {
@@ -771,126 +759,120 @@ sub mail2arc {
     do_log('debug',"mail2arc $file for %s yyyy:$yyyy, mm:$mm dd:$dd hh:$hh min$min ss:$ss", $list->get_list_id());
     #    chdir($wwsconf->{'arc_path'});
 
-    if ($wwsconf->{'custom_archiver'}) {
-	`$wwsconf->{'custom_archiver'} --list=$listname\@$hostname --file=$queue/$file`;
-	return 1;
-    }else{
-
-	my $basedir = $arcpath.'/'.$list->get_list_id();
-	
-	if (! -d $basedir) {
-	    unless (mkdir $basedir, 0775) {
-		&do_log('err', 'Cannot create directory %s', $basedir);
-		unless (&List::send_notify_to_listmaster('unable_to_create_dir',$hostname,{'dir' => "$basedir"})) {
-		    &do_log('notice',"Unable to send notify 'unable_to_create_dir' to listmaster");
-		}
-	    }
-	    do_log('debug',"mkdir $basedir");
-	}
-	
-	## Check quota
-	if ($list->{'admin'}{'web_archive'}{'quota'}) {
-	    my $used = $list->get_arc_size("$arcpath") ;
-	    
-	    if ($used >= $list->{'admin'}{'web_archive'}{'quota'} * 1024){
-		&do_log('err',"archived::mail2arc : web_arc Quota exceeded for list $list->{'name'}");
-		unless ($list->send_notify_to_owner('arc_quota_exceeded',{'size' => $used})) {
-		    &do_log('notice',"Unable to send notify 'arc_quota_exceeded' to $list->{'name'} owner");	
-		}
-		return undef;
-	    }
-	    if ($used >= ($list->{'admin'}{'web_archive'}{'quota'} * 1024 * 0.95)){
-		&do_log('err',"archived::mail2arc : web_arc Quota exceeded for list $list->{'name'}");
-		unless ($list->send_notify_to_owner('arc_quota_95',{'size' => $used,
-								    'rate' => int($used * 100 / ($list->{'admin'}{'web_archive'}{'quota'} * 1024 ))})) {
-		    &do_log('notice',"Unable to send notify 'arc_quota_95' to $list->{'name'} owner");	
-		}
+    my $basedir = $arcpath.'/'.$list->get_list_id();
+    
+    if (! -d $basedir) {
+	unless (mkdir $basedir, 0775) {
+	    &do_log('err', 'Cannot create directory %s', $basedir);
+	    unless (&List::send_notify_to_listmaster('unable_to_create_dir',$hostname,{'dir' => "$basedir"})) {
+		&do_log('notice',"Unable to send notify 'unable_to_create_dir' to listmaster");
 	    }
 	}
-	
-	my $monthdir = $basedir."/$yyyy-$mm";
-	
-	if (! -d $monthdir) {
-	    unless (mkdir ($monthdir, 0775)) {
-		&do_log('err', 'Cannot create directory %s', $monthdir);
-		return undef;
-	    }
-	    
-	    do_log('debug',"mkdir $arcpath/%s/$yyyy-$mm", $list->get_list_id());
-	    
-	    if ($list->{'admin'}{'web_archive'}{'max_month'}){ # maybe need to remove some old archive
-		if (opendir DIR,$arcpath.'/'.$list->get_list_id()) {
-		    my @archives = (sort {$a cmp $b} grep (/^\d{4}-\d{2}/, readdir(DIR)));	
-		    closedir DIR;
-		    my $nb_month = $#archives + 1 ;
-		    my $i = 0 ;
-		    while ( $nb_month >  $list->{'admin'}{'web_archive'}{'max_month'}) {
-			do_log('info',"removing  $arcpath/%s/$archives[$i]", $list->get_list_id());
-			&tools::remove_dir ($arcpath.'/'.$list->get_list_id().'/'.$archives[$i]);
-			$i ++; $nb_month --;		    
-		    }
-		}
-	    }
-	}
-	
-	my $arctxtdir = $monthdir."/arctxt";
-	
-	if (! -d $arctxtdir) {
-	    unless (mkdir ($arctxtdir, 0775)) {
-		&do_log('err', 'Cannot create directory %s', $arctxtdir);
-		return undef;
-	    }
-	    do_log('debug',"mkdir $arctxtdir");
-	}
-	
-	## copy the file in the arctxt and in "mhonarc -add"
-	if( -f $monthdir."/index" )
-	{
-	    open(IDX,"<$monthdir/index") || fatal_err("couldn't read index for $listname");
-	    $newfile = <IDX>;
-	    chomp($newfile);
-	    $newfile++;
-	    close IDX;
-	}
-	else
-	{
-	    ## recreate index file if needed and update it
-	    $newfile = $index = &create_idx($monthdir) + 1;
-	}
-	
-	my $mhonarc_ressources = &tools::get_filename('etc',{},'mhonarc-ressources.tt2',$list->{'domain'}, $list);
-	
-	do_log ('debug',"calling $wwsconf->{'mhonarc'} for list %s", $list->get_list_id() ) ;
-	my $cmd = "$wwsconf->{'mhonarc'} -add -modifybodyaddresses -addressmodifycode \'$ENV{'M2H_ADDRESSMODIFYCODE'}\'  -rcfile $mhonarc_ressources -outdir $monthdir  -definevars \"listname='$listname' hostname=$hostname yyyy=$yyyy mois=$mm yyyymm=$yyyy-$mm wdir=$wwsconf->{'arc_path'} base=$Conf{'wwsympa_url'}/arc tag=$tag\" -umask $Conf{'umask'} < $queue/$file";
-	
-	do_log('debug',"System call : $cmd");
-	
-	my $exitcode = system($cmd);
-	$exitcode = $exitcode / 256;
-	
-	## Remove lock if required
-	if ($exitcode == 75) {
-	    &do_log('notice', 'Removing lock directory %s', $monthdir.'/.mhonarc.lck');
-	    rmdir $monthdir.'/.mhonarc.lck';
-	    
-	    $exitcode = system($cmd);
-	    $exitcode = $exitcode / 256;	    
-	}
-	if ($exitcode) {
-	    do_log('err',"Command $cmd failed with exit code $exitcode");
-	}
-	
-	
-	open (ORIG, "$queue/$file") || fatal_err("couldn't open file $queue/$file");
-	open (DEST, ">$arctxtdir/$newfile") || fatal_err("couldn't open file $newfile");
-	while (<ORIG>) {
-	    print DEST $_ ;
-	}
-	
-	close ORIG;  
-	close DEST;
-	&save_idx("$monthdir/index",$newfile);
+	do_log('debug',"mkdir $basedir");
     }
+
+    ## Check quota
+    if ($list->{'admin'}{'web_archive'}{'quota'}) {
+	my $used = $list->get_arc_size("$arcpath") ;
+	
+	if ($used >= $list->{'admin'}{'web_archive'}{'quota'} * 1024){
+	    &do_log('err',"archived::mail2arc : web_arc Quota exceeded for list $list->{'name'}");
+	    unless ($list->send_notify_to_owner('arc_quota_exceeded',{'size' => $used})) {
+		&do_log('notice',"Unable to send notify 'arc_quota_exceeded' to $list->{'name'} owner");	
+	    }
+	    return undef;
+	}
+	if ($used >= ($list->{'admin'}{'web_archive'}{'quota'} * 1024 * 0.95)){
+	    &do_log('err',"archived::mail2arc : web_arc Quota exceeded for list $list->{'name'}");
+	    unless ($list->send_notify_to_owner('arc_quota_95',{'size' => $used,
+								'rate' => int($used * 100 / ($list->{'admin'}{'web_archive'}{'quota'} * 1024 ))})) {
+		&do_log('notice',"Unable to send notify 'arc_quota_95' to $list->{'name'} owner");	
+	    }
+	}
+    }
+	
+    my $monthdir = $basedir."/$yyyy-$mm";
+    
+    if (! -d $monthdir) {
+	unless (mkdir ($monthdir, 0775)) {
+	    &do_log('err', 'Cannot create directory %s', $monthdir);
+	    return undef;
+	}
+
+	do_log('debug',"mkdir $arcpath/%s/$yyyy-$mm", $list->get_list_id());
+
+	if ($list->{'admin'}{'web_archive'}{'max_month'}){ # maybe need to remove some old archive
+	    if (opendir DIR,$arcpath.'/'.$list->get_list_id()) {
+		my @archives = (sort {$a cmp $b} grep (/^\d{4}-\d{2}/, readdir(DIR)));	
+		closedir DIR;
+		my $nb_month = $#archives + 1 ;
+		my $i = 0 ;
+		while ( $nb_month >  $list->{'admin'}{'web_archive'}{'max_month'}) {
+		    do_log('info',"removing  $arcpath/%s/$archives[$i]", $list->get_list_id());
+		    &tools::remove_dir ($arcpath.'/'.$list->get_list_id().'/'.$archives[$i]);
+		    $i ++; $nb_month --;		    
+		}
+	    }
+	}
+    }
+
+    my $arctxtdir = $monthdir."/arctxt";
+
+    if (! -d $arctxtdir) {
+	unless (mkdir ($arctxtdir, 0775)) {
+	    &do_log('err', 'Cannot create directory %s', $arctxtdir);
+	    return undef;
+	}
+	do_log('debug',"mkdir $arctxtdir");
+    }
+    
+    ## copy the file in the arctxt and in "mhonarc -add"
+     if( -f $monthdir."/index" )
+     {
+	open(IDX,"<$monthdir/index") || fatal_err("couldn't read index for $listname");
+	$newfile = <IDX>;
+	chomp($newfile);
+	$newfile++;
+	close IDX;
+     }
+     else
+     {
+	 ## recreate index file if needed and update it
+	 $newfile = $index = &create_idx($monthdir) + 1;
+     }
+    
+    my $mhonarc_ressources = &tools::get_filename('etc',{},'mhonarc-ressources.tt2',$list->{'domain'}, $list);
+    
+    do_log ('debug',"calling $wwsconf->{'mhonarc'} for list %s", $list->get_list_id() ) ;
+    my $cmd = "$wwsconf->{'mhonarc'} -add -modifybodyaddresses -addressmodifycode \'$ENV{'M2H_ADDRESSMODIFYCODE'}\'  -rcfile $mhonarc_ressources -outdir $monthdir  -definevars \"listname='$listname' hostname=$hostname yyyy=$yyyy mois=$mm yyyymm=$yyyy-$mm wdir=$wwsconf->{'arc_path'} base=$Conf{'wwsympa_url'}/arc tag=$tag\" -umask $Conf{'umask'} < $queue/$file";
+    
+    do_log('debug',"System call : $cmd");
+    
+    my $exitcode = system($cmd);
+    $exitcode = $exitcode / 256;
+    
+    ## Remove lock if required
+    if ($exitcode == 75) {
+	&do_log('notice', 'Removing lock directory %s', $monthdir.'/.mhonarc.lck');
+	rmdir $monthdir.'/.mhonarc.lck';
+	
+	$exitcode = system($cmd);
+	$exitcode = $exitcode / 256;	    
+    }
+    if ($exitcode) {
+	do_log('err',"Command $cmd failed with exit code $exitcode");
+    }
+
+    
+    open (ORIG, "$queue/$file") || fatal_err("couldn't open file $queue/$file");
+    open (DEST, ">$arctxtdir/$newfile") || fatal_err("couldn't open file $newfile");
+    while (<ORIG>) {
+        print DEST $_ ;
+    }
+    
+    close ORIG;  
+    close DEST;
+    &save_idx("$monthdir/index",$newfile);
 }
 
 =pod 

@@ -37,7 +37,6 @@ use Time::Local;
 use Digest::MD5;
 use Scenario;
 use SympaSession;
-use Bulk;
 use mail;
 use wwslib;
  
@@ -101,7 +100,7 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
      open(STDERR, ">> /dev/null");
      open(STDOUT, ">> /dev/null");
      if (open(TTY, "/dev/tty")) {
-         ioctl(TTY, 0x20007471, 0);         #  s/b &TIOCNOTTY
+         ioctl(TTY, 0x20007471, 0);         # XXX s/b &TIOCNOTTY
 #       ioctl(TTY, &TIOCNOTTY, 0);                                             
          close(TTY);
      }
@@ -113,10 +112,7 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
      }     
  }
 
-## If process is running in foreground, don't write STDERR to a dedicated file
-my $options;
-$options->{'stderr_to_tty'} = 1 if ($main::options{'foreground'});
-&tools::write_pid($wwsconf->{'task_manager_pidfile'}, $$, $options);
+&tools::write_pid($wwsconf->{'task_manager_pidfile'}, $$);
 
 $wwsconf->{'log_facility'}||= $Conf{'syslog'};
 do_openlog($wwsconf->{'log_facility'}, $Conf{'log_socket_type'}, 'task_manager');
@@ -178,8 +174,6 @@ my %global_models = (#'crl_update_task' => 'crl_update',
 		     'purge_user_table_task' => 'purge_user_table',
 		     'purge_logs_table_task' => 'purge_logs_table',
 		     'purge_session_table_task' => 'purge_session_table',
-		     'purge_tables_task' => 'purge_tables',
-		     'purge_one_time_ticket_table_task' => 'purge_one_time_ticket_table',
 		     'purge_orphan_bounces_task' => 'purge_orphan_bounces',
 		     'eval_bouncers_task' => 'eval_bouncers',
 		     'process_bouncers_task' =>'process_bouncers',
@@ -217,8 +211,6 @@ my %commands = ('next'                  => ['date', '\w*'],
 		'purge_user_table'      => [],
 		'purge_logs_table'      => [],
 		'purge_session_table'   => [],
-		'purge_tables'   => [],
-		'purge_one_time_ticket_table'   => [],
 		'purge_orphan_bounces'  => [],
 		'eval_bouncers'         => [],
 		'process_bouncers'      => []
@@ -275,7 +267,7 @@ while (!$end) {
 			'execution_date' => 'execution_date');
 
     ## global tasks
-    foreach my $key (keys %global_models) {	
+    foreach my $key (keys %global_models) {
 	unless ($used_models{$global_models{$key}}) {
 	    if ($Conf{$key}) { 
 		my %data = %default_data; # hash of datas necessary to the creation of tasks
@@ -311,7 +303,7 @@ while (!$end) {
 			next unless (($list->{'admin'}{'user_data_source'} eq 'include2') &&
 				     $list->has_include_data_sources() &&
 				     ($list->{'admin'}{'status'} eq 'open'));
-
+			
 			create ($current_date, 'INIT', $model, 'ttl', \%data);
 			
 		    }elsif (defined $list->{'admin'}{$model_task_parameter} && 
@@ -459,7 +451,6 @@ sub create {
     unless (defined $tt2 && $tt2->process($model_file, $Rdata, \*TASK)) {
       &do_log('err', "Failed to parse task template '%s' : %s", $model_file, $tt2->error());
     }
-    #&parser::parse_tpl($Rdata, $model_file, \*TASK);
     close (TASK);
     
     # special checking for list whose user_data_source config parmater is include. The task won't be created if there is a delete_subs command
@@ -820,8 +811,6 @@ sub cmd_process {
     return purge_user_table ($task, \%context) if ($command eq 'purge_user_table');
     return purge_logs_table ($task, \%context) if ($command eq 'purge_logs_table');
     return purge_session_table ($task, \%context) if ($command eq 'purge_session_table');
-    return purge_tables ($task, \%context) if ($command eq 'purge_tables');
-    return purge_one_time_ticket_table ($task, \%context) if ($command eq 'purge_one_time_ticket_table');
     return sync_include($task, \%context) if ($command eq 'sync_include');
     return purge_orphan_bounces ($task, \%context) if ($command eq 'purge_orphan_bounces');
     return eval_bouncers ($task, \%context) if ($command eq 'eval_bouncers');
@@ -1145,32 +1134,6 @@ sub purge_session_table {
     return 1;
 }
 
-## remove messages from bulkspool table when no more packet have any pointer to this message
-sub purge_tables {    
-
-    do_log('info','task_manager::purge_tables()');
-    my $removed = &Bulk::purge_bulkspool();
-    unless(defined $removed) {
-	&do_log('err','Failed to purge bulkspool');
-	return undef;
-    }
-    &do_log('notice','%s rows removed in bulkspool_table',$removed);
-    return 1;
-}
-
-## remove one time ticket table if older than $Conf{'one_time_ticket_table_ttl'}
-sub purge_one_time_ticket_table {    
-
-    do_log('info','task_manager::purge_one_time_ticket_table()');
-    my $removed = &SympaSession::purge_old_tickets('*');
-    unless(defined $removed) {
-	&do_log('err','&SympaSession::purge_old_tickets(): Failed to remove old tickets');
-	return undef;
-    }
-    &do_log('notice','purge_one_time_ticket_table(): %s row removed in one_time_ticket_table',$removed);
-    return 1;
-}
-
 sub purge_user_table {
     my ($task, $Rarguments, $context) = @_;
     do_log('debug2','purge_user_table()');
@@ -1317,6 +1280,10 @@ sub purge_orphan_bounces {
 	 }
 	 my $refdate = (($list->get_latest_distribution_date() - $delay) * 3600 * 24);
 
+	 if (-e "$Conf{'queuebounce'}/OTHER") {
+	     &tools::CleanSpool($Conf{'queuebounce'}.'/OTHER', $Conf{'clean_delay_queueother'});
+	 }
+
 	 for (my $u = $list->get_first_bouncing_user(); $u ; $u = $list->get_next_bouncing_user()) {
 	     $u->{'bounce'} =~ /^(\d+)\s+(\d+)\s+(\d+)(\s+(.*))?$/;
 	     $u->{'last_bounce'} = $2;
@@ -1440,7 +1407,7 @@ sub purge_orphan_bounces {
 	     do_log ('notice', "id : $id");
 	     $tpl_context{'expiration_date'} = &tools::adate ($expiration_date);
 	     $tpl_context{'certificate_id'} = $id;
-	     $tpl_context{'auto_submitted'} = 'auto-generated';
+
 	     
 	     if (!$log) {
 		 unless (&List::send_global_file ($template, $_,'', \%tpl_context)) {

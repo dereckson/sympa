@@ -33,7 +33,6 @@ use File::Path;
 use Commands;
 use Conf;
 use Auth;
-use SympaSession;
 use Language;
 use Log;
 use Version;
@@ -46,7 +45,6 @@ use Config_XML;
 use Family;
 use report;
 use File::Copy;
-
 
 require 'tools.pl';
 require 'tt2.pl';
@@ -77,7 +75,6 @@ Options:
    -d, --debug                           : sets Sympa in debug mode 
    -f, --config=FILE                     : uses an alternative configuration file
    --import=list\@dom                    : import subscribers (read from STDIN)
-   --foreground                          : the process remains attached to the TTY
    -k, --keepcopy=dir                    : keep a copy of incoming message
    -l, --lang=LANG                       : use a language catalog for Sympa
    -m, --mail                            : log calls to sendmail
@@ -85,7 +82,6 @@ Options:
    --dump=list\@dom|ALL                  : dumps subscribers 
    --make_alias_file                     : create file in /tmp with all aliases (usefull when aliases.tpl is changed)
    --lowercase                           : lowercase email addresses in database
-   --md5_encode_password                 : rewrite password in database using md5 fingerprint. YOU CAN'T UNDO unless you save this table first
    --create_list --robot=robot_name --input_file=/path/to/file.xml 
                                          : create a list with the xml file under robot_name
    --instantiate_family=family_name  --robot=robot_name --input_file=/path/to/file.xml [--close_unknown] [--quiet]
@@ -110,7 +106,6 @@ Options:
    --upgrade [--from=X] [--to=Y]             : runs Sympa maintenance script to upgrade from version X to version Y
    --log_level=LEVEL                     : sets Sympa log level
    --md5_digest=password                 : output a MD5 digest of a password (usefull for SOAP client trusted application)
-   --test_database_message_buffer        : test the database message buffer size
    -h, --help                            : print this help
    -v, --version                         : print version number
 
@@ -123,9 +118,9 @@ encryption.
 ## Check --dump option
 my %options;
 unless (&GetOptions(\%main::options, 'dump=s', 'debug|d', ,'log_level=s','foreground', 'service=s','config|f=s', 
-		    'lang|l=s', 'mail|m', 'keepcopy|k=s', 'help', 'version', 'import=s','make_alias_file','lowercase','md5_encode_password',
+		    'lang|l=s', 'mail|m', 'keepcopy|k=s', 'help', 'version', 'import=s','make_alias_file','lowercase',
 		    'close_list=s','purge_list=s','create_list','instantiate_family=s','robot=s','add_list=s','modify_list=s','close_family=s','md5_digest=s',
-		    'input_file=s','sync_include=s','upgrade','from=s','to=s','reload_list_config','list=s','quiet','close_unknown','test_database_message_buffer')) {
+		    'input_file=s','sync_include=s','upgrade','from=s','to=s','reload_list_config','list=s','quiet','close_unknown')) {
     &fatal_err("Unknown options.");
 }
 
@@ -139,7 +134,6 @@ $main::options{'batch'} = 1 if ($main::options{'dump'} ||
 				$main::options{'import'} || 
 				$main::options{'make_alias_file'} ||
 				$main::options{'lowercase'} ||
-				$main::options{'md5_encode_password'} ||
 				$main::options{'close_list'} ||
 				$main::options{'purge_list'} ||
 				$main::options{'create_list'} ||
@@ -150,7 +144,6 @@ $main::options{'batch'} = 1 if ($main::options{'dump'} ||
 				$main::options{'md5_digest'} || 
 				$main::options{'sync_include'} ||
 				$main::options{'upgrade'} ||
-				$main::options{'test_database_message_buffer'} || 
 				$main::options{'reload_list_config'}
 				 );
 
@@ -158,7 +151,7 @@ $main::options{'batch'} = 1 if ($main::options{'dump'} ||
 $main::options{'foreground'} = 1 if ($main::options{'debug'} || $main::options{'batch'});
 
 $main::options{'log_to_stderr'} = 1 unless ($main::options{'batch'});
-$main::options{'log_to_stderr'} = 1 if ($main::options{'upgrade'} || $main::options{'reload_list_config'} || $main::options{'test_database_message_buffer'});
+$main::options{'log_to_stderr'} = 1 if ($main::options{'upgrade'} || $main::options{'reload_list_config'});
 
 my %loop_info;
 my %msgid_table;
@@ -192,7 +185,7 @@ if ($main::options{'log_level'}) {
 ## Probe Db if defined
 if ($Conf{'db_name'} and $Conf{'db_type'}) {
     unless (&Upgrade::probe_db()) {
-	&fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable. verify db_xxx parameters in sympa.conf', $Conf{'db_name'});
+	&fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf', $Conf{'db_name'});
     }
 }
 
@@ -328,11 +321,7 @@ if ($signal ne 'hup') {
 	my $file = $Conf{'pidfile'};
 	$file = $Conf{'pidfile_distribute'} if ($main::daemon_usage == DAEMON_MESSAGE) ;
 	$file = $Conf{'pidfile_creation'} if ($main::daemon_usage == DAEMON_CREATION) ;
-
-	## If process is running in foreground, don't write STDERR to a dedicated file
-	my $options;
-	$options->{'stderr_to_tty'} = 1 if ($main::options{'foreground'});
-	&tools::write_pid($file, $$, $options);
+	&tools::write_pid($file, $$);
     }	
 
 
@@ -407,16 +396,16 @@ if ($main::options{'dump'}) {
     exit 0;
 }elsif ($main::options{'make_alias_file'}) {
     my $all_lists = &List::get_lists('*');
-    unless (open TMP, ">$Conf{'tmpdir'}/sympa_aliases.$$") {
-	printf STDERR "Unable to create $Conf{'tmpdir'}/sympa_aliases.$$, exiting\n";
+    unless (open TMP, ">/tmp/sympa_aliases.$$") {
+	printf STDERR "Unable to create tmp/sympa_aliases.$$, exiting\n";
 	exit;
     }
     printf TMP "#\n#\tAliases for all Sympa lists open (but not for robots)\n#\n";
     close TMP;
     foreach my $list (@$all_lists) {
-	system ("$Conf{'alias_manager'} add $list->{'name'} $list->{'domain'} $Conf{'tmpdir'}/sympa_aliases.$$") if ($list->{'admin'}{'status'} eq 'open');
+	system ("$Conf{'alias_manager'} add $list->{'name'} $list->{'domain'} /tmp/sympa_aliases.$$") if ($list->{'admin'}{'status'} eq 'open');
     }
-    printf ("Sympa aliases file is $Conf{'tmpdir'}/sympa_aliases.$$ file made, you probably need to installed it in your SMTP engine\n");
+    printf ("Sympa aliases file is /tmp/sympa_aliases.$$ file made, you probably need to installed it in your SMTP engine\n");
     
     exit 0;
 }elsif ($main::options{'version'}) {
@@ -471,17 +460,6 @@ if ($main::options{'dump'}) {
     printf STDERR "Total imported subscribers: %d\n", $total;
 
     exit 0;
-}elsif ($main::options{'md5_encode_password'}) {
-
-    unless ($List::use_db) {
-	&fatal_err("You don't have a database setup, can't lowercase email addresses");
-    }
-    
-    my $total=&Upgrade::md5_encode_password();
-    printf STDERR "Total password re-encoded using md5: %d\n", $total;
-    
-    exit 0;
-    
 }elsif ($main::options{'lowercase'}) {
     
     unless ($List::use_db) {
@@ -551,18 +529,8 @@ if ($main::options{'dump'}) {
     printf STDOUT "List %s has been closed, aliases have been removed\n", $list->{'name'};
     
     exit 0;
-}elsif ($main::options{'test_database_message_buffer'}) {
-    my $size = 0;   
-    printf "Sympa is going to store messages bigger and bigger to test the limit with its database. This may be very long \n";
-    $size = &Bulk::store_test(21000); ## will test message until a 21 Mo message.
-    if ($size == 21000) {
-	printf "The maximum message size ($size Ko) testing was successful \n";
-    }else{
-	printf "maximun message size that can be stored in database : $size Ko\n";
-    }
-    exit 1;
+}elsif ($main::options{'create_list'}) {
     
-}elsif ($main::options{'create_list'}) {    
     my $robot = $main::options{'robot'} || $Conf{'host'};
     
     unless ($main::options{'input_file'}) {
@@ -1280,12 +1248,13 @@ sub DoFile {
 	#}
     }
     
-    ## Ignore messages that would cause a loop
-    ## Content-Identifier: Auto-replied is generated by some non standard X400 mailer
-    if ($hdr->get('Content-Identifier') =~ /Auto-replied/i ||
-	$hdr->get('X400-Content-Identifier') =~ /Auto Reply to/i ||
-	($hdr->get('Auto-Submitted') && $hdr->get('Auto-Submitted') ne 'no')) {
-	do_log('notice', "Ignoring message which would cause a loop");
+    ## Content-Identifier: Auto-replied is generated by some non standard 
+    ## X400 mailer
+    if ($hdr->get('Content-Identifier') =~ /Auto-replied/i) {
+	do_log('notice', "Ignoring message which would cause a loop (Content-Identifier: Auto-replied)");
+	return undef;
+    }elsif ($hdr->get('X400-Content-Identifier') =~ /Auto Reply to/i) {
+	do_log('notice', "Ignoring message which would cause a loop (X400-Content-Identifier: Auto Reply to)");
 	return undef;
     }
 
@@ -1310,8 +1279,7 @@ sub DoFile {
 	if ( &Conf::get_robot_conf($robot,'antivirus_notify') eq 'sender') {
 	    unless (&List::send_global_file('your_infected_msg', $sender, $robot, {'virus_name' => $rc,
 										   'recipient' => $list_address,
-										   'lang' => $Language::default_lang,
-										   'auto_submitted' => 'auto-replied'})) {
+										   'lang' => $Language::default_lang})) {
 		&do_log('notice',"Unable to send template 'your infected_msg' to $sender");
 	    }
 	}
@@ -1531,12 +1499,6 @@ sub DoForward {
     my $hdr = $msg->head;
     my $messageid = $hdr->get('Message-Id');
     my $msg_string = $msg->as_string;
-
-    if ($msg->{'spam_status'} eq 'spam'){
-	&do_log('notice', "Message for %s-%s ignored, because tagued as spam (Message-id: %s)",$name, $function,$messageid);
-	return undef;
-    }
-
     ##  Search for the list
     my ($list, $admin, $host, $recepient, $priority);
 
@@ -1546,7 +1508,7 @@ sub DoForward {
 	$priority = 0;
     }else {
 	unless ($list = new List ($name, $robot)) {
-	    &do_log('notice', "Message for %s-%s ignored, unknown list %s (Message-id: %s)",$name, $function, $name,$messageid);
+	    &do_log('notice', "Message for %s-%s ignored, unknown list %s",$name, $function, $name );
 	    my $sender = $hdr->get('From');
 	    chomp $sender;
 	    my $sympa_email = &Conf::get_robot_conf($robot, 'sympa');
@@ -1554,8 +1516,7 @@ sub DoForward {
 					    {'list' => $name,
 					     'date' => &POSIX::strftime("%d %b %Y  %H:%M", localtime(time)),
 					     'boundary' => $sympa_email.time,
-					     'header' => $hdr->as_string(),
-					     'auto_submitted' => 'auto-replied'
+					     'header' => $hdr->as_string()
 					     })) {
 		&do_log('notice',"Unable to send template 'list_unknown' to $sender");
 	    }
@@ -1570,7 +1531,7 @@ sub DoForward {
 
     my @rcpt;
     
-    &do_log('info', "Processing message for %s with priority %s, (Message-id:%s)", $recepient, $priority, $messageid );
+    &do_log('info', "Processing message for %s with priority %s, %s", $recepient, $priority, $messageid );
     
     $hdr->add('X-Loop', "$name-$function\@$host");
     $hdr->delete('X-Sympa-To');
@@ -1598,7 +1559,7 @@ sub DoForward {
     ## Did we find a recipient?
     if ($#rcpt < 0) {
 	if ($function ne "listmaster") {
-	    &do_log('err', "No recipient available for %s-%s in list %s. Trying to proceed ignoring nomail option (message-id %s)", $name, $function, $name,$messageid);
+	    &do_log('err', "No recipient available for %s-%s in list %s. Trying to proceed ignoring nomail option", $name, $function, $name);
 	    
 	    if ($function eq "request") {
 		@rcpt = $list->get_owners_email({'ignore_nomail',1});
@@ -1694,8 +1655,7 @@ sub DoMessage{
 					{'list' => $which,
 					 'date' => &POSIX::strftime("%d %b %Y  %H:%M", localtime(time)),
 					 'boundary' => $sympa_email.time,
-					 'header' => $hdr->as_string(),
-					 'auto_submitted' => 'auto-replied'
+					 'header' => $hdr->as_string()
 					 })) {
 	    &do_log('notice',"Unable to send template 'list_unknown' to $sender");
 	}
@@ -1881,8 +1841,7 @@ sub DoMessage{
 
 	&do_log('info', 'Key %s for list %s from %s sent to editors, %s', $key, $listname, $sender, $message->{'filename'});
 	
-	# do not report to the sender if the message was tagged as a spam
-	unless (($2 eq 'quiet')||($message->{'spam_status'} eq 'spam')) {
+	unless ($2 eq 'quiet') {
 	    unless (&report::notice_report_msg('moderating_message',$sender,{'message' => $message},$robot,$list)) {
 		&do_log('notice',"sympa::DoMessage(): Unable to send template 'message_report', entry 'moderating_message' to $sender");
 	    }
@@ -1900,8 +1859,7 @@ sub DoMessage{
 
 	&do_log('info', 'Message for %s from %s sent to editors', $listname, $sender);
 	
-	# do not report to the sender if the message was tagged as a spam
-	unless (($2 eq 'quiet')||($message->{'spam_status'} eq 'spam')) {
+	unless ($2 eq 'quiet') {
 	    unless (&report::notice_report_msg('moderating_message',$sender,{'message' => $message},$robot,$list)) {
 		&do_log('notice',"sympa::DoMessage(): Unable to send template 'message_report', type 'success', entry 'moderating_message' to $sender");
 	    }
@@ -1910,11 +1868,9 @@ sub DoMessage{
     }elsif($action =~ /^reject(,(quiet))?/) {
 
 	&do_log('notice', 'Message for %s from %s rejected(%s) because sender not allowed', $listname, $sender, $result->{'tt2'});
-
-	# do not report to the sender if the message was tagued as a spam
-	unless (($2 eq 'quiet')||($message->{'spam_status'} eq 'spam')) {
+	unless ($2 eq 'quiet') {
 	    if (defined $result->{'tt2'}) {
-		unless ($list->send_file($result->{'tt2'}, $sender, $robot, {'auto_submitted' => 'auto-replied'})) {
+		unless ($list->send_file($result->{'tt2'}, $sender, $robot, {})) {
 		    &do_log('notice',"sympa::DoMessage(): Unable to send template '$result->{'tt2'}' to $sender");
 		}
 	    }else {
@@ -1969,11 +1925,6 @@ sub DoCommand {
     &do_log('debug', "Processing command with priority %s, %s", $Conf{'sympa_priority'}, $messageid );
     
     my $sender = $message->{'sender'};
-
-    if ($msg->{'spam_status'} eq 'spam'){
-	&do_log('notice', "Message for robot %s@%s ignored, because tagged as spam (Message-id: %s)",$rcpt,$robot,$messageid);
-	return undef;
-    }
 
     ## Detect loops
     if ($msgid_table{'sympa@'.$robot}{$messageid}) {

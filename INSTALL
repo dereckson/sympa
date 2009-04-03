@@ -11,7 +11,7 @@ For detailed installation / setup information, refer to the reference manual :
 Installing Sympa from sources
 =============================
 
-(If you get sources from cvs tree first run: aclocal ; autoconf; automake --add-missing)
+(If you get sources from cvs tree first run: automake; aclocal ; autoconf)
 
 Create a dedicated user sympa.sympa (and it's home directory) and  run 
 
@@ -84,4 +84,3 @@ You should add these lines to your httpd.conf file :
 To login with listmaster privileges, you should login on the web
 interface with the email address you declared in sympa.conf. To get an
 initial password just hit the "First login" button.
-

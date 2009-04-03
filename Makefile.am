@@ -129,6 +129,7 @@ VIRTUAL_ALIASES=	@VIRTUAL_ALIASES@
 OPENSSL	=	@OPENSSL@
 SSLCERTDIR =	$(EXPL_DIR)/X509-user-certs
 
+SH	=	@SH@
 CC	=	@CC@
 CFLAGS	=	-g
 
@@ -193,11 +194,13 @@ checkperl:
 		echo "#################################################################################"; \
 		echo "## wwsympa.fcgi that provides Sympa's web interface needs to run as user $(USER)"; \
 		echo "## There are many options to do so : "; \
-		echo "##  1/ Use the C wrapper provided with Sympa. this is the default behaviour."\
+		echo "##  1/ Installing 'suidperl' to run wwsympa.fcgi with SetUID. This is the default method,"; \
+		echo "##     but it might be insecure."; \
 		echo "##  2/ Use 'sudo' to run wwsympa.fcgi as user $(USER). Your Apache configuration should use wwsympa_sudo_wrapper.pl"; \
 		echo "##     You should edit your /etc/sudoers file (with visudo command) as follows :"; \
 		echo "##     apache ALL = ($(USER))  NOPASSWD: $(CGIDIR)/wwsympa.fcgi"; \
 		echo "##  3/ Use Apache's suExec mode."; \
+		echo "## For (2) and (3) you should run Sympa's 'configure' with the '--enable-secure' option"; \
 		echo "#######################################################################################"; \
 		echo -n "Please hit <Enter> to continue"; \
 		if [ "$(DESTDIR)" = "" ]; then read rep; fi \
@@ -267,7 +270,7 @@ install: importantchanges installdir installsrc installwws installwebtt2 install
 nextstep: 
 	@echo ""
 	@echo "** You can find documentation at:"
-	@echo "** http://www.sympa.org/documentation/manual/sympa-$(SYMPA_VERSION).pdf"
+	@echo "** http://www.sympa.org/documentation/manual/sympa-$(VERSION).pdf"
 	@echo ""
 	@echo "#########################################################"
 	@echo "# If you install Sympa for the first time on this server"
@@ -323,7 +326,7 @@ installsrc:
 	ETCBINDIR='${ETCBINDIR}' ETCDIR='${ETCDIR}' SENDMAIL_ALIASES='${SENDMAIL_ALIASES}' \
 	VIRTUAL_ALIASES='${VIRTUAL_ALIASES}'  HOST='${HOST}' COOKIE='${COOKIE}' \
 	SPOOLDIR='${SPOOLDIR}' LOG_SOCKET_TYPE='${LOG_SOCKET_TYPE}' \
-	SSLCERTDIR='${SSLCERTDIR}' OPENSSL='${OPENSSL}' \
+	SSLCERTDIR='${SSLCERTDIR}' \
 	PODIR='${prefix}/po' \
 	USER='${USER}' GROUP='${GROUP}' newinstall) || exit 1;
 
@@ -340,7 +343,7 @@ installwws:
 	@(cd wwsympa && echo "making in wwsympa..." && \
 	$(MAKE) SH='${SH}' CC='${CC}' CFLAGS='${CFLAGS}' PERL='${PERL}' \
 	DIR='${DIR}' BINDIR='${BINDIR}' SBINDIR='${SBINDIR}' LIBDIR='${LIBDIR}' \
-	USER='${USER}' GROUP='${GROUP}' SUDO='${SUDO}' \
+	USER='${USER}' GROUP='${GROUP}' SUDO='${SUDO}' enable_secure='${enable_secure}' \
 	CGIDIR='${CGIDIR}' WWSBINDIR='${WWSBINDIR}' MAILERPROGDIR='${MAILERPROGDIR}' \
 	PIDDIR='${PIDDIR}' CONFIG='${CONFIG}' WWSCONFIG='${WWSCONFIG}' ETCBINDIR='${ETCBINDIR}' \
 	DESTDIR='${DESTDIR}' USER='${USER}' GROUP='${GROUP}' newinstall) || exit 1;

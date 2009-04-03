@@ -29,6 +29,8 @@ use Exporter;
 
 use Log;
 use Conf;
+# use Net::SSLeay qw(&get_https);
+# use Net::SSLeay;
 
 %reception_mode = ('mail' => {'gettext_id' => 'standard (direct reception)'},
 		   'digest' => {'gettext_id' => 'digest MIME format'},
@@ -147,7 +149,6 @@ sub load_config {
 			bounced_pidfile => '--PIDDIR--/bounced.pid',
 			cookie_domain => 'localhost',
 			cookie_expire => 0,
-			custom_archiver => '',
 			mhonarc => '/usr/bin/mhonarc',
 			review_page_size => 25,
 			viewlogs_page_size => 25,
@@ -157,7 +158,7 @@ sub load_config {
 			default_home => 'home',
 			log_facility => '',
 			robots => '',
-			password_case => 'sensitive',
+			password_case => 'insensitive',
 			htmlarea_url => '',
 			);
 

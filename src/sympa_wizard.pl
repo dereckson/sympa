@@ -344,7 +344,7 @@ my @params = ({'title' => 'Directories and file location'},
 
 	      {'title' => 'S/MIME pluggin'},
 	      {'name' => 'openssl',
-	       'sample' => '--OPENSSL--',
+	       'sample' => '/usr/local/bin/openssl',
 	       'query' => 'Path to OpenSSL',
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>'Sympa knowns S/MIME if openssl is installed'},
@@ -454,22 +454,6 @@ my @params = ({'title' => 'Directories and file location'},
 	       'query' => 'Default disk quota for shared repository',
 	       'file' => 'sympa.conf','edit' => '1',
 	       'advice' =>''},
-
-	       {'name' => 'antispam_tag_header_name',
-	       'query' => 'If a spam filter (like spamassassin or j-chkmail) add a smtp headers to tag spams, name of this header (example X-Spam-Status)',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>''},
-
-	       {'name' => 'antispam_tag_header_spam_regexp',
-	       'query' => 'The regexp applied on this header to verify message is a spam (example \s*Yes)',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>''},
-
-	       {'name' => 'antispam_tag_header_ham_regexp',
-	       'query' => 'The regexp applied on this header to verify message is NOT a spam (example \s*No)',
-	       'file' => 'sympa.conf','edit' => '1',
-	       'advice' =>''},
-
 
 	      );
 

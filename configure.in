@@ -19,12 +19,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-AC_PREREQ(2.59)
-AC_INIT(sympa, 6.0a.11, sympa-authors@cru.fr)
-AM_INIT_AUTOMAKE
-
-# Setup the VERSION variable
-AC_SUBST(VERSION,AC_PACKAGE_VERSION)
+AC_INIT(check_perl_modules.pl)
+PACKAGE=sympa
+VERSION=`cat ${srcdir}/.version`
+MAJOR_VERSION=[`expr $VERSION : '\([0-9][0-9]*\)'`]
+AC_SUBST(MAJOR_VERSION)
+MINOR_VERSION=[`expr $VERSION : '[0-9][0-9]*\.\([0-9][0-9]*\)'`]
+AC_SUBST(MINOR_VERSION)
+MICRO_VERSION=[`expr $VERSION : '[0-9][0-9]*\.[0-9][0-9]*\.\([0-9][0-9]*\)'`]
+AC_SUBST(MICRO_VERSION)
+AC_CANONICAL_SYSTEM
+AC_CANONICAL_HOST
+AM_INIT_AUTOMAKE([sympa], $VERSION, nosubst)
+AC_PREREQ(2.13)
 
 AC_PREFIX_DEFAULT(/home/sympa)
 
@@ -121,20 +128,17 @@ SPOOLDIR='${prefix}/spool'
 AC_ARG_WITH(spooldir, [  --with-spooldir=DIR     spool directory is DIR  (default ${prefix}/spool)], [SPOOLDIR="$withval"])
 AC_SUBST(SPOOLDIR)
 
+## to run wwsympa.fcgi without setuidperl
+AC_ARG_ENABLE(secure, [  --enable-secure     install wwsympa to be run in a secure mode, without suidperl (default disabled)])
+AC_SUBST(enable_secure)
+
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_AIX
 
 AC_PATH_PROG(PERL, perl, /usr/bin/perl)
-AC_ARG_WITH(
-    [perl],
-    AS_HELP_STRING(
-	[--with-perl=FULLPATH],
-	[set full path to Perl interpreter (default /usr/bin/perl)]
-    ),
-    [PERL="$withval"]
-)
+AC_ARG_WITH(perl, [  --with-perl=FULLPATH       set full path to Perl interpreter (default /usr/bin/perl)], [PERL="$withval"])
 AC_SUBST(PERL)
 
 AC_PATH_PROG(SUIDPERL, suidperl, /usr/bin/suidperl)
@@ -144,25 +148,11 @@ AC_PATH_PROG(SUDO, sudo, /usr/bin/sudo)
 AC_SUBST(SUDO)
 
 AC_PATH_PROG(MHONARC, mhonarc, /usr/bin/mhonarc)
-AC_ARG_WITH(
-    [mhonarc],
-    AS_HELP_STRING(
-	[--with-mhonarc=FULLPATH],
-	[set full path to MhOnArc mail archiving system (default /usr/bin/mhonarc)]
-    ),
-    [MHONARC="$withval"]
-)
+AC_ARG_WITH(mhonarc, [  --with-mhonarc=FULLPATH       set full path to MhOnArc mail archiving system (default /usr/bin/mhonarc)], [MHONARC="$withval"])
 AC_SUBST(MHONARC)
 
 AC_PATH_PROG(OPENSSL, openssl, /usr/local/ssl/bin)
-AC_ARG_WITH(
-    [openssl],
-    AS_HELP_STRING(
-	[--with-openssl=FULLPATH],
-	[set path to OpenSSL (default /usr/local/ssl/bin/openssl)]
-    ),
-    [OPENSSL="$withval"]
-)
+AC_ARG_WITH(openssl, [  --with-openssl=FULLPATH       set path to OpenSSL (default /usr/local/ssl/bin/openssl)], [OPENSSL="$withval"])
 AC_SUBST(OPENSSL)
 
 AC_PATH_PROG(CVS2CL, cvs2cl.pl, /usr/local/bin)
@@ -171,104 +161,44 @@ AC_SUBST(CVS2CL)
 AC_PATH_PROG(MSGFMT, msgfmt, /usr/bin/msgfmt)
 AC_SUBST(MSGFMT)
 
+AC_PATH_PROG(SH, sh, /bin/sh)
+
 USER=sympa
-AC_ARG_WITH(
-    [user],
-    AS_HELP_STRING(
-	[--with-user=LOGIN],
-	[set sympa user name (default sympa)]
-    ),
-    [USER="$withval"]
-)
+AC_ARG_WITH(user, [  --with-user=LOGIN       set sympa user name (default sympa)], [USER="$withval"])
 AC_SUBST(USER)
 
 GROUP=sympa
-AC_ARG_WITH(
-    [group],
-    AS_HELP_STRING(
-	[--with-group=LOGIN],
-	[set sympa group name (default sympa)]
-    ),
-    [GROUP="$withval"]
-)
+AC_ARG_WITH(group, [  --with-group=LOGIN     set sympa group name (default sympa)], [GROUP="$withval"])
 AC_SUBST(GROUP)
 
 SENDMAIL_ALIASES=/etc/mail/sympa_aliases
-AC_ARG_WITH(
-    [sendmail_aliases],
-    AS_HELP_STRING(
-	[--with-sendmail_aliases=ALIASFILE],
-	[set aliases file to be used by Sympa (default /etc/mail/sympa_aliases)]
-    ),
-    [SENDMAIL_ALIASES="$withval"]
-)
+AC_ARG_WITH(sendmail_aliases, [  --with-sendmail_aliases=ALIASFILE     set aliases file to be used by Sympa (default /etc/mail/sympa_aliases)], [SENDMAIL_ALIASES="$withval"])
 AC_SUBST(SENDMAIL_ALIASES)
 
 VIRTUAL_ALIASES=/etc/mail/sympa_virtual
-AC_ARG_WITH(
-    [virtual_aliases],
-    AS_HELP_STRING(
-	[--with-virtual_aliases=ALIASFILE],
-	[ set postfix virtual file to be used by Sympa (default /etc/mail/sympa_virtual)]
-    ),
-    [VIRTUAL_ALIASES="$withval"]
-)
+AC_ARG_WITH(virtual_aliases, [  --with-virtual_aliases=ALIASFILE     set postfix virtual file to be used by Sympa (default /etc/mail/sympa_virtual)], [VIRTUAL_ALIASES="$withval"])
 AC_SUBST(VIRTUAL_ALIASES)
 
 NEWALIASES=/usr/bin/newaliases
-AC_ARG_WITH(
-    [newaliases],
-    AS_HELP_STRING(
-	[--with-newaliases=FULLPATH],
-	[set path to newaliases command (default /usr/bin/newaliases)]
-    ),
-    [NEWALIASES="$withval"]
-)
+AC_ARG_WITH(newaliases, [  --with-newaliases=FULLPATH     set path to newaliases command (default /usr/bin/newaliases)], [NEWALIASES="$withval"])
 AC_SUBST(NEWALIASES)
 
 NEWALIASES_ARG=
-AC_ARG_WITH(
-    [newaliases_arg],
-    AS_HELP_STRING(
-	[--with-newaliases_arg=ARGS],
-	[set arguments to newaliases command (default NONE)]
-    ),
-    [NEWALIASES_ARG="$withval"]
-)
+AC_ARG_WITH(newaliases_arg, [  --with-newaliases_arg=ARGS     set arguments to newaliases command (default NONE)], [NEWALIASES_ARG="$withval"])
 AC_SUBST(NEWALIASES_ARG)
 
 POSTMAP=/usr/sbin/postmap
-AC_ARG_WITH(
-    [postmap],
-    AS_HELP_STRING(
-	[--with-postmap=FULLPATH],
-	[set path to postfix postmap command (default /usr/sbin/postmap)]
-    ),
-    [POSTMAP="$withval"]
-)
+AC_ARG_WITH(postmap, [  --with-postmap=FULLPATH     set path to postfix postmap command (default /usr/sbin/postmap)], [POSTMAP="$withval"])
 AC_SUBST(POSTMAP)
 
 POSTMAP_ARG=${VIRTUAL_ALIASES}
-AC_ARG_WITH(
-    [postmap_arg],
-    AS_HELP_STRING(
-	[--with-postmap_arg=ARGS],
-	[set arguments to postfix postmap command (default [same as virtual_aliases])]
-    ),
-    [POSTMAP_ARG="$withval"]
-)
+AC_ARG_WITH(postmap_arg, [  --with-postmap_arg=ARGS     set arguments to postfix postmap command (default [same as virtual_aliases])], [POSTMAP_ARG="$withval"])
 AC_SUBST(POSTMAP_ARG)
 
-AC_CONFIG_FILES([
-    Makefile
-    src/etc/sample/Makefile
-    src/etc/script/Makefile
-    src/Makefile
-    soap/Makefile
-    doc/man8/Makefile
-    doc/Makefile
-    web_tt2/Makefile
-    wwsympa/Makefile
-    mail_tt2/Makefile
-])
-AC_OUTPUT
+dnl Initialize maintainer mode
+AM_MAINTAINER_MODE
+
+AC_OUTPUT(Makefile)
+
+
+

@@ -21,7 +21,6 @@
 package List;
 
 use strict;
-use POSIX;
 use Datasource;
 use SQLSource qw(create_db %date_format);
 use Upgrade;
@@ -262,7 +261,7 @@ my %default = ('occurrence' => '0-1',
 	       );
 
 my @param_order = qw (subject visibility info subscribe add unsubscribe del owner owner_include
-		      send editor editor_include delivery_time account topics 
+		      send editor editor_include account topics 
 		      host lang web_archive archive digest digest_max_size available_user_options 
 		      default_user_options msg_topic msg_topic_keywords_apply_on msg_topic_tagging reply_to_header reply_to forced_reply_to * 
 		      verp_rate welcome_return_path remind_return_path user_data_source include_file include_remote_file 
@@ -295,8 +294,7 @@ my %alias = ('reply-to' => 'reply_to',
 ## scenario :    tells that the parameter is a scenario, providing its name
 ## default :     Default value for the param ; may be a configuration parameter (conf)
 ## synonym :     Defines synonyms for parameter values (for compatibility reasons)
-## gettext_unit :Unit of the parameter ; this is used in web forms and refers to translated
-##               strings in PO catalogs
+## unit :        Unit of the parameter ; this is used in web forms
 ## occurrence :  Occurerence of the parameter in the config file
 ##               possible values: 0-1 | 1 | 0-n | 1-n
 ##               example : a list may have multiple owner 
@@ -357,14 +355,14 @@ my %alias = ('reply-to' => 'reply_to',
 
 	    'bounce' => {'format' => {'warn_rate' => {'format' => '\d+',
 						      'length' => 3,
-						      'gettext_unit' => '%',
+						      'unit' => '%',
 						      'default' => {'conf' => 'bounce_warn_rate'},
 						      'gettext_id' => "warn rate",
 						      'order' => 1
 						  },
 				      'halt_rate' => {'format' => '\d+',
 						      'length' => 3,
-						      'gettext_unit' => '%',
+						      'unit' => '%',
 						      'default' => {'conf' => 'bounce_halt_rate'},
 						      'gettext_id' => "halt rate",
 						      'order' => 2
@@ -375,7 +373,7 @@ my %alias = ('reply-to' => 'reply_to',
 		     },
 	    'bouncers_level1' => {'format' => {'rate' => {'format' => '\d+',
 								 'length' => 2,
-								 'gettext_unit' => 'points',
+								 'unit' => 'Points',
 								 'default' => {'conf' => 'default_bounce_level1_rate'},
 								 'gettext_id' => "threshold",
 								 'order' => 1
@@ -396,7 +394,7 @@ my %alias = ('reply-to' => 'reply_to',
 				  },
 	     'bouncers_level2' => {'format' => {'rate' => {'format' => '\d+',
 								 'length' => 2,
-								 'gettext_unit' => 'points',
+								 'unit' => 'Points',
 								 'default' => {'conf' => 'default_bounce_level2_rate'},
 								 'gettext_id' => "threshold",
 								 'order' => 1
@@ -417,7 +415,7 @@ my %alias = ('reply-to' => 'reply_to',
 				  },
 	    'clean_delay_queuemod' => {'format' => '\d+',
 				       'length' => 3,
-				       'gettext_unit' => 'days',
+				       'unit' => 'days',
 				       'default' => {'conf' => 'clean_delay_queuemod'},
 				       'gettext_id' => "Expiration of unmoderated messages",
 				       'group' => 'other'
@@ -522,7 +520,7 @@ my %alias = ('reply-to' => 'reply_to',
 			      'group' => 'other'
 			      },			      
 
-            'default_user_options' => {'format' => {'reception' => {'format' => ['digest','digestplain','mail','nomail','summary','notice','txt','html','urlize','not_me'],
+        'default_user_options' => {'format' => {'reception' => {'format' => ['digest','digestplain','mail','nomail','summary','notice','txt','html','urlize','not_me'],
 								    'default' => 'mail',
 								    'gettext_id' => "reception mode",
 								    'order' => 1
@@ -539,12 +537,6 @@ my %alias = ('reply-to' => 'reply_to',
 	    'del' => {'scenario' => 'del',
 		      'gettext_id' => "Who can delete subscribers",
 		      'group' => 'command'
-		      },
-	    'delivery_time' => {'format' => '[0-2]?\d\:[0-6]\d',
-				'length' => 5,
-				'gettext_id' => "Delivery time (hh:mm)",
-				'occurrence' => '0-1',
-				'group' => 'sending'
 		      },
 	    'digest' => {'file_format' => '\d+(\s*,\s*\d+)*\s+\d+:\d+',
 			 'format' => {'days' => {'format' => [0..6],
@@ -572,7 +564,7 @@ my %alias = ('reply-to' => 'reply_to',
 
 	    'digest_max_size' => {'format' => '\d+',
 				  'length' => 2,
-				  'gettext_unit' => 'messages',
+				  'unit' => 'messages',
 				  'default' => 25,
 				  'gettext_id' => "Digest maximum number of messages",
 				  'group' => 'sending'
@@ -580,7 +572,7 @@ my %alias = ('reply-to' => 'reply_to',
 
 	    'distribution_ttl' => {'format' => '\d+',
 		      'length' => 6,
-		      'gettext_unit' => 'seconds',
+		      'unit' => 'seconds',
 		      'gettext_id' => "Inclusions timeout for message distribution",
 		      'group' => 'data_source'
 		      },
@@ -750,7 +742,7 @@ my %alias = ('reply-to' => 'reply_to',
 							      },
 						  'timeout' => {'format' => '\w+',
 								'default' => 30,
-								'gettext_unit' => 'seconds',
+								'unit' => 'seconds',
 								'gettext_id' => "connection timeout",
 								'order' => 6
 								},
@@ -830,7 +822,7 @@ my %alias = ('reply-to' => 'reply_to',
 							      },
 						  'timeout1' => {'format' => '\w+',
 								'default' => 30,
-								'gettext_unit' => 'seconds',
+								'unit' => 'seconds',
 								'gettext_id' => "first-level connection timeout",
 								'order' => 6
 								},
@@ -868,7 +860,7 @@ my %alias = ('reply-to' => 'reply_to',
 							      },
 						  'timeout2' => {'format' => '\w+',
 								'default' => 30,
-								'gettext_unit' => 'seconds',
+								'unit' => 'seconds',
 								'gettext_id' => "second-level connection timeout",
 								'order' => 13
 								},
@@ -1001,12 +993,6 @@ my %alias = ('reply-to' => 'reply_to',
 				    'gettext_id' => "SQL query inclusion",
 				    'group' => 'data_source'
 				    },
-	    'inclusion_notification_feature' => {'format' => ['on','off'],
-						 'occurence' => '0-1',
-						 'default' => 'off',
-						 'gettext_id' => "Notify subscribers when they are included from a data source?",
-						 'group' => 'data_source',
-					     },
 	    'info' => {'scenario' => 'info',
 		       'gettext_id' => "Who can view list information",
 		       'group' => 'command'
@@ -1048,12 +1034,12 @@ my %alias = ('reply-to' => 'reply_to',
 					},
 	    'max_size' => {'format' => '\d+',
 			   'length' => 8,
-			   'gettext_unit' => 'bytes',
+			   'unit' => 'bytes',
 			   'default' => {'conf' => 'max_size'},
 			   'gettext_id' => "Maximum message size",
 			   'group' => 'sending'
 		       },
-	    'msg_topic' => {'format' => {'name' => {'format' => '[\-\w]+',
+	    'msg_topic' => {'format' => {'name' => {'format' => '\w+',
 						    'length' => 15,
 						    'occurrence' => '1',
 						    'gettext_id' => "Message topic name",
@@ -1121,7 +1107,7 @@ my %alias = ('reply-to' => 'reply_to',
 						   'order' => 4
 						   }
 				 },
-			'occurrence' => '1-n',
+			'occurrence' => '0-n',
 			'gettext_id' => "Owner",
 			'group' => 'description'
 			},
@@ -1249,7 +1235,7 @@ my %alias = ('reply-to' => 'reply_to',
 					  'quota' => {'format' => '\d+',
 						      'default' => {'conf' => 'default_shared_quota'},
 						      'length' => 8,
-						      'gettext_unit' => 'Kbytes',
+						      'unit' => 'Kbytes',
 						      'gettext_id' => "quota",
 						      'order' => 3
 						      }
@@ -1284,7 +1270,7 @@ my %alias = ('reply-to' => 'reply_to',
 			    'gettext_id' => "Who can subscribe to the list",
 			    'group' => 'command'
 			    },
-	    'topics' => {'format' => '[\-\w]+(\/[\-\w]+)?',
+	    'topics' => {'format' => '\w+(\/\w+)?',
 			 'split_char' => ',',
 			 'occurrence' => '0-n',
 			 'gettext_id' => "Topics for the list",
@@ -1292,7 +1278,7 @@ my %alias = ('reply-to' => 'reply_to',
 			 },
 	    'ttl' => {'format' => '\d+',
 		      'length' => 6,
-		      'gettext_unit' => 'seconds',
+		      'unit' => 'seconds',
 		      'default' => 3600,
 		      'gettext_id' => "Inclusions timeout",
 		      'group' => 'data_source'
@@ -1348,7 +1334,7 @@ my %alias = ('reply-to' => 'reply_to',
 					    'quota' => {'format' => '\d+',
 							'default' => {'conf' => 'default_archive_quota'},
 							'length' => 8,
-							'gettext_unit' => 'Kbytes',
+							'unit' => 'Kbytes',
 							'gettext_id' => "quota",
 							'order' => 2
 							},
@@ -2505,7 +2491,7 @@ sub distribute_msg {
 	    $info_msg_topic->{'filename'} = "$listname.$new_id";
 	}
 	
-	## Virer eventuelle signature S/MIME
+	## xxxxxx Virer eventuelle signature S/MIME
     }
     
     ## Add Custom Subject
@@ -2611,7 +2597,7 @@ sub distribute_msg {
     foreach my $i (@{$self->{'admin'}{'custom_header'}}) {
 	$hdr->add($1, $2) if ($i=~/^([\S\-\:]*)\s(.*)$/);
     }
-    
+
     ## Add RFC 2919 header field
     if ($hdr->get('List-Id')) {
 	&do_log('notice', 'Found List-Id: %s', $hdr->get('List-Id'));
@@ -2819,7 +2805,6 @@ sub send_msg_digest {
 	
 	$param->{'current_group'}++;
 	$param->{'msg_list'} = $group;
-	$param->{'auto_submitted'} = 'auto-forwarded';
 	
 	## Prepare Digest
 	if (@tabrcpt) {
@@ -2864,7 +2849,7 @@ sub send_msg_digest {
 #  
 # IN : -$tpl (+): template file name (file.tt2),
 #         without tt2 extension
-#      -$who (+): SCALAR |ref(ARRAY) - recipient(s)
+#      -$who (+): SCALAR |ref(ARRAY) - recepient(s)
 #      -$robot (+): robot
 #      -$context : ref(HASH) - for the $data set up 
 #         to parse file tt2, keys can be :
@@ -2872,7 +2857,6 @@ sub send_msg_digest {
 #           -email
 #           -lang
 #           -password
-#         -auto_submitted auto-generated|auto-replied|auto-forwarded
 #         -...
 #      -$options : ref(HASH) - options
 # OUT : 1 | undef
@@ -2941,13 +2925,13 @@ sub send_global_file {
 #  Find the tt2 file according to $tpl, set up 
 #  $data for the next parsing (with $context and
 #  configuration)
-#  Message is signed if the list has a key and a 
-#  certificate
+#  Message is signed if the list as a key and a 
+#  certificat
 #  
 # IN : -$self (+): ref(List)
 #      -$tpl (+): template file name (file.tt2),
 #         without tt2 extension
-#      -$who (+): SCALAR |ref(ARRAY) - recipient(s)
+#      -$who (+): SCALAR |ref(ARRAY) - recepient(s)
 #      -$robot (+): robot
 #      -$context : ref(HASH) - for the $data set up 
 #         to parse file tt2, keys can be :
@@ -2955,7 +2939,6 @@ sub send_global_file {
 #           -email
 #           -lang
 #           -password
-#         -auto_submitted auto-generated|auto-replied|auto-forwarded
 #         -...
 # OUT : 1 | undef
 ####################################################
@@ -2968,14 +2951,14 @@ sub send_file {
 
     my $data = $context;
 
-    ## Any recipients
+    ## Any recepients
     if ((ref ($who) && ($#{$who} < 0)) ||
 	(!ref ($who) && ($who eq ''))) {
 	&do_log('err', 'No recipient for sending %s', $tpl);
 	return undef;
     }
     
-    ## Unless multiple recipients
+    ## Unless multiple recepients
     unless (ref ($who)) {
 	unless ($data->{'user'}) {
 	    unless ($data->{'user'} = &get_user_db($who)) {
@@ -3180,8 +3163,7 @@ sub send_msg {
 		  ! -r $Conf{'ssl_cert_dir'}.'/'.&tools::escape_chars($user->{'email'}.'@enc' ))) {
 	    ## Missing User certificate
 	    unless ($self->send_file('x509-user-cert-missing', $user->{'email'}, $robot, {'mail' => {'subject' => $message->{'msg'}->head->get('Subject'),
-												     'sender' => $message->{'msg'}->head->get('From')},
-											  'auto_submitted' => 'auto-generated'})) {
+												     'sender' => $message->{'msg'}->head->get('From')}})) {
 	    &do_log('notice',"Unable to send template 'x509-user-cert-missing' to $user->{'email'}");
 	    }
 	}else{
@@ -3486,17 +3468,18 @@ sub send_to_editor {
    }
 
    @rcpt = $self->get_editors_email();
-   
-   my $hdr = $message->{'msg'}->head;
 
    ## Did we find a recipient?
    if ($#rcpt < 0) {
        &do_log('notice', "No editor found for list %s. Trying to proceed ignoring nomail option", $self->{'name'});
+       my $hdr = $message->{'msg'}->head;
        my $messageid = $hdr->get('Message-Id');
-       
+
        @rcpt = $self->get_editors_email({'ignore_nomail',1});
-       &do_log('notice', 'Warning : no owner and editor defined at all in list %s', $name ) unless (@rcpt);
        
+       &do_log('notice', 'Warning : no owner and editor defined at all in list %s', $name ) 
+	   unless (@rcpt);
+
        ## Could we find a recipient by ignoring the "nomail" option?
        if ($#rcpt >= 0) {
 	   &do_log('notice', 'All the intended recipients of message %s in list %s have set the "nomail" option. Ignoring it and sending it to all of them.', $messageid, $self->{'name'} );
@@ -3510,8 +3493,6 @@ sub send_to_editor {
    my $param = {'modkey' => $modkey,
 		'boundary' => $boundary,
 		'msg_from' => $message->{'sender'},
-		'subject' => $hdr->{'subject'},
-		'spam_status' => $message->{'spam_status'},
 		'mod_spool_size' => $self->get_mod_spool_size(),
 		'method' => $method};
 
@@ -3519,9 +3500,12 @@ sub send_to_editor {
        $param->{'request_topic'} = 1;
    }
 
+   if ($encrypt eq 'smime_crypted') {
+
+       ## Send a different crypted message to each moderator
        foreach my $recipient (@rcpt) {
-       if ($encrypt eq 'smime_crypted') {	       
-	   ## is $msg->body_as_string respect base64 number of char per line ??
+
+	   ## $msg->body_as_string respecte-t-il le Base64 ??
 	   my $cryptedmsg = &tools::smime_encrypt($msg->head, $msg->body_as_string, $recipient); 
 	   unless ($cryptedmsg) {
 	       &do_log('notice', 'Failed encrypted message for moderator');
@@ -3536,69 +3520,25 @@ sub send_to_editor {
 	   }
 	   print CRYPTED $cryptedmsg;
 	   close CRYPTED;
+	   
+
 	   $param->{'msg_path'} = $crypted_file;
 
+	   &tt2::allow_absolute_path();
+	   unless ($self->send_file('moderate', $recipient, $self->{'domain'}, $param)) {
+	       &do_log('notice',"Unable to send template 'moderate' to $recipient");
+	       return undef;
+	   }
+       }
    }else{
        $param->{'msg_path'} = $file;
-       }
-       # create a one time ticket that will be used as un md5 URL credential
 
-       unless ($param->{'one_time_ticket'} = &Auth::create_one_time_ticket($recipient,$robot,'modindex/'.$name,'mail')){
-	   &do_log('notice',"Unable to create one_time_ticket for $recipient, service modindex/$name");
-       }else{
-	   &do_log('notice',"ticket : $param->{'one_time_ticket'}");
-       }
        &tt2::allow_absolute_path();
-       $param->{'auto_submitted'} = 'auto-forwarded';
-
-       unless ($self->send_file('moderate', $recipient, $self->{'domain'}, $param)) {
-	   &do_log('notice',"Unable to send template 'moderate' to $recipient");
+       unless ($self->send_file('moderate', \@rcpt, $self->{'domain'}, $param)) {
+	   &do_log('notice',"Unable to send template 'moderate' to $self->{'name'} editors");
 	   return undef;
        }
    }
-#  Old code 5.4 and before to be removed in 5.5
-#   if ($encrypt eq 'smime_crypted') {
-#
-#       ## Send a different crypted message to each moderator
-#       foreach my $recipient (@rcpt) {
-#
-#	   # create a one time ticket that will be used as un md5 URL credential
-#	   $param->{'one_time_ticket'} = &Auth::create_one_time_ticket($in{'email'},$robot,'modindex/'.$name,$ip)
-#
-#	   ## $msg->body_as_string respecte-t-il le Base64 ??
-#	   my $cryptedmsg = &tools::smime_encrypt($msg->head, $msg->body_as_string, $recipient); #
-#	   unless ($cryptedmsg) {
-#	       &do_log('notice', 'Failed encrypted message for moderator');
-#	       # xxxx send a generic error message : X509 cert missing
-#	       return undef;
-#	   }
-#
-#	   my $crypted_file = $Conf{'tmpdir'}.'/'.$self->get_list_id().'.moderate.'.$$;
-#	   unless (open CRYPTED, ">$crypted_file") {
-#	       &do_log('notice', 'Could not create file %s', $crypted_file);
-#	       return undef;
-#	   }
-#	   print CRYPTED $cryptedmsg;
-#	   close CRYPTED;
-#	   
-#
-#	   $param->{'msg_path'} = $crypted_file;
-#
-#	   &tt2::allow_absolute_path();
-#	   unless ($self->send_file('moderate', $recipient, $self->{'domain'}, $param)) {
-#	       &do_log('notice',"Unable to send template 'moderate' to $recipient");
-#	       return undef;
-#	   }
-#       }
-#   }else{
-#       $param->{'msg_path'} = $file;
-#
-#       &tt2::allow_absolute_path();
-#       unless ($self->send_file('moderate', \@rcpt, $self->{'domain'}, $param)) {
-#	   &do_log('notice',"Unable to send template 'moderate' to $self->{'name'} editors");
-#	   return undef;
-#       }
-#  }
    return $modkey;
 }
 
@@ -3666,7 +3606,6 @@ sub send_auth {
    }
 
    &tt2::allow_absolute_path();
-   $param->{'auto_submitted'} = 'auto-replied';
    unless ($self->send_file('send_auth',$sender,$robot,$param)) {
        &do_log('notice',"Unable to send template 'send_auth' to $sender");
        return undef;
@@ -3751,7 +3690,6 @@ sub request_auth {
 	}
 
 	$data->{'command_escaped'} = &tt2::escape_url($data->{'command'});
-	$data->{'auto_submitted'} = 'auto-replied';
 	unless ($self->send_file('request_auth',$email,$robot,$data)) {
 	    &do_log('notice',"Unable to send template 'request_auth' to $email");
 	    return undef;
@@ -3764,7 +3702,7 @@ sub request_auth {
 	    $data->{'command_escaped'} = &tt2::escape_url($data->{'command'});
 	    $data->{'type'} = 'remind';
 	}
-	$data->{'auto_submitted'} = 'auto-replied';
+
 	unless (&send_global_file('request_auth',$email,$robot,$data)) {
 	    &do_log('notice',"Unable to send template 'request_auth' to $email");
 	    return undef;
@@ -3807,7 +3745,7 @@ sub archive_send {
    $param->{'from'} = &Conf::get_robot_conf($self->{'domain'},'sympa');
 
 #    open TMP2, ">/tmp/digdump"; &tools::dump_var($param, 0, \*TMP2); close TMP2;
-$param->{'auto_submitted'} = 'auto-replied';
+
    unless ($self->send_file('get_archive',$who,$self->{'domain'},$param)) {
 	   &do_log('notice',"Unable to send template 'archive_send' to $who");
 	   return undef;
@@ -3862,7 +3800,7 @@ sub archive_send_last {
    $param->{'boundary1'} = &tools::get_message_id($self->{'domain'});
    $param->{'boundary2'} = &tools::get_message_id($self->{'domain'});
    $param->{'from'} = &Conf::get_robot_conf($self->{'domain'},'sympa');
-   $param->{'auto_submitted'} = 'auto-replied';
+
 #    open TMP2, ">/tmp/digdump"; &tools::dump_var($param, 0, \*TMP2); close TMP2;
 
    unless ($self->send_file('get_archive',$who,$self->{'domain'},$param)) {
@@ -3914,8 +3852,7 @@ sub send_notify_to_listmaster {
 
     if ($operation eq 'logs_failed') {
 	my $data = {'to' => $to,
-		    'type' => $operation,
-		    'auto_submitted' => 'auto-generated'};
+		    'type' => $operation};
 	for my $i(0..$#{$param}) {
 	    $data->{"param$i"} = $param->[$i];
 	}
@@ -3929,7 +3866,6 @@ sub send_notify_to_listmaster {
 
 	$param->{'to'} = $to;
 	$param->{'type'} = $operation;
-	$param->{'auto_submitted'} = 'auto-generated';
 
 	## Prepare list-related data
 	if ($param->{'list'} && ref($param->{'list'}) eq 'List') {
@@ -3966,24 +3902,16 @@ sub send_notify_to_listmaster {
 		&tt2::allow_absolute_path();
 	    }
 
-
-	    foreach my $email (split (/\,/, $listmaster)) {	
-		if (($operation eq 'request_list_creation')or($operation eq 'request_list_renaming')) {
-		    $param->{'one_time_ticket'} = &Auth::create_one_time_ticket($email,$robot,'get_pending_lists',$param->{'ip'});
-		}
-		
-		unless (&send_global_file('listmaster_notification', $email, $robot, $param, $options)) {
-		    &do_log('notice',"Unable to send template 'listmaster_notification' to $listmaster");
-		    return undef;
-		}
+	    unless (&send_global_file('listmaster_notification', $listmaster, $robot, $param, $options)) {
+		&do_log('notice',"Unable to send template 'listmaster_notification' to $listmaster");
+		return undef;
 	    }
 	}
     
     }elsif(ref($param) eq 'ARRAY') {
 	
 	my $data = {'to' => $to,
-		    'type' => $operation,
-		    'auto_submitted' => 'auto-generated'};
+		    'type' => $operation};
 	for my $i(0..$#{$param}) {
 	    $data->{"param$i"} = $param->[$i];
 	}
@@ -3991,6 +3919,7 @@ sub send_notify_to_listmaster {
 	    &do_log('notice',"Unable to send template 'listmaster_notification' to $listmaster");
 	    return undef;
 	}
+
     }else {
 	&do_log('err','List::send_notify_to_listmaster(%s,%s) : error on incoming parameter "$param", it must be a ref on HASH or a ref on ARRAY', $operation, $robot );
 	return undef;
@@ -4021,7 +3950,6 @@ sub send_notify_to_owner {
     my $host = $self->{'admin'}{'host'};
     my @to = $self->get_owners_email();
     my $robot = $self->{'domain'};
-    $param->{'auto_submitted'} = 'auto-generated';
 
     unless (@to) {
 	do_log('notice', 'No owner defined or all of them use nomail option in list %s ; using listmasters as default', $self->{'name'} );
@@ -4042,25 +3970,19 @@ sub send_notify_to_owner {
 	    $param->{'escaped_gecos'} =~ s/\s/\%20/g;
 	    $param->{'escaped_who'} = $param->{'who'};
 	    $param->{'escaped_who'} =~ s/\s/\%20/g;
-	    foreach my $owner (@to) {
-		$param->{'one_time_ticket'} = &Auth::create_one_time_ticket($owner,$robot,'subindex/'.$self->{'name'},$param->{'ip'});
-		unless ($self->send_file('listowner_notification',$owner, $robot,$param)) {
-		    &do_log('notice',"Unable to send template 'listowner_notification' to $self->{'name'} list owner $owner");		    
-		}
-	    }
-	}else{
-	    if ($operation eq 'sigrequest') {
-		$param->{'escaped_who'} = $param->{'who'};
-		$param->{'escaped_who'} =~ s/\s/\%20/g;
-		$param->{'sympa'} = &Conf::get_robot_conf($self->{'domain'}, 'sympa');
-		
-	    }elsif ($operation eq 'bounce_rate') {
-		$param->{'rate'} = int ($param->{'rate'} * 10) / 10;
-	    }
-	    unless ($self->send_file('listowner_notification',\@to, $robot,$param)) {
-		&do_log('notice',"Unable to send template 'listowner_notification' to $self->{'name'} list owner");
-		return undef;
-	    }
+
+	}elsif ($operation eq 'sigrequest') {
+	    $param->{'escaped_who'} = $param->{'who'};
+	    $param->{'escaped_who'} =~ s/\s/\%20/g;
+	    $param->{'sympa'} = &Conf::get_robot_conf($self->{'domain'}, 'sympa');
+
+	}elsif ($operation eq 'bounce_rate') {
+	    $param->{'rate'} = int ($param->{'rate'} * 10) / 10;
+	}
+
+	unless ($self->send_file('listowner_notification',\@to, $robot,$param)) {
+	    &do_log('notice',"Unable to send template 'listowner_notification' to $self->{'name'} list owner");
+	    return undef;
 	}
 
     }elsif(ref($param) eq 'ARRAY') {	
@@ -4141,9 +4063,8 @@ sub send_notify_to_editor {
 
     my @to = $self->get_editors_email();
     my $robot = $self->{'domain'};
-    $param->{'auto_submitted'} = 'auto-generated';
-      
-      unless (@to) {
+
+    unless (@to) {
 	do_log('notice', 'Warning : no editor or owner defined or all of them use nomail option in list %s', $self->{'name'} );
 	return undef;
     }
@@ -4204,8 +4125,7 @@ sub send_notify_to_user{
 
     my $host = $self->{'admin'}->{'host'};
     my $robot = $self->{'domain'};
-    $param->{'auto_submitted'} = 'auto-generated';
-
+    
     unless (defined $operation) {
 	&do_log('err','List::send_notify_to_user(%s) : missing incoming parameter "$operation"', $self->{'name'});
 	return undef;
@@ -4656,7 +4576,12 @@ sub get_user_db {
 	$additional = ',' . $Conf{'db_additional_user_fields'};
     }
 
-    $statement = sprintf "SELECT email_user AS email, gecos_user AS gecos, password_user AS password, cookie_delay_user AS cookie_delay, lang_user AS lang %s, attributes_user AS attributes, data_user AS data, last_login_date_user AS last_login_date, last_login_host_user AS last_login_host FROM user_table WHERE email_user = %s ", $additional, $dbh->quote($who);
+    if ($Conf{'db_type'} eq 'Oracle') {
+	## "AS" not supported by Oracle
+	$statement = sprintf "SELECT email_user \"email\", gecos_user \"gecos\", password_user \"password\", cookie_delay_user \"cookie_delay\", lang_user \"lang\", attributes_user \"attributes\" %s,data_user \"data\" FROM user_table WHERE email_user = %s ", $additional, $dbh->quote($who);
+    }else {
+	$statement = sprintf "SELECT email_user AS email, gecos_user AS gecos, password_user AS password, cookie_delay_user AS cookie_delay, lang_user AS lang %s, attributes_user AS attributes, data_user AS data FROM user_table WHERE email_user = %s ", $additional, $dbh->quote($who);
+    }
     
     push @sth_stack, $sth;
 
@@ -4770,13 +4695,24 @@ sub get_subscriber {
 	$additional = ',' . $Conf{'db_additional_subscriber_fields'};
     }
     
-    $statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, reception_subscriber AS reception,  topics_subscriber AS topics, visibility_subscriber AS visibility, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, custom_attribute_subscriber AS custom_attribute %s FROM subscriber_table WHERE (user_subscriber = %s AND list_subscriber = %s AND robot_subscriber = %s)", 
-      $date_field, 
+    if ($Conf{'db_type'} eq 'Oracle') {
+	## "AS" not supported by Oracle
+	$statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\", bounce_address_subscriber \"bounce_address\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", custom_attribute_subscriber \"custom_attribute\  %s FROM subscriber_table WHERE (user_subscriber = %s AND list_subscriber = %s AND robot_subscriber = %s)", 
+	$date_field, 
 	$update_field, 
-	  $additional, 
-	    $dbh->quote($email), 
-	      $dbh->quote($name),
-		$dbh->quote($self->{'domain'});
+	$additional, 
+	$dbh->quote($email), 
+	$dbh->quote($name),
+	$dbh->quote($self->{'domain'});
+    }else {
+	$statement = sprintf "SELECT user_subscriber AS email, comment_subscriber AS gecos, bounce_subscriber AS bounce, bounce_score_subscriber AS bounce_score, bounce_address_subscriber AS bounce_address, reception_subscriber AS reception,  topics_subscriber AS topics, visibility_subscriber AS visibility, %s AS date, %s AS update_date, subscribed_subscriber AS subscribed, included_subscriber AS included, include_sources_subscriber AS id, custom_attribute_subscriber AS custom_attribute %s FROM subscriber_table WHERE (user_subscriber = %s AND list_subscriber = %s AND robot_subscriber = %s)", 
+	$date_field, 
+	$update_field, 
+	$additional, 
+	$dbh->quote($email), 
+	$dbh->quote($name),
+	$dbh->quote($self->{'domain'});
+    }
     
     push @sth_stack, $sth;
     
@@ -4800,7 +4736,8 @@ sub get_subscriber {
 	$user->{'update_date'} ||= $user->{'date'};
 	
 	## In case it was not set in the database
-	$user->{'subscribed'} = 1 if ($self->{'admin'}{'user_data_source'} eq 'database');	
+	$user->{'subscribed'} = 1
+	    if ($self->{'admin'}{'user_data_source'} eq 'database');
 	
 	do_log('debug2', 'List::get_subscriber custom_attribute  = (%s)', $user->{custom_attribute});
 	if (defined $user->{custom_attribute}) {
@@ -4895,13 +4832,24 @@ sub get_admin_user {
 	return undef unless &db_connect();
     }
 
-    $statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, visibility_admin AS visibility, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id FROM admin_table WHERE (user_admin = %s AND list_admin = %s AND robot_admin = %s AND role_admin = %s)", 
-      $date_field, 
+    if ($Conf{'db_type'} eq 'Oracle') {
+	## "AS" not supported by Oracle
+	$statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", visibility_admin \"visibility\",%s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\",  subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\"  FROM admin_table WHERE (user_admin = %s AND list_admin = %s AND robot_admin = %s AND role_admin = %s)", 
+	$date_field, 
 	$update_field, 
-	  $dbh->quote($email), 
-	    $dbh->quote($name), 
-	      $dbh->quote($self->{'domain'}),
-		$dbh->quote($role);
+	$dbh->quote($email), 
+	$dbh->quote($name), 
+	$dbh->quote($self->{'domain'}),
+ 	$dbh->quote($role);
+    }else {
+	$statement = sprintf "SELECT user_admin AS email, comment_admin AS gecos, reception_admin AS reception, visibility_admin AS visibility, %s AS date, %s AS update_date, info_admin AS info, profile_admin AS profile, subscribed_admin AS subscribed, included_admin AS included, include_sources_admin AS id FROM admin_table WHERE (user_admin = %s AND list_admin = %s AND robot_admin = %s AND role_admin = %s)", 
+	$date_field, 
+	$update_field, 
+	$dbh->quote($email), 
+	$dbh->quote($name), 
+	$dbh->quote($self->{'domain'}),
+	$dbh->quote($role);
+    }
     
     push @sth_stack, $sth;
 
@@ -4922,7 +4870,8 @@ sub get_admin_user {
 	$admin_user->{'update_date'} ||= $admin_user->{'date'};
 	
 	## In case it was not set in the database
-	$admin_user->{'subscribed'} = 1 if ($self->{'admin'}{'user_data_source'} eq 'database');
+	$admin_user->{'subscribed'} = 1
+	    if ($self->{'admin'}{'user_data_source'} eq 'database');
     }
     
     $sth->finish();
@@ -5197,7 +5146,8 @@ sub get_first_user {
 	$user->{'update_date'} ||= $user->{'date'};
 	
 	## In case it was not set in the database
-	$user->{'subscribed'} = 1 if (defined($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
+	$user->{'subscribed'} = 1
+	    if (defined($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
 
 	############################################################################	    
 	if (defined $user->{custom_attribute}) {
@@ -5273,9 +5223,11 @@ sub parseCustomAttribute {
 sub createXMLCustomAttribute {
 	my $custom_attr = shift ;
 	return '<?xml version="1.0" encoding="UTF-8" ?><custom_attributes></custom_attributes>' if (not defined $custom_attr) ;
+	do_log('debug2',"xxxxxxxxxxxxxxxxxxx #createXMLCustomAttribute custom_attribute=$custom_attr");
 	my $XMLstr = '<?xml version="1.0" encoding="UTF-8" ?><custom_attributes>';
 	foreach my $k (sort keys %{$custom_attr} ) {
 		$XMLstr .= "<custom_attribute id=\"$k\"><value>".&tools::escape_html($custom_attr->{$k}{value})."</value></custom_attribute>";
+		do_log('debug2',"xxxxxxxxxxxxxxxxxxx #createXMLCustomAttribute custom_attribute $k : $custom_attr->{$k}{value}");
 	}
 	$XMLstr .= "</custom_attributes>";
 	
@@ -5538,7 +5490,8 @@ sub get_first_admin_user {
 	$admin_user->{'update_date'} ||= $admin_user->{'date'};
 
 	## In case it was not set in the database
-	$admin_user->{'subscribed'} = 1 if (defined($admin_user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
+	$admin_user->{'subscribed'} = 1
+	    if (defined($admin_user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
 
     }else {
 	$sth->finish;
@@ -5581,7 +5534,8 @@ sub get_next_user {
 	$user->{'update_date'} ||= $user->{'date'};
 	
 	## In case it was not set in the database
-	$user->{'subscribed'} = 1 if (defined($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
+	$user->{'subscribed'} = 1
+	    if (defined($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
 
 	do_log('debug2', '(email = %s)', $user->{'email'});
 	if (defined $user->{custom_attribute}) {
@@ -5636,7 +5590,8 @@ sub get_next_admin_user {
 	$admin_user->{'update_date'} ||= $admin_user->{'date'};
 	
 	## In case it was not set in the database
-	$admin_user->{'subscribed'} = 1 if (defined($admin_user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
+	$admin_user->{'subscribed'} = 1
+	    if (defined($admin_user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
     }
     else {
 	$sth->finish;
@@ -5692,12 +5647,22 @@ sub get_first_bouncing_user {
 	$additional = ',' . $Conf{'db_additional_subscriber_fields'};
     }
 
-    $statement = sprintf "SELECT user_subscriber AS email, reception_subscriber AS reception, topics_subscriber AS topics, visibility_subscriber AS visibility, bounce_subscriber AS bounce,bounce_score_subscriber AS bounce_score, %s AS date, %s AS update_date %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s AND bounce_subscriber is not NULL)", 
-      $date_field, 
+    if ($Conf{'db_type'} eq 'Oracle') {
+	## "AS" not supported by Oracle
+	$statement = sprintf "SELECT user_subscriber \"email\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\",bounce_score_subscriber \"bounce_score\", %s \"date\", %s \"update_date\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s AND bounce_subscriber is not NULL)", 
+	$date_field, 
 	$update_field, 
-	  $additional, 
-	    $dbh->quote($name),
-	      $dbh->quote($self->{'domain'});
+	$additional, 
+	$dbh->quote($name),
+	$dbh->quote($self->{'domain'});
+    }else {
+	$statement = sprintf "SELECT user_subscriber AS email, reception_subscriber AS reception, topics_subscriber AS topics, visibility_subscriber AS visibility, bounce_subscriber AS bounce,bounce_score_subscriber AS bounce_score, %s AS date, %s AS update_date %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s AND bounce_subscriber is not NULL)", 
+	$date_field, 
+	$update_field, 
+	$additional, 
+	$dbh->quote($name),
+	$dbh->quote($self->{'domain'});
+    }
 
     push @sth_stack, $sth;
 
@@ -5718,7 +5683,8 @@ sub get_first_bouncing_user {
 	    if (! $user->{'email'});
 	
 	## In case it was not set in the database
-	$user->{'subscribed'} = 1 if (defined ($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));    
+	$user->{'subscribed'} = 1
+	    if (defined ($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));    
 
     }else {
 	$sth->finish;
@@ -5749,7 +5715,8 @@ sub get_next_bouncing_user {
 	    if (! $user->{'email'});
 	
 	## In case it was not set in the database
-	$user->{'subscribed'} = 1 if (defined ($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));    
+	$user->{'subscribed'} = 1
+	    if (defined ($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));    
 	if (defined $user->{custom_attribute}) {
 	    	my %custom_attr = &parseCustomAttribute($user->{'custom_attribute'});
 	    	$user->{'custom_attribute'} = \%custom_attr ;
@@ -6054,21 +6021,6 @@ sub update_user {
 	    return undef;
 	}
     }
-
-    ## Rename picture on disk if user email changed
-    if ($values->{'email'}) {
-	my $file_name = &tools::md5_fingerprint($who);
-	my $picture_file_path = &Conf::get_robot_conf($self->{'domain'},'pictures_path').'/'.$self->{'name'}.'@'.$self->{'domain'};
-
-	foreach my $extension ('gif','png','jpg','jpeg') {
-	    if (-f $picture_file_path.'/'.$file_name.'.'.$extension) {
-		my $new_file_name = &tools::md5_fingerprint($values->{'email'});
-		unless (rename $picture_file_path.'/'.$file_name.'.'.$extension, $picture_file_path.'/'.$new_file_name.'.'.$extension) {
-		    &do_log('err', "Failed to rename %s to %s : %s", $picture_file_path.'/'.$file_name.'.'.$extension, $picture_file_path.'/'.$new_file_name.'.'.$extension, $!);
-		}
-	    }
-	}
-    }
     
     ## Reset session cache
     $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$who} = undef;
@@ -6207,7 +6159,7 @@ sub update_admin_user {
 ## Sets new values for the given user in the Database
 sub update_user_db {
     my($who, $values) = @_;
-    do_log('debug', 'List::update_user_db(%s)', $who);
+    do_log('debug2', 'List::update_user_db(%s)', $who);
 
     $who = &tools::clean_email($who);
 
@@ -6216,8 +6168,8 @@ sub update_user_db {
 	return undef;
     }
 
-    ## use md5 fingerprint to store password   
-    $values->{'password'} = &Auth::password_fingerprint($values->{'password'}) if ($values->{'password'});
+    ## encrypt password   
+    $values->{'password'} = &tools::crypt_password($values->{'password'}) if ($values->{'password'});
 
     my ($field, $value);
     
@@ -6230,9 +6182,7 @@ sub update_user_db {
 		      lang => 'lang_user',
 		      attributes => 'attributes_user',
 		      email => 'email_user',
-		      data => 'data_user',
-		      last_login_date => 'last_login_date_user',
-		      last_login_host => 'last_login_host_user'
+		      data => 'data_user'
 		      );
     
     ## Check database connection
@@ -6240,6 +6190,11 @@ sub update_user_db {
 	return undef unless &db_connect();
     }	   
     
+    ## Crypt password if it was not crypted
+    if ($values->{'password'} && ($values->{'password'} !~ /^crypt/)) {
+	$values->{'password'} = &tools::crypt_password($values->{'password'});
+    }
+
     ## Update each table
     my @set_list;
     while (($field, $value) = each %{$values}) {
@@ -6286,7 +6241,7 @@ sub add_user_db {
     }
  
     ## encrypt password   
-    $values->{'password'} = &Auth::password_fingerprint($values->{'password'}) if ($values->{'password'});
+    $values->{'password'} = &tools::crypt_password($values->{'password'}) if $values->{'password'};
     
     return undef unless (my $who = &tools::clean_email($values->{'email'}));
     
@@ -7734,6 +7689,7 @@ sub _include_users_ldap_2level {
  
     while (my $e = $fetch->shift_entry) {
 	my $entry = $e->get_value($ldap_attrs1, asref => 1);
+	
 	## Multiple values
 	if (ref($entry) eq 'ARRAY') {
 	    foreach my $attr (@{$entry}) {
@@ -7770,7 +7726,6 @@ sub _include_users_ldap_2level {
 	
 	while (my $e = $fetch->shift_entry) {
 	    my $entry = $e->get_value($ldap_attrs2, asref => 1);
-
 	    ## Multiple values
 	    if (ref($entry) eq 'ARRAY') {
 		foreach my $email (@{$entry}) {
@@ -8475,7 +8430,6 @@ sub sync_include {
 
     ## Go through new users
     my @add_tab;
-    my $users_added = 0;
     foreach my $email (keys %{$new_subscribers}) {
 	if (defined($old_subscribers{$email}) ) {	   
 	    if ($old_subscribers{$email}{'included'}) {
@@ -8512,31 +8466,24 @@ sub sync_include {
 	    my $u = $new_subscribers->{$email};
 	    $u->{'included'} = 1;
 	    $u->{'date'} = time;
-	    @add_tab = ($u);
-	    my $user_added = 0;
-	    unless( $user_added = $self->add_user( @add_tab ) ) {
-		&do_log('err', 'List:sync_include(%s): Failed to add new users', $name);
-		return undef;
-	    }
-	    if ($user_added) {
-		$users_added++;
-		## Send notification if the list config authorizes it only.
-		if ($self->{'admin'}{'inclusion_notification_feature'} eq 'on') {
-		    unless ($self->send_file('welcome', $u->{'email'}, $self->{'domain'},{})) {
-			&do_log('err',"Unable to send template 'welcome' to $u->{'email'}");
-		    }
-		}
-	    }
+	    push @add_tab, $u;
+	}
+    }
+
+    if ($#add_tab >= 0) {
+	unless( $users_added = $self->add_user( @add_tab ) ) {
+	    &do_log('err', 'List:sync_include(%s): Failed to add new users', $name);
+	    return undef;
 	}
     }
 
     if ($users_added) {
-        &do_log('notice', 'List:sync_include(%s): %d users added', $name, $users_added);
+        &do_log('notice', 'List:sync_include(%s): %d users added',
+		$name, $users_added);
     }
 
     ## Go though previous list of users
     my $users_removed = 0;
-    my $user_removed;
     my @deltab;
     foreach my $email (keys %old_subscribers) {
 	unless( defined($new_subscribers->{$email}) ) {
@@ -8554,26 +8501,18 @@ sub sync_include {
 
 		## Tag user for deletion
 	    }else {
-		&do_log('debug3', 'List:sync_include: removing %s from list %s', $email, $name);
-		@deltab = ($email);
-		unless($user_removed = $self->delete_user(@deltab)) {
-		    &do_log('err', 'List:sync_include(%s): Failed to delete %s', $name, $user_removed);
-		    return undef;
-		}
-		if ($user_removed) {
-		    $users_removed++;
-		    ## Send notification if the list config authorizes it only.
-		    if ($self->{'admin'}{'inclusion_notification_feature'} eq 'on') {
-			unless ($self->send_file('removed', $email, $self->{'domain'},{})) {
-			    &do_log('err',"Unable to send template 'removed' to $email");
-			}
-		    }
-		}
+		push(@deltab, $email);
 	    }
 	}
     }
-    if ($users_removed > 0) {
-	&do_log('notice', 'List:sync_include(%s): %d users removed', $name, $users_removed);
+    if ($#deltab >= 0) {
+	unless($users_removed = $self->delete_user(@deltab)) {
+	    &do_log('err', 'List:sync_include(%s): Failed to delete %s',
+		    $name, $users_removed);
+	    return undef;
+        }
+        &do_log('notice', 'List:sync_include(%s): %d users removed',
+		$name, $users_removed);
     }
     &do_log('notice', 'List:sync_include(%s): %d users updated', $name, $users_updated);
 
@@ -9329,7 +9268,7 @@ sub get_which {
 	@{$requested_lists} = keys %{$db_which->{$robot}};
     }
 
-    ## This call is required too 
+    ## This call is required to 
     my $all_lists = &get_lists($robot, {}, $requested_lists);
 
     foreach my $list (@$all_lists){
@@ -9618,7 +9557,7 @@ sub load_topics {
 	my (@raugh_data, $topic);
 	while (<FILE>) {
 	    Encode::from_to($_, $Conf{'filesystem_encoding'}, 'utf8');
-	    if (/^([\-\w\/]+)\s*$/) {
+	    if (/^([\w\/]+)\s*$/) {
 		$index++;
 		$topic = {'name' => $1,
 			  'order' => $index
@@ -10965,10 +10904,7 @@ sub store_subscription_request {
     my @req_files = sort grep (!/^\.+$/,readdir(SUBSPOOL));
     closedir SUBSPOOL;
 
-    my $listaddr = $self->{'name'}.'@'.$self->{'domain'};
-
     foreach my $file (@req_files) {
-	next unless ($file =~ /$listaddr\..*/) ;
 	unless (open OLDREQUEST, "$Conf{'queuesubscribe'}/$file") {
 	    &do_log('err', 'Could not open %s for verification', $file);
 	    return undef;
@@ -11136,38 +11072,6 @@ sub get_arc_size {
     return tools::get_dir_size($dir.'/'.$self->get_list_id());
 }
 
-# return the date epoch for next delivery planified for a list
-sub  get_next_delivery_date {
-    my $self = shift;
-
-    my $dtime = $self->{'admin'}{'delivery_time'} ;
-    unless ($dtime =~ /(\d?\d)\:(\d\d)/ ) {
-	# if delivery _time if not defined, the delivery time right now
-	return time();
-    }
-    my $h = $1;
-    my $m = $2;
-    unless ((($h == 24)&&($m == 0))||(($h <= 23)&&($m <= 60))){
-	&do_log('err',"ignoring wrong parameter format delivery_time, delivery_tile must be smaller than 24:00");
-	return time();
-    }
-    my $date = time();
-
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) =  localtime($date);
-
-    my $plannified_time = (($h*60)+$m)*60;       # plannified time in sec
-    my $now_time = ((($hour*60)+$min)*60)+$sec;  # Now #sec since to day 00:00
-    
-    my $result = $date - $now_time + $plannified_time;
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) =  localtime($result);
-
-    if ($now_time <= $plannified_time ) {
-	return ( $date - $now_time + $plannified_time) ;
-    }else{
-	return ( $date - $now_time + $plannified_time + (24*3600)); # plannified time is past so report to tomorrow
-    }
-}
-
 
 ## Searches the include datasource corresponding to the provided ID
 sub search_datasource {
@@ -11191,26 +11095,6 @@ sub search_datasource {
     }
 
     return undef;
-}
-
-## Return the names of datasources, given a coma-separated list of source ids
-# IN : -$class 
-#      -$id : datasource ids (coma-separated)
-# OUT : -$name : datasources names (scalar)
-sub get_datasource_name {
-    my ($self, $id) = @_;
-    &do_log('debug2','(%s,%s)', $self->{'name'}, $id);
-    my %sources;
-
-    my @ids = split /,/,$id;
-    foreach my $id (@ids) {
-	## User may come twice from the same datasource
-	unless (defined ($sources{$id})) {
-	    $sources{$id} = $self->search_datasource($id);
-	}
-    }
-    
-    return join(', ', values %sources);
 }
 
 ## Remove a task in the tasks spool
