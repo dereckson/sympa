@@ -57,11 +57,13 @@ Display usage instructions
 
 ## Change this to point to your Sympa bin directory
 use lib '--pkgdatadir--/lib';
+
 use strict;
 use POSIX qw(strftime);
 use English qw(-no_match_vars);
 use Getopt::Long;
 use Pod::Usage;
+require 'tools.pl';
 
 ## sympa configuration files
 my $wwsympa_conf = "--WWSCONFIG--";
@@ -89,7 +91,7 @@ if ($options{help}) {
 exit 0;
 
 sub create_configuration {
-    use confdef;
+    require Conf;
 
     my $conf;
     if ($options{create} eq 'sympa.conf') {
@@ -111,15 +113,15 @@ sub create_configuration {
     };
 
     if ($options{create} eq 'sympa.conf') {
-#        print NEWF <<EOF
+        print NEWF <<EOF
 ## Configuration file for Sympa
 ## many parameters are optional
 ## refer to the documentation for a detailed list of parameters
 
-#EOF
+EOF
     }
 
-    foreach my $param (@confdef::params) {
+    foreach my $param (@Conf::params) {
 
         if ($param->{'title'}) {
             printf NEWF "###\\\\\\\\ %s ////###\n\n", $param->{'title'};
@@ -491,6 +493,7 @@ sub install_module {
     }else {
         CPAN::Shell->test($module);
     }
+
 
     CPAN::Shell->install($module); ## Could use CPAN::Shell->force('install') if make test failed
 

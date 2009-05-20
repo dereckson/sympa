@@ -1,5 +1,4 @@
 <!-- $Id$ -->
-<div class="block">
 
 <h2>[%|loc%]Blacklist management[%END%]</h2><br />
 
@@ -26,7 +25,7 @@ blacklist is in use for the following operation[%END%] : [% conf.use_blacklist %
 [% IF rows < '10' %] [% rows = '10' %] [% END %]
 [% IF rows > '20' %] [% rows = '20' %] [% END %]
 [% rows = rows+2 %]
-<form class="noborder" action="[% path_cgi %]/blacklist" method="post">
+<form action="[% path_cgi %]/blacklist" method="post">
 <fieldset>
  <textarea name="blacklist" cols="80" rows="[% rows %]">
 [% blacklist %]
@@ -44,5 +43,3 @@ blacklist is in use for the following operation[%END%] : [% conf.use_blacklist %
 </form>
 </div>
 
-</div>
-<!-- end blacklist.tt2 -->

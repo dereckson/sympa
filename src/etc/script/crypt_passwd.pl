@@ -52,7 +52,7 @@ my $user;
 
 my $count = 0;
 
-while ($user = $sth->fetchrow_hashref('NAME_lc')) {
+while ($user = $sth->fetchrow_hashref) {
     next unless $user->{'password_user'};
 
     printf "\n%s", $user->{'email_user'};

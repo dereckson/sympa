@@ -61,14 +61,7 @@ sub password_fingerprint{
 
      }else{
 	 ## This is an UID
-       foreach my $ldap (@{$Conf{'auth_services'}{$robot}}){
-	 # only ldap service are to be applied here
-	 next unless ($ldap->{'auth_type'} eq 'ldap');
-	 
-	 $canonic = &ldap_authentication($robot, $ldap, $auth,$pwd,'uid_filter');
-	 last if ($canonic); ## Stop at first match
-       }
-       if ($canonic){
+	 if ($canonic = &ldap_authentication($robot, $auth,$pwd,'uid_filter')){
 
 	     unless($user = &List::get_user_db($canonic)){
 		 $user = {'email' => $canonic};
@@ -138,7 +131,7 @@ sub authentication {
 			};
 	    }
 	}elsif($auth_service->{'auth_type'} eq 'ldap') {
-	    if ($canonic = &ldap_authentication($robot, $auth_service, $email,$pwd,'email_filter')){
+	    if ($canonic = &ldap_authentication($robot, $email,$pwd,'email_filter')){
 		unless($user = &List::get_user_db($canonic)){
 		    $user = {'email' => $canonic};
 		}
@@ -176,10 +169,9 @@ sub authentication {
 
 
 sub ldap_authentication {
-     my ($robot, $ldap, $auth, $pwd, $whichfilter) = @_;
-     my ($mesg, $host,$ldap_passwd,$ldap_anonymous);
-     &do_log('debug2','Auth::ldap_authentication(%s,%s,%s)', $auth,'****',$whichfilter);
-     &do_log('debug3','Password used: %s',$pwd);
+     my ($robot, $auth,$pwd,$whichfilter) = @_;
+     my ($cnx, $mesg, $host,$ldap_passwd,$ldap_anonymous);
+     &do_log('debug2','Auth::ldap_authentication(%s,%s,%s)', $auth,$pwd,$whichfilter);
 
      unless (&tools::get_filename('etc',{},'auth.conf', $robot)) {
 	 return undef;
@@ -191,107 +183,132 @@ sub ldap_authentication {
 	 return undef;
      }
 
-     # only ldap service are to be applied here
-     return undef unless ($ldap->{'auth_type'} eq 'ldap');
-     
-     # skip ldap auth service if the an email address was provided
-     # and this email address does not match the corresponding regexp 
-     return undef if ($auth =~ /@/ && $auth !~ /$ldap->{'regexp'}/i);
-     
-     my @alternative_conf = split(/,/,$ldap->{'alternative_email_attribute'});
-     my $attrs = $ldap->{'email_attribute'};
-     my $filter = $ldap->{'get_dn_by_uid_filter'} if($whichfilter eq 'uid_filter');
-     $filter = $ldap->{'get_dn_by_email_filter'} if($whichfilter eq 'email_filter');
-     $filter =~ s/\[sender\]/$auth/ig;
-     
-     ## bind in order to have the user's DN
-     my $ldap_anonymous;
-     my $param = &tools::dup_var($ldap);
-     my $ds = new Datasource('LDAP', $param);
-     
-     unless (defined $ds && ($ldap_anonymous = $ds->connect())) {
-       &do_log('err',"Unable to connect to the LDAP server '%s'", $ldap->{'host'});
-       return undef;
+     unless (eval "require Net::LDAP") {
+	 do_log ('err',"Unable to use LDAP library, Net::LDAP required, install perl-ldap (CPAN) first");
+	 return undef;
      }
-     
-     
-     $mesg = $ldap_anonymous->search(base => $ldap->{'suffix'},
-				     filter => "$filter",
-				     scope => $ldap->{'scope'} ,
-				     timeout => $ldap->{'timeout'});
-     
-     if ($mesg->count() == 0) {
-       do_log('notice','No entry in the Ldap Directory Tree of %s for %s',$ldap->{'host'},$auth);
-       $ds->disconnect();
-       return undef;
+     require Net::LDAP;
+
+     unless (eval "require Net::LDAP::Entry") {
+	 do_log ('err',"Unable to use LDAP library,Net::LDAP::Entry required install perl-ldap (CPAN) first");
+	 return undef;
      }
-     
-     my $refhash=$mesg->as_struct();
-     my (@DN) = keys(%$refhash);
-     $ds->disconnect();
-     
-     ##  bind with the DN and the pwd
-     my $ldap_passwd;
-     
-     ## Duplicate structure first
-     ## Then set the bind_dn and password according to the current user
-     my $param = &tools::dup_var($ldap);
-     $param->{'ldap_bind_dn'} = $DN[0];
-     $param->{'ldap_bind_password'} = $pwd;
-     
-     my $ds = new Datasource('LDAP', $param);
-     
-     unless (defined $ds && ($ldap_passwd = $ds->connect())) {
-       do_log('err',"Unable to connect to the LDAP server '%s'", $param->{'host'});
-       return undef;
+     require Net::LDAP::Entry;
+
+     unless (eval "require Net::LDAP::Message") {
+	 do_log ('err',"Unable to use LDAP library,Net::LDAP::Entry required install perl-ldap (CPAN) first");
+	 return undef;
      }
+     require Net::LDAP::Message;
      
-     $mesg= $ldap_passwd->search ( base => $ldap->{'suffix'},
-				   filter => "$filter",
-				   scope => $ldap->{'scope'},
-				   timeout => $ldap->{'timeout'}
-				 );
-     
-     if ($mesg->count() == 0 || $mesg->code() != 0) {
-       do_log('notice',"No entry in the Ldap Directory Tree of %s", $ldap->{'host'});
-       $ds->disconnect();
-       return undef;
+     foreach my $ldap (@{$Conf{'auth_services'}{$robot}}){
+	 # only ldap service are to be applied here
+	 next unless ($ldap->{'auth_type'} eq 'ldap');
+
+	 # skip ldap auth service if the an email address was provided
+	 # and this email address does not match the corresponding regexp 
+	 next if ($auth =~ /@/ && $auth !~ /$ldap->{'regexp'}/i);
+  
+	     my @alternative_conf = split(/,/,$ldap->{'alternative_email_attribute'});
+	     my $attrs = $ldap->{'email_attribute'};
+	     my $filter = $ldap->{'get_dn_by_uid_filter'} if($whichfilter eq 'uid_filter');
+	     $filter = $ldap->{'get_dn_by_email_filter'} if($whichfilter eq 'email_filter');
+	     $filter =~ s/\[sender\]/$auth/ig;
+
+	     ##anonymous bind in order to have the user's DN
+	     my $ldap_anonymous;
+	 my $param = &tools::dup_var($ldap);
+	 my $ds = new Datasource('LDAP', $param);
+
+	 unless (defined $ds && ($ldap_anonymous = $ds->connect())) {
+	     &do_log('err',"Unable to connect to the LDAP server '%s'", $ldap->{'host'});
+		 next;
+	     }
+
+
+	     $mesg = $ldap_anonymous->search(base => $ldap->{'suffix'},
+					     filter => "$filter",
+					     scope => $ldap->{'scope'} ,
+					     timeout => $ldap->{'timeout'});
+
+	     if ($mesg->count() == 0) {
+	     do_log('notice','No entry in the Ldap Directory Tree of %s for %s',$ldap->{'host'},$auth);
+	     $ds->disconnect();
+		 last;
+	     }
+
+	     my $refhash=$mesg->as_struct();
+	     my (@DN) = keys(%$refhash);
+	 $ds->disconnect();
+
+	     ##  bind with the DN and the pwd
+	     my $ldap_passwd;
+
+	 ## Duplicate structure first
+	 ## Then set the bind_dn and password according to the current user
+	 my $param = &tools::dup_var($ldap);
+	 $param->{'ldap_bind_dn'} = $DN[0];
+	 $param->{'ldap_bind_password'} = $pwd;
+
+	 my $ds = new Datasource('LDAP', $param);
+
+	 unless (defined $ds && ($ldap_passwd = $ds->connect())) {
+	     do_log('err',"Unable to connect to the LDAP server '%s'", $param->{'host'});
+		 next;
+	     }
+
+	     $mesg= $ldap_passwd->search ( base => $ldap->{'suffix'},
+					   filter => "$filter",
+					   scope => $ldap->{'scope'},
+					   timeout => $ldap->{'timeout'}
+					   );
+
+	     if ($mesg->count() == 0) {
+	     do_log('notice',"No entry in the Ldap Directory Tree of %s", $ldap->{'host'});
+	     $ds->disconnect();
+		 last;
+	     }
+
+	     ## To get the value of the canonic email and the alternative email
+	     my (@canonic_email, @alternative);
+
+	     ## Keep previous alt emails not from LDAP source
+	     my $previous = {};
+	     foreach my $alt (keys %{$param->{'alt_emails'}}) {
+		 $previous->{$alt} = $param->{'alt_emails'}{$alt} if ($param->{'alt_emails'}{$alt} ne 'ldap');
+	     }
+	     $param->{'alt_emails'} = {};
+
+	     my $entry = $mesg->entry(0);
+	     @canonic_email = $entry->get_value($attrs,alloptions);
+	     foreach my $email (@canonic_email){
+		 my $e = lc($email);
+		 $param->{'alt_emails'}{$e} = 'ldap' if ($e);
+	     }
+
+	     foreach my $attribute_value (@alternative_conf){
+		 @alternative = $entry->get_value($attribute_value,alloptions);
+		 foreach my $alter (@alternative){
+		     my $a = lc($alter); 
+		     $param->{'alt_emails'}{$a} = 'ldap' if($a) ;
+		 }
+	     }
+
+	     ## Restore previous emails
+	     foreach my $alt (keys %{$previous}) {
+		 $param->{'alt_emails'}{$alt} = $previous->{$alt};
+	     }
+
+	 $ds->disconnect() or &do_log('notice', "unable to unbind");
+	 &do_log('debug3',"canonic: $canonic_email[0]");
+	     return lc($canonic_email[0]);
+
+	 next unless ($ldap_anonymous);
+	 next unless ($ldap_passwd);
+	 next unless (defined($cnx) && ($cnx->code() == 0));
+	 next if($mesg->count() == 0);
+	 next if($mesg->code() != 0);
      }
-     
-     ## To get the value of the canonic email and the alternative email
-     my (@canonic_email, @alternative);
-     
-     ## Keep previous alt emails not from LDAP source
-     my $previous = {};
-     foreach my $alt (keys %{$param->{'alt_emails'}}) {
-       $previous->{$alt} = $param->{'alt_emails'}{$alt} if ($param->{'alt_emails'}{$alt} ne 'ldap');
-     }
-     $param->{'alt_emails'} = {};
-     
-     my $entry = $mesg->entry(0);
-     @canonic_email = $entry->get_value($attrs,alloptions);
-     foreach my $email (@canonic_email){
-       my $e = lc($email);
-       $param->{'alt_emails'}{$e} = 'ldap' if ($e);
-     }
-     
-     foreach my $attribute_value (@alternative_conf){
-       @alternative = $entry->get_value($attribute_value,alloptions);
-       foreach my $alter (@alternative){
-	 my $a = lc($alter); 
-	 $param->{'alt_emails'}{$a} = 'ldap' if($a) ;
-       }
-     }
-     
-     ## Restore previous emails
-     foreach my $alt (keys %{$previous}) {
-       $param->{'alt_emails'}{$alt} = $previous->{$alt};
-     }
-     
-     $ds->disconnect() or &do_log('notice', "unable to unbind");
-     &do_log('debug3',"canonic: $canonic_email[0]");
-     return lc($canonic_email[0]);
-     
  }
 
 
@@ -376,7 +393,7 @@ sub remote_app_check_password {
     
     foreach my $application (@trusted_apps){
 	
- 	if (lc($application->{'name'}) eq lc($trusted_application_name)) {
+ 	if ($application->{'name'} eq lc($trusted_application_name)) {
  	    if ($md5 eq $application->{'md5password'}) {
  		# &do_log('debug', 'Auth::remote_app_check_password : authentication succeed for %s',$application->{'name'});
  		my %proxy_for_vars ;
@@ -402,10 +419,10 @@ sub create_one_time_ticket {
     my $email = shift;
     my $robot = shift;
     my $data_string = shift;
-    my $remote_addr = shift; ## Value may be 'mail' if the IP address is not known
+    my $remote_addr = shift;
 
     my $ticket = &SympaSession::get_random();
-    do_log('info', 'Auth::create_one_time_ticket(%s,%s,%s,%s) value = %s',$email,$robot,$data_string,$remote_addr,$ticket);
+    do_log('info', 'Auth::create_one_time_ticket(%s,%s,%s) value = %s',$email,$robot,$context_data,$ticket);
 
     my $date = time;
     my $dbh = &List::db_get_handler();
@@ -419,7 +436,7 @@ sub create_one_time_ticket {
     my $statement = sprintf "INSERT INTO one_time_ticket_table (ticket_one_time_ticket, robot_one_time_ticket, email_one_time_ticket, date_one_time_ticket, data_one_time_ticket, remote_addr_one_time_ticket, status_one_time_ticket) VALUES ('%s','%s','%s','%s','%s','%s','%s')",$ticket,$robot,$email,time,$data_string,$remote_addr,'open';
 
     unless ($dbh->do($statement)) {
-	do_log('err','Unable to insert in table one_time_ticket_table while executing SQL statement "%s" : %s', $statement, $dbh->errstr);
+	do_log('err','Unable to insert in table one_time_ticket_table while execute SQL statement "%s" : %s', $statement, $dbh->errstr);
 	return undef;
     }   
     return $ticket;
@@ -431,7 +448,7 @@ sub get_one_time_ticket {
     my $ticket_number = shift;
     my $addr = shift; 
     
-    do_log('debug2', '(%s)',$ticket_number);
+    do_log('info', 'xxxx Auth::get_one_time_ticket(%s)',$ticket_number);
     
     my $dbh = &List::db_get_handler();
     my $sth;
@@ -441,7 +458,12 @@ sub get_one_time_ticket {
 	return return {'result'=>'error'} unless &List::db_connect();
     }
     my $statement;
-    $statement = sprintf "SELECT ticket_one_time_ticket AS ticket, robot_one_time_ticket AS robot, email_one_time_ticket AS email, date_one_time_ticket AS date, data_one_time_ticket AS data, remote_addr_one_time_ticket AS remote_addr, status_one_time_ticket as status FROM one_time_ticket_table WHERE ticket_one_time_ticket = '%s' ", $ticket_number;
+    if ($Conf{'db_type'} eq 'Oracle') {
+	## "AS" not supported by Oracle
+	$statement = sprintf "SELECT ticket_one_time_ticket \"ticket\", robot_one_time_ticket \"robot\", email_one_time_ticket \"email\", date_one_time_ticket \"date\", data_one_time_ticket \"data\", remote_addr_one_time_ticket \"remote_addr\", status_one_time_ticket \"status\" FROM one_time_ticket_table WHERE ticket_one_time_ticket = %s ", $ticket_number;
+    }else {
+	$statement = sprintf "SELECT ticket_one_time_ticket AS ticket, robot_one_time_ticket AS robot, email_one_time_ticket AS email, date_one_time_ticket AS date, data_one_time_ticket AS data, remote_addr_one_time_ticket AS remote_addr, status_one_time_ticket as status FROM one_time_ticket_table WHERE ticket_one_time_ticket = %s ", $ticket_number;
+    }
     
     unless ($sth = $dbh->prepare($statement)) {
 	do_log('err','Auth::get_one_time_ticket: Unable to prepare SQL statement : %s', $dbh->errstr);
@@ -452,7 +474,7 @@ sub get_one_time_ticket {
 	return {'result'=>'error'};
     }    
  
-    my $ticket = $sth->fetchrow_hashref('NAME_lc');
+    my $ticket = $sth->fetchrow_hashref;
     $sth->finish();
     
     unless ($ticket) {	
@@ -465,7 +487,7 @@ sub get_one_time_ticket {
 
     if ($ticket->{'status'} ne 'open') {
 	$result = 'closed';
-	do_log('info','Auth::get_one_time_ticket: ticket %s from %s has been used before (%s)',$ticket_number,$ticket->{'email'},$printable_date);
+	do_log('info','Auth::get_one_time_ticket: ticket %s from %s refused because allready used (%s)',$ticket_number,$ticket->{'email'},$printable_date);
     }
     elsif (time - $ticket->{'date'} > 48 * 60 * 60) {
 	do_log('info','Auth::get_one_time_ticket: ticket %s from %s refused because expired (%s)',$ticket_number,$ticket->{'email'},$printable_date);

@@ -50,7 +50,7 @@ my %month_idx = qw(jan 1
 		   dec 12
 		   dc  12);
 
-my $msg_count = 0;
+my $msg_count;
 
 # load options ?
 #$main::options{'debug'} = 1;
@@ -71,8 +71,8 @@ my $listname = $ARGV[0];
 my $robot = $ARGV[1];
 
 ## Check UID
-unless ([getpwuid $<]->[0] eq '--USER--') {
-    print "You should run this script as user \"--USER--\", ignore ? (y/CR)";
+unless (getlogin() eq '--USER--') {
+    print "You should run this script as user \"sympa\", ignore ? (y/CR)";
     my $s = <STDIN>;
     die unless ($s =~ /^y$/i);
 }

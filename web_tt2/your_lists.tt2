@@ -1,7 +1,7 @@
-<!-- $Id$ -->
+<!-- begin your_lists.tt2 -->
 
 [% IF user.email %]
-<div class="MenuBlock without_padding">
+<div class="MenuBlock">
 
 [% IF which_info %]
 <p class="text_center"><strong> [%|loc%]Your Lists[%END%] </strong></p>

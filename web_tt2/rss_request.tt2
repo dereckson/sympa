@@ -1,5 +1,3 @@
-<!-- $Id$ -->
-<div class="block">
 [% USE String %]
 
 <h2>[%|loc%]RSS channel[%END%]</h2><br />
@@ -62,6 +60,3 @@
 </fieldset>
 </form>
 [% END %]
-
-</div>
-<!-- end rss_request.tt2 (distrib) -->

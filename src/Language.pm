@@ -192,8 +192,7 @@ sub SetLang {
 
     $current_lang = $lang;
     $current_locale = $locale;
-    my $locale2charset = &Conf::get_robot_conf('', 'locale2charset');
-    $current_charset = $locale2charset->{$locale} || 'utf-8';
+    $current_charset = 'utf-8';
 
     return $locale;
 }#SetLang
@@ -272,7 +271,7 @@ sub sympa_dgettext {
     my $textdomain = shift;
     my @param = @_;
 
-    &do_log('debug3', 'Language::sympa_dgettext(%s)', $param[0]);
+    &do_log('debug4', 'Language::sympa_dgettext(%s)', $param[0]);
 
     ## This prevents meta information to be returned if the string to translate is empty
     if ($param[0] eq '') {
@@ -309,7 +308,7 @@ sub sympa_dgettext {
 sub gettext {
     my @param = @_;
 
-    &do_log('debug3', 'Language::gettext(%s)', $param[0]);
+    &do_log('debug4', 'Language::gettext(%s)', $param[0]);
 
     ## This prevents meta information to be returned if the string to translate is empty
     if ($param[0] eq '') {
@@ -348,7 +347,9 @@ sub gettext_strftime {
     return &POSIX::strftime($format, @_) unless $current_charset;
 
     $format = gettext($format);
+    Encode::from_to($format, 'utf8', $current_charset);
     my $datestr = &POSIX::strftime($format, @_);
+    Encode::from_to($datestr, $current_charset, 'utf8');
     return $datestr;
 }
 

@@ -2,11 +2,8 @@
 
 <!-- begin title.tt2 -->
 [% IF  conf.logo_html_definition %]
-<div id="logo" >[% conf.logo_html_definition %]</div>
-[% ELSE %]
-<div id="logo" ><img style="float: left;" src="/static-sympa/icons/logo_sympa.png" alt="SYMPA logo"></div>
+  [% conf.logo_html_definition %]
 [% END %]
 <div id="Title">[% robot_title %]<br /></div>
 <div id="top"><a class="displayNone" href="#Paint">Skip to Content.</a></div>
 <!-- end title.tt2 -->
-
