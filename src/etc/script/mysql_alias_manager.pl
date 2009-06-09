@@ -9,11 +9,11 @@ $ENV{'PATH'} = '';
 
 ## Load Sympa.conf
 use strict;
-use lib '--modulesdir--';
+use lib '--pkgdatadir--/lib';
 use Conf;
 use POSIX;
-require tools;
-require tt2;
+require "tools.pl";
+require "tt2.pl";
 
 use DBI;
 

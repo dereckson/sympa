@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 AC_PREREQ(2.59)
-AC_INIT(sympa, 6.0a.14, sympa-authors@cru.fr)
+AC_INIT(sympa, 6.0a.13, sympa-authors@cru.fr)
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AM_PO_SUBDIRS
 
@@ -39,7 +39,7 @@ if test -f /etc/sympa.conf; then
 	sbindir=$prefix/bin
     fi
     if test "$libexecdir" = '${exec_prefix}/libexec'; then
-	libexecdir=$prefix/bin
+	libexecdir=/etc/smrsh
     fi
 
     # custom variables
@@ -57,8 +57,6 @@ if test -f /etc/sympa.conf; then
     staticdir=$prefix/static_content
     arcdir=$prefix/arc
     bouncedir=$prefix/bounce
-    localedir=$prefix/locale
-    confdir=/etc
 else
     initdir=$sysconfdir/rc.d/init.d
     piddir=$localstatedir/run
@@ -69,13 +67,11 @@ else
     mailtemplatedir=$defaultdir/mail_tt2
     webtemplatedir=$defaultdir/web_tt2
     execcgidir=$libdir/sympa/cgi
-    expldir=$localstatedir/list_data
-    spooldir=$localstatedir/spool
-    staticdir=$localstatedir/static_content
-    arcdir=$localstatedir/arc
-    bouncedir=$localstatedir/bounce
-    localedir=$defaultdir/locale
-    confdir=$sysconfdir
+    expldir=$localstatedir/lib/sympa
+    spooldir=$localstatedir/spool/sympa
+    staticdir=$expldir/static_content
+    arcdir=$expldir/arc
+    bouncedir=$expldir/bounce
 fi
 
 # substitute custom variables
@@ -93,18 +89,17 @@ AC_SUBST(spooldir)
 AC_SUBST(staticdir)
 AC_SUBST(arcdir)
 AC_SUBST(bouncedir)
-AC_SUBST(localedir)
-AC_SUBST(confdir)
 
 # allow user to redefine some of them
 AC_ARG_WITH(
     confdir,
     AS_HELP_STRING(
 	[--with-confdir=DIR],
-	[sympa main configuration files (sympa.conf and wwsympa.conf) @<:@SYSCONFDIR@:>@]
+	[obsolete option, use --sysconfdir instead]
     ),
     [
-	confdir="$withval"
+	AC_MSG_WARN([obsolete --with-confdir option used])
+	sysconfdir="$withval"
     ]
 )
 
@@ -114,10 +109,7 @@ AC_ARG_WITH(
 	[--with-etcdir=DIR],
 	[obsolete option, use --sysconfdir instead]
     ),
-    [
-	AC_MSG_WARN([obsolete --with-etcdir option used])
-	sysconfdir="$withval"
-    ]
+    [AC_MSG_WARN([obsolete --with-etcdir option used])]
 )
 
 AC_ARG_WITH(
@@ -157,7 +149,7 @@ AC_ARG_WITH(
     cgidir,
     AS_HELP_STRING(
 	[--with-cgidir=DIR],
-	[CGI scripts @<:@LIBDIR/sympa/cgi@:>@]
+	[CGIs in DIR (default ${libdir}/sympa/cgi)]
     ),
     [execcgidir="$withval"]
 )
@@ -236,7 +228,7 @@ AC_ARG_WITH(
     expldir,
     AS_HELP_STRING(
 	[--with-expldir=DIR],
-	[list data directory @<:@LOCALSTATEDIR/list_data@:>@]
+	[variable state directory is DIR (default ${prefix}/expl)]
     ),
     [expldir="$withval"]
 )
@@ -245,7 +237,7 @@ AC_ARG_WITH(
     spooldir,
     AS_HELP_STRING(
 	[--with-spooldir=DIR],
-	[application spool directory @<:@LOCALSTATEDIR/spool@:>@]
+	[application spool directory is DIR (default ${prefix}/spool)]
     ),
     [spooldir="$withval"]
 )
@@ -254,7 +246,7 @@ AC_ARG_WITH(
     initdir,
     AS_HELP_STRING(
 	[--with-initdir=DIR],
-	[install System V init script @<:@SYSCONFDIR/rc.d/init.d@:>@]
+	[install System V init script in DIR  (default ${sysconfdir}/rc.d/init.d)]
     ),
     [initdir="$withval"]
 )
@@ -263,7 +255,7 @@ AC_ARG_WITH(
     lockdir,
     AS_HELP_STRING(
 	[--with-lockdir=DIR],
-	[lock files @<:@LOCALSTATEDIR/lock/subsys@:>@]
+	[create lock files in DIR  (default ${localstatedir}/lock/subsys)]
     ),
     [lockdir="$withval"]
 )
@@ -272,7 +264,7 @@ AC_ARG_WITH(
     piddir,
     AS_HELP_STRING(
 	[--with-piddir=DIR],
-	[.pid files @<:@LOCALSTATEDIR/run@:>@]
+	[create .pid files in DIR (default ${localstatedir}/run)]
     ),
     [piddir="$withval"]
 )
@@ -281,7 +273,7 @@ AC_ARG_WITH(
     modulesdir,
     AS_HELP_STRING(
 	[--with-modulesdir=DIR],
-	[Perl modules file installed with Sympa @<:@DATADIR/default@:>@]
+	[Perl modules file installed with Sympa in DIR (modules $pkgdatadir/etc)]
     ),
     [modulesdir="$withval"]
 )
@@ -290,7 +282,7 @@ AC_ARG_WITH(
     defaultdir,
     AS_HELP_STRING(
 	[--with-defaultdir=DIR],
-	[default configuration files (scenarios and templates also) @<:@DATADIR/sympa/default@:>@]
+	[default configuration files, scenarios and templates in DIR (default $pkgdatadir/etc)]
     ),
     [defaultdir="$withval"]
 )
@@ -299,14 +291,14 @@ AC_ARG_WITH(
     scriptdir,
     AS_HELP_STRING(
 	[--with-scriptdir=DIR],
-	[application scripts @<:@DATADIR/sympa/bin@:>@]
+	[application script directory is DIR (default $pkgdatadir/bin)]
     ),
     [scriptdir="$withval"]
 )
 
-CONFIG=$confdir/sympa.conf
+CONFIG=$sysconfdir/sympa.conf
 AC_SUBST(CONFIG)
-WWSCONFIG=$confdir/wwsympa.conf
+WWSCONFIG=$sysconfdir/wwsympa.conf
 AC_SUBST(WWSCONFIG)
 
 AC_PROG_CC
@@ -350,7 +342,7 @@ AC_ARG_WITH(
     [user],
     AS_HELP_STRING(
 	[--with-user=LOGIN],
-	[set sympa user name @<:@sympa@:>@]
+	[set sympa user name (default sympa)]
     ),
     [USER="$withval"]
 )
@@ -361,7 +353,7 @@ AC_ARG_WITH(
     [group],
     AS_HELP_STRING(
 	[--with-group=LOGIN],
-	[set sympa group name @<:@sympa@:>@]
+	[set sympa group name (default sympa)]
     ),
     [GROUP="$withval"]
 )
@@ -372,7 +364,7 @@ AC_ARG_WITH(
     [sendmail_aliases],
     AS_HELP_STRING(
 	[--with-sendmail_aliases=ALIASFILE],
-	[aliases file to store Sympa mail aliases @<:@/etc/mail/sympa_aliases@:>@]
+	[set aliases file to be used by Sympa (default /etc/mail/sympa_aliases)]
     ),
     [SENDMAIL_ALIASES="$withval"]
 )
@@ -387,7 +379,7 @@ AC_ARG_WITH(
     [virtual_aliases],
     AS_HELP_STRING(
 	[--with-virtual_aliases=ALIASFILE],
-	[postfix virtual file to be used by Sympa @<:@/etc/mail/sympa_virtual@:>@]
+	[ set postfix virtual file to be used by Sympa (default /etc/mail/sympa_virtual)]
     ),
     [VIRTUAL_ALIASES="$withval"]
 )
@@ -398,7 +390,7 @@ AC_ARG_WITH(
     [newaliases],
     AS_HELP_STRING(
 	[--with-newaliases=FULLPATH],
-	[path to newaliases command @<:@/usr/bin/newaliases@:>@]
+	[set path to newaliases command (default /usr/bin/newaliases)]
     ),
     [NEWALIASES="$withval"]
 )
@@ -409,7 +401,7 @@ AC_ARG_WITH(
     [newaliases_arg],
     AS_HELP_STRING(
 	[--with-newaliases_arg=ARGS],
-	[arguments to newaliases command @<:@NONE@:>@]
+	[set arguments to newaliases command (default NONE)]
     ),
     [NEWALIASES_ARG="$withval"]
 )
@@ -420,7 +412,7 @@ AC_ARG_WITH(
     [postmap],
     AS_HELP_STRING(
 	[--with-postmap=FULLPATH],
-	[path to postfix postmap command @<:@/usr/sbin/postmap@:>@]
+	[set path to postfix postmap command (default /usr/sbin/postmap)]
     ),
     [POSTMAP="$withval"]
 )
@@ -431,7 +423,7 @@ AC_ARG_WITH(
     [postmap_arg],
     AS_HELP_STRING(
 	[--with-postmap_arg=ARGS],
-	[set arguments to postfix postmap command @<:@VIRTUAL_ALIASES@:>@]
+	[set arguments to postfix postmap command (default [same as virtual_aliases])]
     ),
     [POSTMAP_ARG="$withval"]
 )

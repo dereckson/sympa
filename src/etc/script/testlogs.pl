@@ -2,7 +2,7 @@
 
 use strict;
 
-use lib '--modulesdir--';
+use lib '--pkgdatadir--/lib';
 use Getopt::Long;
 use Conf;
 use Log;
