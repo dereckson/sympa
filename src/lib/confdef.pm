@@ -1288,10 +1288,6 @@ our @params = (
         default => 'on',
     },
     {
-        name    => 'merge_feature',
-	default => 'off',
-    },
-    {
         name    => 'use_blacklist',
         default => 'send,subscribe',
     },

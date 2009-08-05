@@ -404,8 +404,7 @@ sub mail_message {
 				'robot' => $robot,
 				'encrypt' => $message->{'smime_crypted'},
 				'use_bulk' => 1,
-				'verp' => $verp->{'enable'},
-				'merge' => $list->{'admin'}{'merge_feature'} ));
+				'verp' => $verp->{'enable'} ));
 }
 
 
@@ -505,7 +504,6 @@ sub reaper {
 #     $robot(+) : robot 
 #     $encrypt : 'smime_crypted' | undef
 #     $verp : 1| undef  
-#     $merge : 1| undef  
 #     $use_bulk : if defined,  send message using bulk
 #     
 # OUT : 1 - call to sending
@@ -522,7 +520,6 @@ sub sendto {
     my $priority =  $params{'priority'}; 
     my $encrypt = $params{'encrypt'};
     my $verp = $params{'verp'};
-    my $merge = $params{'merge'};
     my $use_bulk = $params{'use_bulk'};
     
     do_log('debug', 'mail::sendto(from : %s,listname: %s, encrypt : %s, verp : %s, priority = %s', $from, $listname, $encrypt, $verp, $priority);
@@ -565,7 +562,6 @@ sub sendto {
 				  'priority' => $priority,
 				  'delivery_date' =>  $delivery_date,
 				  'verp' => $verp,
-				  'merge' => $merge,
 				  'use_bulk' => $use_bulk);
 	    return $result;
 	}else{
@@ -610,7 +606,6 @@ sub sending {
     my $delivery_date = $params{'delivery_date'};
     $delivery_date = time() unless ($delivery_date); 
     my $verp  =  $params{'verp'};
-    my $merge  =  $params{'merge'};
     my $use_bulk = $params{'use_bulk'};
 
     my $sympa_file;
@@ -651,7 +646,6 @@ sub sending {
 	$messageasstring = $msg;
     }
     my $verpfeature = ($verp eq 'on');
-    my $mergefeature = ($merge eq 'on');
 
     if ($use_bulk){ # in that case use bulk tables to prepare message distribution 
 
@@ -663,9 +657,7 @@ sub sending {
 				     'priority_message' => $priority_message,
 				     'priority_packet' => $priority_packet,
 				     'delivery_date' => $delivery_date,
-				     'verp' => $verpfeature,
-				     'merge' => $mergefeature
-				     );
+				     'verp' => $verpfeature);
 	unless (defined $bulk_code) {
 	    &do_log('err', 'Failed to store message for list %s', $listname);
 	    &List::send_notify_to_listmaster('bulk_error',  $robot, {'listname' => $listname});

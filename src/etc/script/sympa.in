@@ -14,19 +14,6 @@
 # chkconfig: 345 95 05
 # description: sympa is a powerfull mailing lists management system.
 
-if [ -f --initdir--/functions ]; then
-    # Source function library.
-    . --initdir--/functions
-    
-    ## Set a flag 
-    use_functions=1
-fi
-
-if [ -f /etc/sysconfig/network ]; then
-    # Get config.
-    . /etc/sysconfig/network
-fi
-
 # OSTYPE is not defined on Solaris
 if [ ! "${OSTYPE}" ]; then
     OSTYPE=`uname -s`
@@ -49,6 +36,14 @@ fi
 
 if [ -f /etc/slackware-version ] ; then
     OSTYPE='Slack'
+fi
+
+if [ ${OSTYPE} != "Slack" -a ${OSTYPE} != "FreeBSD" -a ${OSTYPE} != "SunOS" -a ${OSTYPE} != "darwin7.0" -a ${OSTYPE} != "Debian" -a ${OSTYPE} != "Suse" ]; then
+    # Source function library.
+    . --initdir--/functions
+
+    # Get config.
+    . /etc/sysconfig/network
 fi
 
 # Sympa parameters
@@ -76,7 +71,7 @@ sympa_status() {
         return 1
     fi
  
-    if [ ${use_functions} ]; then
+    if [ ${OSTYPE} != "Slack" -a ${OSTYPE} != "FreeBSD" -a ${OSTYPE} != "SunOS" -a ${OSTYPE} != "darwin7.0"  -a ${OSTYPE} != "Debian" -a ${OSTYPE} != "Suse" -a ${OSTYPE} != "linux" -a ${OSTYPE} != "linux-gnu" ]; then
 
       status $1.pl
 
@@ -113,10 +108,10 @@ sympa_module_start() {
 #		startparam=""
 #	fi
  
-	if [ ${use_functions} ]; then
-		$sympadir/$1.pl $startparam && success || failure
-	else
+	if [ ${OSTYPE} = "Slack" -o ${OSTYPE} = "IRIX" -o ${OSTYPE} = "SunOS" -o ${OSTYPE} = "Debian" -o ${OSTYPE} = "Suse" ]; then
 		$sympadir/$1.pl $startparam && echo "success" || echo "failure"
+	else
+		$sympadir/$1.pl $startparam && success || failure
 	fi
 	echo
 }
@@ -133,10 +128,24 @@ sympa_start() {
 		3)
 			echo $echo_opt "Starting module $1.pl: "
 			sympa_module_start $1
+			if [ ${OSTYPE} = "IRIX" -o ${OSTYPE} = "SunOS" ]; then
+				if [ $? -eq 0 ]; then
+        	                       	echo "$1.pl started: success"
+	                       	else
+                	               	echo "$1.pl not started: failure"
+                       		fi
+			fi
 			;;
 		1) 
 			echo $echo_opt "Starting $1, overwriting old pid file."
 			sympa_module_start $1
+			if [ ${OSTYPE} = "IRIX" -o ${OSTYPE} = "SunOS" ]; then
+				if [ $? -eq 0 ]; then
+        	                       	echo "$1.pl started: success"
+	                       	else
+                	               	echo "$1.pl not started: failure"
+                       		fi
+			fi
 			;;
 		0)
 			echo "$1 seems active. No action will be taken."
@@ -157,17 +166,17 @@ sympa_stop() {
 		pid=`head -1 --piddir--/$1.pid`
 		running=`ps -A | grep "$pid"`
 		if [ $1 == 'bulk' ]; then
-		    if [ ${use_functions} ]; then
-			kill -TERM $pid && success || failure
-		    else
+		    if [ ${OSTYPE} = "Slack" -o ${OSTYPE} = "IRIX" -o ${OSTYPE} = "SunOS" -o ${OSTYPE} = "Debian" -o ${OSTYPE} = "Suse" ]; then
 			kill -TERM $pid && echo "success" || echo "failure"
+		    else
+			kill -TERM $pid && success || failure
 		    fi		    
 		else 
 		    if [ "$running" != "" ]; then
-			if [ ${use_functions} ]; then
-			    kill -TERM $pid && success || failure
-			else
+			if [ ${OSTYPE} = "Slack" -o ${OSTYPE} = "IRIX" -o ${OSTYPE} = "SunOS" -o ${OSTYPE} = "Debian" -o ${OSTYPE} = "Suse" ]; then
 			    kill -TERM $pid && echo "success" || echo "failure"
+			else
+			    kill -TERM $pid && success || failure
 			fi		    
 
 		    else
