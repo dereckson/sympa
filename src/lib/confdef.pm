@@ -143,13 +143,13 @@ our @params = (
     },
     {
         name    => 'queueautomatic',
-        default => Sympa::Constants::SPOOLDIR . '/',
+        default => Sympa::Constants::SPOOLDIR . '/automatic',
         query   => 'Automatic list creation spool',
 	file    => 'sympa.conf'
     },
     {
         name    => 'queuedigest',
-        default => Sympa::Constants::SPOOLDIR . '/moderation',
+        default => Sympa::Constants::SPOOLDIR . '/digest',
         query   => '',
 	file    => 'sympa.conf'
     },
@@ -191,8 +191,8 @@ our @params = (
     },
     {
         name    => 'http_host',
-        query   => 'URL to a virtual host.',
         default => 'http://domain.tld',
+        query   => 'URL to a virtual host.',
         default => 'http://domain.tld',
 	vhost   => '1',
         edit    => '1',
@@ -1289,10 +1289,6 @@ our @params = (
         default => 'on',
     },
     {
-        name    => 'merge_feature',
-	default => 'off',
-    },
-    {
         name    => 'use_blacklist',
         default => 'send,subscribe',
     },
@@ -1326,61 +1322,6 @@ our @params = (
         name    => 'alias_manager',
         default => Sympa::Constants::SBINDIR . '/alias_manager.pl',
     },
-    {
-        name    => 'dkim_feature',
-        default => 'off',
-        vhost => '1',
-	file   => 'sympa.conf',
-    },
-    {
-        name    => 'dkim_add_signature_to',
-        default => 'robot,list', 
-	advice  => 'Insert a DKIM signature to message from the robot, from the list or both',
-        vhost => '1',
-	file   => 'sympa.conf',
-    },
-    {
-        name    => 'dkim_signature_apply_on',
-        default => 'md5_authenticated_messages,smime_authenticated_messages,dkim_authenticated_messages,editor_validated_messages', 
-	advice  => 'Type of message that receive a DKIM signature before distribution to subscribers.Possible value are "none", "any" or a list of the following keywords : "md5_authenticated_messages,smime_authenticated_messages,dkim_authenticated_message,editor_validated_message".',
-        vhost => '1',
-	file   => 'sympa.conf',
-    },    
-    {
-        name => 'dkim_private_key_path',
-	vhost => '1',
-        query   => 'location of the file where DKIM private key is stored',
-	optional => '1',
-	file   => 'sympa.conf',
-    },
-    {
-        name => 'dkim_selector',
-	vhost => '1',
-        query   => 'the selector', 
-	optional => '1',
-	file   => 'sympa.conf',
-    },
-    {
-        name => 'dkim_signer_domain',
-	vhost => '1',
-        query   => 'the "d=" tag as defined in rfc 4871, default is virtual host domaine',
-	optional => '1',
-	file   => 'sympa.conf',
-    },
-    {
-        name => 'dkim_signer_identity',
-	vhost => '1',
-        query   => 'the "i=" tag as defined in rfc 4871, default null',
-	optional => '1',
-	file   => 'sympa.conf',
-    },
-    {
-	name => 'dkim_header_list',
-        vhost => '1',
-	file   => 'sympa.conf',
-        query   => 'list of headers to be included ito the message for signature', 
-        default => 'from:sender:reply-to:subject:date:message-id:to:cc:list-id:list-help:list-unsubscribe:list-subscribe:list-post:list-owner:list-archive:in-reply-to:references:resent-date:resent-from:resent-sender:resent-to:resent-cc:resent-message-id:mime-version:content-type:content-transfer-encoding:content-id:content-description', 
-    }, 
 
 );
 
