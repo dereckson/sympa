@@ -89,24 +89,18 @@ sub set_send_spool {
 # IN : -$filename(+) : tt2 filename (with .tt2) | ''
 #      -$rcpt(+) : SCALAR |ref(ARRAY) : SMTP "RCPT To:" field
 #      -$data(+) : used to parse tt2 file, ref(HASH) with keys :
-#         -return_path(+) : SMTP "MAIL From:" field if send by smtp, 
-#                           "X-Sympa-From:" field if send by spool
-#         -to : "To:" header field
-#         -lang : tt2 language if $filename
-#         -list :  ref(HASH) if $sign_mode = 'smime', keys are :
-#            -name
-#            -dir
-#         -from : "From:" field if not a full msg
-#         -subject : "Subject:" field if not a full msg
-#         -replyto : "Reply-to:" field if not a full msg
-#         -body  : body message if not $filename
-#         -headers : ref(HASH) with keys are headers mail
-#         -dkim : a set of parameters for appying DKIM signature
-#            -d : d=tag
-#            -i : i=tag (optionnal)
-#            -selector : dkim dns selector
-#            -header_list : headers part of the signed infos
-#            -key : the RSA private key
+#        -return_path(+) : SMTP "MAIL From:" field if send by smtp, 
+#                          "X-Sympa-From:" field if send by spool
+#        -to : "To:" header field
+#        -lang : tt2 language if $filename
+#        -list :  ref(HASH) if $sign_mode = 'smime', keys are :
+#          -name
+#          -dir
+#        -from : "From:" field if not a full msg
+#        -subject : "Subject:" field if not a full msg
+#        -replyto : "Reply-to:" field if not a full msg
+#        -body  : body message if not $filename
+#        -headers : ref(HASH) with keys are headers mail
 #      -$robot(+)
 #      -$sign_mode :'smime' | '' | undef
 #         
@@ -117,7 +111,6 @@ sub mail_file {
     my ($filename, $rcpt, $data, $robot) = @_;
     my $header_possible = $data->{'header_possible'};
     my $sign_mode = $data->{'sign_mode'};
-
 
     &do_log('debug2', 'mail::mail_file(%s, %s, %s)', $filename, $rcpt, $sign_mode);
 
@@ -286,12 +279,7 @@ sub mail_file {
 			     'robot' => $robot,
 			     'listname' => $listname,
 			     'priority' => &Conf::get_robot_conf($robot,'sympa_priority'),
-			     'sign_mode' => $sign_mode,
-			     'use_bulk' => $data->{'use_bulk'},
-			     'dkim' => $data->{'dkim'},
-			     )
-	    )
-    {
+			     'sign_mode' => $sign_mode)) {
 	return undef;
     }
    return 1;
@@ -311,13 +299,8 @@ sub mail_file {
 #       
 ####################################################
 sub mail_message {
-
-    my %params = @_;
-    my $message =  $params{'message'};
-    my $list =  $params{'list'};
-    my $verp = $params{'verp'};
-    my @rcpt =  @{$params{'rcpt'}};
-    my $dkim  =  $params{'dkim_parameters'};
+    my($message, $list, $verp, @rcpt) = @_;
+   
 
     my $host = $list->{'admin'}{'host'};
     my $robot = $list->{'domain'};
@@ -325,7 +308,7 @@ sub mail_message {
     # normal return_path (ie used if verp is not enabled)
     my $from = $list->{'name'}.&Conf::get_robot_conf($robot, 'return_path_suffix').'@'.$host;
 
-    do_log('debug', 'mail::mail_message(from: %s, , file:%s, %s, verp->%s, %d rcpt)', $from, $message->{'filename'}, $message->{'smime_crypted'}, $verp, $#rcpt+1);
+    do_log('debug', 'mail::mail_message(from: %s, , file:%s, %s, verp->%s, %d rcpt)', $from, $message->{'filename'}, $message->{'smime_crypted'}, $verp->{'enable'}, $#rcpt+1);
     
     my($i, $j, $nrcpt, $size); 
     my $numsmtp = 0;
@@ -416,9 +399,7 @@ sub mail_message {
 				'robot' => $robot,
 				'encrypt' => $message->{'smime_crypted'},
 				'use_bulk' => 1,
-				'verp' => $verp,
-				'dkim' => $dkim,
-				'merge' => $list->{'admin'}{'merge_feature'} ));
+				'verp' => $verp->{'enable'} ));
 }
 
 
@@ -518,7 +499,6 @@ sub reaper {
 #     $robot(+) : robot 
 #     $encrypt : 'smime_crypted' | undef
 #     $verp : 1| undef  
-#     $merge : 1| undef  
 #     $use_bulk : if defined,  send message using bulk
 #     
 # OUT : 1 - call to sending
@@ -535,10 +515,8 @@ sub sendto {
     my $priority =  $params{'priority'}; 
     my $encrypt = $params{'encrypt'};
     my $verp = $params{'verp'};
-    my $merge = $params{'merge'};
-    my $dkim = $params{'dkim'};
     my $use_bulk = $params{'use_bulk'};
-
+    
     do_log('debug', 'mail::sendto(from : %s,listname: %s, encrypt : %s, verp : %s, priority = %s', $from, $listname, $encrypt, $verp, $priority);
     
     my $delivery_date =  $params{'delivery_date'};
@@ -548,7 +526,6 @@ sub sendto {
 
     if ($encrypt eq 'smime_crypted') {
         # encrypt message for each rcpt and send the message
-	# this MUST be moved to the bulk mailer. This way, merge will be applied after the SMIME encryption is applied ! This is a bug !
 	foreach my $unique_rcpt (@{$rcpt}) {
 	    my $email = lc(@{$unique_rcpt}[0]);
 	    if (($email !~ /@/) || ($#{@$unique_rcpt} != 0)) {
@@ -580,9 +557,7 @@ sub sendto {
 				  'priority' => $priority,
 				  'delivery_date' =>  $delivery_date,
 				  'verp' => $verp,
-				  'merge' => $merge,
-				  'use_bulk' => $use_bulk,
-				  'dkim' => $dkim );
+				  'use_bulk' => $use_bulk);
 	    return $result;
 	}else{
 	    return undef;
@@ -607,7 +582,6 @@ sub sendto {
 #      -$listname : listname | ''
 #      -$sign_mode(+) : 'smime' | 'none' for signing
 #      -$verp 
-#      -dkim : a hash for dkim parameters
 #
 # OUT : 1 - call to smtpto (sendmail) | 0 - push in spool
 #           | undef
@@ -627,9 +601,8 @@ sub sending {
     my $delivery_date = $params{'delivery_date'};
     $delivery_date = time() unless ($delivery_date); 
     my $verp  =  $params{'verp'};
-    my $merge  =  $params{'merge'};
     my $use_bulk = $params{'use_bulk'};
-    my $dkim = $params{'dkim'};
+
     my $sympa_file;
     my $fh;
     my $signed_msg; # if signing
@@ -668,31 +641,24 @@ sub sending {
 	$messageasstring = $msg;
     }
     my $verpfeature = ($verp eq 'on');
-    my $mergefeature = ($merge eq 'on');
 
     if ($use_bulk){ # in that case use bulk tables to prepare message distribution 
+      my $bulk_code = &Bulk::store('msg' => $messageasstring,
+				   'rcpts' => $rcpt,
+				   'from' => $from,
+				   'robot' => $robot,
+				   'listname' => $listname,
+				   'priority_message' => $priority_message,
+				   'priority_packet' => $priority_packet,
+				   'delivery_date' => $delivery_date,
+				   'verp' => $verpfeature);
+      unless (defined $bulk_code) {
+	&do_log('err', 'Failed to store message for list %s', $listname);
+	&List::send_notify_to_listmaster('bulk_error',  $robot, {'listname' => $listname});
+	return undef;
+      }
 
-	my $bulk_code = &Bulk::store('msg' => $messageasstring,
-				     'rcpts' => $rcpt,
-				     'from' => $from,
-				     'robot' => $robot,
-				     'listname' => $listname,
-				     'priority_message' => $priority_message,
-				     'priority_packet' => $priority_packet,
-				     'delivery_date' => $delivery_date,
-				     'verp' => $verpfeature,
-				     'merge' => $mergefeature,
-				     'dkim' => $dkim
-				     );
-	unless (defined $bulk_code) {
-	    &do_log('err', 'Failed to store message for list %s', $listname);
-	    &List::send_notify_to_listmaster('bulk_error',  $robot, {'listname' => $listname});
-	    return undef;
-	}
-	
     }elsif(defined $send_spool) { # in context wwsympa.fcgi do note send message to reciepients but copy it to standard spool 
-	do_log('debug',"NOT USING BULK");
-
 	$sympa_email = &Conf::get_robot_conf($robot, 'sympa');	
 	$sympa_file = "$send_spool/T.$sympa_email.".time.'.'.int(rand(10000));
 	unless (open TMP, ">$sympa_file") {
@@ -722,7 +688,6 @@ sub sending {
 	    return undef;
 	}
     }else{ # send it now
-	do_log('debug',"NOT USING BULK");
 	*SMTP = &smtpto($from, $rcpt, $robot);	
 	print SMTP $messageasstring;	
 	unless (close SMTP) {

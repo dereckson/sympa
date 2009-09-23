@@ -131,7 +131,6 @@ dl {
          padding:1em 0;
          margin-top:0em;
          margin-left:5em;
-         /*text-shadow: 2px 2px 2px [% color_12 %];*/
          z-index:520;
          }
 
@@ -1276,24 +1275,9 @@ h7 strong {
                                  color:[% color_5 %]!important;
                                  }
 
-#noticeBlock {
-               margin:0;
-               padding:0;
-               position:absolute;
-               left:0;
-               top:0;
-               z-index:600;
-               background: [% color_9 %];
-               opacity:0.4;
-               width:100%;
-               height:100%;
-               }
-
 #noticeMsg { 
-             position:absolute;
-             width:60%;
-             margin:20% 19%;
-             z-index:610!important;
+             margin-top:1.5em;
+	     width:98%;
              border: 5px ridge [% color_12 %];
              font-family:serif;
              font-size: 1.6em;
@@ -2124,116 +2108,5 @@ span.bottom_page {
             border: none!important;
             }
 
-/********************/
-/* For the calendar */
-/********************/
-.divCal {
-    	position:absolute;
-    	border:1px [% color_9 %];
-    	background:[% color_9 %];
-	z-index:500;
-	}
-
-.divCal a{
-    	text-decoration:none;
-    	width:100%;
-	}
-
-.divCal table {
-    		font-size:12px;
-    		font-family:Tahoma;
-    		text-align:center;
-    		margin:0px;
-    		width:140px;
-		}
-
-.divCal td {
-    		margin : 0px;
-    		border:1px solid [% color_8 %];
-		}
-.divCal .zoneTitre {
-    		font-size:12px;
-    		font-family:Tahoma;
-    		text-align:center;
-    		margin:0px;
-   		background:[% color_9 %];
-		}
-
-.divCal .zoneNav {
-    		font-size:10px;
-    		font-family:Tahoma;
-    		text-align:center;
-    		margin:0px;
-    		cursor:pointer;
-		}
-
-.divCal .zoneMois {
-    		font-family:Tahoma;
-    		width:70px;
-    		margin:0px;
-		}
-
-.divCal .zoneAnnee {
-    		font-size:10px;
-    		font-weight:bold;
-    		text-align:right;
-    		margin:0px;
-    		width:100%;
-		}
-
-.divCal .nSemaine {
-    		font-family:Tahoma;
-		width:30px;
-		margin:0px;
-		color:[% color_4 %];
-		}
-
-.divCal div{
-    		margin : 0px;
-		}
-
-.divCal .td {
-    		color:[% color_5 %];
-		} /*par defaut*/
-
-.divCal .tdx .enWeekend {
-    			background:[% color_8 %];
-			}
-
-.divCal .tdx .enFeriee {
-    			background:[% color_8 %];
-			}
-
-.divCal .tdx .enMois {
-    			color:black;
-    			font-weight:bold;
-			}
-
-.divCal .tdx .aujourdhui {
-    			border:2px solid [% color_7 %];
-			}
-
-.divCal .tdxNow {
-    		color:black;
-    		font-weight:bold;
-		}
-
-.divCal .tdxNow:hover {
-   			 background:[% color_4 %];
-			}
-
-.divCal .tdx:hover {
-    			background:[% color_3 %];
-			}
-
-.divCal .tdx:hover .enWeekend {
-    				background:[% color_6 %];
-				}
-
-.divCal .tdx:hover .enMois {
-    				color:[% color_2 %];
-    				font-weight:bold;
-    				background:[% color_6 %];
-				} /*pour firefox */
 
 [% END %]

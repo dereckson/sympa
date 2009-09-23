@@ -173,6 +173,7 @@ sub new {
 	do_log('err', "Invalid From: field '%s'", $message->{'sender'});
 	return undef;
     }
+
     ## Store decoded subject
     my $subject = $hdr->get('Subject');
     my @decoded_subject = MIME::EncWords::decode_mimewords($subject);
@@ -189,7 +190,6 @@ sub new {
 									 $subject, Charset=>'utf8');
 	chomp $message->{'decoded_subject'};
     }
-
 
     ## Extract recepient address (X-Sympa-To)
     $message->{'rcpt'} = $hdr->get('X-Sympa-To');
@@ -224,11 +224,6 @@ sub new {
 		}
 		
 	    }
-	    # verify DKIM signature
-	    if (&Conf::get_robot_conf($robot, 'dkim_feature') eq 'on'){
-		$message->{'dkim_pass'} = &tools::dkim_verifier($message->{'msg_as_string'});
-	    }
-
 	    ## Antispam feature.
 	    my $spam_header_name = &Conf::get_robot_conf($robot,'antispam_tag_header_name');
 	    my $spam_regexp = &Conf::get_robot_conf($robot,'antispam_tag_header_spam_regexp');

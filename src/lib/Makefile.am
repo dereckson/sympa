@@ -13,7 +13,7 @@ CLEANFILES = Sympa/Constants.pm
 Sympa/Constants.pm: Sympa/Constants.pm.in Makefile
 	[ -d Sympa ] || mkdir Sympa
 	rm -f $@
-	$(AM_V_GEN)$(SED) \
+	sed \
 		-e 's|--VERSION--|$(VERSION)|' \
 		-e 's|--USER--|$(USER)|' \
 		-e 's|--GROUP--|$(GROUP)|' \

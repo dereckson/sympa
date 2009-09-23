@@ -221,9 +221,6 @@ sub parse_tt2 {
 	    }
     };
     
-    unless($options->{'is_not_template'}){
-	$config->{'INCLUDE_PATH'} = $include_path;
-    }
     if ($allow_absolute) {
 	$config->{'ABSOLUTE'} = 1;
 	$allow_absolute = 0;
