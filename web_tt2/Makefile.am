@@ -117,7 +117,6 @@ webtemplate_DATA = active_lists.tt2 \
 		   setlang.tt2 \
 		   set_pending_list_request.tt2 \
 		   show_cert.tt2 \
-		   show_exclude.tt2 \
 		   show_sessions.tt2 \
 		   sigrequest.tt2 \
 		   skinsedit.tt2 \
@@ -126,7 +125,6 @@ webtemplate_DATA = active_lists.tt2 \
 		   subindex.tt2 \
 		   suboptions.tt2 \
 		   subrequest.tt2 \
-		   suspend_request.tt2 \
 		   ticket.tt2 \
 		   title.tt2 \
 		   tt2_error.tt2 \
@@ -140,6 +138,6 @@ EXTRA_DIST = $(webtemplate_DATA)
 
 install-data-hook:
 	cd $(DESTDIR)$(webtemplatedir); \
-	$(LN_S) -f review.tt2 search.tt2; \
-	$(LN_S) -f lists.tt2 which.tt2; \
-	$(LN_S) -f lists.tt2 search_list.tt2
+	ln -sf review.tt2 search.tt2; \
+	ln -sf lists.tt2 which.tt2; \
+	ln -sf lists.tt2 search_list.tt2

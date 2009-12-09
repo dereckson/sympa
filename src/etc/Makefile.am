@@ -170,12 +170,12 @@ DEFAULT_SCENARIOS = add.owner \
 
 list_aliases.tt2: Makefile list_aliases.tt2.in
 	rm -f $@
-	$(AM_V_GEN)$(SED) \
+	sed \
 		-e 's|--libexecdir--|$(libexecdir)|' \
 		< $(srcdir)/$@.in > $@
 
 install-data-hook:
 	cd  $(DESTDIR)$(defaultdir)/scenari; \
 	for file in $(DEFAULT_SCENARIOS); do \
-		$(LN_S) -f $$file `echo $$file | $(SED) -e 's/\.[^.]*$$/.default/'`; \
+		ln -sf $$file `echo $$file | sed -e 's/\.[^.]*$$/.default/'`; \
 	done
