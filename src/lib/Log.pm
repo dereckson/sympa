@@ -79,10 +79,10 @@ sub fatal_err {
 }
 
 sub do_log {
-    my $level = shift;
+    my $facility = shift;
 
     # do not log if log level if too high regarding the log requested by user 
-    return if ($levels{$level} > $log_level);
+    return if ($levels{$facility} > $log_level);
 
     my $message = shift;
     my @param = @_;
@@ -103,21 +103,18 @@ sub do_log {
         $message = $call[3] . '() ' . $message if ($call[3]);
     }
 
-    ## Add facility to log entry
-    $message = $level.' '.$message;
-
     # map to standard syslog facility if needed
-    if ($level eq 'trace' ) {
+    if ($facility eq 'trace' ) {
         $message = "###### TRACE MESSAGE ######:  " . $message;
-        $level = 'notice';
-    } elsif ($level eq 'debug2' || $level eq 'debug3') {
-        $level = 'debug';
+        $facility = 'notice';
+    } elsif ($facility eq 'debug2' || $facility eq 'debug3') {
+        $facility = 'debug';
     }
 
     eval {
-        unless (syslog($level, $message, @param)) {
+        unless (syslog($facility, $message, @param)) {
             &do_connect();
-            syslog($level, $message, @param);
+            syslog($facility, $message, @param);
         }
     };
 
@@ -131,7 +128,7 @@ sub do_log {
     if ($main::options{'foreground'}) {
         if (
             $main::options{'log_to_stderr'} ||
-            ($main::options{'batch'} && $level eq 'err')
+            ($main::options{'batch'} && $facility eq 'err')
         ) {
             $message =~ s/%m/$errno/g;
             printf STDERR "$message\n", @param;
