@@ -785,10 +785,9 @@ our @params = (
     },
     {
         name   => 'db_port',
-        default => undef,
+        default => '3306',
         query  => 'The database port',
         file   => 'sympa.conf',
-	optional => '1',
     },
     {
         name   => 'db_user',
@@ -1142,10 +1141,6 @@ our @params = (
         default => '#000',
 	vhost   => '1',
 	db      => 'db_first',
-    },
-    {	name	=> 'list_check_helo',
-	default	=> '',
-	vhost	=> '1',
     },
     {
         name    => 'list_check_smtp',
