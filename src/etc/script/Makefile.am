@@ -19,8 +19,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-SUBDIRS = js
-
 dbscripts = create_db.Pg create_db.mysql create_db.Oracle \
 	    create_db.Sybase create_db.SQLite
 
@@ -41,7 +39,7 @@ CLEANFILES = $(perlscripts) $(init_SCRIPTS)
 
 arc2webarc.pl crypt_passwd.pl init_comment.pl ldap_alias_manager.pl mod2html.pl mysql_alias_manager.pl p12topem.pl testldap.pl testlogs.pl tpl2tt2.pl: Makefile
 	rm -f $@
-	$(AM_V_GEN)$(SED) \
+	sed \
 		-e 's|--PERL--|$(PERL)|' \
 		-e 's|--modulesdir--|$(modulesdir)|' \
 		< $(srcdir)/$@.in > $@
@@ -49,7 +47,7 @@ arc2webarc.pl crypt_passwd.pl init_comment.pl ldap_alias_manager.pl mod2html.pl 
 
 sympa: Makefile
 	rm -f $@
-	$(AM_V_GEN)$(SED) \
+	sed \
 		-e 's|--CONFIG--|$(CONFIG)|' \
 		-e 's|--WWSCONFIG--|$(WWSCONFIG)|' \
 		-e 's|--sbindir--|$(sbindir)|' \
