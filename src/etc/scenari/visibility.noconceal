@@ -1,6 +1,6 @@
 title.gettext no conceal
 
-true()                          smtp,dkim,md5,smime    -> do_it
+true()                          smtp,md5,smime    -> do_it
 
 
 

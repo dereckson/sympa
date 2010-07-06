@@ -74,7 +74,7 @@ install-exec-hook:
 
 alias_manager.pl bulk.pl task_manager.pl sympa.pl sympa_wizard.pl: Makefile
 	rm -f $@
-	$(AM_V_GEN)$(SED) \
+	sed \
 		-e 's|--PERL--|$(PERL)|' \
 		-e 's|--modulesdir--|$(modulesdir)|' \
 		< $(srcdir)/$@.in > $@
