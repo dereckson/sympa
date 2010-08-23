@@ -37,7 +37,7 @@ use tools;
 use Sympa::Constants;
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(%params %Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
+our @EXPORT = qw(%Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
 
 sub DAEMON_MESSAGE {1};
 sub DAEMON_COMMAND {2};
@@ -48,7 +48,7 @@ sub DAEMON_ALL {7};
 my ($dbh, $sth, $db_connected, @sth_stack, $use_db);
 
 # parameters hash, keyed by parameter name
-our %params =
+my %params =
     map  { $_->{name} => $_ }
     grep { $_->{name} }
     @confdef::params;
@@ -356,7 +356,7 @@ sub load {
     ## Set Regexp for accepted list suffixes
     if (defined ($Conf{'list_check_suffixes'})) {
 	$Conf{'list_check_regexp'} = $Conf{'list_check_suffixes'};
-	$Conf{'list_check_regexp'} =~ s/[,\s]+/\|/g;
+	$Conf{'list_check_regexp'} =~ s/,/\|/g;
     }
 	
     $Conf{'sympa'} = "$Conf{'email'}\@$Conf{'host'}";
@@ -552,9 +552,6 @@ sub load_robots {
 
 	$robot_conf->{$robot}{'title'} ||= $wwsconf->{'title'};
 	$robot_conf->{$robot}{'default_home'} ||= $wwsconf->{'default_home'};
-	$robot_conf->{$robot}{'use_html_editor'} ||= $wwsconf->{'use_html_editor'};
-	$robot_conf->{$robot}{'html_editor_file'} ||= $wwsconf->{'html_editor_file'};
-	$robot_conf->{$robot}{'html_editor_init'} ||= $wwsconf->{'html_editor_init'};
 
 	$robot_conf->{$robot}{'lang'} ||= $Conf{'lang'};
 	$robot_conf->{$robot}{'email'} ||= $Conf{'email'};
@@ -570,8 +567,6 @@ sub load_robots {
 
 	$robot_conf->{$robot}{'static_content_url'} ||= $Conf{'static_content_url'};
 	$robot_conf->{$robot}{'static_content_path'} ||= $Conf{'static_content_path'};
-	$robot_conf->{$robot}{'tracking_delivery_status_notification'} ||= $Conf{'tracking_delivery_status_notification'};
-	$robot_conf->{$robot}{'tracking_message_delivery_notification'} ||= $Conf{'tracking_message_delivery_notification'};
 
 	## CSS
 	$robot_conf->{$robot}{'css_url'} ||= $robot_conf->{$robot}{'static_content_url'}.'/css/'.$robot;

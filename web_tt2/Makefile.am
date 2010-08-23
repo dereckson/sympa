@@ -32,6 +32,7 @@ webtemplate_DATA = active_lists.tt2 \
 		   blacklist.tt2 \
 		   button_footer.tt2 \
 		   button_header.tt2 \
+		   ca.tt2 \
 		   change_email.tt2 \
 		   change_email_request.tt2 \
 	     	   choosepasswd.tt2 \
@@ -83,6 +84,7 @@ webtemplate_DATA = active_lists.tt2 \
 		   latest_arc.tt2 \
 		   latest_d_read.tt2 \
 		   latest_lists.tt2 \
+		   lca.tt2 \
 		   list_button_footer.tt2 \
 		   list_button_header.tt2 \
 		   list_menu.tt2 \
@@ -100,7 +102,6 @@ webtemplate_DATA = active_lists.tt2 \
 		   menu_search.tt2 \
 		   modindex.tt2 \
 		   nav.tt2 \
-		   news.tt2 \
 		   notice.tt2 \
 		   picture_upload.tt2 \
 		   pref.tt2 \
@@ -133,7 +134,6 @@ webtemplate_DATA = active_lists.tt2 \
 		   suspend_request.tt2 \
 		   ticket.tt2 \
 		   title.tt2 \
-		   tracking.tt2 \
 		   tt2_error.tt2 \
 		   viewbounce.tt2 \
 		   viewlogs.tt2 \
