@@ -171,7 +171,7 @@ sub _parse_scenario {
         
 	if ($current_rule =~ /\s*(include\s*\(?\'?(.*)\'?\)?)\s*$/i) {
 	    $rule->{'condition'} = $1;
-	}elsif ($current_rule =~ /^\s*(.*)\s+(md5|pgp|smtp|smime|dkim)((\s*,\s*(md5|pgp|smtp|smime|dkim))*)\s*->\s*(.*)\s*$/i) {
+	}elsif ($current_rule =~ /^\s*(.*)\s+(md5|pgp|smtp|smime)((\s*,\s*(md5|pgp|smtp|smime))*)\s*->\s*(.*)\s*$/i) {
 	    $rule->{'condition'}=$1;
 	    $rule->{'auth_method'}=$2 || 'smtp';
 	    $rule->{'action'} = $6;
@@ -194,7 +194,7 @@ sub _parse_scenario {
 
 	## Duplicate the rule for each mentionned authentication method
         my $auth_list = $3 ; 
-        while ($auth_list =~ /\s*,\s*(md5|pgp|smtp|smime|dkim)((\s*,\s*(md5|pgp|smtp|smime|dkim))*)\s*/i) {
+        while ($auth_list =~ /\s*,\s*(md5|pgp|smtp|smime)((\s*,\s*(md5|pgp|smtp|smime))*)\s*/i) {
 	    push(@scenario,{'condition' => $rule->{condition}, 
                             'auth_method' => $1,
                             'action' => $rule->{action}});
@@ -217,7 +217,7 @@ sub _parse_scenario {
 # using 1 auth method to perform 1 operation
 #
 # IN : -$operation (+) : scalar
-#      -$auth_method (+) : 'smtp'|'md5'|'pgp'|'smime'|'dkim'
+#      -$auth_method (+) : 'smtp'|'md5'|'pgp'|'smime'
 #      -$robot (+) : scalar
 #      -$context (+) : ref(HASH) containing information
 #        to evaluate scenario (scenario var)
@@ -256,7 +256,7 @@ sub request_action {
     $context->{'msg_encrypted'} = 'smime' if (defined $context->{'message'} && 
 					      $context->{'message'}->{'smime_crypted'} eq 'smime_crypted');
     ## Check that authorization method is one of those known by Sympa
-    unless ( $auth_method =~ /^(smtp|md5|pgp|smime|dkim)/) {
+    unless ( $auth_method =~ /^(smtp|md5|pgp|smime)/) {
 	do_log('info',"fatal error : unknown auth method $auth_method in List::get_action");
 	return undef;
     }
@@ -271,7 +271,7 @@ sub request_action {
 
     ## Include a Blacklist rules if configured for this action
     if ($Conf::Conf{'blacklist'}{$operation}) {
-	foreach my $auth ('smtp','dkim','md5','pgp','smime'){
+	foreach my $auth ('smtp','md5','pgp','smime'){
 	    my $blackrule = {'condition' => "search('blacklist.txt',[sender])",
 			     'action' => 'reject,quiet',
 			     'auth_method' => $auth};	
@@ -334,7 +334,7 @@ sub request_action {
 
 	## pending/closed lists => send/visibility are closed
 	unless ($list->{'admin'}{'status'} eq 'open') {
-	    if ($operation =~ /^(send|visibility)$/) {
+	    if ($operation =~ /^send|visibility$/) {
 		my $return = {'action' => 'reject',
 			      'reason' => 'list-no-open',
 			      'auth_method' => '',
@@ -455,9 +455,6 @@ sub request_action {
 	    my $action = $rule->{'action'};
 
             ## reject : get parameters
-	    if ($action =~ /^(ham|spam|unsure)/) {
-		$action = $1 ;		
-	    }
 	    if ($action =~/^reject(\((.+)\))?(\s?,\s?(quiet))?/) {
 
 		if ($4 eq 'quiet') { 
@@ -501,7 +498,7 @@ sub request_action {
 		}
 
 		## Check syntax of returned action
-		unless ($action =~ /^(do_it|reject|request_auth|owner|editor|editorkey|listmaster|ham|spam|unsure)/) {
+		unless ($action =~ /^(do_it|reject|request_auth|owner|editor|editorkey|listmaster)/) {
 		    &do_log('err', "Matched unknown action '%s' in scenario", $rule->{'action'});
 		    return undef;
 		}
@@ -614,16 +611,10 @@ sub verify {
 	    
 	    ## List param
 	}elsif ($value =~ /\[list\-\>([\w\-]+)\]/i) {
-	    my $param = $1;
-
-	    if ($param =~ /^(name|total)$/) {
-		$value =~ s/\[list\-\>([\w\-]+)\]/$list->{$param}/;
-	    }elsif ($param eq 'address') {
-		my $list_address = $list->get_list_address();
-		$value =~ s/\[list\-\>([\w\-]+)\]/$list_address/;
-	    
-	    }elsif ($list->{'admin'}{$param} and (!ref($list->{'admin'}{$param})) ) {
-		$value =~ s/\[list\-\>([\w\-]+)\]/$list->{'admin'}{$param}/;
+	    if ($1 =~ /^name|total$/) {
+		$value =~ s/\[list\-\>([\w\-]+)\]/$list->{$1}/;
+	    }elsif ($list->{'admin'}{$1} and (!ref($list->{'admin'}{$1})) ) {
+		$value =~ s/\[list\-\>([\w\-]+)\]/$list->{'admin'}{$1}/;
 	    }else{
 		do_log('err','Unknown list parameter %s in rule %s', $value, $condition);
 		return undef;
@@ -726,13 +717,13 @@ sub verify {
     $condition_key =~ s/^\s*//g;
     $condition_key =~ s/\s*$//g;
     # condition that require 0 argument
-    if ($condition_key =~ /^(true|all)$/i) {
+    if ($condition_key =~ /^true|all$/i) {
 	unless ($#args == -1){ 
 	    do_log('err',"error rule syntaxe : incorrect number of argument or incorrect argument syntaxe $condition") ; 
 	    return undef ;
 	}
 	# condition that require 1 argument
-    }elsif ($condition_key =~ /^(is_listmaster|verify_netmask)$/) {
+    }elsif ($condition_key =~ /^is_listmaster|verify_netmask$/) {
 	unless ($#args == 0) { 
 	     do_log('err',"error rule syntaxe : incorrect argument number for condition $condition_key") ; 
 	    return undef ;
@@ -744,7 +735,7 @@ sub verify {
 	    return undef ;
 	}
 	# condition that require 2 args
-    }elsif ($condition_key =~ /^(is_owner|is_editor|is_subscriber|less_than|match|equal|message|newer|older)$/o) {
+    }elsif ($condition_key =~ /^is_owner|is_editor|is_subscriber|less_than|match|equal|message|newer|older$/o) {
 	unless ($#args == 1) {
 	    do_log('err',"error rule syntaxe : incorrect argument number (%d instead of %d) for condition $condition_key", $#args+1, 2) ; 
 	    return undef ;
@@ -756,7 +747,7 @@ sub verify {
 
     ## Now eval the condition
     ##### condition : true
-    if ($condition_key =~ /^(true|any|all)$/i) {
+    if ($condition_key =~ /^true|any|all$/i) {
 	return $negation;
     }
     ##### condition is_listmaster
@@ -794,7 +785,7 @@ sub verify {
     }
 
     ##### condition older
-    if ($condition_key =~ /^(older|newer)$/) {
+    if ($condition_key =~ /^older|newer$/) {
 	 
 	$negation *= -1 if ($condition_key eq 'newer');
  	my $arg0 = &tools::epoch_conv($args[0]);
@@ -810,7 +801,7 @@ sub verify {
 
 
     ##### condition is_owner, is_subscriber and is_editor
-    if ($condition_key =~ /^(is_owner|is_subscriber|is_editor)$/i) {
+    if ($condition_key =~ /^is_owner|is_subscriber|is_editor$/i) {
 	my ($list2);
 
 	if ($args[1] eq 'nobody') {

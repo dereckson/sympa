@@ -27,6 +27,7 @@ use Digest::MD5;
 use POSIX;
 use CGI::Cookie;
 use Time::Local;
+use Text::Wrap;
 
 use Log;
 use Conf;
@@ -89,7 +90,7 @@ sub new {
 	#}
     }else{
 	# create a new session context
-	$session->{'new_session'} = 1; ## Tag this session as new, ie no data in the DB exist
+      $session->{'new_session'} = 1; ## Tag this session as new, ie no data in the DB exist
         $session->{'id_session'} = &get_random();
 	$session->{'email'} = 'nobody';
         $session->{'remote_addr'} = $ENV{'REMOTE_ADDR'};
@@ -133,11 +134,6 @@ sub load {
 	return undef;
     }    
     my $session = $sth->fetchrow_hashref('NAME_lc');
-
-    if ( $sth->fetchrow_hashref('NAME_lc')){
-	do_log('err',"the SQL statement %s did return more then one session. Is this a bug comming from dbi or mysql ? ");
-	$session->{'email'} = '';
-    }
     $sth->finish();
     
     unless ($session) {
@@ -153,7 +149,7 @@ sub load {
     $self->{'hit'} = $session->{'hit'} +1 ;
     $self->{'remote_addr'} = $session->{'remote_addr'};
     $self->{'robot'} = $session->{'robot'};
-    $self->{'email'} = $session->{'email'};    
+    $self->{'email'} = $session->{'email'};
 
     return ($self);
 }
@@ -380,9 +376,7 @@ sub purge_old_tickets {
 	    return undef;
 	}
 	unless ($sth->execute) {
-	    do_log('err','Unable to execute SQL stat
-
-ement "%s" : %s', $statement, $dbh->errstr);
+	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
 	    return undef;
 	}    
     }
@@ -523,16 +517,6 @@ sub as_hashref {
   }
   
   return $data;
-}
-
-## Return 1 if the Session object corresponds to an anonymous session.
-sub is_anonymous {
-    my $self = shift;
-    if($self->{'email'} eq 'nobody' || $self->{'email'} eq '') {
-	return 1;
-    }else{
-	return 0;
-    }
 }
 
 1;

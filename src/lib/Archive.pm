@@ -113,12 +113,10 @@ sub list {
     my(@l, $i);
     
     unless (-d "$name") {
-	&do_log ('warning',"archive::list($name) failed, no directory $name");
 #      @l = ($msg::no_archives_available);
       return @l;
   }
     unless (opendir(DIR, "$name")) {
-	&do_log ('warning',"archive::list($name) failed, cannot open directory $name");
 #	@l = ($msg::no_archives_available);
 	return @l;
     }

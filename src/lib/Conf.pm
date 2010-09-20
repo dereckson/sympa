@@ -37,7 +37,7 @@ use tools;
 use Sympa::Constants;
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(%params %Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
+our @EXPORT = qw(%Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
 
 sub DAEMON_MESSAGE {1};
 sub DAEMON_COMMAND {2};
@@ -48,7 +48,7 @@ sub DAEMON_ALL {7};
 my ($dbh, $sth, $db_connected, @sth_stack, $use_db);
 
 # parameters hash, keyed by parameter name
-our %params =
+my %params =
     map  { $_->{name} => $_ }
     grep { $_->{name} }
     @confdef::params;
@@ -57,9 +57,9 @@ our %params =
 my %valid_robot_key_words;
 my %optional_key_words;
 foreach my $hash(@confdef::params){
-    $valid_robot_key_words{$hash->{'name'}} = 1 if ($hash->{'vhost'});    
+    $valid_robot_key_words{$hash->{'name'}} = 1 if ($hash->{'vhost'});
     $valid_robot_key_words{$hash->{'name'}} = 'db' if (defined($hash->{'db'}) and $hash->{'db'} ne 'none');
-    $optional_key_words{$hash->{'name'}} = 1 if ($hash->{'optional'}); 
+    $optional_key_words{$hash->{'name'}} = 1 if ($hash->{'optional'});
 }
 
 my %old_params = (
@@ -99,15 +99,9 @@ my $wwsconf;
 our %Conf = ();
 
 ## Loads and parses the configuration file. Reports errors if any.
-# do not try to load database values if $no_db is set ;
-# do not change gloval hash %Conf if $return_result  is set ;
-# we known that's dirty, this proc should be rewritten without this global var %Conf
 sub load {
     my $config = shift;
     my $no_db = shift;
-    my $return_result = shift;
-
-
     my $line_num = 0;
     my $config_err = 0;
     my($i, %o);
@@ -121,38 +115,29 @@ sub load {
         $line_num++;
         # skip empty or commented lines
         next if (/^\s*$/ || /^[#;]/);
-	    # match "keyword value" pattern
-	    if (/^(\S+)\s+(.+)$/) {
-		my ($keyword, $value) = ($1, $2);
-		$value =~ s/\s*$//;
-		##  'tri' is a synonym for 'sort'
-		## (for compatibilyty with older versions)
-		$keyword = 'sort' if ($keyword eq 'tri');
-		##  'key_password' is a synonym for 'key_passwd'
-		## (for compatibilyty with older versions)
-		$keyword = 'key_passwd' if ($keyword eq 'key_password');
-		## Special case: `command`
-		if ($value =~ /^\`(.*)\`$/) {
-		    $value = qx/$1/;
-		    chomp($value);
-		}
-		if($params{$keyword}{'multiple'} == 1){
-		    if($o{$keyword}) {
-			push @{$o{$keyword}}, [$value, $line_num];
-		    }else{
-			$o{$keyword} = [[$value, $line_num]];
-		    }
-		}else{
-		    $o{$keyword} = [ $value, $line_num ];
-		}
-	    } else {
-		printf STDERR  gettext("Error at line %d: %s\n"), $line_num, $config, $_;
-		$config_err++;
-	    }
+        # match "keyword value" pattern
+        if (/^(\S+)\s+(.+)$/) {
+            my ($keyword, $value) = ($1, $2);
+            $value =~ s/\s*$//;
+            ##  'tri' is a synonyme for 'sort'
+            ## (for compatibily with old versions)
+            $keyword = 'sort' if ($keyword eq 'tri');
+            ##  'key_password' is a synonyme for 'key_passwd'
+            ## (for compatibily with old versions)
+            $keyword = 'key_passwd' if ($keyword eq 'key_password');
+            ## Special case: `command`
+            if ($value =~ /^\`(.*)\`$/) {
+                $value = qx/$1/;
+                chomp($value);
+            }
+            $o{$keyword} = [ $value, $line_num ];
+        } else {
+            printf STDERR
+                gettext("Error at line %d: %s\n"), $line_num, $config, $_;
+            $config_err++;
+        }
     }
     close(IN);
-
-    return (\%o) if ($return_result);
 
     ## Hardcoded values
     foreach my $p (keys %hardcoded_params) {
@@ -231,14 +216,7 @@ sub load {
 	    $config_err++;
 	    next;
 	}
-	if($params{$i}{'multiple'} == 1){
-	    foreach my $instance (@{$o{$i}}){
-		my $instance_value = $instance->[0] || $params{$i}->{'default'};
-		push @{$Conf{$i}}, $instance_value;
-	    }
-	}else{
-	    $Conf{$i} = $o{$i}[0] || $params{$i}->{'default'};
-	}
+	$Conf{$i} = $o{$i}[0] || $params{$i}->{'default'};
     }
 
     ## Some parameters depend on others
@@ -254,22 +232,12 @@ sub load {
     if ($Conf{'lock_method'} eq 'nfs') {
         eval "require File::NFSLock";
         if ($@) {
-            &do_log('err',"Failed to load File::NFSLock perl module ; setting 'lock_method' to 'flock'" );
+            &do_log(
+                'err',
+                "Failed to load File::NFSLock perl module ; setting 'lock_method' to 'flock'"
+            );
             $Conf{'lock_method'} = 'flock';
         }
-    }
-		 
-    ## Some parameters require CPAN modules
-    if ($Conf{'DKIM_feature'} eq 'on') {
-        eval "require Mail::DKIM";
-        if ($@) {
-            &do_log('err', "Failed to load Mail::DKIM perl module ; setting 'DKIM_feature' to 'off'");
-            $Conf{'DKIM_feature'} = 'off';
-        }
-    }
-    unless ($Conf{'DKIM_feature'} eq 'on'){
-	# dkim_signature_apply_ on nothing if DKIM_feature is off
-	$Conf{'dkim_signature_apply_on'} = ['']; # empty array
     }
 
     ## Load charset.conf file if necessary.
@@ -303,16 +271,7 @@ sub load {
 	}
     }
 
-    ## Parsing custom robot parameters.
-    foreach my $robot (keys %{$Conf{'robots'}}) {
-	my $csp_tmp_storage = undef;
-	foreach my $custom_p (@{$Conf{'robots'}{$robot}{'custom_robot_parameter'}}){
-	    if($custom_p =~ /(\S+)\s*\;\s*(.+)/) {
-		$csp_tmp_storage->{$1} = $2;
-	    }
-	}
-	$Conf{'robots'}{$robot}{'custom_robot_parameter'} = $csp_tmp_storage;
-    }
+
 
     my $nrcpt_by_domain =  &load_nrcpt_by_domain ;
     $Conf{'nrcpt_by_domain'} = $nrcpt_by_domain ;
@@ -380,7 +339,7 @@ sub load {
     ## Set Regexp for accepted list suffixes
     if (defined ($Conf{'list_check_suffixes'})) {
 	$Conf{'list_check_regexp'} = $Conf{'list_check_suffixes'};
-	$Conf{'list_check_regexp'} =~ s/[,\s]+/\|/g;
+	$Conf{'list_check_regexp'} =~ s/,/\|/g;
     }
 	
     $Conf{'sympa'} = "$Conf{'email'}\@$Conf{'host'}";
@@ -390,6 +349,9 @@ sub load {
     $Conf{'pictures_url'}  = $Conf{'static_content_url'}.'/pictures/';
     $Conf{'pictures_path'}  = $Conf{'static_content_path'}.'/pictures/';
 	
+
+
+
     return 1;
 }    
 
@@ -462,41 +424,6 @@ sub load_nrcpt_by_domain {
   return ($nrcpt_by_domain);
 }
 
-#load a confif file without any default and inherited property 
-sub load_conf_file {
-
-    my $config_type = shift; #  'robot' or other
-    my $path=shift;
-
-    do_log('info',"load_config_file($config_type,$path)");
-
-    my %thisconf;
-
-    return undef unless (-f $path) ;
-    return undef unless (-r $path) ;
-    return undef unless (open (CONF,$path));
-    while (<CONF>) {
-	next if (/^\s*$/o || /^[\#\;]/o);
-	if (/^\s*(\S+)\s+(.+)\s*$/io) {
-	    my($keyword, $value) = ($1, $2);
-	    $value =~ s/\s*$//;
-	    $keyword = lc($keyword);
-	    
-	    ## Not all parameters should be lowercased
-	    ## We should define which parameter needs to be lowercased
-	    #$value = lc($value) unless ($keyword eq 'title' || $keyword eq 'logo_html_definition' || $keyword eq 'lang');
-
-	    if ($config_type eq 'robot') {
-		unless($valid_robot_key_words{$keyword}) {
-		    printf STDERR "load_config_file robot config: unknown keyword $keyword\n";
-		    next;
-		}
-	    }# elseif(some other config type) { some other check of valid keywords
-	    $thisconf{$keyword} = $value;
-	}
-    }
-    return (\%thisconf);
-}
 
 ## load each virtual robots configuration files
 sub load_robots {
@@ -513,7 +440,7 @@ sub load_robots {
 	printf STDERR "Unable to open directory $Conf{'etc'} for virtual robots config\n" ;
 	return undef;
     }
-    my $exiting = 0;
+    my $exiting = 0 ;
     ## Set the defaults based on sympa.conf and wwsympa.conf first
     foreach my $key (keys %valid_robot_key_words) {
 	if(defined $wwsconf->{$key}){
@@ -522,7 +449,7 @@ sub load_robots {
 	    $robot_conf->{$Conf{'domain'}}{$key} = $Conf{$key};
 	}else{
 	    unless ($optional_key_words{$key}){
-		printf STDERR "Parameter $key seems to be neither a wwsympa.conf nor a sympa.conf parameter.\n" ;
+		printf STDERR "Parameter $key seems to be neither a wwsympa.conf nor a sympa.conf files.\n" ;
 		$exiting = 1;
 	    }
 	}
@@ -544,7 +471,7 @@ sub load_robots {
 	    printf STDERR "load robots config: Unable to open $Conf{'etc'}/$robot/robot.conf\n"; 
 	    next ;
 	}
-
+	
 	while (<ROBOT_CONF>) {
 	    next if (/^\s*$/o || /^[\#\;]/o);
 	    if (/^\s*(\S+)\s+(.+)\s*$/io) {
@@ -557,15 +484,7 @@ sub load_robots {
 		#$value = lc($value) unless ($keyword eq 'title' || $keyword eq 'logo_html_definition' || $keyword eq 'lang');
 
 		if ($valid_robot_key_words{$keyword}) {
-		    if($params{$keyword}{'multiple'} == 1){
-			if($robot_conf->{$robot}{$keyword}) {
-			    push @{$robot_conf->{$robot}{$keyword}}, $value;
-			}else{
-			    $robot_conf->{$robot}{$keyword} = [$value];
-			}
-		    }else{
-			$robot_conf->{$robot}{$keyword} = $value;
-		    }
+		    $robot_conf->{$robot}{$keyword} = $value;
 		    # printf STDERR "load robots config: $keyword = $value\n";
 		}else{
 		    printf STDERR "load robots config: unknown keyword $keyword\n";
@@ -575,7 +494,6 @@ sub load_robots {
 	}
 	# listmaster is a list of email separated by commas
 	$robot_conf->{$robot}{'listmaster'} =~ s/\s//g;
-
 	@{$robot_conf->{$robot}{'listmasters'}} = split(/,/, $robot_conf->{$robot}{'listmaster'})
 	    if $robot_conf->{$robot}{'listmaster'};
 
@@ -584,9 +502,6 @@ sub load_robots {
 
 	$robot_conf->{$robot}{'title'} ||= $wwsconf->{'title'};
 	$robot_conf->{$robot}{'default_home'} ||= $wwsconf->{'default_home'};
-	$robot_conf->{$robot}{'use_html_editor'} ||= $wwsconf->{'use_html_editor'};
-	$robot_conf->{$robot}{'html_editor_file'} ||= $wwsconf->{'html_editor_file'};
-	$robot_conf->{$robot}{'html_editor_init'} ||= $wwsconf->{'html_editor_init'};
 
 	$robot_conf->{$robot}{'lang'} ||= $Conf{'lang'};
 	$robot_conf->{$robot}{'email'} ||= $Conf{'email'};
@@ -602,8 +517,6 @@ sub load_robots {
 
 	$robot_conf->{$robot}{'static_content_url'} ||= $Conf{'static_content_url'};
 	$robot_conf->{$robot}{'static_content_path'} ||= $Conf{'static_content_path'};
-	$robot_conf->{$robot}{'tracking_delivery_status_notification'} ||= $Conf{'tracking_delivery_status_notification'};
-	$robot_conf->{$robot}{'tracking_message_delivery_notification'} ||= $Conf{'tracking_message_delivery_notification'};
 
 	## CSS
 	$robot_conf->{$robot}{'css_url'} ||= $robot_conf->{$robot}{'static_content_url'}.'/css/'.$robot;
@@ -1003,12 +916,11 @@ sub checkfiles {
 	foreach my $css ('style.css','print.css','fullPage.css','print-preview.css') {
 
 	    $param->{'css'} = $css;
-	    my $css_tt2_path = &tools::get_filename('etc',{}, 'web_tt2/css.tt2', $robot, undef);
-	    
+
 	    ## Update the CSS if it is missing or if a new css.tt2 was installed
 	    if (! -f $dir.'/'.$css ||
-		(stat($css_tt2_path))[9] > (stat($dir.'/'.$css))[9]) {
-		&do_log('notice',"TT2 file $css_tt2_path has changed; updating static CSS file $dir/$css ; previous file renamed");
+		(stat(Sympa::Constants::DEFAULTDIR . '/web_tt2/css.tt2'))[9] > (stat($dir.'/'.$css))[9]) {
+		&do_log('notice',"Updating static CSS file $dir/$css ; previous file renamed");
 		
 		## Keep copy of previous file
 		rename $dir.'/'.$css, $dir.'/'.$css.'.'.time;
@@ -1573,53 +1485,6 @@ sub _load_a_param {
 	return \@array;
     }else {
 	return $value;
-    }
-}
-
-# Store configs to database
-sub conf_2_db {
-    my $config_file = shift;
-    do_log('info',"conf_2_db");
-
-    my @conf_parameters = @confdef::params ;
-
-    # store in database robots parameters.
-    my $robots_conf = &load_robots ; #load only parameters that are in a robot.txt file (do not apply defaults). 
-
-    unless (opendir DIR,$Conf{'etc'} ) {
-	printf STDERR "Unable to open directory $Conf{'etc'} for virtual robots config\n" ;
-	return undef;
-    }
-
-    foreach my $robot (readdir(DIR)) {
-	next unless (-d "$Conf{'etc'}/$robot");
-	next unless (-f "$Conf{'etc'}/$robot/robot.conf");
-	
-	my $config = &load_conf_file('robot',$Conf{'etc'}.'/'.$robot.'/robot.txt');
-	
-	for my $i ( 0 .. $#conf_parameters ) {
-	    if ($conf_parameters[$i]->{'name'}) { #skip separators in conf_parameters structure
-		if (($conf_parameters[$i]->{'vhost'} eq '1') && #skip parameters that can't be define by robot so not to be loaded in db at that stage 
-		    ($config->{$conf_parameters[$i]->{'name'}})){
-		    &Conf::set_robot_conf($robot, $conf_parameters[$i]->{'name'}, $config->{$conf_parameters[$i]->{'name'}});
-		}
-	    }
-	}
-    }
-    closedir (DIR);
-
-    # store in database sympa;conf and wwsympa.conf
-    
-    ## Load configuration file. Ignoring database config and get result
-    my $global_conf;
-    unless ($global_conf= Conf::load($config_file,1,'return_result')) {
-	&fatal_err("Configuration file $config_file has errors.");  
-    }
-    
-    for my $i ( 0 .. $#conf_parameters ) {
-	if (($conf_parameters[$i]->{'edit'} eq '1') && $global_conf->{$conf_parameters[$i]->{'name'}}) {
-	    &Conf::set_robot_conf("*",$conf_parameters[$i]->{'name'},$global_conf->{$conf_parameters[$i]->{'name'}}[0]);
-	}       
     }
 }
 
