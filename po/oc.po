@@ -10098,6 +10098,19 @@ msgstr "Copar la recepcion dels messatges (es util pendent las vacanças)"
 msgid "you do not receive your own posts"
 msgstr "per recebre pas los vòstres messatges"
 
+#. (list,host)
+#: ../web_tt2/compose_mail.tt2:10
+msgid ""
+"The best way to post an email to the list is to compose an email to the list "
+"email address <b>%1@%2</b> using your favourite email client. We also "
+"provide a form below to compose an email through the web interface."
+msgstr ""
+
+#. (u_err.status)
+#: ../web_tt2/error.tt2:124
+msgid "Cannot add subscribers when list status is '%1'"
+msgstr ""
+
 #: ../web_tt2/serveradmin.tt2:27
 msgid "Sympa URL:"
 msgstr ""
@@ -10118,6 +10131,52 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
+#~ msgid "Your Lists"
+#~ msgstr "Las tièras vòstras"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Mandadís messatges  : %1"
+
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Es sonque disponible dins lo biais de recepcion estandard"
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "per exemple: 03/05/2006"
+
+#~ msgid "User's Guide"
+#~ msgstr "Guida pels usancièrs"
+
+# nlsref 8,23
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "ATENCION : %1 %2 a pas capitat de se desabonar de la tièra %3\n"
+#~ "(Vos caldriá benlèu ajudar aquela persona)."
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "Moderada, amb confirmacion del moderator"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "Moderada, pels abonats e los moderators"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "reservat als abonats autentificats (verifica la signatura S/MIME)"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "qual se vòl mas amb una autenficacion md5 prealabla"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%d/%m/%Y/%H/%M/%S"
+
 #, fuzzy
 #~ msgid "Listmaster(s):"
 #~ msgstr "Responsable (listmaster)"
@@ -10130,18 +10189,6 @@ msgstr ""
 #, fuzzy
 #~ msgid " to "
 #~ msgstr "al"
-
-#~ msgid "Your Lists"
-#~ msgstr "Las tièras vòstras"
-
-#~ msgid "User's Guide"
-#~ msgstr "Guida pels usancièrs"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "Moderada, amb confirmacion del moderator"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "qual se vòl mas amb una autenficacion md5 prealabla"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

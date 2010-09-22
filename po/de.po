@@ -9526,20 +9526,12 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
-#, fuzzy
-#~ msgid "Listmaster(s):"
-#~ msgstr "listmaster"
-
-#, fuzzy
-#~ msgid "who created the list"
-#~ msgstr "Konfigurationsaktualisierung durchgeführt von"
-
-#, fuzzy
-#~ msgid " to "
-#~ msgstr "an"
-
 #~ msgid "Your Lists"
 #~ msgstr "Ihre Listen"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Nachricht an die Liste senden"
 
 #~ msgid ""
 #~ "The best way to post an email to the list is to compose an email to the "
@@ -9555,14 +9547,56 @@ msgstr ""
 #~ msgstr ""
 #~ "Wenn Listenstatus '%1' ist, können keine Abonnenten hinzugefügt werden"
 
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Nur im \"normalen\" Empfangsmodus möglich"
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "z.B.: 24/05/2006"
+
 #~ msgid "User's Guide"
 #~ msgstr "Benutzerhandbuch"
+
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "WARNUNG: %1 %2 konnte nicht von %3 abgemeldet werden, da seine E-Mail-"
+#~ "Adresse nicht in der Liste gefunden wurde.\n"
+#~ "(Sie könnten dieser Person helfen)."
 
 #~ msgid "Moderated, with editor confirmation"
 #~ msgstr "Moderiert, mit Bestätigung durch Editor"
 
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "Moderiert, für Abonnenten und Moderatoren"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "beschränkt auf Abonnenten mit S/MIME-Signatur"
+
 #~ msgid "anyone with previous md5 authentication"
 #~ msgstr "jeder mit vorheriger md5-Legitimierung"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%Y/%m/%d/%H/%M/%S"
+
+#, fuzzy
+#~ msgid "Listmaster(s):"
+#~ msgstr "listmaster"
+
+#, fuzzy
+#~ msgid "who created the list"
+#~ msgstr "Konfigurationsaktualisierung durchgeführt von"
+
+#, fuzzy
+#~ msgid " to "
+#~ msgstr "an"
 
 #~ msgid "hovered hyperlinks;"
 #~ msgstr "Hyperlinks unter dem Mauszeiger;"

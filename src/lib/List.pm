@@ -21,7 +21,11 @@
 package List;
 
 use strict;
-use POSIX;
+
+use POSIX qw(strftime);
+use Fcntl qw(LOCK_SH LOCK_EX LOCK_NB LOCK_UN);
+use Encode;
+
 use Datasource;
 use SQLSource qw(create_db %date_format);
 use Upgrade;
@@ -31,16 +35,13 @@ use Scenario;
 use Fetch;
 use WebAgent;
 use Exporter;
-# xxxxxxx faut-il virer encode ? Faut en faire un use ? 
-require Encode;
-
 use tt2;
 use Sympa::Constants;
+use tools;
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw(%list_of_lists);
 
-use Fcntl qw(LOCK_SH LOCK_EX LOCK_NB LOCK_UN);
 
 =head1 CONSTRUCTOR
 
@@ -238,6 +239,7 @@ use Ldap;
 use Time::Local;
 use MIME::Entity;
 use MIME::EncWords;
+use MIME::WordDecoder;
 use MIME::Parser;
 use Message;
 use Family;
@@ -269,7 +271,7 @@ my @param_order = qw (subject visibility info subscribe add unsubscribe del owne
 		      send editor editor_include delivery_time account topics 
 		      host lang web_archive archive digest digest_max_size available_user_options 
 		      default_user_options msg_topic msg_topic_keywords_apply_on msg_topic_tagging reply_to_header reply_to forced_reply_to * 
-		      verp_rate tracking welcome_return_path remind_return_path user_data_source include_file include_remote_file 
+		      verp_rate welcome_return_path remind_return_path merge_feature user_data_source include_file include_remote_file 
 		      include_list include_remote_sympa_list include_ldap_query
                       include_ldap_2level_query include_sql_query include_admin ttl distribution_ttl creation update 
 		      status serial custom_attribute);
@@ -432,21 +434,6 @@ my %alias = ('reply-to' => 'reply_to',
 			 'gettext_id' => "Secret string for generating unique keys",
 			 'group' => 'other'
 		     },
-	    'tracking' => {'format' => {'delivery_status_notification' => {'format' => ['on','off'],
-										'default' =>  {'conf' => 'tracking_delivery_status_notification'},
-										'gettext_id' => "tracking message by delivery status notification",
-										'order' => 1
-									   },
-									   								   									   
-									'message_delivery_notification' => {'format' => ['on','on_demand','off'],
-										'default' =>  {'conf' => 'tracking_message_delivery_notification'},
-										'gettext_id' => "tracking message by message delivery notification",
-										'order' => 2
-									   }
-				         },
-					'group' => 'bounces',
-					'gettext_id' => "Message tracking feature"
-					},		
 	    'creation' => {'format' => {'date_epoch' => {'format' => '\d+',
 							 'occurrence' => '1',
 							 'gettext_id' => "epoch date",
@@ -600,6 +587,7 @@ my %alias = ('reply-to' => 'reply_to',
 	    'distribution_ttl' => {'format' => '\d+',
 		      'length' => 6,
 		      'gettext_unit' => 'seconds',
+		      'default' => {'conf' => 'default_distribution_ttl'},
 		      'gettext_id' => "Inclusions timeout for message distribution",
 		      'group' => 'data_source'
 		      },
@@ -1381,7 +1369,7 @@ my %alias = ('reply-to' => 'reply_to',
 	    'ttl' => {'format' => '\d+',
 		      'length' => 6,
 		      'gettext_unit' => 'seconds',
-		      'default' => 3600,
+		      'default' => {'conf' => 'default_ttl'},
 		      'gettext_id' => "Inclusions timeout",
 		      'group' => 'data_source'
 		      },
@@ -1526,6 +1514,7 @@ sub db_disconnect {
 sub db_get_handler {
     do_log('debug3', 'List::db_get_handler');
 
+
     return $dbh;
 }
 
@@ -1656,7 +1645,7 @@ sub set_status_family_closed {
 	
 	my $host = &Conf::get_robot_conf($self->{'robot'}, 'host');	
 	
-	unless ($self->close_list("listmaster\@$host",'family_closed')) {
+	unless ($self->close("listmaster\@$host",'family_closed')) {
 	    &do_log('err','Impossible to set the list %s in status family_closed');
 	    return undef;
 	}
@@ -2653,17 +2642,6 @@ sub distribute_msg {
 
 	$message->{'msg'}->head->add('Subject', $subject_field);
     }
-
-    ## Prepare tracking if list config allow it
-    my $apply_tracking = 'off';
-    
-    $apply_tracking = 'dsn' if ($self->{'admin'}{'tracking'}{'delivery_status_notification'} eq 'on');
-    $apply_tracking = 'mdn' if ($self->{'admin'}{'tracking'}{'message_delivery_notification'} eq 'on');
-    $apply_tracking = 'mdn' if (($self->{'admin'}{'tracking'}{'message_delivery_notification'}  eq 'on_demand') && ($hdr->get('Disposition-Notification-To')));
-
-    if ($apply_tracking ne 'off'){
-	$hdr->delete('Disposition-Notification-To'); # remove notification request becuse a new one will be inserted if needed
-    }
     
     ## Remove unwanted headers if present.
     if ($self->{'admin'}{'remove_headers'}) {
@@ -2759,9 +2737,13 @@ sub distribute_msg {
     }
 
     ## Blindly send the message to all users.
-    my $numsmtp = $self->send_msg('message'=> $message, 'apply_dkim_signature'=>$apply_dkim_signature, 'apply_tracking'=>$apply_tracking);
-
-    $self->savestats() if (defined ($numsmtp));
+    my $numsmtp = $self->send_msg('message'=> $message, 'apply_dkim_signature'=>$apply_dkim_signature);
+    unless (defined ($numsmtp)) {
+	return $numsmtp;
+    }
+    
+    $self->savestats();
+    
     return $numsmtp;
 }
 
@@ -2901,7 +2883,7 @@ sub send_msg_digest {
 	$msg->{'plain_body'} = $mail->PlainDigest::plain_body_as_string();
 	#$msg->{'body'} = $mail->bodyhandle->as_string();
 	chomp $msg->{'from'};
-	$msg->{'month'} = &POSIX::strftime("%Y-%m", localtime(time)); ## Should be extracted from Date:
+	$msg->{'month'} = strftime("%Y-%m", localtime(time)); ## Should be extracted from Date:
 	$msg->{'message_id'} = &tools::clean_msg_id($mail->head->get('Message-Id'));
 	
 	## Clean up Message-ID
@@ -3230,11 +3212,10 @@ sub send_msg {
 
     my $message = $param{'message'};
     my $apply_dkim_signature = $param{'apply_dkim_signature'};
-    my $apply_tracking = $param{'apply_tracking'};
 
     do_log('debug2', 'List::send_msg(filname = %s, smime_crypted = %s,apply_dkim_signature = %s )', $message->{'filename'}, $message->{'smime_crypted'},$apply_dkim_signature);
+    
     my $hdr = $message->{'msg'}->head;
-    my $original_message_id = $hdr->get('Message-Id');
     my $name = $self->{'name'};
     my $robot = $self->{'domain'};
     my $admin = $self->{'admin'};
@@ -3264,88 +3245,90 @@ sub send_msg {
     my $from = $name.&Conf::get_robot_conf($robot, 'return_path_suffix').'@'.$host;
 
     # separate subscribers depending on user reception option and also if verp a dicovered some bounce for them.
-    my (@tabrcpt, @tabrcpt_notice, @tabrcpt_txt, @tabrcpt_html, @tabrcpt_url, @tabrcpt_verp, @tabrcpt_notice_verp, @tabrcpt_txt_verp, @tabrcpt_html_verp, @tabrcpt_url_verp, @tabrcpt_digestplain, @tabrcpt_digest, @tabrcpt_summary, @tabrcpt_nomail, @tabrcpt_digestplain_verp, @tabrcpt_digest_verp, @tabrcpt_summary_verp, @tabrcpt_nomail_verp );
+    my (@tabrcpt, @tabrcpt_notice, @tabrcpt_txt, @tabrcpt_html, @tabrcpt_url, @tabrcpt_verp, @tabrcpt_notice_verp, @tabrcpt_txt_verp, @tabrcpt_html_verp, @tabrcpt_url_verp);
     my $mixed = ($message->{'msg'}->head->get('Content-Type') =~ /multipart\/mixed/i);
     my $alternative = ($message->{'msg'}->head->get('Content-Type') =~ /multipart\/alternative/i);
  
-    for ( my $user = $self->get_first_user(); $user; $user = $self->get_next_user() ){
-	unless ($user->{'email'}) {
-	    &do_log('err','Skipping user with no email address in list %s', $name);
-	    next;
-	}
-	my $options;
-	$options->{'email'} = $user->{'email'};
-	$options->{'name'} = $name;
-	$options->{'domain'} = $host;
-	my $user_data = &get_subscriber_no_object($options);
-	## test to know if the rcpt suspended her subscription for this list
-	## if yes, don't send the message
-	if ($user_data->{'suspend'} eq '1'){
-	    if(($user_data->{'startdate'} <= time) && ((time <= $user_data->{'enddate'}) || (!$user_data->{'enddate'}))){
-		push @tabrcpt_nomail_verp, $user->{'email'}; next;
-	    }elsif(($user_data->{'enddate'} < time) && ($user_data->{'enddate'})){
-		## If end date is < time, update the BDD by deleting the suspending's data
-		&restore_suspended_subscription($user->{'email'},$name,$host);
+    if ( $message->{'msg'}->head->get('X-Sympa-Receipient') ) {
+
+	@tabrcpt = split /,/, $message->{'msg'}->head->get('X-Sympa-Receipient');
+	$message->{'msg'}->head->delete('X-Sympa-Receipient');
+
+    } else {
+	
+	for ( my $user = $self->get_first_user(); $user; $user = $self->get_next_user() ){
+	    unless ($user->{'email'}) {
+		&do_log('err','Skipping user with no email address in list %s', $name);
+		next;
 	    }
-	}
-	if ($user->{'reception'} eq 'digestplain') { # digest digestplain, nomail and summary reception option are initialized for tracking feature only
-	    push @tabrcpt_digestplain_verp, $user->{'email'}; next;
-	}elsif($user->{'reception'} eq 'digest') {
-	    push @tabrcpt_digest_verp, $user->{'email'}; next;
-	}elsif($user->{'reception'} eq 'summary'){
-	    push @tabrcpt_summary_verp, $user->{'email'}; next;
-	}elsif($user->{'reception'} eq 'nomail'){
-	    push @tabrcpt_nomail_verp, $user->{'email'}; next;
-	}elsif ($user->{'reception'} eq 'notice') {
-	    if ($user->{'bounce_address'}) {
-		push @tabrcpt_notice_verp, $user->{'email'}; 
-	    }else{
-		push @tabrcpt_notice, $user->{'email'}; 
+	    my $options;
+	    $options->{'email'} = $user->{'email'};
+	    $options->{'name'} = $name;
+	    $options->{'domain'} = $host;
+	    my $user_data = &get_subscriber_no_object($options);
+	    ## test to know if the rcpt suspended her subscription for this list
+	    ## if yes, don't send the message
+	    if ($user_data->{'suspend'} eq '1'){
+		if(($user_data->{'startdate'} <= time) && ((time <= $user_data->{'enddate'}) || (!$user_data->{'enddate'}))){
+		    next;
+		}elsif(($user_data->{'enddate'} < time) && ($user_data->{'enddate'})){
+		    ## If end date is < time, update the BDD by deleting the suspending's data
+		    &restore_suspended_subscription($user->{'email'},$name,$host);
+		}
 	    }
-	}elsif ($alternative and ($user->{'reception'} eq 'txt')) {
-	    if ($user->{'bounce_address'}) {
-		push @tabrcpt_txt_verp, $user->{'email'};
-	    }else{
-		push @tabrcpt_txt, $user->{'email'};
-	    }
-	}elsif ($alternative and ($user->{'reception'} eq 'html')) {
-	    if ($user->{'bounce_address'}) {
-		push @tabrcpt_html_verp, $user->{'email'};
-	    }else{
+	    if ($user->{'reception'} =~ /^(digest|digestplain|summary|nomail)$/i) {
+		next;
+	    } elsif ($user->{'reception'} eq 'notice') {
+		if ($user->{'bounce_address'}) {
+		    push @tabrcpt_notice_verp, $user->{'email'}; 
+		}else{
+		    push @tabrcpt_notice, $user->{'email'}; 
+		}
+	    } elsif ($alternative and ($user->{'reception'} eq 'txt')) {
+		if ($user->{'bounce_address'}) {
+		    push @tabrcpt_txt_verp, $user->{'email'};
+		}else{
+		    push @tabrcpt_txt, $user->{'email'};
+		}
+	    } elsif ($alternative and ($user->{'reception'} eq 'html')) {
 		if ($user->{'bounce_address'}) {
 		    push @tabrcpt_html_verp, $user->{'email'};
 		}else{
-		    push @tabrcpt_html, $user->{'email'};
-		}    
-	    }
-	}elsif ($mixed and ($user->{'reception'} eq 'urlize')) {
-	    if ($user->{'bounce_address'}) {
-		push @tabrcpt_url_verp, $user->{'email'};
+		    if ($user->{'bounce_address'}) {
+			push @tabrcpt_html_verp, $user->{'email'};
+		    }else{
+			push @tabrcpt_html, $user->{'email'};
+		    }
+		}
+	    } elsif ($mixed and ($user->{'reception'} eq 'urlize')) {
+		if ($user->{'bounce_address'}) {
+		    push @tabrcpt_url_verp, $user->{'email'};
+		}else{
+		    push @tabrcpt_url, $user->{'email'};
+		}
+	    } elsif ($message->{'smime_crypted'} && 
+		     (! -r $Conf::Conf{'ssl_cert_dir'}.'/'.&tools::escape_chars($user->{'email'}) &&
+		      ! -r $Conf::Conf{'ssl_cert_dir'}.'/'.&tools::escape_chars($user->{'email'}.'@enc' ))) {
+		## Missing User certificate
+		unless ($self->send_file('x509-user-cert-missing', $user->{'email'}, $robot, {'mail' => {'subject' => $message->{'msg'}->head->get('Subject'),
+													 'sender' => $message->{'msg'}->head->get('From')},
+											      'auto_submitted' => 'auto-generated'})) {
+		    &do_log('notice',"Unable to send template 'x509-user-cert-missing' to $user->{'email'}");
+		}
 	    }else{
-		push @tabrcpt_url, $user->{'email'};
-	    }
-	}elsif ($message->{'smime_crypted'} && 
-		 (! -r $Conf::Conf{'ssl_cert_dir'}.'/'.&tools::escape_chars($user->{'email'}) &&
-		  ! -r $Conf::Conf{'ssl_cert_dir'}.'/'.&tools::escape_chars($user->{'email'}.'@enc' ))) {
-	    ## Missing User certificate
-	    unless ($self->send_file('x509-user-cert-missing', $user->{'email'}, $robot, {'mail' => {'subject' => $message->{'msg'}->head->get('Subject'),
-												     'sender' => $message->{'msg'}->head->get('From')},
-											  'auto_submitted' => 'auto-generated'})) {
-	    &do_log('notice',"Unable to send template 'x509-user-cert-missing' to $user->{'email'}");
-	    }
-	}else{
-	    if ($user->{'bounce_score'}) {
-		push @tabrcpt_verp, $user->{'email'} unless ($sender_hash{$user->{'email'}})&&($user->{'reception'} eq 'not_me');
-	    }else{	    
-		push @tabrcpt, $user->{'email'} unless ($sender_hash{$user->{'email'}})&&($user->{'reception'} eq 'not_me');}
+		if ($user->{'bounce_address'}) {
+		    push @tabrcpt_verp, $user->{'email'} unless ($sender_hash{$user->{'email'}})&&($user->{'reception'} eq 'not_me');
+		}else{	    
+		    push @tabrcpt, $user->{'email'} unless ($sender_hash{$user->{'email'}})&&($user->{'reception'} eq 'not_me');}
 	    }	    
+	}
     }
 
+    ## sa  return 0  = Pb  ?
     unless (@tabrcpt || @tabrcpt_notice || @tabrcpt_txt || @tabrcpt_html || @tabrcpt_url || @tabrcpt_verp || @tabrcpt_notice_verp || @tabrcpt_txt_verp || @tabrcpt_html_verp || @tabrcpt_url_verp) {
 	&do_log('info', 'No subscriber for sending msg in list %s', $name);
 	return 0;
     }
-
     #save the message before modifying it
     my $saved_msg = $message->{'msg'}->dup;
     my $nbr_smtp = 0;
@@ -3353,9 +3336,8 @@ sub send_msg {
 
     # prepare verp parameter
     my $verp_rate =  $self->{'admin'}{'verp_rate'};
-    $verp_rate = '100%' if (($apply_tracking eq 'dsn')||($apply_tracking eq 'mdn')); # force verp if tracking is requested.  
-
     my $xsequence =  $self->{'stats'}->[0] ;
+
     my $tags_to_use;
 
     # Define messages which can be tagged as first or last according to the verp rate.
@@ -3374,14 +3356,14 @@ sub send_msg {
     if ($apply_dkim_signature eq 'on') {
 	$dkim_parameters = &tools::get_dkim_parameters({'robot'=>$self->{'domain'}, 'listname'=>$self->{'name'}});
     }
+
     ## Storing the not empty subscribers' arrays into a hash.
     my $available_rcpt;
     my $available_verp_rcpt;
 
-
     if (@tabrcpt) {
 	$available_rcpt->{'tabrcpt'} = \@tabrcpt;
-	$available_verp_rcpt->{'tabrcpt'} = \@tabrcpt_verp;	
+	$available_verp_rcpt->{'tabrcpt'} = \@tabrcpt_verp;
     }
     if (@tabrcpt_notice) {
 	$available_rcpt->{'tabrcpt_notice'} = \@tabrcpt_notice;
@@ -3399,31 +3381,11 @@ sub send_msg {
 	$available_rcpt->{'tabrcpt_url'} = \@tabrcpt_url;
 	$available_verp_rcpt->{'tabrcpt_url'} = \@tabrcpt_url_verp;
     }
-    if (@tabrcpt_digestplain_verp)  {
-	$available_rcpt->{'tabrcpt_digestplain'} = \@tabrcpt_digestplain;
-	$available_verp_rcpt->{'tabrcpt_digestplain'} = \@tabrcpt_digestplain_verp;
-    }
-    if (@tabrcpt_digest_verp) {
-	$available_rcpt->{'tabrcpt_digest'} = \@tabrcpt_digest;
-	$available_verp_rcpt->{'tabrcpt_digest'} = \@tabrcpt_digest_verp;
-    }
-    if (@tabrcpt_summary_verp) {
-	$available_rcpt->{'tabrcpt_summary'} = \@tabrcpt_summary;
-	$available_verp_rcpt->{'tabrcpt_summary'} = \@tabrcpt_summary_verp;
-    }
-    if (@tabrcpt_nomail_verp) {
-	$available_rcpt->{'tabrcpt_nomail'} = \@tabrcpt_nomail;
-	$available_verp_rcpt->{'tabrcpt_nomail'} = \@tabrcpt_nomail_verp;
-    }
+
     foreach my $array_name (keys %$available_rcpt) {
-	my $reception_option ;	 
-	if ($array_name =~ /^tabrcpt_((nomail)|(summary)|(digest)|(digestplain)|(url)|(htlm)|(txt)|(notice))?(_verp)?/) {
-	    $reception_option =  $1;	    
-	    $reception_option = 'mail' unless $reception_option ;
-	}
 	my $new_message;
 	##Prepare message for normal reception mode
-	if (($array_name eq 'tabrcpt')||($array_name eq 'tabrcpt_nomail')||($array_name eq 'summary')||($array_name eq 'digest')||($array_name eq 'digestplain')){
+	if ($array_name eq 'tabrcpt') {
 	    ## Add a footer
 	    unless ($message->{'protected'}) {
 		my $new_msg = $self->add_parts($message->{'msg'});
@@ -3521,20 +3483,15 @@ sub send_msg {
 	    @selected_tabrcpt = @{$available_rcpt->{$array_name}};
 	    @possible_verptabrcpt = @{$available_verp_rcpt->{$array_name}};
 	}
-	
-	if ($array_name =~ /^tabrcpt_((nomail)|(summary)|(digest)|(digestplain)|(url)|(htlm)|(txt)|(notice)|())(_verp)+/) {
-	    my $reception_option =  $1;
-	    
-	    $reception_option = 'mail' unless $reception_option ;
-	}
-	
+
 	## Preparing VERP receipients.
 	my @verp_selected_tabrcpt = &extract_verp_rcpt($verp_rate, $xsequence,\@selected_tabrcpt, \@possible_verptabrcpt);
-	my $verp= 'off';		
+	
+	## Sending non VERP.
 	my $result = &mail::mail_message('message'=>$new_message, 
 					 'rcpt'=> \@selected_tabrcpt, 
 					 'list'=>$self, 
-					 'verp' => $verp,					 
+					 'verp' => 'off', 
 					 'dkim_parameters'=>$dkim_parameters,
 					 'tag_as_last' => $tags_to_use->{'tag_noverp'});
 	unless (defined $result) {
@@ -3544,28 +3501,11 @@ sub send_msg {
 	$tags_to_use->{'tag_noverp'} = 0 if ($result > 0);
 	$nbr_smtp += $result;
 	
-	$verp= 'on';
-
-	if (($apply_tracking eq 'dsn')||($apply_tracking eq 'mdn')){
-	    $verp = $apply_tracking ;
-	    &tracking::db_init_notification_table('listname'=> $self->{'name'},
-						  'robot'=> $robot,
-						  'msgid' => $original_message_id, # what ever the message is transformed because of the reception option, tracking use the original message id
-						  'rcpt'=> \@verp_selected_tabrcpt, 
-						  'reception_option' => $reception_option,
-						  );
-	    
-	}	
-
-	#  ignore those reception option where mail must not ne sent
-        #  next if  (($array_name eq 'tabrcpt_digest') or ($array_name eq 'tabrcpt_digestlplain') or ($array_name eq 'tabrcpt_summary') or ($array_name eq 'tabrcpt_nomail')) ;
-	next if  ($array_name =~ /^tabrcpt_((nomail)|(summary)|(digest)|(digestplain))(_verp)?/);
-	
-	## prepare VERP sending.
+	## Sending VERP.
 	$result = &mail::mail_message('message'=> $new_message, 
 				      'rcpt'=> \@verp_selected_tabrcpt, 
 				      'list'=> $self,
-				      'verp' => $verp,
+				      'verp' => 'on',
 				      'dkim_parameters'=>$dkim_parameters,
 				      'tag_as_last' => $tags_to_use->{'tag_verp'});
 	unless (defined $result) {
@@ -3576,6 +3516,7 @@ sub send_msg {
 	$nbr_smtp += $result;
 	$nbr_verp += $result;	
     }
+
     return $nbr_smtp;
 }
 
@@ -3666,8 +3607,6 @@ sub send_to_editor {
    
    my $hdr = $message->{'msg'}->head;
 
-&do_log('notice', 'LIST::send_to_editor DO MESSAGE6 HEADER : %s', $hdr->as_string());
-
    ## Did we find a recipient?
    if ($#rcpt < 0) {
        &do_log('notice', "No editor found for list %s. Trying to proceed ignoring nomail option", $self->{'name'});
@@ -3705,7 +3644,7 @@ sub send_to_editor {
 	   my $cryptedmsg = &tools::smime_encrypt($msg->head, $msg->body_as_string, $recipient); 
 	   unless ($cryptedmsg) {
 	       &do_log('notice', 'Failed encrypted message for moderator');
-	       #  send a generic error message : X509 cert missing
+	       # xxxx send a generic error message : X509 cert missing
 	       return undef;
 	   }
 
@@ -4691,8 +4630,6 @@ sub delete_user {
     my %param = @_;
     my @u = @{$param{'users'}};
     my $exclude = $param{'exclude'};
-    my $parameter = $param{'parameter'};#case of deleting : bounce? manual signoff or deleted by admin?
-    my $daemon_name = $param{'daemon'};
     &do_log('debug2', 'List::delete_user');
 
     my $name = $self->{'name'};
@@ -4727,11 +4664,7 @@ sub delete_user {
 	unless ($dbh->do($statement)) {
 	    do_log('err','Unable to execute SQL statement %s : %s', $statement, $dbh->errstr);
 	    next;
-	}
-	
-	#log in stat_table to make statistics
-	&Log::db_stat_log({'robot' => $self->{'domain'}, 'list' => $name, 'operation' => 'del subscriber', 'parameter' => $parameter
-			       , 'mail' => $who, 'client' => '', 'daemon' => $daemon_name});
+	}   
 	
 	$total--;
     }
@@ -4740,7 +4673,6 @@ sub delete_user {
     $self->savestats();
     &delete_user_picture($self,shift(@u));
     return (-1 * $total);
-
 }
 
 
@@ -5185,8 +5117,8 @@ sub get_subscriber {
     my $update_field = sprintf $date_format{'read'}{$Conf::Conf{'db_type'}}, 'update_subscriber', 'update_subscriber';	
     
     ## Use session cache
-    if (defined $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$email}) {
-	return $list_cache{'get_subscriber'}{$self->{'domain'}}{$name}{$email};
+    if (defined $list_cache{'get_subscriber'}{$self->{'domain'}}{$self->{'name'}}{$email}) {
+	return $list_cache{'get_subscriber'}{$self->{'domain'}}{$self->{'name'}}{$email};
     }
 
     my $options;
@@ -5669,7 +5601,7 @@ sub get_first_user {
 	
 	## SORT BY
 	if ($sortby eq 'domain') {
-	    $statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\",bounce_address_subscriber \"bounce_address\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", custom_attribute_subscriber \"custom_attribute\", substr(user_subscriber,instr(user_subscriber,'\@')+1) \"dom\",suspend_subscriber \"suspend\", suspend_start_date_subscriber \"startdate\", suspend_end_date_subscriber \"enddate\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY \"dom\"", 
+	    $statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\",bounce_address_subscriber \"bounce_address\", %s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", custom_attribute_subscriber \"custom_attribute\", substr(user_subscriber,instr(user_subscriber,'\@')+1) \"dom\",suspend_subscriber \"suspend\", suspend_start_date_subscriber \"startdate\", suspend_end_date_subscriber \"enddate\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY dom", 
 	    $date_field, 
 	    $update_field, 
 	    $additional, 
@@ -5677,16 +5609,16 @@ sub get_first_user {
 	    $dbh->quote($self->{'domain'});
 	    
 	}elsif ($sortby eq 'email') {
-	    $statement .= " ORDER BY \"email\"";
+	    $statement .= " ORDER BY email";
 	    
 	}elsif ($sortby eq 'date') {
-	    $statement .= " ORDER BY \"date\" DESC";
+	    $statement .= " ORDER BY date DESC";
 	    
 	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+	    $statement .= " ORDER BY subscribed DESC,id";
 	    
 	}elsif ($sortby eq 'name') {
-	    $statement .= " ORDER BY \"gecos\"";
+	    $statement .= " ORDER BY gecos";
 	} 
 	
 	## Sybase
@@ -5702,7 +5634,7 @@ sub get_first_user {
 	
 	## SORT BY
 	if ($sortby eq 'domain') {
-	    $statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\",  bounce_address_subscriber \"bounce_address\",%s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", custom_attribute_subscriber \"custom_attribute\", substring(user_subscriber,charindex('\@',user_subscriber)+1,100) \"dom\",suspend_subscriber \"suspend\", suspend_start_date_subscriber \"startdate\", suspend_end_date_subscriber \"enddate\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY \"dom\"", 
+	    $statement = sprintf "SELECT user_subscriber \"email\", comment_subscriber \"gecos\", reception_subscriber \"reception\", topics_subscriber \"topics\", visibility_subscriber \"visibility\", bounce_subscriber \"bounce\", bounce_score_subscriber \"bounce_score\",  bounce_address_subscriber \"bounce_address\",%s \"date\", %s \"update_date\", subscribed_subscriber \"subscribed\", included_subscriber \"included\", include_sources_subscriber \"id\", custom_attribute_subscriber \"custom_attribute\", substring(user_subscriber,charindex('\@',user_subscriber)+1,100) \"dom\",suspend_subscriber \"suspend\", suspend_start_date_subscriber \"startdate\", suspend_end_date_subscriber \"enddate\" %s FROM subscriber_table WHERE (list_subscriber = %s AND robot_subscriber = %s) ORDER BY dom", 
 	    $date_field, 
 	    $update_field, 
 	    $additional, 
@@ -5710,16 +5642,16 @@ sub get_first_user {
 	    $dbh->quote($self->{'domain'});
 	    
 	}elsif ($sortby eq 'email') {
-	    $statement .= " ORDER BY \"email\"";
+	    $statement .= " ORDER BY email";
 	    
 	}elsif ($sortby eq 'date') {
-	    $statement .= " ORDER BY \"date\" DESC";
+	    $statement .= " ORDER BY date DESC";
 	    
 	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+	    $statement .= " ORDER BY subscribed DESC,id";
 	    
 	}elsif ($sortby eq 'name') {
-	    $statement .= " ORDER BY \"gecos\"";
+	    $statement .= " ORDER BY gecos";
 	}
 	
 	
@@ -5753,7 +5685,7 @@ sub get_first_user {
 	    $statement .= ' ORDER BY date DESC';
 	    
 	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+	    $statement .= " ORDER BY subscribed DESC,id";
 	    
 	}elsif ($sortby eq 'name') {
 	    $statement .= ' ORDER BY gecos';
@@ -5794,7 +5726,7 @@ sub get_first_user {
 	    $statement .= ' ORDER BY date DESC';
 	    
 	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+	    $statement .= " ORDER BY subscribed DESC,id";
 	    
 	}elsif ($sortby eq 'name') {
 	    $statement .= ' ORDER BY gecos';
@@ -5834,7 +5766,7 @@ sub get_first_user {
 	    $statement .= ' ORDER BY date DESC';
 	    
 	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+	    $statement .= " ORDER BY subscribed DESC,id";
 	    
 	}elsif ($sortby eq 'name') {
 	    $statement .= ' ORDER BY gecos';
@@ -6011,7 +5943,7 @@ sub get_first_admin_user {
 	
 	## SORT BY
 	if ($sortby eq 'domain') {
-	    $statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", visibility_admin \"visibility\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\", substr(user_admin,instr(user_admin,'\@')+1) \"dom\"  FROM admin_table WHERE (list_admin = %s AND robot_admin = %s AND role_admin = %s ) ORDER BY \"dom\"", 
+	    $statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", visibility_admin \"visibility\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\", substr(user_admin,instr(user_admin,'\@')+1) \"dom\"  FROM admin_table WHERE (list_admin = %s AND robot_admin = %s AND role_admin = %s ) ORDER BY dom", 
 	    $date_field, 
 	    $update_field, 
 	    $dbh->quote($name), 
@@ -6019,16 +5951,16 @@ sub get_first_admin_user {
 	    $dbh->quote($role);
 	    
 	}elsif ($sortby eq 'email') {
-	    $statement .= " ORDER BY \"email\"";
+	    $statement .= " ORDER BY email";
 	    
 	}elsif ($sortby eq 'date') {
-	    $statement .= " ORDER BY \"date\" DESC";
+	    $statement .= " ORDER BY date DESC";
 	    
 	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+	    $statement .= " ORDER BY subscribed DESC,id";
 	    
 	}elsif ($sortby eq 'name') {
-	    $statement .= " ORDER BY \"gecos\"";
+	    $statement .= " ORDER BY gecos";
 	} 
 	
 	## Sybase
@@ -6043,7 +5975,7 @@ sub get_first_admin_user {
 	$dbh->quote($role);
 	## SORT BY
 	if ($sortby eq 'domain') {
-	    $statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", visibility_admin \"visibility\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\", substring(user_admin,charindex('\@',user_admin)+1,100) \"dom\" FROM admin_table WHERE (list_admin = %s  AND robot_admin = %s AND role_admin = %s) ORDER BY \"dom\"", 
+	    $statement = sprintf "SELECT user_admin \"email\", comment_admin \"gecos\", reception_admin \"reception\", visibility_admin \"visibility\", %s \"date\", %s \"update_date\", info_admin \"info\", profile_admin \"profile\", subscribed_admin \"subscribed\", included_admin \"included\", include_sources_admin \"id\", substring(user_admin,charindex('\@',user_admin)+1,100) \"dom\" FROM admin_table WHERE (list_admin = %s  AND robot_admin = %s AND role_admin = %s) ORDER BY dom", 
 	    $date_field, 
 	    $update_field, 
 	    $dbh->quote($name), 
@@ -6051,16 +5983,16 @@ sub get_first_admin_user {
 	    $dbh->quote($role);
 	    
 	}elsif ($sortby eq 'email') {
-	    $statement .= " ORDER BY \"email\"";
+	    $statement .= " ORDER BY email";
 	    
 	}elsif ($sortby eq 'date') {
-	    $statement .= " ORDER BY \"date\" DESC";
+	    $statement .= " ORDER BY date DESC";
 	    
 	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+	    $statement .= " ORDER BY subscribed DESC,id";
 	    
 	}elsif ($sortby eq 'name') {
-	    $statement .= " ORDER BY \"gecos\"";
+	    $statement .= " ORDER BY gecos";
 	}
 	
 	
@@ -6094,7 +6026,7 @@ sub get_first_admin_user {
 	    $statement .= ' ORDER BY date DESC';
 	    
 	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+	    $statement .= " ORDER BY subscribed DESC,id";
 	    
 	}elsif ($sortby eq 'name') {
 	    $statement .= ' ORDER BY gecos';
@@ -6135,7 +6067,7 @@ sub get_first_admin_user {
 	    $statement .= ' ORDER BY date DESC';
 	    
 	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+	    $statement .= " ORDER BY subscribed DESC,id";
 	    
 	}elsif ($sortby eq 'name') {
 	    $statement .= ' ORDER BY gecos';
@@ -6175,7 +6107,7 @@ sub get_first_admin_user {
 	    $statement .= ' ORDER BY date DESC';
 	    
 	}elsif ($sortby eq 'sources') {
-	    $statement .= " ORDER BY \"subscribed\" DESC,\"id\"";
+	    $statement .= " ORDER BY subscribed DESC,id";
 	    
 	}elsif ($sortby eq 'email') {
 	    $statement .= ' ORDER BY gecos';
@@ -7023,7 +6955,7 @@ sub add_user_db {
 
 ## Adds a new user, no overwrite.
 sub add_user {
-    my($self, @new_users, $daemon) = @_;
+    my($self, @new_users) = @_;
     &do_log('debug2', 'List::add_user');
     
     my $name = $self->{'name'};
@@ -7083,10 +7015,6 @@ sub add_user {
 	
 	$new_user->{'subscribed'} ||= 0;
 	$new_user->{'included'} ||= 0;
-
-	#Log in stat_table to make staistics
-	&Log::db_stat_log({'robot' => $self->{'domain'}, 'list' => $self->{'name'}, 'operation' =>'add subscriber', 'parameter' => '', 'mail' => $new_user->{'email'},
-		       'client' => '', 'daemon' => $daemon});
 	
 	## Update Subscriber Table
 	$statement = sprintf "INSERT INTO subscriber_table (user_subscriber, comment_subscriber, list_subscriber, robot_subscriber, date_subscriber, update_subscriber, reception_subscriber, topics_subscriber, visibility_subscriber,subscribed_subscriber,included_subscriber,include_sources_subscriber,custom_attribute_subscriber,suspend_subscriber,suspend_start_date_subscriber,suspend_end_date_subscriber) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
@@ -8266,7 +8194,7 @@ sub _include_users_remote_file {
     ## Reset http credentials
     &WebAgent::set_basic_credentials('','');
 
-    do_log('info',"include %d users from remote file %s",$total,$url);
+    do_log('info',"include %d new subscribers from remote file %s",$total,$url);
     return $total ;
 }
 
@@ -9196,7 +9124,7 @@ sub sync_include {
 	## If include sources were not available, do not update subscribers
 	## Use DB cache instead and warn the listmaster.
 	if($#errors > -1) {
-	    &do_log('err', 'Errors occurred while synchronizing datasources for list %s', $name);
+	    &do_log('err', 'Errors occurred while synchornizing datasources for list: %s', $name);
 	    $errors_occurred = 1;
 	    unless (&List::send_notify_to_listmaster('sync_include_failed', $self->{'domain'}, {'errors' => \@errors, 'listname' => $self->{'name'}})) {
 		&do_log('notice',"Unable to send notify 'sync_include_failed' to listmaster");
@@ -9230,48 +9158,6 @@ sub sync_include {
     $lock->set_timeout(10*60); 
     unless ($lock->lock('write')) {
 	return undef;
-    }
-
-    ## Go though previous list of users
-    my $users_removed = 0;
-    my $user_removed;
-    my @deltab;
-    foreach my $email (keys %old_subscribers) {
-	unless( defined($new_subscribers->{$email}) ) {
-	    ## User is also subscribed, update DB entry
-	    if ($old_subscribers{$email}{'subscribed'}) {
-		&do_log('debug', 'List:sync_include: updating %s to list %s', $email, $name);
-		unless( $self->update_user($email,  {'update_date' => time,
-						     'included' => 0,
-						     'id' => ''}) ) {
-		    &do_log('err', 'List:sync_include(%s): Failed to update %s',  $name, $email);
-		    next;
-		}
-		
-		$users_updated++;
-
-		## Tag user for deletion
-	    }else {
-		&do_log('debug3', 'List:sync_include: removing %s from list %s', $email, $name);
-		@deltab = ($email);
-		unless($user_removed = $self->delete_user('users' => \@deltab)) {
-		    &do_log('err', 'List:sync_include(%s): Failed to delete %s', $name, $user_removed);
-		    return undef;
-		}
-		if ($user_removed) {
-		    $users_removed++;
-		    ## Send notification if the list config authorizes it only.
-		    if ($self->{'admin'}{'inclusion_notification_feature'} eq 'on') {
-			unless ($self->send_file('removed', $email, $self->{'domain'},{})) {
-			    &do_log('err',"Unable to send template 'removed' to $email");
-			}
-		    }
-		}
-	    }
-	}
-    }
-    if ($users_removed > 0) {
-	&do_log('notice', 'List:sync_include(%s): %d users removed', $name, $users_removed);
     }
 
     ## Go through new users
@@ -9348,6 +9234,47 @@ sub sync_include {
         &do_log('notice', 'List:sync_include(%s): %d users added', $name, $users_added);
     }
 
+    ## Go though previous list of users
+    my $users_removed = 0;
+    my $user_removed;
+    my @deltab;
+    foreach my $email (keys %old_subscribers) {
+	unless( defined($new_subscribers->{$email}) ) {
+	    ## User is also subscribed, update DB entry
+	    if ($old_subscribers{$email}{'subscribed'}) {
+		&do_log('debug', 'List:sync_include: updating %s to list %s', $email, $name);
+		unless( $self->update_user($email,  {'update_date' => time,
+						     'included' => 0,
+						     'id' => ''}) ) {
+		    &do_log('err', 'List:sync_include(%s): Failed to update %s',  $name, $email);
+		    next;
+		}
+		
+		$users_updated++;
+
+		## Tag user for deletion
+	    }else {
+		&do_log('debug3', 'List:sync_include: removing %s from list %s', $email, $name);
+		@deltab = ($email);
+		unless($user_removed = $self->delete_user('users' => \@deltab)) {
+		    &do_log('err', 'List:sync_include(%s): Failed to delete %s', $name, $user_removed);
+		    return undef;
+		}
+		if ($user_removed) {
+		    $users_removed++;
+		    ## Send notification if the list config authorizes it only.
+		    if ($self->{'admin'}{'inclusion_notification_feature'} eq 'on') {
+			unless ($self->send_file('removed', $email, $self->{'domain'},{})) {
+			    &do_log('err',"Unable to send template 'removed' to $email");
+			}
+		    }
+		}
+	    }
+	}
+    }
+    if ($users_removed > 0) {
+	&do_log('notice', 'List:sync_include(%s): %d users removed', $name, $users_removed);
+    }
     &do_log('notice', 'List:sync_include(%s): %d users updated', $name, $users_updated);
 
     ## Release lock
@@ -9823,7 +9750,7 @@ sub store_digest {
     if ($newfile) {
 	## create header
 	printf OUT "\nThis digest for list has been created on %s\n\n",
-      POSIX::strftime("%a %b %e %H:%M:%S %Y", @now);
+      strftime("%a %b %e %H:%M:%S %Y", @now);
 	print OUT "------- THIS IS A RFC934 COMPLIANT DIGEST, YOU CAN BURST IT -------\n\n";
 	printf OUT "\n%s\n\n", &tools::get_separator();
 
@@ -11973,7 +11900,11 @@ sub search_datasource {
 	## Go through sources
 	foreach my $s (@{$self->{'admin'}{$p}}) {
 	    if (&Datasource::_get_datasource_id($s) eq $id) {
-		return {'type' => $p, 'def' => $s};
+		if (ref($s)) {
+ 		    return $s->{'name'} || $s->{'host'};
+		}else{
+		    return $s;
+		}
 	    }
 	}
     }
@@ -11994,14 +11925,7 @@ sub get_datasource_name {
     foreach my $id (@ids) {
 	## User may come twice from the same datasource
 	unless (defined ($sources{$id})) {
-	    my $datasource = $self->search_datasource($id);
-	    if (defined $datasource) {
-		if (ref($datasource->{'def'})) {
-		    $sources{$id} = $datasource->{'def'}{'name'} || $datasource->{'def'}{'host'};
-		}else {
-		    $sources{$id} = $datasource->{'def'};
-		}
-	    }
+	    $sources{$id} = $self->search_datasource($id);
 	}
     }
     
@@ -12034,7 +11958,7 @@ sub remove_task {
 }
 
 ## Close the list (remove from DB, remove aliases, change status to 'closed' or 'family_closed')
-sub close_list {
+sub close {
     my ($self, $email, $status) = @_;
 
     return undef 
@@ -12078,12 +12002,7 @@ sub close_list {
     $self->save_config($email);
     $self->savestats();
     
-    $self->remove_aliases();   
-
-    #log in stat_table to make staistics
-    &Log::db_stat_log({'robot' => $self->{'domain'}, 'list' => $self->{'name'}, 'operation' => 'close_list','parameter' => '', 
-		       'mail' => $email, 'client' => '', 'daemon' => 'damon_name'});
-		       
+    $self->remove_aliases();    
     
     return 1;
 }
@@ -12102,7 +12021,7 @@ sub purge {
     }
     
     ## Close the list first, just in case...
-    $self->close_list();
+    $self->close();
 
     if ($self->{'name'}) {
 	my $arc_dir = &Conf::get_robot_conf($self->{'domain'},'arc_path');
@@ -12111,10 +12030,6 @@ sub purge {
     }
 
     &tools::remove_dir($self->{'dir'});
-
-    #log ind stat table to make statistics
-    &Log::db_stat_log({'robot' => $self->{'domain'}, 'list' => $self->{'name'}, 'operation' => 'purge list', 'parameter' => '',
-		       'mail' => $email, 'client' => '', 'daemon' => 'daemon_name'});
     
     return 1;
 }
@@ -12268,86 +12183,6 @@ sub get_list_id {
     return $self->{'name'}.'@'.$self->{'domain'};
 }
 
-##connect to stat_counter_table and extract data.
-sub get_data {
-    my ($data, $robotname, $listname) = @_;
-
-    my $statement;
-    #my $data; # the hash containing aggregated data that the sub deal_data will return.
-    
-    ## Check database connection
-    unless ($dbh and $dbh->ping) {
-	return undef unless &db_connect();
-    }	   
-
-    $statement = sprintf "SELECT * FROM stat_counter_table WHERE data_counter = '%s' AND robot_counter = '%s' AND list_counter = '%s'", $data,$robotname, $listname;
-
-    my $sth = $dbh->prepare($statement);
-    
-    unless($sth->execute){
-	&do_log('err','Unable to execute statement %s',$statement);
-	return undef;
-    }
-    my $res = $sth->fetchall_hashref('id_counter');
-    return $res;
-}
-
-    
-
-    
-
 ###### END of the List package ######
 
-## This package handles Sympa virtual robots
-## It should :
-##   * provide access to global conf parameters,
-##   * deliver the list of lists
-##   * determine the current robot, given a host
-package Robot;
-
-use Conf;
-
-## Constructor of a Robot instance
-sub new {
-    my($pkg, $name) = @_;
-
-    my $robot = {'name' => $name};
-    &Log::do_log('debug2', '');
-    
-    unless (defined $name && $Conf::Conf{'robots'}{$name}) {
-	&Log::do_log('err',"Unknown robot '$name'");
-	return undef;
-    }
-
-    ## The default robot
-    if ($name eq $Conf::Conf{'host'}) {
-	$robot->{'home'} = $Conf::Conf{'home'};
-    }else {
-	$robot->{'home'} = $Conf::Conf{'home'}.'/'.$name;
-	unless (-d $robot->{'home'}) {
-	    &Log::do_log('err', "Missing directory '$robot->{'home'}' for robot '$name'");
-	    return undef;
-	}
-    }
-
-    ## Initialize internal list cache
-    undef %list_cache;
-
-    # create a new Robot object
-    bless $robot, $pkg;
-
-    return $robot;
-}
-
-## load all lists belonging to this robot
-sub get_lists {
-    my $self = shift;
-
-    return &List::get_lists($self->{'name'});
-}
-
-
-###### END of the Robot package ######
-
-## Packages must return true.
 1;

@@ -662,7 +662,7 @@ sub closeList {
 	 &Log::do_log('info','do_close_list: closing a pending list makes it purged');
 	 $list->purge($sender);
      }else{
-	 $list->close_list($sender);
+	 $list->close($sender);
 	 &Log::do_log('info','do_close_list: list %s closed',$listname);
      }     
      return 1;
@@ -1093,8 +1093,7 @@ sub signoff {
 	}
 	
 	&Log::do_log('info', 'SOAP : sign off %s from %s accepted', $listname, $sender);
-
-     
+	
 	return SOAP::Data->name('result')->type('boolean')->value(1);
     }
 
@@ -1248,7 +1247,6 @@ sub subscribe {
       }
       &Log::do_log('info', 'SOAP subcribe : %s from %s accepted', $listname, $sender);
       
-
       return SOAP::Data->name('result')->type('boolean')->value(1);
   }
 

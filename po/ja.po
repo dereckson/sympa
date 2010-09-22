@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Sympa-5.4.6, Sympa-6.0.3, Sympa-6.1b.4\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2002-07-16 17:27+0800\n"
-"PO-Revision-Date: 2010-08-17 07:03+0200\n"
+"PO-Revision-Date: 2010-09-21 03:20+0200\n"
 "Last-Translator: IKEDA Soji <hatuka@nezumi.nu>\n"
 "Language-Team: 日本語\n"
 "MIME-Version: 1.0\n"
@@ -9424,6 +9424,60 @@ msgstr "受け取らない (休暇のときなどに便利)"
 msgid "you do not receive your own posts"
 msgstr "自分が投稿したものは受け取らない"
 
+#. This entry is a date/time format
+#. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
+#: ../wwsympa/wwsympa.fcgi.in:15876 ../wwsympa/wwsympa.fcgi.in:15877
+msgid "%Y/%m/%d/%H/%M/%S"
+msgstr ""
+
+#~ msgid "Your Lists"
+#~ msgstr "あなたが関わっているリスト"
+
+#~ msgid "Sendind a message to the list"
+#~ msgstr "リストへメッセージを送る"
+
+#~ msgid ""
+#~ "The best way to post an email to the list is to compose an email to the "
+#~ "list email address <b>%1@%2</b> using your favourite email client. We "
+#~ "also provide a form below to compose an email through the web interface."
+#~ msgstr ""
+#~ "リストに電子メールを投稿するのにいちばんよいやりかたは、リストの電子メール"
+#~ "アドレス <b>%1@%2</b> へ、使いなれたメールソフトを使って電子メールを送るこ"
+#~ "とです。しかしウェブインタフェースでも、下のフォームで電子メールを送れるよ"
+#~ "うになっています。"
+
+#~ msgid "Cannot add subscribers when list status is '%1'"
+#~ msgstr "リストの状態が '%1' のときは、読者を追加できません"
+
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "「直接受け取る」(normal) 受け取りモードのときだけできます"
+
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "例: 24/05/2006"
+
+#~ msgid "User's Guide"
+#~ msgstr "ご利用案内"
+
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "注意: %2 <%1> は %3 の登録解除ができませんでした。アドレスがリストになかっ"
+#~ "たためです (助けてあげましょう)。"
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "投稿は吟味を受ける。吟味役の承認が必要"
+
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "投稿はモデレーションを受ける (読者もモデレータ自身も)"
+
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "S/MIME署名で確認された読者のみ"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "パスワードで本人確認できれば誰でも"
+
 #~ msgid "Sympa URL:"
 #~ msgstr "Sympa の URL: "
 
@@ -9448,31 +9502,6 @@ msgstr "自分が投稿したものは受け取らない"
 #, fuzzy
 #~ msgid " to "
 #~ msgstr "から"
-
-#~ msgid "Your Lists"
-#~ msgstr "あなたが関わっているリスト"
-
-#~ msgid ""
-#~ "The best way to post an email to the list is to compose an email to the "
-#~ "list email address <b>%1@%2</b> using your favourite email client. We "
-#~ "also provide a form below to compose an email through the web interface."
-#~ msgstr ""
-#~ "リストに電子メールを投稿するのにいちばんよいやりかたは、リストの電子メール"
-#~ "アドレス <b>%1@%2</b> へ、使いなれたメールソフトを使って電子メールを送るこ"
-#~ "とです。しかしウェブインタフェースでも、下のフォームで電子メールを送れるよ"
-#~ "うになっています。"
-
-#~ msgid "Cannot add subscribers when list status is '%1'"
-#~ msgstr "リストの状態が '%1' のときは、読者を追加できません"
-
-#~ msgid "User's Guide"
-#~ msgstr "ご利用案内"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "投稿は吟味を受ける。吟味役の承認が必要"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "パスワードで本人確認できれば誰でも"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

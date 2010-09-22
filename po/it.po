@@ -10217,6 +10217,20 @@ msgstr "no mail (assenza prolungata)"
 msgid "you do not receive your own posts"
 msgstr "non ricevere i tuoi stessi messaggi"
 
+#. (list,host)
+#: ../web_tt2/compose_mail.tt2:10
+msgid ""
+"The best way to post an email to the list is to compose an email to the list "
+"email address <b>%1@%2</b> using your favourite email client. We also "
+"provide a form below to compose an email through the web interface."
+msgstr ""
+
+#. This entry is a date/time format
+#. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
+#: ../wwsympa/wwsympa.fcgi.in:15876 ../wwsympa/wwsympa.fcgi.in:15877
+msgid "%Y/%m/%d/%H/%M/%S"
+msgstr ""
+
 #: ../web_tt2/serveradmin.tt2:27
 msgid "Sympa URL:"
 msgstr ""
@@ -10237,6 +10251,52 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
+#~ msgid "Your Lists"
+#~ msgstr "Le tue liste"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Invio di messaggi     : %1"
+
+#~ msgid "Cannot add subscribers when list status is '%1'"
+#~ msgstr "Impossibile aggiungere iscritti quando lo stato della lista è '%1'"
+
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Possibile solo in modalità di ricezione \"normale\""
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "es: 24/05/2006"
+
+#~ msgid "User's Guide"
+#~ msgstr "Guida dell'utente"
+
+# nlsref 8,23
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "ATTENZIONE: %s %s non e' riuscito a cancellarsi dalla lista %s \n"
+#~ "perché il suo nome non è stato trovato tra gli iscritti.(Forse ha bisogno "
+#~ "di aiuto)"
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "Moderato, con conferma moderatori"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "Moderato, per iscritti e moderatori"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "Ristretto agli iscritti con controllo firma smime"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "chiunque previa autenticazione md5"
+
 #, fuzzy
 #~ msgid "Listmaster(s):"
 #~ msgstr "Listmaster"
@@ -10249,21 +10309,6 @@ msgstr ""
 #, fuzzy
 #~ msgid " to "
 #~ msgstr "a"
-
-#~ msgid "Your Lists"
-#~ msgstr "Le tue liste"
-
-#~ msgid "Cannot add subscribers when list status is '%1'"
-#~ msgstr "Impossibile aggiungere iscritti quando lo stato della lista è '%1'"
-
-#~ msgid "User's Guide"
-#~ msgstr "Guida dell'utente"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "Moderato, con conferma moderatori"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "chiunque previa autenticazione md5"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

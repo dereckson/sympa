@@ -9812,20 +9812,12 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
-#, fuzzy
-#~ msgid "Listmaster(s):"
-#~ msgstr "Listmaster"
-
-#, fuzzy
-#~ msgid "who created the list"
-#~ msgstr "quien acutalizó la configuración"
-
-#, fuzzy
-#~ msgid " to "
-#~ msgstr "hasta"
-
 #~ msgid "Your Lists"
 #~ msgstr "Tus listas"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Enviar un mensaje a la lista"
 
 #~ msgid ""
 #~ "The best way to post an email to the list is to compose an email to the "
@@ -9841,14 +9833,56 @@ msgstr ""
 #~ msgstr ""
 #~ "No se pueden agregar suscriptores cuando el estatuto de la lista es '%1'"
 
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Disponible sólo en modo de recepción estandar"
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "ej: 24/05/2006"
+
 #~ msgid "User's Guide"
 #~ msgstr "Guía del Usuario"
+
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "CUIDADO: %1 %2 falló en darse de baja de %3 porque no se encontró su "
+#~ "direccón en la lista.\n"
+#~ "(Deberías darle una mano a esa persona)."
 
 #~ msgid "Moderated, with editor confirmation"
 #~ msgstr "moderador, con confirmacion de dicion"
 
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "moderador, para subscriptores y moderadores  "
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "restringido a subscriptores check smime signature"
+
 #~ msgid "anyone with previous md5 authentication"
 #~ msgstr "cualquiera con previa autentifiación MD5"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%Y/%m/%d/%H/%M/%S"
+
+#, fuzzy
+#~ msgid "Listmaster(s):"
+#~ msgstr "Listmaster"
+
+#, fuzzy
+#~ msgid "who created the list"
+#~ msgstr "quien acutalizó la configuración"
+
+#, fuzzy
+#~ msgid " to "
+#~ msgstr "hasta"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

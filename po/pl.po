@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Sympa 6.0\n"
 "POT-Creation-Date: 2002-07-16 17:27+0800\n"
-"PO-Revision-Date: 2010-08-23 15:58+0200\n"
+"PO-Revision-Date: 2010-09-20 18:01+0200\n"
 "Last-Translator: Dominika Tkaczyk <d.tkaczyk@uw.edu.pl>\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -9450,6 +9450,67 @@ msgstr "nie otrzymuj swoich własnych postów"
 msgid "Reject mail from automates (crontab, etc)?"
 msgstr ""
 
+#~ msgid "Your Lists"
+#~ msgstr "Twoje listy"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Wysyłanie wiadomości na listę"
+
+#~ msgid ""
+#~ "The best way to post an email to the list is to compose an email to the "
+#~ "list email address <b>%1@%2</b> using your favourite email client. We "
+#~ "also provide a form below to compose an email through the web interface."
+#~ msgstr ""
+#~ "Najlepszym sposobem wysyłania maila na listę jest wysłanie go na adres "
+#~ "mailowy listy <b>%1@%2</b> używając preferowanego klienta poczty. "
+#~ "Istnieje również możliwość wysyłania ich poprzez niniejszy interfejs WWW."
+
+#~ msgid "Cannot add subscribers when list status is '%1'"
+#~ msgstr "Nie mogę dodać subskrybentów do listy kiedy jej status to '%1'"
+
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Możliwe tylko w bezpośrednich trybach dostarczania wiadomości."
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "przykład: 24-05-2006"
+
+#~ msgid "User's Guide"
+#~ msgstr "Przewodnik użytkownika"
+
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "UWAGA: nie powiodło się wypisanie użytkownika %1 %2 z %3, ponieważ jego "
+#~ "adres nie został znaleziony na liście.\n"
+#~ "Możesz spróbować poszukać podobnego adresu email na liście subskrybentów "
+#~ "używając następującego linka:"
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "Moderowane, z potwierdzeniem redaktora"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "Moderowane, dla subskrybentów i moderatorów"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr ""
+#~ "zastrzeżone dla subskrybentów i tych, których podpis smime został "
+#~ "sprawdzony"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "ktokolwiek z poprzednim uwierzytelnieniem md5"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%Y/%m/%d/%H/%M/%S"
+
 #~ msgid "Sympa URL:"
 #~ msgstr "URL Sympy:"
 
@@ -9471,30 +9532,6 @@ msgstr ""
 #, fuzzy
 #~ msgid " to "
 #~ msgstr "do"
-
-#~ msgid "Your Lists"
-#~ msgstr "Twoje listy"
-
-#~ msgid ""
-#~ "The best way to post an email to the list is to compose an email to the "
-#~ "list email address <b>%1@%2</b> using your favourite email client. We "
-#~ "also provide a form below to compose an email through the web interface."
-#~ msgstr ""
-#~ "Najlepszym sposobem wysyłania maila na listę jest wysłanie go na adres "
-#~ "mailowy listy <b>%1@%2</b> używając preferowanego klienta poczty. "
-#~ "Istnieje również możliwość wysyłania ich poprzez niniejszy interfejs WWW."
-
-#~ msgid "Cannot add subscribers when list status is '%1'"
-#~ msgstr "Nie mogę dodać subskrybentów do listy kiedy jej status to '%1'"
-
-#~ msgid "User's Guide"
-#~ msgstr "Przewodnik użytkownika"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "Moderowane, z potwierdzeniem redaktora"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "ktokolwiek z poprzednim uwierzytelnieniem md5"
 
 #~ msgid "[Listmaster]"
 #~ msgstr "[Administrator list]"

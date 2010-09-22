@@ -9433,6 +9433,26 @@ msgstr "ingen e-post (praktisk ved ferie)"
 msgid "you do not receive your own posts"
 msgstr "du mottar ikke selv dine egne meldinger"
 
+#. (list,host)
+#: ../web_tt2/compose_mail.tt2:10
+msgid ""
+"The best way to post an email to the list is to compose an email to the list "
+"email address <b>%1@%2</b> using your favourite email client. We also "
+"provide a form below to compose an email through the web interface."
+msgstr ""
+
+#: ../mail_tt2/helpfile.tt2:7
+msgid "User's Guide"
+msgstr ""
+
+#. (who,gecos,list.name)
+#: ../mail_tt2/listowner_notification.tt2:28
+msgid ""
+"WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+"found in the list.\n"
+"(You may help this person)."
+msgstr ""
+
 #: ../web_tt2/serveradmin.tt2:27
 msgid "Sympa URL:"
 msgstr ""
@@ -9453,6 +9473,44 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
+#~ msgid "Your Lists"
+#~ msgstr "Dine lister"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Hvem kan abonnere på listen"
+
+#~ msgid "Cannot add subscribers when list status is '%1'"
+#~ msgstr "Kan ikke legge til abonnenter når listestatus er '%1'"
+
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Kun mulig med \"normal\" mottaksform"
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "eks: 24/05/2006"
+
+#, fuzzy
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "Moderert, selv for moderatorer"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "Moderert, selv for moderatorer"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "Moderert, selv for moderatorer"
+
+#, fuzzy
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "krever autentisering"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%Y/%m/%d/%H/%M/%S"
+
 #, fuzzy
 #~ msgid "Listmaster(s):"
 #~ msgstr "Listesjef"
@@ -9464,20 +9522,6 @@ msgstr ""
 #, fuzzy
 #~ msgid " to "
 #~ msgstr "til"
-
-#~ msgid "Your Lists"
-#~ msgstr "Dine lister"
-
-#~ msgid "Cannot add subscribers when list status is '%1'"
-#~ msgstr "Kan ikke legge til abonnenter når listestatus er '%1'"
-
-#, fuzzy
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "Moderert, selv for moderatorer"
-
-#, fuzzy
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "krever autentisering"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

@@ -9480,6 +9480,14 @@ msgstr "不接收邮件（用于假期）"
 msgid "you do not receive your own posts"
 msgstr "不接收自己发的邮件"
 
+#. (list,host)
+#: ../web_tt2/compose_mail.tt2:10
+msgid ""
+"The best way to post an email to the list is to compose an email to the list "
+"email address <b>%1@%2</b> using your favourite email client. We also "
+"provide a form below to compose an email through the web interface."
+msgstr ""
+
 #: ../web_tt2/serveradmin.tt2:27
 msgid "Sympa URL:"
 msgstr ""
@@ -9500,6 +9508,54 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
+#~ msgid "Your Lists"
+#~ msgstr "您的邮件列表"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "发送信息：%1"
+
+#~ msgid "Cannot add subscribers when list status is '%1'"
+#~ msgstr "列表状态为'%1'时，不能添加订阅者。"
+
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "只可能在＂normal＂接收模式"
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "前：24／05／2006"
+
+#~ msgid "User's Guide"
+#~ msgstr "用户指南"
+
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "警告：%1%2从%3退订失败主，因为此邮件地址在邮件列表中没找到。\n"
+#~ "（您可以帮助这个人）。"
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "监管，编辑确认"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "监管订阅者和监管员，"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "仅限订阅者检查smime署名"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "有以前md5身份验证的人"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%Y年%m月%d日　%H:%M:%S"
+
 #, fuzzy
 #~ msgid "Listmaster(s):"
 #~ msgstr "邮件列表管理员"
@@ -9511,21 +9567,6 @@ msgstr ""
 #, fuzzy
 #~ msgid " to "
 #~ msgstr "到"
-
-#~ msgid "Your Lists"
-#~ msgstr "您的邮件列表"
-
-#~ msgid "Cannot add subscribers when list status is '%1'"
-#~ msgstr "列表状态为'%1'时，不能添加订阅者。"
-
-#~ msgid "User's Guide"
-#~ msgstr "用户指南"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "监管，编辑确认"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "有以前md5身份验证的人"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

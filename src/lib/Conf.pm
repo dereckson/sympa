@@ -37,7 +37,7 @@ use tools;
 use Sympa::Constants;
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(%params %Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
+our @EXPORT = qw(%Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
 
 sub DAEMON_MESSAGE {1};
 sub DAEMON_COMMAND {2};
@@ -48,7 +48,7 @@ sub DAEMON_ALL {7};
 my ($dbh, $sth, $db_connected, @sth_stack, $use_db);
 
 # parameters hash, keyed by parameter name
-our %params =
+my %params =
     map  { $_->{name} => $_ }
     grep { $_->{name} }
     @confdef::params;
@@ -136,15 +136,7 @@ sub load {
 		    $value = qx/$1/;
 		    chomp($value);
 		}
-		if($params{$keyword}{'multiple'} == 1){
-		    if($o{$keyword}) {
-			push @{$o{$keyword}}, [$value, $line_num];
-		    }else{
-			$o{$keyword} = [[$value, $line_num]];
-		    }
-		}else{
-		    $o{$keyword} = [ $value, $line_num ];
-		}
+		$o{$keyword} = [ $value, $line_num ];
 	    } else {
 		printf STDERR  gettext("Error at line %d: %s\n"), $line_num, $config, $_;
 		$config_err++;
@@ -231,14 +223,7 @@ sub load {
 	    $config_err++;
 	    next;
 	}
-	if($params{$i}{'multiple'} == 1){
-	    foreach my $instance (@{$o{$i}}){
-		my $instance_value = $instance->[0] || $params{$i}->{'default'};
-		push @{$Conf{$i}}, $instance_value;
-	    }
-	}else{
-	    $Conf{$i} = $o{$i}[0] || $params{$i}->{'default'};
-	}
+	$Conf{$i} = $o{$i}[0] || $params{$i}->{'default'};
     }
 
     ## Some parameters depend on others
@@ -303,16 +288,7 @@ sub load {
 	}
     }
 
-    ## Parsing custom robot parameters.
-    foreach my $robot (keys %{$Conf{'robots'}}) {
-	my $csp_tmp_storage = undef;
-	foreach my $custom_p (@{$Conf{'robots'}{$robot}{'custom_robot_parameter'}}){
-	    if($custom_p =~ /(\S+)\s*\;\s*(.+)/) {
-		$csp_tmp_storage->{$1} = $2;
-	    }
-	}
-	$Conf{'robots'}{$robot}{'custom_robot_parameter'} = $csp_tmp_storage;
-    }
+
 
     my $nrcpt_by_domain =  &load_nrcpt_by_domain ;
     $Conf{'nrcpt_by_domain'} = $nrcpt_by_domain ;
@@ -380,7 +356,7 @@ sub load {
     ## Set Regexp for accepted list suffixes
     if (defined ($Conf{'list_check_suffixes'})) {
 	$Conf{'list_check_regexp'} = $Conf{'list_check_suffixes'};
-	$Conf{'list_check_regexp'} =~ s/[,\s]+/\|/g;
+	$Conf{'list_check_regexp'} =~ s/,/\|/g;
     }
 	
     $Conf{'sympa'} = "$Conf{'email'}\@$Conf{'host'}";
@@ -390,6 +366,12 @@ sub load {
     $Conf{'pictures_url'}  = $Conf{'static_content_url'}.'/pictures/';
     $Conf{'pictures_path'}  = $Conf{'static_content_path'}.'/pictures/';
 	
+    ## Parsing custom robot parameters.
+    foreach my $robot (keys %{$Conf{'robots'}}) {
+	if($Conf{'robots'}{$robot}{'custom_robot_parameter'} =~ /(\S+)\s*\;\s*(.+)/) {
+	    $Conf{'robots'}{$robot}{'custom_robot_parameter'} = {$1 => $2};
+	}
+    }
     return 1;
 }    
 
@@ -557,15 +539,7 @@ sub load_robots {
 		#$value = lc($value) unless ($keyword eq 'title' || $keyword eq 'logo_html_definition' || $keyword eq 'lang');
 
 		if ($valid_robot_key_words{$keyword}) {
-		    if($params{$keyword}{'multiple'} == 1){
-			if($robot_conf->{$robot}{$keyword}) {
-			    push @{$robot_conf->{$robot}{$keyword}}, $value;
-			}else{
-			    $robot_conf->{$robot}{$keyword} = [$value];
-			}
-		    }else{
-			$robot_conf->{$robot}{$keyword} = $value;
-		    }
+		    $robot_conf->{$robot}{$keyword} = $value;
 		    # printf STDERR "load robots config: $keyword = $value\n";
 		}else{
 		    printf STDERR "load robots config: unknown keyword $keyword\n";
@@ -584,9 +558,6 @@ sub load_robots {
 
 	$robot_conf->{$robot}{'title'} ||= $wwsconf->{'title'};
 	$robot_conf->{$robot}{'default_home'} ||= $wwsconf->{'default_home'};
-	$robot_conf->{$robot}{'use_html_editor'} ||= $wwsconf->{'use_html_editor'};
-	$robot_conf->{$robot}{'html_editor_file'} ||= $wwsconf->{'html_editor_file'};
-	$robot_conf->{$robot}{'html_editor_init'} ||= $wwsconf->{'html_editor_init'};
 
 	$robot_conf->{$robot}{'lang'} ||= $Conf{'lang'};
 	$robot_conf->{$robot}{'email'} ||= $Conf{'email'};
@@ -602,8 +573,6 @@ sub load_robots {
 
 	$robot_conf->{$robot}{'static_content_url'} ||= $Conf{'static_content_url'};
 	$robot_conf->{$robot}{'static_content_path'} ||= $Conf{'static_content_path'};
-	$robot_conf->{$robot}{'tracking_delivery_status_notification'} ||= $Conf{'tracking_delivery_status_notification'};
-	$robot_conf->{$robot}{'tracking_message_delivery_notification'} ||= $Conf{'tracking_message_delivery_notification'};
 
 	## CSS
 	$robot_conf->{$robot}{'css_url'} ||= $robot_conf->{$robot}{'static_content_url'}.'/css/'.$robot;

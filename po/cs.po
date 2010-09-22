@@ -9706,6 +9706,33 @@ msgstr ""
 msgid "you do not receive your own posts"
 msgstr "Pro získání hesla :"
 
+#. (list,host)
+#: ../web_tt2/compose_mail.tt2:10
+msgid ""
+"The best way to post an email to the list is to compose an email to the list "
+"email address <b>%1@%2</b> using your favourite email client. We also "
+"provide a form below to compose an email through the web interface."
+msgstr ""
+
+#. (u_err.status)
+#: ../web_tt2/error.tt2:124
+msgid "Cannot add subscribers when list status is '%1'"
+msgstr ""
+
+#: ../web_tt2/suboptions.tt2:51
+msgid "Only possible in \"normal\" receiving mode"
+msgstr ""
+
+#: ../web_tt2/viewlogs.tt2:73
+msgid "ex: 24/05/2006"
+msgstr ""
+
+#. This entry is a date/time format
+#. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
+#: ../wwsympa/wwsympa.fcgi.in:15876 ../wwsympa/wwsympa.fcgi.in:15877
+msgid "%Y/%m/%d/%H/%M/%S"
+msgstr ""
+
 #: ../web_tt2/serveradmin.tt2:27
 msgid "Sympa URL:"
 msgstr ""
@@ -9727,25 +9754,47 @@ msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
 #, fuzzy
+#~ msgid "Your Lists"
+#~ msgstr "Konference"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Zaslání zpráv        : %1"
+
+#~ msgid "User's Guide"
+#~ msgstr "Příručka uživatele"
+
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "Výstraha : %s %s se nemohl odhlasit z konference %s protože jeho adresa "
+#~ "nebyla nalezena v seznamu\n"
+#~ " (Muzete teto osobe pomoci)\n"
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "moderováno, s potvrzením editora"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "moderováno, pro členy a moderátory"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "přístup pouze pro členy, kontrola SMiMe signatury"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "přístupné pro uživatele po md5 autentikaci"
+
+#, fuzzy
 #~ msgid "Listmaster(s):"
 #~ msgstr "Správce"
 
 #, fuzzy
 #~ msgid "who created the list"
 #~ msgstr "Poslední změna konfigurace"
-
-#, fuzzy
-#~ msgid "Your Lists"
-#~ msgstr "Konference"
-
-#~ msgid "User's Guide"
-#~ msgstr "Příručka uživatele"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "moderováno, s potvrzením editora"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "přístupné pro uživatele po md5 autentikaci"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

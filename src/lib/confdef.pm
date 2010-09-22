@@ -33,8 +33,6 @@ use Sympa::Constants;
 ##   file   : Conf file where the param. is defined
 ##   vhost   : 1|0 : if 1, the parameter can have a specific value in a virtual host
 ##   db   : 'db_first','file_first','no'
-##   multiple   : 1|0: If 1, the parameter can have mutiple values. Default i 0.
-##   optional   : 1|0: If 1, the parameter is optional. It can have no value at all.
 ##   edit   : 1|0
 ##   advice : Additionnal advice concerning the parameter
 
@@ -107,21 +105,7 @@ our @params = (
 	edit => '1',
         advice  =>'Better if not in a critical partition',
     },
-     {
-        name    => 'archive_default_index',
-        default => 'thrd',
-        query   => 'The default index organization when entering the web archive: either threaded or in chronological order',
-        file    => 'wwsympa.conf',
-	edit => '1',
-    },
-     {
-        name    => 'custom_archiver',
-        default => '',
-        query   => 'Activates a custom archiver to use instead of MHOnArc. The value of this parameter is the absolute path on the file system to the script of the custom archiver.',
-        file    => 'wwsympa.conf',
-	edit => '1',
-    },
-   {
+    {
         name    => 'bounce_path',
         default => Sympa::Constants::BOUNCEDIR ,
         query   => 'Where to store bounces',
@@ -451,13 +435,11 @@ our @params = (
         file  => 'wwsympa.conf',
     },
     {
-        name     => 'custom_robot_parameter',
-        query    => 'Used to define a custom parameter for your server. Do not forget the semicolo between the param name and the param value.', 
-	vhost    => '1',
-        file     => 'sympa.conf',
-        edit     => '1',
-        multiple => '1',
-        optional => '1',
+        name    => 'custom_robot_parameter',
+        query   => 'Used to define a custom parameter for your server. Do not forget the semicolo between the param name and the param value.', 
+	vhost   => '1',
+        file    => 'sympa.conf',
+        edit    => '1',
     },
     {
         name  => 'max_size',
@@ -485,7 +467,7 @@ our @params = (
     {
         name   => 'remove_headers',
         query  => 'Specify header fields to be removed before message distribution',
-        default => 'X-Sympa-To,X-Family-To,Return-Receipt-To,Precedence,X-Sequence,Disposition-Notification-To,Sender',
+        default => 'X-Sympa-To,X-Family-To,Return-Receipt-To,Precedence,X-Sequence,Disposition-Notification-To',
         file    => 'sympa.conf',
     },
     {
@@ -824,10 +806,9 @@ our @params = (
     },
     {
         name   => 'db_port',
-        default => undef,
+        default => '3306',
         query  => 'The database port',
         file   => 'sympa.conf',
-	optional => '1',
     },
     {
         name   => 'db_user',
@@ -921,42 +902,6 @@ our @params = (
         name    => 'antispam_feature',
         default => 'off',
 	vhost   => '1',
-    },
-    {
-        name    => 'review_page_size',
-        query => 'The default number of lines of the array displaying users in the review page',
-	vhost   => '1',
-        default => 25,
-	file => 'wwsympa.conf',
-    },
-    {
-        name    => 'viewlogs_page_size',
-        query => 'The default number of lines of the array displaying the log entries in the logs page',
-	vhost   => '1',
-        default => 25,
-	file => 'wwsympa.conf',
-    },
-    {
-        name    => 'use_html_editor',
-        query => 'If set to "on", users will be able to post messages in HTML using a javascript WYSIWYG editor.',
-	vhost   => '1',
-        default => '0',
-        edit  => '1',
-	file => 'wwsympa.conf',
-    },
-    {
-        name    => 'html_editor_file',
-        query => 'the path to the javascript file making the WYSIWYG HTML editor available',
-	vhost   => '1',
-        default => 'tinymce/jscripts/tiny_mce/tiny_mce.js',
-	file => 'wwsympa.conf',
-    },
-    {
-        name    => 'html_editor_init',
-        query => 'the javascript excerpt that enables and configures the WYSIWYG HTML editor.',
-	vhost   => '1',
-        default => 'tinyMCE.init({mode : "exact",elements : "body"});',
-	file => 'wwsympa.conf',
     },
     {
         name  => 'spam_status',
@@ -1142,7 +1087,7 @@ our @params = (
     },
     {
         name    => 'color_3',
-        default => '#ffffce', # top boxe and footer box bacground color
+        default => '#ccccff', # top boxe and footer box bacground color
 	vhost   => '1',
 	db      => 'db_first',
     },
@@ -1217,10 +1162,6 @@ our @params = (
         default => '#000',
 	vhost   => '1',
 	db      => 'db_first',
-    },
-    {	name	=> 'list_check_helo',
-	default	=> '',
-	vhost	=> '1',
     },
     {
         name    => 'list_check_smtp',
@@ -1471,13 +1412,8 @@ our @params = (
         vhost => '1',
 	file   => 'sympa.conf',
     },
-    {
-        name    => 'tracking_delivery_status_notification',
-        default => 'off',
-    },
-    {
-        name    => 'tracking_message_delivery_notification',
-        default => 'off',
-    },
+
+
+
 );
 

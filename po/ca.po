@@ -9839,6 +9839,14 @@ msgstr "sense correu (útil per vacances)"
 msgid "you do not receive your own posts"
 msgstr "No pot rebre els seus propis missatges"
 
+#. (list,host)
+#: ../web_tt2/compose_mail.tt2:10
+msgid ""
+"The best way to post an email to the list is to compose an email to the list "
+"email address <b>%1@%2</b> using your favourite email client. We also "
+"provide a form below to compose an email through the web interface."
+msgstr ""
+
 #: ../web_tt2/serveradmin.tt2:27
 msgid "Sympa URL:"
 msgstr ""
@@ -9859,6 +9867,55 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
+#~ msgid "Your Lists"
+#~ msgstr "Les teves llistes"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Enviant un missatge a la llista"
+
+#~ msgid "Cannot add subscribers when list status is '%1'"
+#~ msgstr "No es poden afegir subscriptors quan l'estat de la llista és '%1'"
+
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Només és possible al mode de rebuda \"normal\""
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "ex: 24/05/2006"
+
+#~ msgid "User's Guide"
+#~ msgstr "Guia d'usuaris"
+
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "VIGILA: %1 %2 va fallar en donar-se de baixa de %3 perquè no es va trobar "
+#~ "la seva adreça en la llista.\n"
+#~ " (Hauries d'ajudar a aquesta persona). "
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "Moderada, amb edició de confirmació"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "Moderat, per a subscriptors i moderadors"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "restringit a subscriptors comprova signatura smime"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "Qualsevol amb autenticació prèvia md5"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%Y/%m/%d/%H/%M/%S"
+
 #, fuzzy
 #~ msgid "Listmaster(s):"
 #~ msgstr "administrador"
@@ -9870,21 +9927,6 @@ msgstr ""
 #, fuzzy
 #~ msgid " to "
 #~ msgstr "a"
-
-#~ msgid "Your Lists"
-#~ msgstr "Les teves llistes"
-
-#~ msgid "Cannot add subscribers when list status is '%1'"
-#~ msgstr "No es poden afegir subscriptors quan l'estat de la llista és '%1'"
-
-#~ msgid "User's Guide"
-#~ msgstr "Guia d'usuaris"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "Moderada, amb edició de confirmació"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "Qualsevol amb autenticació prèvia md5"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

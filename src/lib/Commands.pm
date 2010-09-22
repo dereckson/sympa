@@ -1142,7 +1142,7 @@ sub signoff {
 	}
 	
 	## Really delete and rewrite to disk.
-	unless ($list->delete_user('users' => [$email], 'exclude' =>' 1', 'parameter' => 'unsubscription')){
+	unless ($list->delete_user('users' => [$email], 'exclude' =>' 1')){
 	    my $error = "Unable to delete user $user from list $listname";
 	    &report::reject_report_cmd('intern',$error,{'listname'=>$which},$cmd_line,$sender,$robot);
 	}
@@ -1804,7 +1804,7 @@ sub del {
 	
 	## Really delete and rewrite to disk.
 	my $u;
-	unless ($u = $list->delete_user('users' => [$who], 'exclude' =>' 1', 'parameter' => 'deletd by admin')){
+	unless ($u = $list->delete_user('users' => [$who], 'exclude' =>' 1')){
 	    my $error = "Unable to delete user $who from list $which for command 'del'";
 	    &report::reject_report_cmd('intern',$error,{'listname'=>$which},$cmd_line,$sender,$robot);
 	}
@@ -2043,6 +2043,13 @@ sub distribute {
 
     my $msg_id = $hdr->get('Message-Id');
     my $msg_string = $msg->as_string;
+
+    ## encrypted message ## no used variable ???
+    if ($message->{'smime_crypted'}) {
+	$is_crypted = 'smime_crypted';
+    }else {
+	$is_crypted = 'not_crypted';
+    }
 
     $hdr->add('X-Validation-by', $sender);
 

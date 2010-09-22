@@ -9858,6 +9858,14 @@ msgstr "ei saadeta maile (soovitav puhkuse ajaks)"
 msgid "you do not receive your own posts"
 msgstr "teile ei tule enda saadetud kirju"
 
+#: ../web_tt2/suboptions.tt2:51
+msgid "Only possible in \"normal\" receiving mode"
+msgstr ""
+
+#: ../web_tt2/viewlogs.tt2:73
+msgid "ex: 24/05/2006"
+msgstr ""
+
 #: ../web_tt2/serveradmin.tt2:27
 msgid "Sympa URL:"
 msgstr ""
@@ -9878,17 +9886,12 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
-#, fuzzy
-#~ msgid "Listmaster(s):"
-#~ msgstr "listiülem"
-
-# nlsref 16,77
-#, fuzzy
-#~ msgid "who created the list"
-#~ msgstr "viimati muutis"
-
 #~ msgid "Your Lists"
 #~ msgstr "Teie listid"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Kirjade saatmine: "
 
 #~ msgid ""
 #~ "The best way to post an email to the list is to compose an email to the "
@@ -9905,11 +9908,43 @@ msgstr ""
 #~ msgid "User's Guide"
 #~ msgstr "Kasutajajuhend"
 
+# nlsref 8,23
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "HOIATUS: %s %s ei saanud lahkuda listist %s kuna tema aadressi ei \n"
+#~ "leitud sellest listist\n"
+#~ " ( Te võite seda inimest aidata )\n"
+
 #~ msgid "Moderated, with editor confirmation"
 #~ msgstr "modereeritud, vajalik moderaatori autentimine"
 
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "modereeritakse nii lugejate kui moderaatorite kirju"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "ainult listi liikmed, kontrollitakse S/MIME signatuuri"
+
 #~ msgid "anyone with previous md5 authentication"
 #~ msgstr "saata võib igaüks, eelneva kontrolliga"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%Y/%m/%d/%H/%M/%S"
+
+#, fuzzy
+#~ msgid "Listmaster(s):"
+#~ msgstr "listiülem"
+
+# nlsref 16,77
+#, fuzzy
+#~ msgid "who created the list"
+#~ msgstr "viimati muutis"
 
 #~ msgid "[Listmaster]"
 #~ msgstr "listiülem"

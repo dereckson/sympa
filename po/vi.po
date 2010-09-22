@@ -9716,6 +9716,14 @@ msgstr "không thư (có ích khi đi nghỉ)"
 msgid "you do not receive your own posts"
 msgstr "bạn không nhận bài thư được mình gửi"
 
+#. (list,host)
+#: ../web_tt2/compose_mail.tt2:10
+msgid ""
+"The best way to post an email to the list is to compose an email to the list "
+"email address <b>%1@%2</b> using your favourite email client. We also "
+"provide a form below to compose an email through the web interface."
+msgstr ""
+
 #: ../web_tt2/serveradmin.tt2:27
 msgid "Sympa URL:"
 msgstr ""
@@ -9736,6 +9744,56 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
+#~ msgid "Your Lists"
+#~ msgstr "Hộp thư chung của bạn"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Đang gửi một thư cho hộp thư chung"
+
+#~ msgid "Cannot add subscribers when list status is '%1'"
+#~ msgstr ""
+#~ "Không thể thêm người đăng ký khi trạng thái của hộp thư chung là « %1 »"
+
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Chỉ có thể làm ở chế độ nhận « thông thường »"
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "v.d.: 24/05/2006"
+
+#~ msgid "User's Guide"
+#~ msgstr "Sổ tay Người dùng"
+
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "CẢNH BÁO : %1 %2 không hủy đăng ký được khởi %3 vì địa chỉ của họ không "
+#~ "tìm thấy trong danh sách.\n"
+#~ "(Bạn có thể giúp người này.)"
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "Điều tiết, và biên tập xác nhận"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "Điều tiết, đối với người đăng ký và điều tiết viên"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "bị hạn chế thành người đăng ký, kiểm tra chữ ký S/MIME"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "bật cứ ai nào đã xác thực bằng MD5"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%Y/%m/%d/%H/%M/%S"
+
 #, fuzzy
 #~ msgid "Listmaster(s):"
 #~ msgstr "Chủ hộp thư chung"
@@ -9747,22 +9805,6 @@ msgstr ""
 #, fuzzy
 #~ msgid " to "
 #~ msgstr "đến"
-
-#~ msgid "Your Lists"
-#~ msgstr "Hộp thư chung của bạn"
-
-#~ msgid "Cannot add subscribers when list status is '%1'"
-#~ msgstr ""
-#~ "Không thể thêm người đăng ký khi trạng thái của hộp thư chung là « %1 »"
-
-#~ msgid "User's Guide"
-#~ msgstr "Sổ tay Người dùng"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "Điều tiết, và biên tập xác nhận"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "bật cứ ai nào đã xác thực bằng MD5"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

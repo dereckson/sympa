@@ -9832,20 +9832,12 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
-#, fuzzy
-#~ msgid "Listmaster(s):"
-#~ msgstr "listmaster"
-
-# nlsref 16,77
-#, fuzzy
-#~ msgid "who created the list"
-#~ msgstr "qui a mis à jour le fichier de configuration"
-
-#~ msgid " to "
-#~ msgstr "au"
-
 #~ msgid "Your Lists"
 #~ msgstr "Vos listes "
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Poster un message dans la liste"
 
 #~ msgid ""
 #~ "The best way to post an email to the list is to compose an email to the "
@@ -9860,14 +9852,58 @@ msgstr ""
 #~ msgid "Cannot add subscribers when list status is '%1'"
 #~ msgstr "Impossible d'ajouter des abonnés quand la liste a le status '%1'"
 
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Uniquement disponible pour les modes de réception standards."
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "ex : 24/05/2006"
+
 #~ msgid "User's Guide"
 #~ msgstr "Guide de l'utilisateur"
+
+# nlsref 8,23
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "ATTENTION : %1 %2 n'est pas parvenu à se désabonner de la liste %3 parce "
+#~ "que son adresse n'a pas été trouvée dans cette liste.\n"
+#~ "Vous pourriez peut-être aider cette personne en cherchant une adresse "
+#~ "similaire. Pour ce faire, suivez le lien suivant :"
 
 #~ msgid "Moderated, with editor confirmation"
 #~ msgstr "Modérée, avec confirmation du modérateur"
 
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "Modérée, pour les abonnés et les modérateurs"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "limité aux abonnés, vérification de la signature Smime"
+
 #~ msgid "anyone with previous md5 authentication"
 #~ msgstr "quiconque mais avec authentification md5"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%d/%m/%Y/%H/%M/%S"
+
+#, fuzzy
+#~ msgid "Listmaster(s):"
+#~ msgstr "listmaster"
+
+# nlsref 16,77
+#, fuzzy
+#~ msgid "who created the list"
+#~ msgstr "qui a mis à jour le fichier de configuration"
+
+#~ msgid " to "
+#~ msgstr "au"
 
 #~ msgid "hovered hyperlinks;"
 #~ msgstr "liens survolés ;"

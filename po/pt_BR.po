@@ -9721,6 +9721,22 @@ msgstr "sem correio (útil em caso de férias)"
 msgid "you do not receive your own posts"
 msgstr "você não recebe suas próprias mensagens"
 
+#. (list,host)
+#: ../web_tt2/compose_mail.tt2:10
+msgid ""
+"The best way to post an email to the list is to compose an email to the list "
+"email address <b>%1@%2</b> using your favourite email client. We also "
+"provide a form below to compose an email through the web interface."
+msgstr ""
+
+#. (who,gecos,list.name)
+#: ../mail_tt2/listowner_notification.tt2:28
+msgid ""
+"WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+"found in the list.\n"
+"(You may help this person)."
+msgstr ""
+
 #: ../web_tt2/serveradmin.tt2:27
 msgid "Sympa URL:"
 msgstr ""
@@ -9741,6 +9757,49 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
+#~ msgid "Your Lists"
+#~ msgstr "Suas listas"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Enviando mensagens : %1"
+
+#~ msgid "Cannot add subscribers when list status is '%1'"
+#~ msgstr ""
+#~ "Não é possível adicionar assinantes quando o status da lista for '%1'"
+
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Só é possível no modo de recebimento \"normal\""
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "ex: 05/03/2006"
+
+#~ msgid "User's Guide"
+#~ msgstr "Guia do usuário"
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "Moderado, com confirmação do editor"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "Moderada, para membros e moderadores"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "restrito a membros com checagem de assinatura S/MIME"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "qualquer um com autenticação md5 prévia"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr ""
+#~ "%Y/%m/%d/%H/%M/%SEsta entrada é no formato data/hora.Para detalhes sobre "
+#~ "formato, vá na página principal do strftime:http://docs.freebsd.org/info/"
+#~ "gawk/gawk.info.Time_Functions.html"
+
 #, fuzzy
 #~ msgid "Listmaster(s):"
 #~ msgstr "Gerente Geral de Listas"
@@ -9752,22 +9811,6 @@ msgstr ""
 #, fuzzy
 #~ msgid " to "
 #~ msgstr "para"
-
-#~ msgid "Your Lists"
-#~ msgstr "Suas listas"
-
-#~ msgid "Cannot add subscribers when list status is '%1'"
-#~ msgstr ""
-#~ "Não é possível adicionar assinantes quando o status da lista for '%1'"
-
-#~ msgid "User's Guide"
-#~ msgstr "Guia do usuário"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "Moderado, com confirmação do editor"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "qualquer um com autenticação md5 prévia"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

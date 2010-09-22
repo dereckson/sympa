@@ -9627,6 +9627,25 @@ msgstr "메일 없음 (휴가 동안 유용한)"
 msgid "you do not receive your own posts"
 msgstr "사용자의 포스트를 받지 않습니다"
 
+#. (list,host)
+#: ../web_tt2/compose_mail.tt2:10
+msgid ""
+"The best way to post an email to the list is to compose an email to the list "
+"email address <b>%1@%2</b> using your favourite email client. We also "
+"provide a form below to compose an email through the web interface."
+msgstr ""
+
+#. (u_err.status)
+#: ../web_tt2/error.tt2:124
+msgid "Cannot add subscribers when list status is '%1'"
+msgstr ""
+
+#. This entry is a date/time format
+#. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
+#: ../wwsympa/wwsympa.fcgi.in:15876 ../wwsympa/wwsympa.fcgi.in:15877
+msgid "%Y/%m/%d/%H/%M/%S"
+msgstr ""
+
 #: ../web_tt2/serveradmin.tt2:27
 msgid "Sympa URL:"
 msgstr ""
@@ -9647,6 +9666,48 @@ msgstr ""
 msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
+#~ msgid "Your Lists"
+#~ msgstr "사용자의 리스트"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "메세지를 보내중   : %1"
+
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "단지 가능한에서 \"정상\" 받기 모드"
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "예: 03/05/2006"
+
+#~ msgid "User's Guide"
+#~ msgstr "사용자 설명서"
+
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "경고 : 1% %2 는 그의 주소가 아니었기 때문에 %3에서 등록취소하지 못했습니"
+#~ "다.리스트에서 찾았습니다.\n"
+#~ "(이 사람을 도울지도 모릅니다)."
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "살펴보기 리스트, 편집자 확인에 제한됩니다"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "살펴보기 리스트, 가입자와 중재자를 위"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr "가입자에 제한됩니다. S/MIME 서명를 검사하십시오"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "이전 md5 인증에 누구나"
+
 #, fuzzy
 #~ msgid "Listmaster(s):"
 #~ msgstr "리스트마스터"
@@ -9658,18 +9719,6 @@ msgstr ""
 #, fuzzy
 #~ msgid " to "
 #~ msgstr "에서"
-
-#~ msgid "Your Lists"
-#~ msgstr "사용자의 리스트"
-
-#~ msgid "User's Guide"
-#~ msgstr "사용자 설명서"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "살펴보기 리스트, 편집자 확인에 제한됩니다"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "이전 md5 인증에 누구나"
 
 #, fuzzy
 #~ msgid "[Listmaster]"

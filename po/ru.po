@@ -9548,6 +9548,68 @@ msgstr "без писем (полезно для отпускников)"
 msgid "you do not receive your own posts"
 msgstr "Вы не получаете свои же письма"
 
+#~ msgid "Your Lists"
+#~ msgstr "Ваши подписки"
+
+#, fuzzy
+#~ msgid "Sendind a message to the list"
+#~ msgstr "Отправка сообщения в рассылку"
+
+#~ msgid ""
+#~ "The best way to post an email to the list is to compose an email to the "
+#~ "list email address <b>%1@%2</b> using your favourite email client. We "
+#~ "also provide a form below to compose an email through the web interface."
+#~ msgstr ""
+#~ "Лучшим способом отправки письма в список рассылки является составление "
+#~ "письма на адрес списка рассылки <b>%1@%2</b> с использованием "
+#~ "предпочитаемого почтового клиента. Ниже мы также предоставляем форму для "
+#~ "создания письма через веб-интерфейс. "
+
+#~ msgid "Cannot add subscribers when list status is '%1'"
+#~ msgstr "Невозможно добавить подписчиков, если статус рассылки — '%1' "
+
+#, fuzzy
+#~ msgid "Only possible in \"normal\" receiving mode"
+#~ msgstr "Возможно только в \"нормальном\" режиме получения"
+
+#, fuzzy
+#~ msgid "ex: 24/05/2006"
+#~ msgstr "пример: 24-05-2006"
+
+#~ msgid "User's Guide"
+#~ msgstr "Руководство пользователя"
+
+#, fuzzy
+#~ msgid ""
+#~ "WARNING: %1 %2 failed to unsubscribe from %3 because his address was not "
+#~ "found in the list.\n"
+#~ "(You may help this person)."
+#~ msgstr ""
+#~ "ПРЕДУПРЕЖДЕНИЕ: %1 %2 не удалось отписаться от %3, так как его адрес не "
+#~ "был найден в списке. \n"
+#~ "Вы можете помочь этому человеку, взглянув на похожие адреса электронной "
+#~ "почты, пройдя по этой ссылке:"
+
+#~ msgid "Moderated, with editor confirmation"
+#~ msgstr "Модерируемый с подтверждением редактора"
+
+#, fuzzy
+#~ msgid "Moderated, for subscribers and moderators"
+#~ msgstr "Модерируемый для подписчиков и модераторов"
+
+#, fuzzy
+#~ msgid "restricted to subscribers check smime signature"
+#~ msgstr ""
+#~ "разрешено только подписчикам, аутентифицировавшимся пользовательским "
+#~ "сертификатом"
+
+#~ msgid "anyone with previous md5 authentication"
+#~ msgstr "кого угодно, с предварительной аутентификацией MD5"
+
+#, fuzzy
+#~ msgid "%Y/%m/%d/%H/%M/%S"
+#~ msgstr "%Y-%m-%d-%H-%M-%S"
+
 #~ msgid "Sympa URL:"
 #~ msgstr "Sympa URL:"
 
@@ -9580,31 +9642,6 @@ msgstr "Вы не получаете свои же письма"
 
 #~ msgid "Select the checkbox for an indefinite end date. "
 #~ msgstr "Постаьте галочку для выбора неопределённого срока действия."
-
-#~ msgid "Your Lists"
-#~ msgstr "Ваши подписки"
-
-#~ msgid ""
-#~ "The best way to post an email to the list is to compose an email to the "
-#~ "list email address <b>%1@%2</b> using your favourite email client. We "
-#~ "also provide a form below to compose an email through the web interface."
-#~ msgstr ""
-#~ "Лучшим способом отправки письма в список рассылки является составление "
-#~ "письма на адрес списка рассылки <b>%1@%2</b> с использованием "
-#~ "предпочитаемого почтового клиента. Ниже мы также предоставляем форму для "
-#~ "создания письма через веб-интерфейс. "
-
-#~ msgid "Cannot add subscribers when list status is '%1'"
-#~ msgstr "Невозможно добавить подписчиков, если статус рассылки — '%1' "
-
-#~ msgid "User's Guide"
-#~ msgstr "Руководство пользователя"
-
-#~ msgid "Moderated, with editor confirmation"
-#~ msgstr "Модерируемый с подтверждением редактора"
-
-#~ msgid "anyone with previous md5 authentication"
-#~ msgstr "кого угодно, с предварительной аутентификацией MD5"
 
 #~ msgid "[Listmaster]"
 #~ msgstr "[Глобальный администратор]"
