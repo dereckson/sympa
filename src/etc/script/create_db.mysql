@@ -39,7 +39,6 @@ CREATE TABLE subscriber_table (
 	suspend_subscriber	int(1),
 	suspend_start_date_subscriber	int(11),
 	suspend_end_date_subscriber	int(11),
-	number_messages_subscriber	int(5), NOT NULL
 	PRIMARY KEY (robot_subscriber, list_subscriber, user_subscriber),
 	INDEX user_index (user_subscriber)
 );
@@ -140,8 +139,8 @@ CREATE TABLE bulkmailer_table (
 
 
 CREATE TABLE `bulkspool_table` (
-  `messagekey_bulkspool` varchar(33) NOT NULL COMMENT 'An internal id of the message in order to join this table with bulkmailer_table',
-  `messageid_bulkspool` varchar(100) NOT NULL COMMENT 'The value of the `Message-ID` SMTP field for this message',
+  `messagekey_bulkspool` varchar(33) NOT NULL COMMENT 'An internal id of the message in order to join this table with bulkmailer_table'
+  `messageid_bulkspool` varchar(100) NOT NULL COMMENT 'The value of the `Message-ID` SMTP field for this message'
   `message_bulkspool` longtext COMMENT 'The message itself as a string. The database MUST be tuned in order to accept big data blog for storing messages with attachments',
   `lock_bulkspool` int(1) default NULL COMMENT 'lock used by parallele bulk demon ni order to prevent a message to be distribited twice',
   `dkim_privatekey_bulkspool` varchar(100) default NULL COMMENT 'The DKIM private key value.',
@@ -159,31 +158,3 @@ CREATE TABLE conf_table (
   value_conf varchar(300) default NULL,
   PRIMARY KEY (robot_conf,label_conf)
 );
-
-CREATE TABLE stat_table (
-	id_stat			number NOT NULL,
-	date_stat		number NOT NULL,
-	email_stat		varchar2(100),
-	operation_stat		varchar2(50) NOT NULL,
-	list_stat		varchar2(150),
-	daemon_stat		varchar2(10),
-	user_ip_stat		varchar2(100),
-	robot_stat		varchar2(80) NOT NULL,
-	parameter_stat		varchar2(50),
-	read_stat		number NOT NULL,
-	PRIMARY KEY (id_stat)
-);
-
-CREATE TABLE IF NOT EXISTS `notification_table` (
-  `pk_notification` int(11) NOT NULL AUTO_INCREMENT COMMENT 'primary key of tracking datas. one for each message and each subscriber',
-  `message_id_notification` varchar(1000) DEFAULT NULL COMMENT 'message-id for which tracking is actived',
-  `recipient_notification` varchar(1000) NOT NULL COMMENT 'subscriber email',
-  `reception_option_notification` varchar(10) DEFAULT NULL COMMENT 'qsubscriber reception option. Not all reception option are compatible with tracking',
-  `status_notification` varchar(1000) DEFAULT NULL COMMENT 'latest notification status received',
-  `arrival_date_notification` varchar(1000) DEFAULT NULL COMMENT 'latest notification date ( a string extracted from the notification itself)',
-  `type_notification` enum('DSN','MDN') DEFAULT NULL COMMENT 'DSN or MDN depending of the latest notification received',
-  `message_notification` longtext COMMENT 'DSN or MDM when received',
-  `list_notification` varchar(1000) NOT NULL,
-  `robot_notification` varchar(80) NOT NULL,
-  PRIMARY KEY (`pk_notification`)
-) ;
