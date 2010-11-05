@@ -27,7 +27,7 @@
 ##           Olivier Salaün <os AT cru.fr>
 =pod 
 
-=head1 NAME
+=head1 NAME 
 
 I<wwsympa.fcgi> - Sympa web interface 
 
@@ -45,7 +45,6 @@ use Archive::Zip;
 use strict 'vars';
 use Time::Local;
 use MIME::Lite::HTML;
-
 
 ## Sympa API
 use List;
@@ -66,10 +65,9 @@ use time_utils;
 use Sympa::Constants;
 use wwslib;
 use cookielib;
+use Robot;
 use tt2;
 #use DateTime;
-use tracking;
-
 #use open ':utf8'; ## Default is to consider files utf8 
 
 use Mail::Header;
@@ -97,7 +95,6 @@ my $sympa_conf_file = Sympa::Constants::CONFIG;
 
 
 
-
 my $loop = 0;
 my $list;
 my $param = {};
@@ -106,24 +103,17 @@ my $ip ;
 my $rss ;
 my $session;
 
+## Load config 
+unless ($wwsconf = &wwslib::load_config($conf_file)) {
+    &fatal_err('Unable to load config file %s', $conf_file);
+}
+
 ## Load sympa config
 unless (&Conf::load( $sympa_conf_file )) {
     &fatal_err('Unable to load sympa config file %s', $sympa_conf_file);
 }
 
 &Log::set_log_level($Conf{'log_level'}) if ($Conf{'log_level'});
-
-my $daemon_name = &Log::set_daemon($0);
-
-## Open log
-$wwsconf->{'log_facility'}||= $Conf{'syslog'};
-
-&Log::do_openlog($wwsconf->{'log_facility'}, $Conf{'log_socket_type'}, 'wwsympa');
-
-## Load config 
-unless ($wwsconf = &wwslib::load_config($conf_file)) {
-    &fatal_err('Unable to load config file %s', $conf_file);
-}
 
 &mail::set_send_spool($Conf{'queue'});
 
@@ -132,6 +122,8 @@ if ($wwsconf->{'use_fast_cgi'}) {
 }else {
     require CGI;
 }
+my $daemon_name = &Log::set_daemon($0);
+
 my $mime_types = &wwslib::load_mime_types();
 
 
@@ -223,8 +215,6 @@ my %comm = ('home' => 'do_home',
 	 'remove_arc' => 'do_remove_arc',
 	 'send_me' => 'do_send_me',
 	 'view_source' => 'do_view_source',
-	 'tracking' => 'do_tracking',
-	 'tracking_percent' => 'do_tracking_percent',
 	 'arcsearch_form' => 'do_arcsearch_form',
 	 'arcsearch_id' => 'do_arcsearch_id',
 	 'arcsearch' => 'do_arcsearch',
@@ -420,7 +410,6 @@ my %action_args = ('default' => ['list'],
 		'search_user' => ['email'],
 		'set_lang' => ['lang'],
 		'attach' => ['list','dir','file'],
-		'stats' => ['list'],
 		'edit_list_request' => ['list','group'],
 		'rename_list' => ['list','new_list','new_robot'],
 		'copy_list' => ['list','new_list','new_robot'],
@@ -549,8 +538,6 @@ my %required_args = ('active_lists' => ['for|count'],
 		     'send_newsletter' => ['param.list','param.user.email', 'url'],
 		     'send_me' => ['param.list'],
 		     'view_source' => ['param.list'],
-		     'tracking' => ['param.list'],
-		     'tracking_percent' => ['param.list'],
 		     'requestpasswd' => ['email'],
 		     'serveradmin' => ['param.user.email'],
 		     'set' => ['param.list','reception|visibility'],
@@ -562,7 +549,7 @@ my %required_args = ('active_lists' => ['for|count'],
 		     'sigrequest' => ['param.list'],
 		     'skinedit' => ['param.user.email'],
 		     'sso_login' => ['auth_service_name'],
-		     'stats' => ['param.list'],
+		     'stats' => ['param.user.email','param.list'],
 		     'subindex' => ['param.list','param.user.email'],
 		     'suboptions' => ['param.list','param.user.email'],
 		     'subrequest' => ['param.list'],
@@ -746,7 +733,6 @@ my %in_regexp = (
 		 ## Free data
 		 'subject' => '.*',
 		 'gecos' => '[^<>\\\*\$\n]+',
-		 'fromname' =>  '[^<>\\\*\$\n]+',
 		 'additional_field' => '[^<>\\\*\$\n]+',
 		 'dump' => '[^<>\\\*\$]+', # contents email + gecos
 
@@ -816,7 +802,6 @@ my %in_regexp = (
 		 'new_email' => &tools::get_regexp('email'),
 		 'pending_email' => &tools::get_regexp('email').',.*', # Email address is followed by ',' + gecos data
 		 'sender' => &tools::get_regexp('email'),
-		 'fromaddr' =>  &tools::get_regexp('email'),
 		 'to' => '(([\w\-\_\.\/\+\=\']+|\".*\")\s[\w\-]+(\.[\w\-]+)+(,?))*',
 
 		 ## Host
@@ -913,6 +898,10 @@ my %filtering = ('d_reject_shared' => {'id' => 'qencode'},
 		 'change_email' => {'*email' => 'normalize'}, ## Remove leading/trailing white spaces and lowercase
 		 );
 
+## Open log
+$wwsconf->{'log_facility'}||= $Conf{'syslog'};
+
+&Log::do_openlog($wwsconf->{'log_facility'}, $Conf{'log_socket_type'}, 'wwsympa');
 &do_log('info', 'WWSympa started');
 
 ## Set locale configuration	 
@@ -933,7 +922,7 @@ unless (&Upgrade::data_structure_uptodate()) {
 
 &tools::ciphersaber_installed();
 
-our %changed_params;
+%::changed_params;
 
 my (%in, $query);
 
@@ -1091,7 +1080,6 @@ my $birthday = time ;
 				     'logo_html_definition' => 1,
 				     'template_content' => 1,
 				     'html_dumpvars' => 1,
-				     'html_editor_init' => 1,
 				     };
      ## Hash defining the parameters where HTML must be filtered.
      $param->{'htmlToFilter'} = {
@@ -1119,9 +1107,6 @@ my $birthday = time ;
 
      ## Get PATH_INFO parameters
      &get_parameters();
-
-     # Static content
-     $param->{'static_content_url'} = &Conf::get_robot_conf($robot, 'static_content_url');
 
      ## CSS related
      $param->{'css_path'} = &Conf::get_robot_conf($robot, 'css_path');
@@ -1205,12 +1190,13 @@ my $birthday = time ;
 		 $cas_id = $1;
 	     }
 	     if ($cas_id ne '') { 
+		 		 
 		 my $ticket = $in{'ticket'};
 		 my $cas_server = $Conf{'auth_services'}{$robot}[$cas_id]{'cas_server'};
 		 
 		 my $service_url = &wwslib::get_my_url();
 		 $service_url =~ s/(\?|&)ticket\=.+$//; 
-		 
+
 		 my $net_id = $cas_server->validateST($service_url, $ticket);
 		 
 		 if(defined $net_id) { # the ticket is valid net-id
@@ -1420,6 +1406,7 @@ my $birthday = time ;
 	 $param->{'main_title'} = $param->{'title'} = &Conf::get_robot_conf($robot,'title');
 	 $param->{'title_clear_txt'} = $param->{'title'};
      }
+     $param->{'robot_title'} = &Conf::get_robot_conf($robot,'title');
 
      ## store in session table this session contexte
      $session->store();
@@ -1675,7 +1662,6 @@ my $birthday = time ;
      return &Log::do_log($facility, $msg, @_);
  }
 
-
 sub web_db_log {
     my $data = shift;
 
@@ -1694,27 +1680,6 @@ sub web_db_log {
 
     return 1;
 }
-
-###################################
-# log in stat_table via web interface
-sub web_db_stat_log {
-
- 	my $data = shift;
-	$data->{'mail'} ||= $param->{'user'}{'email'} if (defined $param->{'user'});
-	$data->{'operation'} ||= $param->{'action'};
-	$data->{'list'} ||= $list->{'name'} if (defined $list);
-	$data->{'daemon'} = 'wwsympa';
-	$data->{'client'} = $param->{'remote_addr'};
-	$data->{'robot'} ||= $robot;
-	
-	unless (&Log::db_stat_log($data)) {
-		&wwslog('err', 'web_db_stat_log: failed to log in database');
-		return undef;
-	}
-	return 1;
-}
-
-####################################	
 
  sub new_loop {
      $loop++;
@@ -1832,6 +1797,7 @@ sub get_parameters {
     
     $param->{'path_info'} = $ENV{'PATH_INFO'};
     $param->{'http_method'} = $ENV{'REQUEST_METHOD'}; ## Usefull to skip previous_action when using POST
+    $param->{'robot_domain'} = $wwsconf->{'robot_domain'}{&get_header_field('SERVER_NAME')};
     
     if ($ENV{'REQUEST_METHOD'} eq 'GET') {
 	&_split_params ($ENV{'PATH_INFO'});
@@ -2010,6 +1976,7 @@ sub get_parameters_old {
     }
     
     $param->{'path_info'} = $ENV{'PATH_INFO'};
+    $param->{'robot_domain'} = $wwsconf->{'robot_domain'}{&get_header_field('SERVER_NAME')};
     
     if ($ENV{'REQUEST_METHOD'} eq 'GET') {
 	my $path_info = $ENV{'PATH_INFO'};
@@ -2575,7 +2542,7 @@ Use it to create a List object and initialize output parameters.
 	}
 	
 	## Check subscription authorization for the current user and list.
-	$result = $list->check_list_authz('subscribe',$param->{'auth_method'},
+	my $result = $list->check_list_authz('subscribe',$param->{'auth_method'},
 					     {'sender' =>$param->{'user'}{'email'},
 					      'remote_host' => $param->{'remote_host'},
 					      'remote_addr' => $param->{'remote_addr'}});
@@ -2814,7 +2781,7 @@ Use it to create a List object and initialize output parameters.
 	 $param->{'list_status'} = $list->{'admin'}{'status'};
 
 	 ## May signoff
-	 $result = $list->check_list_authz('unsubscribe',$param->{'auth_method'},
+	 my $result = $list->check_list_authz('unsubscribe',$param->{'auth_method'},
 					      {'sender' =>$param->{'user'}{'email'},
 						  'remote_host' => $param->{'remote_host'},
 					       'remote_addr' => $param->{'remote_addr'}});
@@ -2830,7 +2797,7 @@ Use it to create a List object and initialize output parameters.
 	 }
 	    
 	 ## May Subscribe
-	$result = $list->check_list_authz('subscribe',$param->{'auth_method'},
+	 my $result = $list->check_list_authz('subscribe',$param->{'auth_method'},
 					      {'sender' =>$param->{'user'}{'email'},
 					       'remote_host' => $param->{'remote_host'},
 					       'remote_addr' => $param->{'remote_addr'}});
@@ -2859,8 +2826,9 @@ Use it to create a List object and initialize output parameters.
 	     }
 
 	     ## Check if web archive is publically accessible (useful information for RSS)
-	     $result = $list->check_list_authz('web_archive.access',$param->{'auth_method'},
+	     my $result = $list->check_list_authz('web_archive.access',$param->{'auth_method'},
 						  {'sender' => 'nobody'});
+	     my $r_action;
 	     $r_action = $result->{'action'} if (ref($result) eq 'HASH');
 	     
 	     if ($r_action =~ /do_it/i) {
@@ -3092,8 +3060,6 @@ sub do_ticket {
 		  'target_email' => $in{'email'},
 		  'status' => 'success'});
 
-     &web_db_stat_log({'robot' => $robot, 'operation' => $param->{'action'}, 'mail' => $param->{'user'}{'email'}, 'client' => $ip, 'daemon'=>$daemon_name});
-
      &do_redirect ($session->{'redirect_url'});
      return ;
 
@@ -3164,7 +3130,7 @@ sub do_sso_login {
 		$path .= "/init/sso_login_succeeded/$in{'auth_service_name'}";
 	    }
 
-	    $service = "$param->{'base_url'}$param->{'path_cgi'}/sso_login/$in{'auth_service_name'}".$path;
+	    my $service = "$param->{'base_url'}$param->{'path_cgi'}/sso_login/$in{'auth_service_name'}".$path;
 	    
 	    &wwslog('info', 'do_sso_login: redirect user to %s', $service);
 	    $in{'action'} = 'redirect';
@@ -3633,9 +3599,7 @@ sub do_redirect {
      &wwslog('info','do_logout: logout performed');
      &web_db_log({'parameters' => $param->{'user'}{'email'},
 		  'target_email' => $in{'email'},
-		  'status' => 'success'});
-
-     &web_db_stat_log({'robot' => $robot, 'operation'=> $param->{'action'}, 'mail' => $param->{'user'}{'email'}, 'client' => $ip, 'daemon' => $daemon_name});		      
+		  'status' => 'success'});		      
 
      if ($in{'previous_action'} eq 'referer') {
 	 $param->{'referer'} = &tools::escape_chars($in{'previous_list'});
@@ -3791,7 +3755,7 @@ sub do_renewpasswd {
 	 &report::reject_report_web('user','passwd_reminder_not_allowed',{},$param->{'action'});
 	 return undef
      }
-     &wwslog('debug','do_requestpasswd: sending one time ticket for %s', $in{'email'});
+     &wwslog('debug','do_requestpasswd: sending one tile ticket for %s', $in{'email'});
      $param->{'one_time_ticket'} = &Auth::create_one_time_ticket($in{'email'},$robot,'choosepasswd',$ip);
      $param->{'request_from_host'} = $ip;
      $param->{'newuser'} =  &List::get_user_db($in{'email'});
@@ -3856,7 +3820,7 @@ sub do_renewpasswd {
 	 }
 
      }
-     # &Log::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'which','',$robot,'','done');
+     # &List::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'which','',$robot,'','done');
      return 1;
  }
 
@@ -4187,7 +4151,7 @@ sub do_renewpasswd {
      unless ($param->{'total'}) {
 	 &report::reject_report_web('user','no_subscriber',{},$param->{'action'},$list);
 	 &wwslog('info','do_review: no subscriber');
-	 # &Log::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'review',$param->{'list'},$robot,'','no subscriber');
+	 # &List::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'review',$param->{'list'},$robot,'','no subscriber');
 	 return 1;
      }
 
@@ -4199,7 +4163,7 @@ sub do_renewpasswd {
 
      if ($param->{'total_page'} > 0 and ($param->{'page'} > $param->{'total_page'})) {
 	 &report::reject_report_web('user','no_page',{'page' => $param->{'page'}},$param->{'action'},$list);
-	 &Log::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'review',$param->{'list'},$robot,'','out of pages');
+	 ('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'review',$param->{'list'},$robot,'','out of pages');
 	 &wwslog('info','do_review: no page %d', $param->{'page'});
 	 return undef;
      }
@@ -4273,7 +4237,7 @@ sub do_renewpasswd {
 
      ## additional DB fields
      $param->{'additional_fields'} = $Conf{'db_additional_subscriber_fields'};
-     &Log::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'review',$param->{'list'},$robot,'','done');
+     ('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'review',$param->{'list'},$robot,'','done');
 
      ## msg_topics
      if ($list->is_there_msg_topic()) {
@@ -4689,6 +4653,7 @@ sub check_custom_attribute {
 	 $param->{'user'}{$p} = $in{$p};
      }
 
+     &report::notice_report_web('performed',{},$param->{'action'});
      &web_db_log({'parameters' => "$in{'gecos'},$in{'lang'},$in{'cookie_delay'}",
 		  'status' => 'success',
 	      });
@@ -4825,7 +4790,6 @@ sub do_subscribe {
 		$u->{'password'} = $param->{'user'}{'password'};
 		$u->{'custom_attribute'} = $xml_custom_attribute if (defined $xml_custom_attribute);
 		$u->{'lang'} = $param->{'user'}{'lang'} || $param->{'lang'};
-		$u->{'parameter'} = 'manual subscription';
 		
 		unless ($list->add_user($u)) {
 		    &report::reject_report_web('intern','add_subscriber_db_failed',{'sub'=>$param->{'user'}{'email'}},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
@@ -4866,8 +4830,6 @@ sub do_subscribe {
     @{$param->{'get_which'}} = &List::get_which($param->{'user'}{'email'},$robot,'member') ; 
     &report::notice_report_web('performed',{},$param->{'action'});
     &web_db_log({'parameters' => $in{'email'},'status' => 'success'});
-
-   
     
     if ($in{'previous_action'}) {
 	return $in{'previous_action'};
@@ -5095,45 +5057,61 @@ sub do_auto_signoff {
  sub do_signoff {
      &wwslog('info', 'do_signoff');
 
-
      my $authenticated_email_address = $param->{'user'}{'email'};
+
      unless ($authenticated_email_address) {
 	 unless ($in{'email'}) {
 	     return 'sigrequest';
 	 }
 
-	 ## Perform login first
-	 if ($in{'passwd'}) {
-	     $in{'previous_action'} = 'signoff';
-	     $in{'previous_list'} = $param->{'list'};
-	     return 'login';
+	 if ($in{'fingerprint'}) {
+
+	     unless(&tools::get_fingerprint($in{'email'}, $in{'fingerprint'})){
+		 &report::reject_report_web('user','cannot_do_signoff');
+		 &wwslog('err','do_signoff: failed to unsubscribe user %s', $in{'email'});
+		 return undef;
+	     }
+
+	     ## We don't set $param->{'user'}{'email'} because we don't want the user to be authenticated 
+	     ## to prevent the cookie from being set
+	     $authenticated_email_address = $in{'email'};
+
+	 }else {
+	     
+	     ## Perform login first
+	     if ($in{'passwd'}) {
+		 $in{'previous_action'} = 'signoff';
+		 $in{'previous_list'} = $param->{'list'};
+		 return 'login';
+	     }
+	     
+	     if ( &List::is_user_db($in{'email'}) ) {
+		 &report::reject_report_web('user','no_user',{},$param->{'action'});
+		 &wwslog('info','do_signoff: need auth for user %s', $in{'email'});
+		 &web_db_log({'target_email' => $in{'email'},
+			      'status' => 'error',
+			      'error_type' => 'authentication'});
+		 return undef;
+	     }
+	     
+	     ## No passwd
+	     &init_passwd($in{'email'}, {'lang' => $param->{'lang'} });
+	     
+	     $param->{'user'}{'email'} = $in{'email'};
+	     $authenticated_email_address = $in{'email'};
 	 }
-
-	 if ( &List::is_user_db($in{'email'}) ) {
-	     &report::reject_report_web('user','no_user',{},$param->{'action'});
-	     &wwslog('info','do_signoff: need auth for user %s', $in{'email'});
-	     &web_db_log({'target_email' => $in{'email'},
-			  'status' => 'error',
-			  'error_type' => 'authentication'});
-	     return undef;
-	 }
-
-	 ## No passwd
-	 &init_passwd($in{'email'}, {'lang' => $param->{'lang'} });
-
-	 $param->{'user'}{'email'} = $in{'email'};
      }
 
-     unless ($list->is_user($param->{'user'}{'email'})) {
+     unless ($list->is_user($authenticated_email_address)) {
 	 &report::reject_report_web('user','not_subscriber',{'list'=>$list->{'name'}},$param->{'action'},$list);
-	 &wwslog('info','do_signoff: %s not subscribed to %s',$param->{'user'}{'email'}, $param->{'list'} );
+	 &wwslog('info','do_signoff: %s not subscribed to %s',$authenticated_email_address, $param->{'list'} );
 	 &web_db_log({'status' => 'error',
 		      'error_type' => 'not_subscriber'});
 	 return undef;
      }
 
      my $result = $list->check_list_authz('unsubscribe',$param->{'auth_method'},
-					  {'sender' => $param->{'user'}{'email'},
+					  {'sender' => $authenticated_email_address,
 					   'remote_host' => $param->{'remote_host'},
 					   'remote_addr' => $param->{'remote_addr'}});
      my $sig_is;
@@ -5148,20 +5126,20 @@ sub do_auto_signoff {
      if ($sig_is =~ /reject/) {
 	 &report::reject_report_web('auth',$reason,{},$param->{'action'},$list);
 	 &wwslog('info', 'do_signoff: %s may not signoff from %s'
-		 , $param->{'user'}{'email'}, $param->{'list'});
+		 , $authenticated_email_address, $param->{'list'});
 	 &web_db_log({'status' => 'error',
 		      'error_type' => 'authorization'});
 	 return undef;
      }elsif ($sig_is =~ /owner/) {
-	 unless ($list->send_notify_to_owner('sigrequest',{'who' => $param->{'user'}{'email'},
-							   'keyauth' => $list->compute_auth($param->{'user'}{'email'}, 'del')})) {
+	 unless ($list->send_notify_to_owner('sigrequest',{'who' => $authenticated_email_address,
+							   'keyauth' => $list->compute_auth($authenticated_email_address, 'del')})) {
 	     &wwslog('notice',"Unable to send notify 'sigrequest' to $list->{'name'} list owner");
 	 }
 	 &report::notice_report_web('sent_to_owner',{},$param->{'action'});
 	 &wwslog('info', 'do_signoff: signoff sent to owner');
 	 return undef;
      }else {
-	     unless ($list->delete_user('users' => [$authenticated_email_address], 'exclude' =>' 1', 'parameter' => 'unsubscription', 'daemon' => 'wwsympa.fcgi')) {
+	     unless ($list->delete_user('users' => [$authenticated_email_address], 'exclude' =>' 1')) {
 		 &report::reject_report_web('intern','delete_subscriber_db_failed',{'sub'=>$authenticated_email_address},$param->{'action'},$list,$authenticated_email_address,$robot);
 		 &wwslog('info', 'do_signoff: signoff failed');
 		 &web_db_log({'status' => 'error',
@@ -5186,9 +5164,6 @@ sub do_auto_signoff {
      }
      &report::notice_report_web('performed',{},$param->{'action'});
      &web_db_log({'status' => 'success'});
-	
-
-    
      $param->{'is_subscriber'} = 0;
      $param->{'may_signoff'} = 0;
 
@@ -6158,8 +6133,6 @@ sub do_skinsedit {
      $list->delete_subscription_request(@added_users);
      
      &report::notice_report_web('add_performed', {'total' => $total},$param->{'action'});
-     &web_db_log({'target_email' => $in{'email'}||$in{'pending_email'},
-		  'status' => 'success'});
      
      foreach my $email (@added_users) {
 	 &web_db_log({'target_email' => $email,
@@ -6203,7 +6176,7 @@ sub do_skinsedit {
      
      unless ( $del_is =~ /do_it/) {
 	 &report::reject_report_web('auth',$reason,{},$param->{'action'},$list);
-	 # &Log::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'del',$param->{'list'},$robot,$in{'email'},'may not');
+	 # &List::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'del',$param->{'list'},$robot,$in{'email'},'may not');
 	 &wwslog('info','do_del: %s may not del', $param->{'user'}{'email'});
 	 &web_db_log({'target_email' => $in{'email'},
 		      'status' => 'error',
@@ -6223,7 +6196,7 @@ sub do_skinsedit {
 
 	 unless (defined($user_entry)) {
 	     &report::reject_report_web('user','not_subscriber',{'email' => $email},$param->{'action'},$list);
-	     # &Log::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'del',$param->{'list'},$robot,$email,'not subscriber');
+	     # &List::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'del',$param->{'list'},$robot,$email,'not subscriber');
 	     &wwslog('info','do_del: %s not subscribed', $email);
 	     &web_db_log({'target_email' => $in{'email'},
 			  'status' => 'error',
@@ -6256,7 +6229,7 @@ sub do_skinsedit {
 	 }
      }
 
-     $total = $list->delete_user('users' => \@removed_users, 'exclude' =>'1', 'parameter' => 'deleted by admin', 'daemon' => 'wwsympa.fcgi');
+     $total = $list->delete_user('users' => \@removed_users, 'exclude' =>'1');
 
      unless( defined $total) {
 	 &report::reject_report_web('intern','delete_subscriber_db_failed',{},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
@@ -6270,8 +6243,6 @@ sub do_skinsedit {
      &report::notice_report_web('del_performed',{'total' => $total},$param->{'action'});
      &web_db_log({'target_email' => $in{'email'},
 		  'status' => 'success'});
-
-    
 
      $param->{'is_subscriber'} = 1;
      $param->{'may_signoff'} = 1;
@@ -6639,7 +6610,8 @@ sub do_skinsedit {
      $in{'id'} .= ','.$in{'idspam'} if ($in{'idspam'});
      $in{'id'} =~ s/^,//;
      $in{'id'} =~ s/\0/,/g;
-     
+     $in{'message_template'};
+
      ## The quiet information might either be provided by the 'quiet' variable 
      ## or by the 'quiet' value of the 'message_template' variable
      if ($in{'message_template'} eq 'quiet') {
@@ -6721,10 +6693,6 @@ sub do_skinsedit {
      }
      &web_db_log({'parameters' => $in{'id'},
 		  'status' => 'success'});
-
-     &web_db_stat_log({'robot' => $robot, 'list' => $list->{'name'}, "operation" => $param->{'action'}, 'parameter' => "", 'mail' => $param->{'user'}{'email'},
-	'client' => $ip, 'daemon' => $daemon_name}); 
-
      &report::notice_report_web('performed',{},$param->{'action'});
 
      return 'modindex';
@@ -7291,12 +7259,6 @@ sub do_arc {
     }
     $param->{'base'} = sprintf "%s%s/arc/%s/%s/%s", $param->{'base_url'}, $param->{'path_cgi'}, $param->{'list'}, $in{'month'}, $in{'arc_file'};
     $param->{'archive_name'} = $in{'month'};
- 
-
-    #test pour différentier les action d'un robot et d'un simple abonné
-    
-    &web_db_stat_log({'robot' => $robot, 'liste' => $list->{'name'}, 'operation' => $param->{'action'}, 'parameter' => "",
-	'mail' => $param->{'user'}{'email'}, 'client' => $ip, 'daemon' => $daemon_name});
     
     return 1;
 }
@@ -7538,20 +7500,12 @@ sub do_remove_arc {
     foreach my $msgid (@msgids) {	
 	chomp $msgid ;	
 	printf REBUILD ('%s||%s',$msgid,$param->{'user'}{'email'}) ; printf  REBUILD "\n";
-	#########################################################################
-	# Tracking
-	&tracking::remove_message($msgid, $in{'list'});
-	########################################################################
     }
     close REBUILD;	
     &wwslog('info', 'do_remove_arc %d messages marked to be removed by archived', $#msgids+1);
     &web_db_log({'parameters' => $in{'msgid'},
 		 'msg_id' => $in{'msgid'},
 		 'status' => 'success'});
-
-    #&web_db_stat_log({'robot' => $robot, 'list' => $list->{'name'}, 'operation' => $param->{'action'}, 'parameter' => "", 
-	#'client' => $ip, 'daemon' => $daemon_name});
-
     $param->{'status'} = 'done';
 
     return 1;
@@ -7698,120 +7652,6 @@ sub do_remove_arc {
 	 return undef;
      }
 
-     return 1;
- }
-####################################################
-#  do_tracking_percent                           
-####################################################
-#  Display notifications status when a recipient is not usually delivered
-# 
-# IN : -
-#
-# OUT : 'arc' | 1 | undef
-#
-#################################################### 
- sub do_tracking_percent   {
-     &wwslog('info', 'do_view_source(%s, %s, %s, %s', $in{'list'}, $in{'yyyy'}, $in{'month'}, $in{'msgid'});
-     
- #    unless ( ($Conf::Conf{'tracking'}) && ($Conf::Conf{'verp_rate'} eq 100) ){
-     unless ( ($list->{admin}{tracking} eq "on") && ($list->{admin}{verp_rate} eq "100%") ){
-         &wwslog('info','do_tracking_percent: invalid parameters; verp_rate must be = \"100%\", tracking must be \"on\"');
-	 printf "Content-Type: text/html\n\n";
-	 printf '<HTML><HEAD><TITLE>Suivi du Courrier</TITLE>';
-	 printf '</HEAD><BODY>';
-    	 printf "<br /><p>";
-    	 printf "Error in the configuration parameters : <br />verp_rate = $list->{admin}{verp_rate} (must be = 100%)";
-    	 printf "<br />tracking = $list->{admin}{tracking} (must be on)";
-    	 printf "<br /></p>";
-    	 printf '</BODY></HTML>';
-	return 1;
-     }
-     ## Access control
-     unless (defined &check_authz('do_arc', 'web_archive.access')) {
-	 $param->{'previous_action'} = 'arc';
-	 $param->{'previous_list'} = $list->{'name'};
-	 return undef;
-     }
-
-     if (! $in{'msgid'} || 
-	 $in{'msgid'} =~ /NO-ID-FOUND\.mhonarc\.org/) {
-	 &report::reject_report_web('intern','may_not_view_source',{},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
-	 &wwslog('info','view_source: no message id found');
-	 $param->{'status'} = 'no_msgid';
-	 return undef;
-     } 
-     ##
-     my $tracking_info;
-     unless($tracking_info = &tracking::get_delivered_info_percent($in{'msgid'}, $in{'list'})){
-         #TODO: Change error names
-         &report::reject_report_web('intern','may_not_view_source',{},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
-       #  &wwslog('info','view_source: no message id found');
-         $param->{'status'} = 'no_msgid';
-         return undef;
-     }
- 
-     $param->{'bypass'} = 'extreme';
-   #  printf "Content-Type: text/plain\n\n";
-    # printf "Content-Type: text/html";
-     printf "Content-Type: text/html\n\n";
-
-     printf '<HTML><HEAD><TITLE>Suivi du Courrier</TITLE>';
-#<META HTTP-EQUIV="refresh" CONTENT="2">
-     printf '</HEAD><BODY>';
-     printf "<br /><p>";
-     printf $tracking_info;
-     printf "<br /></p>";
-     printf '</BODY></HTML>';
-     return 1;
- }
-
-####################################################
-#  do_tracking                           
-####################################################
-#  Display notifications status when a recipient is not usually delivered
-# 
-# IN : -
-#
-# OUT : 'arc' | 1 | undef
-#
-#################################################### 
- sub do_tracking   {
-     &wwslog('info', 'do_tracking(%s, %s, %s, %s', $in{'list'}, $in{'yyyy'}, $in{'month'}, $in{'msgid'});
-
-     ## Access control
-     unless ($param->{'is_owner'}){
-	 $param->{'previous_action'} = 'arc';
-	 $param->{'previous_list'} = $list->{'name'};
-	 return undef;
-     }
-     unless (($list->{admin}{tracking}{delivery_status_notification} eq 'on')||($list->{admin}{tracking}{message_delivery_notification} eq 'on')||($list->{admin}{tracking}{message_delivery_notification} eq 'on_demand')){
-         &wwslog('err','do_tracking : list not configured for tracking');
-	 &report::reject_report_web('intern','list_not_configured_for_tracking');
-	 $param->{'previous_action'} = 'arc';
-	 $param->{'previous_list'} = $list->{'name'};
-	 return undef;
-     }
-     if (! $in{'msgid'} || 
-	 $in{'msgid'} =~ /NO-ID-FOUND\.mhonarc\.org/) {
-	 &report::reject_report_web('err','no_msgid',{},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
-	 &wwslog('err','view_source: no message id found');
-	 $param->{'status'} = 'no_msgid';
-	 return undef;
-     } 
-     ##
-
-     $param->{'subject'} = $in{'subject'};
-     $param->{'fromname'} = $in{'fromname'};
-     $param->{'fromaddr'} = $in{'fromaddr'};
-     $param->{'msgid'} = $in{'msgid'} ;
-     $param->{'listname'} = $in{'list'};
-
-     unless($param->{'tracking_info'} = &tracking::get_recipients_status($in{'msgid'}, $in{'list'},$robot)){
-         &report::reject_report_web('err','could_not_get_tracking_info',{},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
-         &wwslog('err',"could not get tracking info for message_id $in{'msgid'} and list $in{'list'}");
-         $param->{'status'} = 'could_not_get_tracking_info';
-         return undef;
-     }
      return 1;
  }
 
@@ -8043,7 +7883,7 @@ sub do_remove_arc {
 
      unless ($#{$param->{'res'}} >= 0) {
 	 &report::reject_report_web('intern_quiet','archive_not_found',{'msgid'=> $in{'msgid'}},$param->{'action'},$list,$param->{'user'}{'email'},$robot);
-	 &wwslog('err','No message found in archives matching Message-ID %s', $in{'msgid'});
+	 &wwslog('info','No message found in archives matching Message-ID %s', $in{'msgid'});
 	 return 'arc';
      }
 
@@ -8269,11 +8109,6 @@ sub do_set_pending_list_request {
 
      $param->{'status'} = $in{'status'};
 
-     if ($in{'status'} eq 'closed'){
-        &web_db_stat_log({'robot' => $robot, 'list' => $list->{'name'}, 'operation' => 'list_rejected', 'parameter' => '',
-			  'mail' => $param->{'user'}{'email'}, 'client' => '', 'daemon' => $daemon_name});
-     }
-
      $list = $param->{'list'} = $in{'list'} = undef;
      return 'get_pending_lists';
      &web_db_log({'parameters' => "$in{'status'},$in{'notify'}",
@@ -8289,14 +8124,12 @@ sub do_set_pending_list_request {
      my (@suf, @addresses);
 
      my $smtp_relay = $Conf{'robots'}{$robot}{'list_check_smtp'} || $Conf{'list_check_smtp'};
-     my $smtp_helo = $Conf{'robots'}{$robot}{'list_check_helo'} || $Conf{'list_check_helo'} || $smtp_relay; 
-     $smtp_helo =~ s/:[-\w]+$//;
      my $suffixes = $Conf{'robots'}{$robot}{'list_check_suffixes'} || $Conf{'list_check_suffixes'};
      return 0 
 	 unless ($smtp_relay && $suffixes);
      my $domain = &Conf::get_robot_conf($robot, 'host');
      &wwslog('debug2', 'list_check_smtp(%s)',$in{'listname'});
-     @suf = split(/[,\s]+/,$suffixes);
+     @suf = split(/,/,$suffixes);
      return 0 if ! @suf;
      for(@suf) {
 	 push @addresses, $list."-$_\@".$domain;
@@ -8310,7 +8143,7 @@ sub do_set_pending_list_request {
      require Net::SMTP;
 
      if( $smtp = Net::SMTP->new($smtp_relay,
-				Hello => $smtp_helo,
+				Hello => $smtp_relay,
 				Timeout => 30) ) {
 	 $smtp->mail('');
 	 for(@addresses) {
@@ -8456,7 +8289,7 @@ Creates a list using a list template
 		       'error_type' => 'user'});
 	  return undef
       }
-     my $resul = &admin::create_list_old($parameters,$in{'template'},$robot,"web", $param->{'user'}{'email'});
+     my $resul = &admin::create_list_old($parameters,$in{'template'},$robot,"web");
      unless(defined $resul) {
 	 &report::reject_report_web('intern','create_list',{},$param->{'action'},'',$param->{'user'}{'email'},$robot);
 	 &wwslog('info','do_create_list: unable to create list %s for %s',$in{'listname'},$param->{'user'}{'email'});
@@ -8500,8 +8333,7 @@ Creates a list using a list template
      
      &web_db_log({'parameters' => $in{'listname'},
  		  'list' => $in{'listname'},
- 		  'status' => 'success'});
-	  
+ 		  'status' => 'success'});	  
 
      $in{'list'} = $resul->{'list'}{'name'};
      &check_param_in();
@@ -8615,45 +8447,11 @@ Sends back the list creation edition form.
  }
 
 ## WWSympa Home-Page
-sub do_home {
-    &wwslog('info', 'do_home');
-    
-    if(!$session->is_anonymous()) {
-	
-	## Build the admin_summary variable that tells foreach list 
-	## how many messages/subscriptions are awaiting moderation
-	foreach my $one_list (@{$param->{'get_which_owner'}},@{$param->{'get_which_editor'}}) {
-	    
-	    next if $param->{'admin_summary'}{$one_list->{'name'}}; ## skip already treated ones
-	    
-	    my $mod_message = $one_list->get_mod_spool_size();
-	    $param->{'admin_summary'}{$one_list->{'name'}}{'mod_message'} = $mod_message if ($mod_message > 0);
-	    
-	    my $mod_subscription = $one_list->get_subscription_request_count();
-	    $param->{'admin_summary'}{$one_list->{'name'}}{'mod_subscription'} = $mod_subscription if ($mod_subscription > 0);
-	    
-	    my $doc_mod_list = $one_list->get_shared_moderated();
-	    my $mod_shared_total = $#{$doc_mod_list} + 1;
-	    $param->{'admin_summary'}{$one_list->{'name'}}{'mod_shared_total'} = $mod_shared_total if ($mod_shared_total > 0);
-	    
-	}
-	
-	## Build the errors_summary variable, tells for a suscriber
-	## how many sending messages are in errors
-	
-	foreach my $the_list (@{$param->{'get_which'}}){ #review all the lists
-	    
-	    next if $param->{'errors_summary'}{$the_list->{'name'}};
-	    
-	    my $errors = $the_list->get_total_bouncing(); #get the bounces of the subscriber
-	    
-	    $param->{'errors_summary'}{$the_list->{'name'}} = $errors if ($errors > 0); #if there is bounces put it in errors_summary
-	}
-    }
-    
-    return 1;
+ sub do_home {
+     &wwslog('info', 'do_home');
 
-}
+     return 1;
+ }
 
  sub do_editsubscriber {
      &wwslog('info', 'do_editsubscriber(%s)', $in{'email'});
@@ -9272,7 +9070,6 @@ sub do_edit_list {
 		## Remove if empty
 		if ($new_admin->{$pname} =~ /^\s*$/) {
 		    delete $new_admin->{$pname};
-		    next; # Go directly to the next parameter.
 		}
 	    }
 	    
@@ -10357,8 +10154,6 @@ sub _restrict_values {
 sub do_copy_list {
     &wwslog('info', 'do_copy_list(%s,%s)', $in{'new_listname'}, $in{'new_robot'});
     &do_rename_list('copy');
-    &web_db_stat_log({'robot' => $robot, 'list' => $in{'new_listname'}, 'operation' => 'copy list', 'parameter' =>'', 'mail' => $param->{'user'}{'email'},
-		      'client' => '', 'dameon' => $daemon_name});
 }
 
 # in order to rename a list you must be list owner and you must be allowed to create new list
@@ -10469,9 +10264,6 @@ sub do_purge_list {
       &report::notice_report_web('performed',{},$param->{'action'});
      &web_db_log({'parameters' => $in{'selected_lists'},
  		  'status' => 'success'});
-
-    
-
      return 'get_closed_lists';
  }
 
@@ -10489,17 +10281,11 @@ sub do_purge_list {
 	 $list->purge($param->{'user'}{'email'});
 	 &report::notice_report_web('list_purged',{},$param->{'action'});
 	 &web_db_log({'status' => 'success'});
-
-	 &web_db_stat_log({'robot' => $robot, 'list' => $list->{'name'}, 'operation' => $param->{'action'}, 'daemon' => $daemon_name});
-
 	 return 'home';	
      }else{
-	 $list->close_list($param->{'user'}{'email'});
+	 $list->close($param->{'user'}{'email'});
 	 &report::notice_report_web('list_closed',{},$param->{'action'});
 	 &web_db_log({'status' => 'success'});
-
-	 
-
          return 'admin';
      }
 
@@ -10549,9 +10335,6 @@ sub do_purge_list {
      
      &report::notice_report_web('list_restored',{},$param->{'action'});
      &web_db_log({'status' => 'success'});
-
-     &web_db_stat_log({'robot' => $robot, 'list' => $list->{'name'}, 'operation' => $param->{'action'}, 'daemon' => $daemon_name});
-
      return 'admin';
  }
 
@@ -10566,8 +10349,7 @@ sub do_purge_list {
      while ($ligne = <DESC_FILE>) {
 	 if ($ligne =~ /^title\s*$/) {
 	     #case title of the document
-	     while ($ligne = <DESC_FILE>) {
-		 last if ($ligne =~ /^\s*$/);
+	     while (($ligne = <DESC_FILE>) and ($ligne!~/^\s*$/)) {
 		 $ligne =~ /^\s*(\S.*\S)\s*/;
 		 $hash{'title'} = $hash{'title'}.$1." ";
 	     }
@@ -10577,8 +10359,7 @@ sub do_purge_list {
 
 	 if ($ligne =~ /^creation\s*$/) {
 	     #case creation of the document
-	     while ($ligne = <DESC_FILE>) {
-		 last if ($ligne =~ /^\s*$/);
+	     while (($ligne = <DESC_FILE>) and ($ligne!~/^\s*$/)) {
 		 if ($ligne =~ /^\s*email\s*(\S*)\s*/) {
 		     $hash{'email'} = $1;
 		 } 
@@ -10591,8 +10372,7 @@ sub do_purge_list {
 
 	 if ($ligne =~ /^access\s*$/) {
 	     #case access scenari for the document
-	     while ($ligne = <DESC_FILE>) {
-		 last if  ($ligne =~ /^\s*$/);
+	     while (($ligne = <DESC_FILE>) and ($ligne!~/^\s*$/)) {
 		 if ($ligne =~ /^\s*read\s*(\S*)\s*/) {
 		     $hash{'read'} = $1;
 		 }
@@ -12755,13 +12535,11 @@ sub do_d_savefile {
      # Parameters of the uploaded file (from d_read.tt2)
      my $fn = $in{'uploaded_file'};
 
-   
-
      # name of the file, without path
      my ($fname, $visible_fname);
      if ($fn =~ /([^\/\\]+)$/) {
-	 $fname = &tools::qencode_filename($1);
-	 $visible_fname = &make_visible_path($fname);
+       $fname = &tools::qencode_filename($1);
+       $visible_fname = &make_visible_path($fname);
      }
      
      # param from d_upload.tt2
@@ -12779,14 +12557,7 @@ sub do_d_savefile {
      
      # name of the file 
      my $longname = "$shareddir/$path/$fname";
-
      $longname =~ s/\/+/\//g;
-
-       ###########
-     #Get the size of uploaded file : used in db_stat_log (parameter)
-     my @infos = stat $longname;
-     my $size = $infos[7];
-     ###########
      
 #     ## $path must have a slash at its end
 #     $path = &format_path('with_slash',$path);
@@ -12804,7 +12575,7 @@ sub do_d_savefile {
 	 &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "$visible_path,$visible_fname",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'no_file','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
 	 return undef;
      }
- 
+
      ## Check quota
      if ($list->{'admin'}{'shared_doc'}{'quota'}) {
 	 if ($list->get_shared_size() >= $list->{'admin'}{'shared_doc'}{'quota'} * 1024){
@@ -13228,9 +12999,6 @@ sub do_d_savefile {
   
      &report::notice_report_web('upload_success', {'path' => $visible_fname},$param->{'action'});
      &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "$visible_path,$visible_fname",'target_email' => "",'msg_id' => '','status' => 'success','error_type' => '','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
-
-     &web_db_stat_log({'robot' => $robot, 'list' => $list->{'name'}, 'operation' => $param->{'action'}, 'parameter' => $size, 'mail' => $param->{'user'}{'email'}, 'client' => $ip, 'daemon' => $daemon_name});
-	
      return 'd_read';
  }
 
@@ -14055,10 +13823,6 @@ sub d_test_existing_and_rights {
 	 }   
      }
      &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "$in{'path'}",'target_email' => "",'msg_id' => '','status' => 'success','error_type' => '','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
-
-     &web_db_stat_log({'robot' => $robot, 'list' => $list->{'name'}, 'operation' => $param->{'action'}, 'parameter' => "", 'mail' => $param->{'user'}{'email'},
-	'client' => $ip, 'daemon' => $daemon_name});    
-
      $in{'list'} = $list_name;
      $in{'path'} = $current_directory;
      return 'd_read';
@@ -14346,11 +14110,7 @@ sub d_test_existing_and_rights {
 
      print DESC "access\n";
      print DESC "  read $access{'scenario'}{'read'}\n";
-     print DESC "  edit $access{'scenario'}{'edit'}\n\n";
-
-     #size of the new file created
-     my @infos = stat $desc_file;
-     my $filesize = $infos[7];  
+     print DESC "  edit $access{'scenario'}{'edit'}\n\n";  
 
      close DESC;
 
@@ -14381,19 +14141,6 @@ sub d_test_existing_and_rights {
      }
 
      &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "$in{'name_doc'}",'target_email' => "",'msg_id' => '','status' => 'success','error_type' => '','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
-
-
-
-     #web_db_stat_log : test before if the creation is a file or a directory	
-     my $op;
-     if ($type eq 'directory'){
-     $op = $param->{'action'}.'(directory)';
-     &web_db_stat_log({'robot' => $robot, 'list' => $list->{'name'}, 'operation' => $op, 'parameter' => "", 'mail' => $param->{'user'}{'email'}, 'client' => $ip, 'daemon' => $daemon_name});
-     }
-     else{
-     $op = $param->{'action'}.'(file)';
-     &web_db_stat_log({'robot' => $robot, 'list' => $list->{'name'}, 'operation' => $op, 'parameter' => $filesize, 'mail' => $param->{'user'}{'email'}, 'client' => $ip, 'daemon' => $daemon_name});
-     }
 
      if ($type eq 'directory') {
 	 return 'd_read';
@@ -14530,7 +14277,7 @@ sub d_test_existing_and_rights {
      $param->{'scenari_read'}{$read}{'selected'} = 'selected="selected"';
 
      ## Scenario list for EDIT
-     $tmp_list_of_scenario = $list->load_scenario_list('d_edit',$robot);
+     my $tmp_list_of_scenario = $list->load_scenario_list('d_edit',$robot);
 	     
      ## Only get required scenario attributes
      foreach my $scenario (keys %{$tmp_list_of_scenario}) {
@@ -14805,7 +14552,7 @@ sub d_test_existing_and_rights {
      &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "$in{'name_doc'}",'target_email' => "",'msg_id' => '','status' => 'success','error_type' => '','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
      ## ONLY IF SET_OWNER can be performed even if not control of the father directory
      $mode{'control'} = 1;
-     %access = &d_access_control(\%mode,$path);
+     my %access = &d_access_control(\%mode,$path);
      unless ($access{'may'}{'control'}) {
 	 ## father directory
 	 $path =~ /^(([^\/]*\/)*)([^\/]+)(\/?)$/; 
@@ -14905,9 +14652,9 @@ sub d_test_existing_and_rights {
 	 $ct = 'application/pkix-cert';
      }
      $param->{'bypass'} = 'extreme';
-     print "Content-type: $ct\n\n";
+     printf "Content-type: $ct\n\n";
      foreach my $l (@cert) {
-	 print "$l";
+	 printf "$l";
      }
      return 1;
  }
@@ -15115,32 +14862,16 @@ sub do_change_email {
 	 my $l = $list->{'name'};
 	 
 	 my $user_entry = $list->get_subscriber($old_email);
-	 
 	 if ($user_entry->{'included'} == 1) {
-	     ## Check the type of data sources
-	     ## If only include_list of local mailing lists, then no problem
-	     ## Otherwise, notify list owner
-	     ## We could also force a sync_include for local lists
-	     my $use_external_data_sources;
-	     foreach my $datasource_id (split(/,/, $user_entry->{'id'})) {
-		 my $datasource = $list->search_datasource($datasource_id);
-		 if (!defined $datasource || $datasource->{'type'} ne 'include_list' || ($datasource->{'def'} =~ /\@(.+)$/ && $1 ne $robot)) {
-		     $use_external_data_sources = 1;
-		     last;
-		 }
-	     }
-	     if ($use_external_data_sources) {
-		 ## Notify list owner
-		 $list->send_notify_to_owner('failed_to_change_included_member',
-		    {'current_email' => $old_email, 
-		     'new_email' => $new_email,
-		     'datasource' => $list->get_datasource_name($user_entry->{'id'})});
-    
-		 &report::reject_report_web('user','change_member_email_failed_included',{'listname'=>$list->{'name'}},
-					    $param->{'action'},$list,$old_email,$robot);
-		 &wwslog('err', 'could not change member email for list %s because member is included', $l);
-		 next;
-	     }
+	     ## Notify list owner
+	     $list->send_notify_to_owner('failed_to_change_included_member',{'current_email' => $old_email, 
+									     'new_email' => $new_email,
+									     'datasource' => $list->get_datasource_name($user_entry->{'id'})});
+
+	     &report::reject_report_web('user','change_member_email_failed_included',{'listname'=>$list->{'name'}},
+					$param->{'action'},$list,$old_email,$robot);
+	     &wwslog('err', 'could not change member email for list %s because member is included', $l);
+	     next;
 	 }
 
 	 ## Check if user is already member of the list with his new address
@@ -15492,10 +15223,6 @@ sub do_compose_mail {
 	return undef;
     }
 
-    $param->{'use_html_editor'} = &Conf::get_robot_conf($robot, 'use_html_editor');
-    $param->{'html_editor_file'} = &Conf::get_robot_conf($robot, 'html_editor_file');
-    $param->{'html_editor_init'} = &Conf::get_robot_conf($robot, 'html_editor_init');
-    
     # Set the subaction to html_news_letter or undef
     $param->{'subaction'} = $in{'subaction'};
     if ($in{'to'}) {
@@ -15544,175 +15271,150 @@ sub do_compose_mail {
 #      | 'info' | undef
 #
 ####################################################
-sub do_send_mail {
+ sub do_send_mail {
+     
+     &wwslog('info', 'do_send_mail');
+
+     # Get the sender mail
+     my $from = $param->{'user'}{'email'};
+     my $to;
+     # Send the message to the list or to the sender as clicking the send to the list or to me.
+     # First if : send to the list
+     if ($in{'sub_action'} eq 'sendmailtolist'){
+
+	 # In archive we hide email replacing @ by ' '. Here we must do the reverse transformation
+	 $in{'to'} =~ s/ /\@/g;
+	 $to = $in{'to'};
     
-    &wwslog('info', 'do_send_mail');
+	 unless ($in{'to'}) {
+	     unless ($param->{'list'}) {
+		 &report::reject_report_web('user','missing_arg',{'argument' => 'list'},$param->{'action'});
+		 &wwslog('info','do_send_mail: no list');
+		 &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'no_list','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
+		 return undef;		
+	     }
+	     unless ($param->{'may_post'}) {
+		 &report::reject_report_web('auth',$param->{'may_post_reason'},{},$param->{'action'},$list);
+		 &wwslog('info','do_send_mail: may not send message');
+		 &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'authorization','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
+		 return undef;
+	     }
+	     $to = $list->get_list_address();
+	 }
+     }
+
+     # Send the mail to the sender. To test his message
+     # Second if : send to the sender "send to me"
+     if($in{'sub_action'} eq 'sendmailtome') {
+	 #Set the sender mail to the addressee
+	 $to = $from;	 
+     }
+
+     if (defined $param->{'subscriber'}) {
+	 $from = &tools::addrencode($from, $param->{'subscriber'}{'gecos'},
+				    &Language::GetCharset());
+     }
+
+     ##--------------- TOPICS --------------------
+     my $list_topics;
+     if ($list->is_there_msg_topic()) {
+	 my @msg_topics;
+
+	 foreach my $msg_topic (@{$list->{'admin'}{'msg_topic'}}) {
+	     my $var_name = "topic_"."$msg_topic->{'name'}";
+	     if ($in{"$var_name"}) {
+		 push @msg_topics, $msg_topic->{'name'};
+	     }
+	 }	 
+	 
+	 $list_topics = join(',',@msg_topics);
+     }
+
+     if (!$list_topics && $list->is_msg_topic_tagging_required()) {
+	 &report::reject_report_web('user','msg_topic_missing',{},$param->{'action'});
+	 &wwslog('info','do_send_mail: message(s) without topic but in a required list');
+	 &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'no_topic','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
+	 return undef;
+     }
+     
+     if ($list_topics) {
+	 my $filetopic = $list->tag_topic($in{'message_id'},$list_topics,'sender');
+     }
+
+     ##--------------- send an html page or a message --------------------
     
-    my $to;
-    my $message = $param->{'message'};
-    
-    # Send the message to the list or to the sender as clicking the send to the list or to me.
-    # First if : send to the list
-    if ($in{'sub_action'} eq 'sendmailtolist'){
-	
-	# In archive we hide email replacing @ by ' '. Here we must do the reverse transformation
-	$in{'to'} =~ s/ /\@/g;
-	$to = $in{'to'};
-	
-	unless ($in{'to'}) {
-	    unless ($param->{'list'}) {
-		&report::reject_report_web('user','missing_arg',{'argument' => 'list'},$param->{'action'});
-		&wwslog('info','do_send_mail: no list');
-		&web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'no_list','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
-		return undef;		
-	    }
-	    unless ($param->{'may_post'}) {
-		&report::reject_report_web('auth',$param->{'may_post_reason'},{},$param->{'action'},$list);
-		&wwslog('info','do_send_mail: may not send message');
-		&web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'authorization','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
-		return undef;
-	    }
-	    $to = $list->get_list_address();
-	}
-    }
-    
-    # Take the sender mail
-    my $from = $param->{'user'}{'email'};
-    
-    # Send the mail to the sender. To test his message
-    # Second if : send to the sender "send to me"
-    if($in{'sub_action'} eq 'sendmailtome') {
-	#Set the sender mail to the addressee
-	$to = $from;	 
-    }
-    
-    if (defined $param->{'subscriber'}) {
-	$from = &tools::addrencode($from, $param->{'subscriber'}{'gecos'},
-				   &Language::GetCharset());
-    }
-    
-    ##--------------- TOPICS --------------------
-    my $list_topics;
-    if ($list->is_there_msg_topic()) {
-	my @msg_topics;
-	
-	foreach my $msg_topic (@{$list->{'admin'}{'msg_topic'}}) {
-	    my $var_name = "topic_"."$msg_topic->{'name'}";
-	    if ($in{"$var_name"}) {
-		push @msg_topics, $msg_topic->{'name'};
-	    }
-	}	 
-	
-	$list_topics = join(',',@msg_topics);
-    }
-    
-    if (!$list_topics && $list->is_msg_topic_tagging_required()) {
-	&report::reject_report_web('user','msg_topic_missing',{},$param->{'action'});
-	&wwslog('info','do_send_mail: message(s) without topic but in a required list');
-	&web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'no_topic','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
-	return undef;
-    }
-    
-    if ($list_topics) {
-	my $filetopic = $list->tag_topic($in{'message_id'},$list_topics,'sender');
-    }
-    
-    ##--------------- send an html page or a message --------------------
-    
-    if ($in{'html_news_letter'}) {
-	
-	# url should not be empty -> missing argument
-	if ($in{'url'} =~ /^\s*$/) {
-	    &report::reject_report_web('user','missing_arg',{'argument' => 'url'},$param->{'action'});
-	    ($Log::log_level >= 0) && &wwslog('info','Missing url');
-	    &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'no_url','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
-	    return undef;
-	}
-	
-	# Generate a newsletter from an HTML URL and send it to a list by the Web interface.
-	# Else you must use parse routine of MIME::Lite::HTML and send of MIME::Lite.
-	my $mailHTML = new MIME::Lite::HTML(
-					    {
-						From => $from,
-						To => $to,
-						Headers => {'In-Reply-To' => $in{'in_reply_to'}, 'Message-ID' => $in{'message_id'}},
-						'return_path' => &Conf::get_robot_conf($robot, 'sympa'),
-						Subject => $in{'subject'},
-						HTMLCharset => 'utf-8',
-						TextCharset => 'utf-8',
-						TextEncoding => '8bit',
-						HTMLEncoding => '8bit',
-						remove_jscript => '1', #delete the scripts in the html
-					    }
-					    );
-	my $pages_url;
-	$pages_url = $in{'url'};
-	
-	# parse return the MIME::Lite part to send 
-	my $MIMEmail = $mailHTML->parse($pages_url); 
-	
-	$in{'body'} = $MIMEmail->as_string;
-	
-    } else {
-	
-	## Message body should not be empty
-	if ($in{'body'} =~ /^\s*$/) {
-	    &report::reject_report_web('user','missing_arg',{'argument' => 'body'},$param->{'action'});
-	    ($Log::log_level >= 0) && &wwslog('info','Missing body');
-	    &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'no_body','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
-	    return undef;
-	}
-	
-	$in{'body'} = "\n".$in{'body'};    
-	
-	if(&Conf::get_robot_conf($robot, 'use_html_editor')){
-	    # Generate a multipart/relative message using the body.
-	    my $mailHTML = new MIME::Lite::HTML(
-						{
-						       From => $from,
-						       To => $to,
-						    Headers => {'In-Reply-To' => $in{'in_reply_to'}, 'Message-ID' => $in{'message_id'}},
-						    'return_path' => &Conf::get_robot_conf($robot, 'sympa'),
-						    Subject => $in{'subject'},
-						    HTMLCharset => 'utf-8',
-						    TextCharset => 'utf-8',
-						    TextEncoding => '8bit',
-						    HTMLEncoding => '8bit',
-						    remove_jscript => '1', #delete the scripts in the html
-						}
-						);
-	    my $pages_url = $in{'body'};
-	    
-	    # parse return the MIME::Lite part to send 
-	    my $MIMEmail = $mailHTML->parse($pages_url); 
-	    $in{'body'} = $MIMEmail->as_string;
-	}
-	
-	my $data = {'headers' => {'In-Reply-To' => $in{'in_reply_to'},
-				  'Message-ID' => $in{'message_id'}}, 
-		    'subject' => $in{'subject'},
-		    'return_path' => &Conf::get_robot_conf($robot, 'sympa'),
-		    'to' => $to,
-		    'body' => "From: $from\n" . $in{'body'},
-		    'sign_mode' => '',
-		    'header_possible' => '1'};
-	
-	$data->{'not_auto_submitted'} = 1;
-	unless (&mail::mail_file('', $to, $data, $robot)) {
-	    &report::reject_report_web('intern','cannot_send_mail',{'from' => $param->{'user'}{'email'},'listname'=>$list->{'name'}},
-				       $param->{'action'},$list,$param->{'user'}{'email'},$robot);
-	    &wwslog('err','do_send_mail: failed to send message for $to list');
-	    &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'internal','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
-	    return undef;
-	}
-	&report::notice_report_web('performed',{},$param->{'action'});
-	&web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'success','error_type' => '','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
-	
-	
-	return 'info';
-	
-    }
-}
+     if ($in{'html_news_letter'}) {
+	 
+	 # url should not be empty -> missing argument
+	 if ($in{'url'} =~ /^\s*$/) {
+	       &report::reject_report_web('user','missing_arg',{'argument' => 'url'},$param->{'action'});
+	       ($Log::log_level >= 0) && &wwslog('info','Missing url');
+	       &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'no_url','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
+	       return undef;
+	 }
+
+	 # Generate a newsletter from an HTML URL and send it to a list by the Web interface.
+	 # Else you must use parse routine of MIME::Lite::HTML and send of MIME::Lite.
+	 my $mailHTML = new MIME::Lite::HTML(
+					     {
+						 From => $from,
+						 To => $to,
+						 Headers => {'In-Reply-To' => $in{'in_reply_to'}, 'Message-ID' => $in{'message_id'}},
+						 'return_path' => &Conf::get_robot_conf($robot, 'sympa'),
+						 Subject => $in{'subject'},
+						 HTMLCharset => 'utf-8',
+						 TextCharset => 'utf-8',
+						 TextEncoding => '8bit',
+						 HTMLEncoding => '8bit',
+						 remove_jscript => '1', #delete the scripts in the html
+					     }
+					     );
+	 my $pages_url;
+	 $pages_url = $in{'url'};
+
+	 # parse return the MIME::Lite part to send 
+	 my $MIMEmail = $mailHTML->parse($pages_url); 
+
+	 $in{'body'} = $MIMEmail->as_string;
+
+     } else {
+
+           ## Message body should not be empty
+           if ($in{'body'} =~ /^\s*$/) {
+	       &report::reject_report_web('user','missing_arg',{'argument' => 'body'},$param->{'action'});
+	       ($Log::log_level >= 0) && &wwslog('info','Missing body');
+	       &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'no_body','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
+	       return undef;
+	   }
+
+	   $in{'body'} = "\n".$in{'body'};
+   }
+
+
+    my $data = {'headers' => {'In-Reply-To' => $in{'in_reply_to'},
+			       'Message-ID' => $in{'message_id'}}, 
+		'subject' => $in{'subject'},
+		'return_path' => &Conf::get_robot_conf($robot, 'sympa'),
+		'to' => $to,
+		'body' => "From: $from\n" . $in{'body'},
+		'sign_mode' => '',
+		'header_possible' => '1'};
+
+     $data->{'not_auto_submitted'} = 1;
+     unless (&mail::mail_file('', $to, $data, $robot)) {
+	 &report::reject_report_web('intern','cannot_send_mail',{'from' => $param->{'user'}{'email'},'listname'=>$list->{'name'}},
+				    $param->{'action'},$list,$param->{'user'}{'email'},$robot);
+	 &wwslog('err','do_send_mail: failed to send message for $to list');
+	 &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'error','error_type' => 'internal','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
+	 return undef;
+     }
+
+
+     &report::notice_report_web('performed',{},$param->{'action'});
+     &web_db_log({'robot' => $robot,'list' => $list->{'name'},'action' => $param->{'action'},'parameters' => "",'target_email' => "",'msg_id' => '','status' => 'success','error_type' => '','user_email' => $param->{'user'}{'email'},'client' => $ip,'daemon' => $daemon_name});
+     return 'info';
+
+ }
 
 ####################################################
 #  do_request_topic
@@ -16059,91 +15761,6 @@ sub do_stats {
      $param->{'shared_size'} = int (($list->get_shared_size + 512)/1024);
      $param->{'arc_size'} = int (($list->get_arc_size($wwsconf->{'arc_path'}) + 512)/1024);
 
-
-     #-------------------send_mail treatment-----------------
-     my $data_mail = &List::get_data('send_mail', $robot , $in{'list'});
-
-     $param->{'stats_values'} = "[";
-
-     foreach my $id_data (keys(%$data_mail)){
-	 my $date_deb = &tools::adate($data_mail->{$id_data}->{'beginning_date_counter'});
-	 my $date_fin = &tools::adate($data_mail->{$id_data}->{'end_date_counter'});
-	 
-	 $data_mail->{$id_data}->{'beginning_date_counter'} = $date_deb;
-	 $data_mail->{$id_data}->{'end_date_counter'} = $date_fin;
-
-	 $param->{'stats_mail'}{$id_data} = $data_mail->{$id_data};
-	 $param->{'stats_values'} .= "['".$data_mail->{$id_data}->{'end_date_counter'}."',".$data_mail->{$id_data}->{'variation_counter'}."],";
-     }
-     $param->{'stats_values'} =~ s/,$//;
-     $param->{'stats_values'} .= "]";
-     #&wwslog('trace', "$data_mail->{$id_data}->{'end_date_counter'}");
-     
-     #------------------subscriptions treatment----------------------
-     my $data_sub = &List::get_data('add_subscriber', $robot , $in{'list'});
-     
-     foreach my $id_data (keys(%$data_sub)){
-	 my $date_deb = &tools::adate($data_sub->{$id_data}->{'beginning_date_counter'});
-	 my $date_fin = &tools::adate($data_sub->{$id_data}->{'end_date_counter'});
-	 
-	 $data_sub->{$id_data}->{'beginning_date_counter'} = $date_deb;
-	 $data_sub->{$id_data}->{'end_date_counter'} = $date_fin;
-	 
-	 
-	 $param->{'stats_subscriber'}{$id_data} = $data_sub->{$id_data};
-	 
-     }
-     
-     #------------------unsubscriptions treatment------------------------
-     my $data_unsub = &List::get_data('unsubscription', $robot, $in{'list'});
-     
-     foreach my $id_data (keys(%$data_unsub)){
-	 my $date_deb = &tools::adate($data_unsub->{$id_data}->{'beginning_date_counter'});
-	 my $date_fin = &tools::adate($data_unsub->{$id_data}->{'end_date_counter'});
-	 
-	 $data_unsub->{$id_data}->{'beginning_date_counter'} = $date_deb;
-	 $data_unsub->{$id_data}->{'end_date_counter'} = $date_fin;
-
-	 
-	 $param->{'stats_unsubscriber'}{$id_data} = $data_unsub->{$id_data};
-	 
-     }
-     #-------------------deleted treatment----------------------------------
-         my $data_deleted = &List::get_data('deleted by admin', $robot, $in{'list'});
-     
-     foreach my $id_data (keys(%$data_deleted)){
-	 my $date_deb = &tools::adate($data_deleted->{$id_data}->{'beginning_date_counter'});
-	 my $date_fin = &tools::adate($data_deleted->{$id_data}->{'end_date_counter'});
-	 
-	 $data_deleted->{$id_data}->{'beginning_date_counter'} = $date_deb;
-	 $data_deleted->{$id_data}->{'end_date_counter'} = $date_fin;
-
-	 
-	 $param->{'stats_deleted'}{$id_data} = $data_deleted->{$id_data};
-	 
-     }
-     #--------------------shared treatment-------------------------------------
-     ##in this case, we group uploading, directory creations and file creations
-     my $data_shared_up = &List::get_data('d_upload', $robot, $in{'list'});
-     my $data_shared_di = &List::get_data('d_create_directory', $robot, $in{'list'});
-     my $data_shared_fi = &List::get_data('d_create_file', $robot, $in{'list'});
-     
-     #we groupint the tree hashes.
-     my $data_shared = undef;
-     foreach my $key1 (keys(%$data_shared_up)){
-	 $data_shared->{$key1} = $data_shared_up->{$key1};
-     }
-     
-     foreach my $key2 (keys(%$data_shared_di)){
-	 $data_shared->{$key2} = $data_shared_di->{$key2};
-     }
-     
-     foreach my $key3 (keys(%$data_shared_fi)){
-	 $data_shared->{$key3} = $data_shared_fi->{$key3};
-     }
-
-     $param->{'stats_new_file_shared'} = $data_shared;
-	 
      return 1;
 }
 
@@ -16155,7 +15772,7 @@ sub export_topics {
      wwslog ('debug2',"export_topics($robot)");
      my %topics = &List::load_topics($robot);
 
-     unless (%topics) {
+     unless (defined %topics) {
 	 &wwslog('err','No topics defined');
 	 return undef;
      }
@@ -16498,7 +16115,7 @@ sub do_viewlogs {
     
     if ($param->{'page'} > $param->{'total_page'}) {
 	&report::reject_report_web('user','no_page',{'page' => $param->{'page'}},$param->{'action'});
-	&Log::db_log('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'review',$param->{'list'},$robot,'','out of pages');
+	('wwsympa',$param->{'user'}{'email'},$param->{'auth_method'},$ip,'review',$param->{'list'},$robot,'','out of pages');
 	&wwslog('info','do_viewlogs: no page %d', $param->{'page'});
 	return undef;
     }
