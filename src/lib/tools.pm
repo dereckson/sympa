@@ -33,7 +33,6 @@ use Sys::Hostname;
 use Mail::Header;
 use Encode::Guess; ## Usefull when encoding should be guessed
 use Encode::MIME::Header;
-use Text::LineFold;
 
 use Conf;
 use Language;
@@ -70,6 +69,22 @@ my %openssl_errors = (1 => 'an error occurred parsing the command options',
 		      3 => 'an error occurred creating the PKCS#7 file or when reading the MIME message',
 		      4 => 'an error occurred decrypting or verifying the message',
 		      5 => 'the message was verified correctly but an error occurred writing out the signers certificates');
+
+## Local variables to determine whether to use Text::LineFold or Text::Wrap.
+my $use_text_linefold;
+my $use_text_wrap;
+eval { require Text::LineFold; Text::LineFold->import(0.008); };
+if ($@) {
+    $use_text_linefold = 0;
+    eval { require Text::Wrap; };
+    if ($@) {
+	$use_text_wrap = 0;
+    } else {
+	$use_text_wrap = 1;
+    }
+} else {
+    $use_text_linefold = 1;
+}
 
 ## Sets owner and/or access rights on a file.
 sub set_file_rights {
@@ -113,7 +128,7 @@ sub _create_xss_parser {
 						AllowSrc        => 1,
 						AllowHref       => 1,
 						AllowRelURL     => 1,
-						EscapeFiltered  => 1,
+						EscapeFiltered  => 0,
 						Rules => {
 						    '*' => {
 							src => '^http://'.&Conf::get_robot_conf($parameters{'robot'},'http_host'),
@@ -495,15 +510,36 @@ sub get_list_list_tpl {
 }
 
 
-#copy a directory and it's content
+#copy a directory and its content
 sub copy_dir {
     my $dir1 = shift;
     my $dir2 = shift;
-    &do_log('info','copy_dir %1 %2',$dir1,$dir2);
+    &do_log('debug','Copy directory %s to %s',$dir1,$dir2);
 
-    return undef unless (-d $dir1) ;
-    #return undef unless (-d $dir2) ;
+    unless (-d $dir1){
+	&do_log('err',"Directory source '%s' doesn't exist. Copy impossible",$dir1);
+	return undef;
+    }
     return (&File::Copy::Recursive::dircopy($dir1,$dir2)) ;
+}
+
+#delete a directory and its content
+sub del_dir {
+    my $dir = shift;
+    &do_log('debug','del_dir %s',$dir);
+    
+    if(opendir DIR, $dir){
+	for (readdir DIR) {
+	    next if /^\.{1,2}$/;
+	    my $path = "$dir/$_";
+	    unlink $path if -f $path;
+	    del_dir($path) if -d $path;
+	}
+	closedir DIR;
+	unless(rmdir $dir) {&do_log('err','Unable to delete directory %s: $!',$dir);}
+    }else{
+	&do_log('err','Unable to open directory %s to delete the files it contains: $!',$dir);
+    }
 }
 
 #to be used before creating a file in a directory that may not exist already. 
@@ -2308,7 +2344,7 @@ sub make_tt2_include_path {
     if ($dir) {
 	$path_etcbindir = Sympa::Constants::DEFAULTDIR . "/$dir";
 	$path_etcdir = "$Conf::Conf{'etc'}/".$dir;
-	$path_robot = "$Conf::Conf{'etc'}/".$robot.'/'.$dir if (lc($robot) ne lc($Conf::Conf{'domain'}));
+	$path_robot = "$Conf::Conf{'etc'}/".$robot.'/'.$dir if (lc($robot) ne lc($Conf::Conf{'host'}));
 	if (ref($list) eq 'List'){
 	    $path_list = $list->{'dir'}.'/'.$dir;
 	    if (defined $list->{'admin'}{'family_name'}) {
@@ -2319,7 +2355,7 @@ sub make_tt2_include_path {
     }else {
 	$path_etcbindir = Sympa::Constants::DEFAULTDIR;
 	$path_etcdir = "$Conf::Conf{'etc'}";
-	$path_robot = "$Conf::Conf{'etc'}/".$robot if (lc($robot) ne lc($Conf::Conf{'domain'}));
+	$path_robot = "$Conf::Conf{'etc'}/".$robot if (lc($robot) ne lc($Conf::Conf{'host'}));
 	if (ref($list) eq 'List') {
 	    $path_list = $list->{'dir'} ;
 	    if (defined $list->{'admin'}{'family_name'}) {
@@ -2468,7 +2504,9 @@ sub remove_pid {
     ## Then the pidfile contains a list of space-separated PIDs on a single line
     if($options->{'multiple_process'}){
 	unless (open(PFILE, $pidfile)) {
-	    fatal_err('Could not open %s, exiting', $pidfile);
+	   # fatal_err('Could not open %s, exiting', $pidfile);
+	    do_log('err','Could not open %s to remove pid %s, ', $pidfile,$pid);
+	    return undef;
 	}
 	my $previous_pid = <PFILE>; chomp $previous_pid;
 	close PFILE;
@@ -2484,7 +2522,8 @@ sub remove_pid {
 	}else{
 	    if(-f $pidfile){
 		unless (open(PFILE, ">$pidfile")) {
-		    fatal_err('Could not open %s, exiting', $pidfile);
+		    &do_log('err', "Failed to open $pidfile: %s", $!);
+		    return undef;
 		}
 		print PFILE "$previous_pid\n";
 		close(PFILE);
@@ -2997,7 +3036,7 @@ sub dump_html_var2 {
 	    }    
 	    $html .= '</ul>';
 	}else {
-	    $html .= sprintf "<li>'%s'"."</li>", ref($var);
+	    $html .= "<li>'%s'"."</li>", ref($var);
 	}
     }else{
 	if (defined $var) {
@@ -3304,6 +3343,58 @@ sub lower_version {
     return 0;
 }
 
+sub add_in_blacklist {
+    my $entry = shift;
+    my $robot = shift;
+    my $list =shift;
+
+    &do_log('info',"tools::add_in_blacklist(%s,%s,%s)",$entry,$robot,$list->{'name'});
+    $entry = lc($entry);
+    chomp $entry;
+
+    # robot blacklist not yet availible 
+    unless ($list) {
+	 &do_log('info',"tools::add_in_blacklist: robot blacklist not yet availible, missing list parameter");
+	 return undef;
+    }
+    unless (($entry)&&($robot)) {
+	 &do_log('info',"tools::add_in_blacklist:  missing parameters");
+	 return undef;
+    }
+    if ($entry =~ /\*.*\*/) {
+	&do_log('info',"tools::add_in_blacklist: incorrect parameter $entry");
+	return undef;
+    }
+    my $dir = $list->{'dir'}.'/search_filters';
+    unless ((-d $dir) || mkdir ($dir, 0755)) {
+	&do_log('info','do_blacklist : unable to create dir %s',$dir);
+	return undef;
+    }
+    my $file = $dir.'/blacklist.txt';
+    
+    if (open BLACKLIST, "$file"){
+	while(<BLACKLIST>) {
+	    next if (/^\s*$/o || /^[\#\;]/o);
+	    my $regexp= $_ ;
+	    chomp $regexp;
+	    $regexp =~ s/\*/.*/ ; 
+	    $regexp = '^'.$regexp.'$';
+	    if ($entry =~ /$regexp/i) { 
+		&do_log('notice','do_blacklist : %s already in blacklist(%s)',$entry,$_);
+		return 0;
+	    }	
+	}
+	close BLACKLIST;
+    }   
+    unless (open BLACKLIST, ">> $file"){
+	&do_log('info','do_blacklist : append to file %s',$file);
+	return undef;
+    }
+    printf BLACKLIST "$entry\n";
+    close BLACKLIST;
+
+}
+
 sub LOCK_SH {1};
 sub LOCK_EX {2};
 sub LOCK_NB {4};
@@ -3314,7 +3405,7 @@ sub lock {
     my $lock_file = shift;
     my $mode = shift; ## read or write
     
-    my $operation;
+    my $operation; # 
     my $open_mode;
 
     if ($mode eq 'read') {
@@ -3374,58 +3465,6 @@ sub lock {
     }
 
     return \*FH;
-}
-
-sub add_in_blacklist {
-    my $entry = shift;
-    my $robot = shift;
-    my $list =shift;
-
-    &do_log('info',"tools::add_in_blacklist(%s,%s,%s)",$entry,$robot,$list->{'name'});
-    $entry = lc($entry);
-    chomp $entry;
-
-    # robot blacklist not yet availible 
-    unless ($list) {
-	 &do_log('info',"tools::add_in_blacklist: robot blacklist not yet availible, missing list parameter");
-	 return undef;
-    }
-    unless (($entry)&&($robot)) {
-	 &do_log('info',"tools::add_in_blacklist:  missing parameters");
-	 return undef;
-    }
-    if ($entry =~ /\*.*\*/) {
-	&do_log('info',"tools::add_in_blacklist: incorrect parameter $entry");
-	return undef;
-    }
-    my $dir = $list->{'dir'}.'/search_filters';
-    unless ((-d $dir) || mkdir ($dir, 0755)) {
-	&do_log('info','do_blacklist : unable to create dir %s',$dir);
-	return undef;
-    }
-    my $file = $dir.'/blacklist.txt';
-    
-    if (open BLACKLIST, "$file"){
-	while(<BLACKLIST>) {
-	    next if (/^\s*$/o || /^[\#\;]/o);
-	    my $regexp= $_ ;
-	    chomp $regexp;
-	    $regexp =~ s/\*/.*/ ; 
-	    $regexp = '^'.$regexp.'$';
-	    if ($entry =~ /$regexp/i) { 
-		&do_log('notice','do_blacklist : %s already in blacklist(%s)',$entry,$_);
-		return 0;
-	    }	
-	}
-	close BLACKLIST;
-    }   
-    unless (open BLACKLIST, ">> $file"){
-	&do_log('info','do_blacklist : append to file %s',$file);
-	return undef;
-    }
-    printf BLACKLIST "$entry\n";
-    close BLACKLIST;
-
 }
 
 ## unlock a file 
@@ -3828,7 +3867,8 @@ sub get_number_of_pids {
     my $pidfile = shift;
     my $p_count = 0;
     unless (open(PFILE, $pidfile)){
-	fatal_err('Could not open %s, exiting', $pidfile);
+	&do_log('err', "unable to open pidfile %s:%s",$pidfile,$!);
+	return undef;
     }
     while (<PFILE>){
 	$p_count += &count_numbers_in_string($_);
@@ -3858,8 +3898,9 @@ sub wrap_text {
     $cols = 78 unless defined $cols;
     return $text unless $cols;
 
-    my $emailre = &tools::get_regexp('email');
-    $text = Text::LineFold->new(
+    if ($use_text_linefold) {
+	my $emailre = &tools::get_regexp('email');
+	$text = Text::LineFold->new(
 	    Language => &Language::GetLang(),
 	    OutputCharset => (&Encode::is_utf8($text)? '_UNICODE_': 'utf8'),
 	    UserBreaking => ['NONBREAKURI',
@@ -3867,6 +3908,11 @@ sub wrap_text {
 			     ],
 	    ColumnsMax => $cols
 	)->fold($init, $subs, $text);
+    } elsif ($use_text_wrap) {
+	local ($Text::Wrap::unexpand) = 0;
+	local ($Text::Wrap::columns) = $cols + 1;
+	$text = Text::Wrap::wrap($init, $subs, $text);
+    }
 
     return $text;
 }

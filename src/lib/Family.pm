@@ -705,7 +705,7 @@ sub modify_list {
 
 =pod 
 
-=head2 sub close_family()
+=head2 sub close()
 
 Closes every list family.
 
@@ -740,7 +740,7 @@ Closes every list family.
 =cut
 
 #########################################
-# close_family                                 
+# close                                 
 #########################################
 # closure family action :
 #  - close every list family
@@ -748,9 +748,9 @@ Closes every list family.
 # IN : -$self
 # OUT : -$string
 #########################################
-sub close_family {
+sub close {
     my $self = shift;
-    &do_log('info','(%s)',$self->{'name'});
+    &do_log('info','Family::close(%s)',$self->{'name'});
 
     my $family_lists = $self->get_family_lists();
     my @impossible_close;

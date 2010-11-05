@@ -28,6 +28,7 @@ use Digest::MD5;
 use POSIX;
 use CGI::Cookie;
 use Time::Local;
+use Text::Wrap;
 
 use Log;
 use Conf;
