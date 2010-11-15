@@ -259,14 +259,14 @@ sub ldap_authentication {
      $param->{'alt_emails'} = {};
      
      my $entry = $mesg->entry(0);
-     @canonic_email = $entry->get_value($attrs, 'alloptions' => 1);
+     @canonic_email = $entry->get_value($attrs,alloptions);
      foreach my $email (@canonic_email){
        my $e = lc($email);
        $param->{'alt_emails'}{$e} = 'ldap' if ($e);
      }
      
      foreach my $attribute_value (@alternative_conf){
-       @alternative = $entry->get_value($attribute_value, 'alloptions' => 1);
+       @alternative = $entry->get_value($attribute_value,alloptions);
        foreach my $alter (@alternative){
 	 my $a = lc($alter); 
 	 $param->{'alt_emails'}{$a} = 'ldap' if($a) ;
@@ -282,7 +282,7 @@ sub ldap_authentication {
      &do_log('debug3',"canonic: $canonic_email[0]");
      ## If the identifier provided was a valid email, return the provided email.
      ## Otherwise, return the canonical email guessed after the login.
-     if( &tools::valid_email($auth)) {
+     if( &tools::valid_email($auth) && !$Conf::Conf{'robots'}{$robot}{'ldap_force_canonical_email'}) {
 	 return ($auth);
      }else{
 	 return lc($canonic_email[0]);

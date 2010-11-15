@@ -111,9 +111,6 @@ sub _create_xss_parser {
     &do_log('debug3','tools::_create_xss_parser(%s)',$parameters{'robot'});
     my $hss = HTML::StripScripts::Parser->new({ Context => 'Document',
 						AllowSrc        => 1,
-						AllowHref       => 1,
-						AllowRelURL     => 1,
-						EscapeFiltered  => 0,
 						Rules => {
 						    '*' => {
 							src => '^http://'.&Conf::get_robot_conf($parameters{'robot'},'http_host'),
@@ -2329,7 +2326,7 @@ sub make_tt2_include_path {
     if ($dir) {
 	$path_etcbindir = Sympa::Constants::DEFAULTDIR . "/$dir";
 	$path_etcdir = "$Conf::Conf{'etc'}/".$dir;
-	$path_robot = "$Conf::Conf{'etc'}/".$robot.'/'.$dir if (lc($robot) ne lc($Conf::Conf{'domain'}));
+	$path_robot = "$Conf::Conf{'etc'}/".$robot.'/'.$dir if (lc($robot) ne lc($Conf::Conf{'host'}));
 	if (ref($list) eq 'List'){
 	    $path_list = $list->{'dir'}.'/'.$dir;
 	    if (defined $list->{'admin'}{'family_name'}) {
@@ -2340,7 +2337,7 @@ sub make_tt2_include_path {
     }else {
 	$path_etcbindir = Sympa::Constants::DEFAULTDIR;
 	$path_etcdir = "$Conf::Conf{'etc'}";
-	$path_robot = "$Conf::Conf{'etc'}/".$robot if (lc($robot) ne lc($Conf::Conf{'domain'}));
+	$path_robot = "$Conf::Conf{'etc'}/".$robot if (lc($robot) ne lc($Conf::Conf{'host'}));
 	if (ref($list) eq 'List') {
 	    $path_list = $list->{'dir'} ;
 	    if (defined $list->{'admin'}{'family_name'}) {
@@ -3021,7 +3018,7 @@ sub dump_html_var2 {
 	    }    
 	    $html .= '</ul>';
 	}else {
-	    $html .= sprintf "<li>'%s'"."</li>", ref($var);
+	    $html .= "<li>'%s'"."</li>", ref($var);
 	}
     }else{
 	if (defined $var) {

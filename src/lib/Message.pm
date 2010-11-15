@@ -207,7 +207,7 @@ sub new {
 	    
 	    $robot = lc($robot);
 	    $listname = lc($listname);
-	    $robot ||= $Conf::Conf{'domain'};
+	    $robot ||= $Conf::Conf{'host'};
 	    
 
 	    ## Antispam feature.
@@ -479,7 +479,7 @@ sub fix_html_part {
 	    push @newparts, &fix_html_part($_,$robot);
 	}
 	$part->parts(\@newparts);
-    } elsif (MIME::Tools::textual_type($eff_type)) {
+    } elsif ($eff_type =~ /^text\/html/i) {
 	my $bodyh = $part->bodyhandle;
 	# Encoded body or null body won't be modified.
 	return $part if !$bodyh or $bodyh->is_encoded;
