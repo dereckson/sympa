@@ -155,7 +155,7 @@ Creates a list. Used by the create_list() sub in sympa.pl and the do_create_list
 #           are not installed or 1(in status open)
 #######################################################
 sub create_list_old{
-    my ($param,$template,$robot,$origin, $user_mail) = @_;
+    my ($param,$template,$robot,$origin) = @_;
     &do_log('debug', 'admin::create_list_old(%s,%s)',$param->{'listname'},$robot,$origin);
 
      ## obligatory list parameters 
@@ -326,12 +326,6 @@ sub create_list_old{
 	$list->create_shared();
     }
 
-    #log in stat_table to make statistics
-
-    if($origin eq "web"){
-	&Log::db_stat_log({'robot' => $robot, 'list' => $param->{'listname'}, 'operation' => 'create list', 'parameter' => '', 'mail' => $user_mail, 'client' => '', 'daemon' => 'wwsympa.fcgi'});
-    }
-
     my $return = {};
     $return->{'list'} = $list;
 
@@ -347,7 +341,8 @@ sub create_list_old{
 	&do_log('notice', "Synchronizing list members...");
 	$list->sync_include();
     }   
-   return $return;
+
+    return $return;
 }
 
 ########################################################
@@ -649,7 +644,7 @@ sub update_list{
 }
 
 ########################################################
-# rename_list                                      
+# create_list                                      
 ########################################################  
 # Rename a list or move a list to another virtual host
 # 
@@ -697,6 +692,8 @@ sub rename_list{
 					    'remote_host' => $param{'remote_host'},
 					    'remote_addr' => $param{'remote_addr'}});
       
+      $r_action;
+      $reason;
       if (ref($result) eq 'HASH') {
 	$r_action = $result->{'action'};
 	$reason = $result->{'reason'};
@@ -734,7 +731,7 @@ sub rename_list{
          $list->savestats();
 	 
 	 ## Dump subscribers
-	 $list->_save_list_members_file("$list->{'dir'}/subscribers.closed.dump");
+	 $list->_save_users_file("$list->{'dir'}/subscribers.closed.dump");
 	 
 	 $param{'aliases'} = &remove_aliases($list, $list->{'domain'});
      }
@@ -744,7 +741,7 @@ sub rename_list{
      ## Default robot
      if (-d "$Conf::Conf{'home'}/$param{'new_robot'}") {
 	 $new_dir = $Conf::Conf{'home'}.'/'.$param{'new_robot'}.'/'.$param{'new_listname'};
-     }elsif ($param{'new_robot'} eq $Conf::Conf{'domain'}) {
+     }elsif ($param{'new_robot'} eq $Conf::Conf{'host'}) {
 	 $new_dir = $Conf::Conf{'home'}.'/'.$param{'new_listname'};
      }else {
 	 &do_log('err',"Unknown robot $param{'new_robot'}");
@@ -920,7 +917,7 @@ sub clone_list_as_empty {
     my $new_dir;
     if (-d $Conf::Conf{'home'}.'/'.$new_robot) {
 	$new_dir = $Conf::Conf{'home'}.'/'.$new_robot.'/'.$new_listname;
-    }elsif ($new_robot eq $Conf::Conf{'domain'}) {
+    }elsif ($new_robot eq $Conf::Conf{'host'}) {
 	$new_dir = $Conf::Conf{'home'}.'/'.$new_listname;
     }else {
 	&do_log('err',"Admin::clone_list_as_empty : unknown robot $new_robot");
@@ -948,7 +945,7 @@ sub clone_list_as_empty {
 	    }
     }
     # copy optional files
-    foreach my $file ('message.footer','message.header','info') {
+    foreach my $file ('message.footer','message.header','info','homepage') {
 	if (-f $list->{'dir'}.'/'.$file) {
 	    unless (&File::Copy::copy ($list->{'dir'}.'/'.$file, $new_dir.'/'.$file)) {
 		&do_log('err','Admin::clone_list_as_empty : failed to copy %s : %s',$new_dir.'/'.$file, $!);
@@ -1086,27 +1083,24 @@ sub check_owner_defined {
      my (@suf, @addresses);
 
      my $smtp_relay = $Conf::Conf{'robots'}{$robot}{'list_check_smtp'} || $Conf::Conf{'list_check_smtp'};
-     my $smtp_helo = $Conf::Conf{'robots'}{$robot}{'list_check_helo'} || $Conf::Conf{'list_check_helo'} || $smtp_relay;
-     $smtp_helo =~ s/:[-\w]+$//;
      my $suffixes = $Conf::Conf{'robots'}{$robot}{'list_check_suffixes'} || $Conf::Conf{'list_check_suffixes'};
      return 0 
 	 unless ($smtp_relay && $suffixes);
      my $domain = &Conf::get_robot_conf($robot, 'host');
      &do_log('debug2', 'list_check_smtp(%s)',$list);
-     @suf = split(/[,\s]+/,$suffixes);
+     @suf = split(/,/,$suffixes);
      return 0 if ! @suf;
      for(@suf) {
 	 push @addresses, $list."-$_\@".$domain;
      }
      push @addresses,"$list\@" . $domain;
 
-     eval { require Net::SMTP; };
-     if ($@) {
+     unless (require Net::SMTP) {
 	 do_log ('err',"admin::list_check_smtp : Unable to use Net library, Net::SMTP required, install it (CPAN) first");
 	 return undef;
      }
      if( $smtp = Net::SMTP->new($smtp_relay,
-				Hello => $smtp_helo,
+				Hello => $smtp_relay,
 				Timeout => 30) ) {
 	 $smtp->mail('');
 	 for(@addresses) {
@@ -1145,7 +1139,7 @@ sub install_aliases {
 	 system ("$alias_manager add $list->{'name'} $list->{'admin'}{'host'}") ;
 	 my $status = $? / 256;
 	 if ($status == 0) {
-	     &do_log('info','admin::install_aliases : Aliases installed successfully') ;
+	     &do_log('err','admin::install_aliases : Aliases installed successfully') ;
 	     $alias_installed = 1;
 	 }elsif ($status == 1) {
 	     &do_log('err','admin::install_aliases : Configuration file %s has errors', Sympa::Constants::CONFIG);

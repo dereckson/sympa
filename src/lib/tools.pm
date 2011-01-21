@@ -34,7 +34,6 @@ use Mail::Header;
 use Encode::Guess; ## Usefull when encoding should be guessed
 use Encode::MIME::Header;
 use Text::LineFold;
-use MIME::Lite::HTML;
 
 use Conf;
 use Language;
@@ -2331,7 +2330,7 @@ sub make_tt2_include_path {
     if ($dir) {
 	$path_etcbindir = Sympa::Constants::DEFAULTDIR . "/$dir";
 	$path_etcdir = "$Conf::Conf{'etc'}/".$dir;
-	$path_robot = "$Conf::Conf{'etc'}/".$robot.'/'.$dir if (lc($robot) ne lc($Conf::Conf{'domain'}));
+	$path_robot = "$Conf::Conf{'etc'}/".$robot.'/'.$dir if (lc($robot) ne lc($Conf::Conf{'host'}));
 	if (ref($list) eq 'List'){
 	    $path_list = $list->{'dir'}.'/'.$dir;
 	    if (defined $list->{'admin'}{'family_name'}) {
@@ -2342,7 +2341,7 @@ sub make_tt2_include_path {
     }else {
 	$path_etcbindir = Sympa::Constants::DEFAULTDIR;
 	$path_etcdir = "$Conf::Conf{'etc'}";
-	$path_robot = "$Conf::Conf{'etc'}/".$robot if (lc($robot) ne lc($Conf::Conf{'domain'}));
+	$path_robot = "$Conf::Conf{'etc'}/".$robot if (lc($robot) ne lc($Conf::Conf{'host'}));
 	if (ref($list) eq 'List') {
 	    $path_list = $list->{'dir'} ;
 	    if (defined $list->{'admin'}{'family_name'}) {
@@ -2944,7 +2943,7 @@ sub dump_var {
 		print $fd "\t"x$level.$index."\n";
 		&dump_var($var->[$index], $level+1, $fd);
 	    }
-	}elsif (ref($var) eq 'HASH' || ref($var) eq 'Scenario' || ref($var) eq 'List' || ref($var) eq 'CGI::Fast') {
+	}elsif (ref($var) eq 'HASH' || ref($var) eq 'Scenario' || ref($var) eq 'List') {
 	    foreach my $key (sort keys %{$var}) {
 		print $fd "\t"x$level.'_'.$key.'_'."\n";
 		&dump_var($var->{$key}, $level+1, $fd);
@@ -3023,7 +3022,7 @@ sub dump_html_var2 {
 	    }    
 	    $html .= '</ul>';
 	}else {
-	    $html .= sprintf "<li>'%s'"."</li>", ref($var);
+	    $html .= "<li>'%s'"."</li>", ref($var);
 	}
     }else{
 	if (defined $var) {
@@ -3931,32 +3930,5 @@ sub addrencode {
 	return "<$addr>";
     }
 }
-
-# Generate a newsletter from an HTML URL or a file path.
-sub create_html_part_from_web_page {
-    my $param = shift;
-    &do_log('debug',"Creating HTML MIME part. Source: %s",$param->{'source'});
-    my $mailHTML = new MIME::Lite::HTML(
-					{
-					    From => $param->{'From'},
-					    To => $param->{'To'},
-					    Headers => $param->{'Headers'},
-					    Subject => $param->{'Subject'},
-					    HTMLCharset => 'utf-8',
-					    TextCharset => 'utf-8',
-					    TextEncoding => '8bit',
-					    HTMLEncoding => '8bit',
-					    remove_jscript => '1', #delete the scripts in the html
-					}
-					);
-    # parse return the MIME::Lite part to send
-    my $part = $mailHTML->parse($param->{'source'});
-    unless (defined($part)) {
-	&do_log('err', 'Unable to convert file %s to a MIME part',$param->{'source'});
-	return undef;
-    }
-    return $part->as_string;
-}
-
 
 1;

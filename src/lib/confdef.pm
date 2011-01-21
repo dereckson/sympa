@@ -33,8 +33,6 @@ use Sympa::Constants;
 ##   file   : Conf file where the param. is defined
 ##   vhost   : 1|0 : if 1, the parameter can have a specific value in a virtual host
 ##   db   : 'db_first','file_first','no'
-##   multiple   : 1|0: If 1, the parameter can have mutiple values. Default i 0.
-##   optional   : 1|0: If 1, the parameter is optional. It can have no value at all.
 ##   edit   : 1|0
 ##   advice : Additionnal advice concerning the parameter
 
@@ -102,29 +100,15 @@ our @params = (
     {
         name    => 'arc_path',
         default => Sympa::Constants::ARCDIR,
-        query   => 'Directory for storing HTML archives',
+        query   => 'Where to store HTML archives',
         file    => 'wwsympa.conf',
 	edit => '1',
         advice  =>'Better if not in a critical partition',
     },
-     {
-        name    => 'archive_default_index',
-        default => 'thrd',
-        query   => 'Default index organization when entering the web archive: either threaded or in chronological order',
-        file    => 'wwsympa.conf',
-	edit => '1',
-    },
-     {
-        name    => 'custom_archiver',
-        default => '',
-        query   => 'Activates a custom archiver to use instead of MHOnArc. The value of this parameter is the absolute path on the file system to the script of the custom archiver.',
-        file    => 'wwsympa.conf',
-	edit => '1',
-    },
-   {
+    {
         name    => 'bounce_path',
         default => Sympa::Constants::BOUNCEDIR ,
-        query   => 'Directory for storing bounces',
+        query   => 'Where to store bounces',
         file    => 'wwsympa.conf',
         advice  => 'Better if not in a critical partition',
     },
@@ -137,20 +121,20 @@ our @params = (
     {
         name    => 'spool',
         default => Sympa::Constants::SPOOLDIR,
-        query   => 'Directory containing various specialized spools',
+        query   => 'The main spool containing various specialized spools',
         file    => 'sympa.conf',
         advice => 'All spool are created at runtime by sympa.pl',
     },
     {
         name    => 'queue',
         default => Sympa::Constants::SPOOLDIR . '/msg',
-        query   => 'Directory for incoming spool',
+        query   => 'Incoming spool',
         file    => 'sympa.conf',
     },
     {
         name    => 'queuebounce',
         default => Sympa::Constants::SPOOLDIR . '/bounce',
-        query   => 'Directory for bounce incoming spool',
+        query   => 'Bounce incoming spool',
         file    => 'sympa.conf',
     },
     {
@@ -160,49 +144,49 @@ our @params = (
     {
         name    => 'queueautomatic',
         default => Sympa::Constants::SPOOLDIR . '/automatic',
-        query   => 'Directory for automatic list creation spool',
+        query   => 'Automatic list creation spool',
 	file    => 'sympa.conf'
     },
     {
         name    => 'queuedigest',
         default => Sympa::Constants::SPOOLDIR . '/digest',
-        query   => 'Directory for digest spool',
+        query   => '',
 	file    => 'sympa.conf'
     },
     {
         name    => 'queuemod',
         default => Sympa::Constants::SPOOLDIR . '/moderation',
-        query   => 'Directory for moderation spool',
+        query   => '',
 	file    => 'sympa.conf'
     },
     {
         name    => 'queuetopic',
         default => Sympa::Constants::SPOOLDIR . '/topic',
-        query   => 'Directory for topic spool',
+        query   => '',
 	file    => 'sympa.conf'
     },
     {
         name    => 'queueauth',
         default => Sympa::Constants::SPOOLDIR . '/auth',
-        query   => 'Directory for authentication spool',
+        query   => '',
 	file    => 'sympa.conf'
     },
     {
         name    => 'queueoutgoing',
         default => Sympa::Constants::SPOOLDIR . '/outgoing',
-        query   => 'Directory for outgoing spool',
+        query   => '',
 	file    => 'sympa.conf'
     },
     {
         name    => 'queuetask',
         default => Sympa::Constants::SPOOLDIR . '/task',
-        query   => 'Directory for task spool',
+        query   => '',
 	file    => 'sympa.conf'
     },
     {
         name    => 'queuesubscribe',
         default => Sympa::Constants::SPOOLDIR . '/subscribe',
-        query   => 'Directory for subscription spool',
+        query   => '',
 	file    => 'sympa.conf'
     },
     {
@@ -217,7 +201,7 @@ our @params = (
     {
         name    => 'static_content_path',
         default => Sympa::Constants::STATICDIR,
-        query   => 'Directory for storing static contents (CSS, members pictures, documentation) directly delivered by Apache',
+        query   => 'The directory where Sympa stores static contents (CSS, members pictures, documentation) directly delivered by Apache',
 	vhost   => '1',
         edit    => '1',
         file    => 'sympa.conf',
@@ -225,7 +209,7 @@ our @params = (
     {
         name    => 'static_content_url',
         default => '/static-sympa',
-        query   => 'URL mapped with the static_content_path directory defined above',
+        query   => 'The URL mapped with the static_content_path directory defined above',
 	vhost   => '1',
         edit    => '1',
         file    => 'sympa.conf',
@@ -234,7 +218,7 @@ our @params = (
     {
         name    => 'syslog',
         default => 'LOCAL1',
-        query   => 'Syslog facility for sympa',
+        query   => 'The syslog facility for sympa',
         file    => 'sympa.conf',
         edit    => '1',
         advice  => 'Do not forget to edit syslog.conf',
@@ -242,13 +226,13 @@ our @params = (
     {
         name    => 'log_socket_type',
         default => 'unix',
-        query   => 'Communication mode with syslogd (unix | inet)',
+        query   => 'Communication mode with syslogd is either unix (via Unix sockets) or inet (use of UDP)',
         file    => 'sympa.conf',
     },
     {
         name   => 'log_facility',
         default => 'LOCAL1',
-        query  => 'Syslog facility for wwsympa, archived and bounced',
+        query  => 'The syslog facility for wwsympa, archived and bounced',
         file   => 'wwsympa.conf',
         edit   => '1',
         advice => 'default is to use previously defined sympa log facility',
@@ -383,14 +367,14 @@ our @params = (
     {
         name    => 'bulk_fork_threshold',
         default => '1',
-        query   => 'Minimum number of packets in database before the bulk forks to increase sending rate',
+        query   => 'The minimum number of packets in database before the bulk forks to increase sending rate',
         file    => 'sympa.conf',
         advice  => '',
     },
     {
         name    => 'bulk_max_count',
         default => '3',
-        query   => 'Max number of bulks that will run on the same server',
+        query   => 'The max number of bulks that will run on the same server.',
         file    => 'sympa.conf',
         advice  => '',
     },
@@ -404,7 +388,7 @@ our @params = (
     {
         name    => 'bulk_wait_to_fork',
         default => '10',
-        query   => 'Number of seconds a master bulk waits between two packets number checks.',
+        query   => 'The number of seconds a master bulk waits between two packets number checks.',
         file    => 'sympa.conf',
         advice  => 'Keep it small if you expect brutal increases in the message sending load.',
     },
@@ -451,16 +435,15 @@ our @params = (
         file  => 'wwsympa.conf',
     },
     {
-        name     => 'custom_robot_parameter',
-        query    => 'Used to define a custom parameter for your server. Do not forget the semicolon between the param name and the param value.', 
-	vhost    => '1',
-        file     => 'sympa.conf',
-        multiple => '1',
-        optional => '1',
+        name    => 'custom_robot_parameter',
+        query   => 'Used to define a custom parameter for your server. Do not forget the semicolo between the param name and the param value.', 
+	vhost   => '1',
+        file    => 'sympa.conf',
+	optional => '1',
     },
     {
         name  => 'max_size',
-        query => 'Default maximum size (in bytes) for messages (can be re-defined for each list)',
+        query => 'The default maximum size (in bytes) for messages (can be re-defined for each list)',
         default => '5242880',
 	vhost   => '1',
         file  => 'sympa.conf',
@@ -484,7 +467,7 @@ our @params = (
     {
         name   => 'remove_headers',
         query  => 'Specify header fields to be removed before message distribution',
-        default => 'X-Sympa-To,X-Family-To,Return-Receipt-To,Precedence,X-Sequence,Disposition-Notification-To,Sender',
+        default => 'X-Sympa-To,X-Family-To,Return-Receipt-To,Precedence,X-Sequence,Disposition-Notification-To',
         file    => 'sympa.conf',
     },
     {
@@ -679,7 +662,7 @@ our @params = (
     {
         name    => 'dkim_signature_apply_on',
         default => 'md5_authenticated_messages,smime_authenticated_messages,dkim_authenticated_messages,editor_validated_messages', 
-	advice  => 'Type of message that receive a DKIM signature before distribution to subscribers. Possible values are "none", "any" or a list of the following keywords : "md5_authenticated_messages,smime_authenticated_messages,dkim_authenticated_message,editor_validated_message".',
+	advice  => 'Type of message that receive a DKIM signature before distribution to subscribers.Possible value are "none", "any" or a list of the following keywords : "md5_authenticated_messages,smime_authenticated_messages,dkim_authenticated_message,editor_validated_message".',
         vhost => '1',
 	file   => 'sympa.conf',
     },    
@@ -732,7 +715,7 @@ our @params = (
         name   => 'capath',
         optional => '1',
         sample => Sympa::Constants::SYSCONFDIR . '/ssl.crt',
-        query  => 'Directory containing trusted CA certificates',
+        query  => 'The directory path use by OpenSSL for trusted CA certificates',
         file   => 'sympa.conf',
         edit   => '1',
         optional => '1',
@@ -740,7 +723,7 @@ our @params = (
     {
         name   => 'cafile',
         sample => '/usr/local/apache/conf/ssl.crt/ca-bundle.crt',
-        query  => 'File containing bundled trusted CA certificates',
+        query  => ' This parameter sets the all-in-one file where you can assemble the Certificates of Certification Authorities (CA)',
         file   => 'sympa.conf',
         edit   => '1',
         optional => '1',
@@ -748,7 +731,7 @@ our @params = (
     {
         name    => 'ssl_cert_dir',
         default => Sympa::Constants::EXPLDIR . '/X509-user-certs',
-        query   => 'Directory containing user certificates',
+        query   => 'User CERTs directory',
         file    => 'sympa.conf',
     },
     {
@@ -807,10 +790,10 @@ our @params = (
     {
         name    => 'db_type',
         default => 'mysql',
-        query   => 'Type of the database (mysql|Pg|Oracle|Sybase|SQLite)',
+        query   => 'Database type (mysql | Pg | Oracle | Sybase | SQLite)',
         file    => 'sympa.conf',
         edit    => '1',
-        advice  => 'be careful to the case',
+        advice  => 'be carefull to the case',
     },
     {
         name    => 'db_name',
@@ -824,22 +807,21 @@ our @params = (
         name   => 'db_host',
         default => 'localhost',
         sample => 'localhost',
-        query  => 'Host of the database',
+        query  => 'The host hosting your sympa database',
         file   => 'sympa.conf',
         edit   => '1',
     },
     {
         name   => 'db_port',
-        default => undef,
-        query  => 'Port of the database',
+        default => '3306',
+        query  => 'The database port',
         file   => 'sympa.conf',
-	optional => '1',
     },
     {
         name   => 'db_user',
         default => 'user_name',
         sample => 'sympa',
-        query  => 'User for the database connection',
+        query  => 'Database user for connexion',
         file   => 'sympa.conf',
         edit   => '1',
     },
@@ -847,7 +829,7 @@ our @params = (
         name   => 'db_passwd',
         default => 'user_password',
         sample => 'your_passwd',
-        query  => 'Password for the database connection',
+        query  => 'Database password (associated to the db_user)',
         file   => 'sympa.conf',
         edit   => '1',
         advice => 'What ever you use a password or not, you must protect the SQL server (is it a not a public internet service ?)',
@@ -856,7 +838,7 @@ our @params = (
         name   => 'db_env',
         query  => 'Environment variables setting for database',
         file   => 'sympa.conf',
-        advice => 'This is useful for defining ORACLE_HOME ',
+        advice => 'This is usefull for definign ORACLE_HOME ',
         optional => '1',
     },
     {
@@ -895,7 +877,7 @@ our @params = (
     {
         name    => 'wwsympa_url',
         default => 'http://host.domain.tld/sympa',
-        query   => 'URL of main web page',
+        query   => "Sympa\'s main page URL",
 	vhost   => '1',
         file    => 'sympa.conf',
         edit    => '1',
@@ -911,7 +893,7 @@ our @params = (
     {
         name   => 'default_home',
         default => 'home',
-        query  => 'Type of main web page (lists|home)',
+        query  => 'Main page type (lists | home)',
 	vhost   => '1',
         file   => 'wwsympa.conf',
         edit   => '1',
@@ -927,42 +909,6 @@ our @params = (
         name    => 'antispam_feature',
         default => 'off',
 	vhost   => '1',
-    },
-    {
-        name    => 'review_page_size',
-        query => 'Default number of lines of the array displaying users in the review page',
-	vhost   => '1',
-        default => 25,
-	file => 'wwsympa.conf',
-    },
-    {
-        name    => 'viewlogs_page_size',
-        query => 'Default number of lines of the array displaying the log entries in the logs page',
-	vhost   => '1',
-        default => 25,
-	file => 'wwsympa.conf',
-    },
-    {
-        name    => 'use_html_editor',
-        query => 'If set to "on", users will be able to post messages in HTML using a javascript WYSIWYG editor.',
-	vhost   => '1',
-        default => '0',
-        edit  => '1',
-	file => 'wwsympa.conf',
-    },
-    {
-        name    => 'html_editor_file',
-        query => 'Path to the javascript file making the WYSIWYG HTML editor available',
-	vhost   => '1',
-        default => 'tinymce/jscripts/tiny_mce/tiny_mce.js',
-	file => 'wwsympa.conf',
-    },
-    {
-        name    => 'html_editor_init',
-        query => 'Javascript excerpt that enables and configures the WYSIWYG HTML editor.',
-	vhost   => '1',
-        default => 'tinyMCE.init({mode : "exact",elements : "body"});',
-	file => 'wwsympa.conf',
     },
     {
         name  => 'spam_status',
@@ -983,7 +929,7 @@ our @params = (
     {
         name   => 'antispam_tag_header_spam_regexp',
         default => '^\s*Yes',
-        query  => 'Regexp applied on this header to verify message is a spam (example \s*Yes)',
+        query  => 'The regexp applied on this header to verify message is a spam (example \s*Yes)',
 	vhost   => '1',
         file   => 'sympa.conf',
         edit   => '1',
@@ -991,15 +937,7 @@ our @params = (
     {
         name  => 'antispam_tag_header_ham_regexp',
         default => '^\s*No',
-        query => 'Regexp applied on this header to verify message is NOT a spam (example \s*No)',
-	vhost   => '1',
-        file  => 'sympa.conf',
-        edit  => '1',
-    },
-    {
-        name  => 'reporting_spam_script_path',
-        default => '',
-        query => 'If set, when a list editor report a spam, this external script is run by wwsympa or sympa, the spam is sent into script stdin',
+        query => 'The regexp applied on this header to verify message is NOT a spam (example \s*No)',
 	vhost   => '1',
         file  => 'sympa.conf',
         edit  => '1',
@@ -1156,7 +1094,7 @@ our @params = (
     },
     {
         name    => 'color_3',
-        default => '#ffffce', # top boxe and footer box bacground color
+        default => '#ccccff', # top boxe and footer box bacground color
 	vhost   => '1',
 	db      => 'db_first',
     },
@@ -1231,10 +1169,6 @@ our @params = (
         default => '#000',
 	vhost   => '1',
 	db      => 'db_first',
-    },
-    {	name	=> 'list_check_helo',
-	default	=> '',
-	vhost	=> '1',
     },
     {
         name    => 'list_check_smtp',
@@ -1485,18 +1419,8 @@ our @params = (
         vhost => '1',
 	file   => 'sympa.conf',
     },
-    {
-        name    => 'tracking_delivery_status_notification',
-        default => 'off',
-    },
-    {
-        name    => 'tracking_message_delivery_notification',
-        default => 'off',
-    },
-    {
-        name    => 'tracking_default_retention_period',
-        default => '90',
-    },
+
+
 
 );
 

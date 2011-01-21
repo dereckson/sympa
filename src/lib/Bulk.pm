@@ -27,7 +27,6 @@ use Carp;
 use IO::Scalar;
 use Storable;
 use Mail::Header;
-use Mail::Address;
 use Time::HiRes qw(time);
 use Time::Local;
 use MIME::Entity;
@@ -140,7 +139,7 @@ sub next {
     }
 
     # select the packet that has been locked previously
-    $statement = sprintf "SELECT messagekey_bulkmailer AS messagekey, messageid_bulkmailer AS messageid, packetid_bulkmailer AS packetid, receipients_bulkmailer AS receipients, returnpath_bulkmailer AS returnpath, listname_bulkmailer AS listname, robot_bulkmailer AS robot, priority_message_bulkmailer AS priority_message, priority_packet_bulkmailer AS priority_packet, verp_bulkmailer AS verp, tracking_bulkmailer AS tracking, merge_bulkmailer as merge, reception_date_bulkmailer AS reception_date, delivery_date_bulkmailer AS delivery_date FROM bulkmailer_table WHERE lock_bulkmailer=%s %s",$dbh->quote($lock), $order;
+    $statement = sprintf "SELECT messagekey_bulkmailer AS messagekey, messageid_bulkmailer AS messageid, packetid_bulkmailer AS packetid, receipients_bulkmailer AS receipients, returnpath_bulkmailer AS returnpath, listname_bulkmailer AS listname, robot_bulkmailer AS robot, priority_message_bulkmailer AS priority_message, priority_packet_bulkmailer AS priority_packet, verp_bulkmailer AS verp, merge_bulkmailer as merge, reception_date_bulkmailer AS reception_date, delivery_date_bulkmailer AS delivery_date FROM bulkmailer_table WHERE lock_bulkmailer=%s %s",$dbh->quote($lock), $order;
 
     unless ($sth = $dbh->prepare($statement)) {
 	do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
@@ -153,9 +152,7 @@ sub next {
     }
     
     my $result = $sth->fetchrow_hashref('NAME_lc');
-   
     $sth->finish();
-    
     return $result;
 
 }
@@ -351,7 +348,7 @@ sub merge_msg {
 #  users then parse the message. It returns the message    #
 #  personalized to bulk.pl                                 #
 #  It uses the method &tt2::parse_tt2                      #
-#  It uses the method &List::get_list_member_no_object      #
+#  It uses the method &List::get_subscriber_no_object      #
 #  It uses the method &tools::get_fingerprint              #
 #                                                          #
 # IN : - rcpt : the receipient email                       #
@@ -383,8 +380,8 @@ sub merge_data {
     $user_details->{'name'} = $listname;
     $user_details->{'domain'} = $robot;
     
-    # get_list_member_no_object() return the user's details with the custom attributes
-    my $user = &List::get_list_member_no_object($user_details);
+    # get_subscriber_no_object() return the user's details with the custom attributes
+    my $user = &List::get_subscriber_no_object($user_details);
 
     $user->{'escaped_email'} = &URI::Escape::uri_escape($rcpt);
     $user->{'friendly_date'} = gettext_strftime("%d %b %Y  %H:%M", localtime($user->{'date'}));
@@ -419,43 +416,26 @@ sub store {
     my $priority_packet = $data{'priority_packet'};
     my $delivery_date = $data{'delivery_date'};
     my $verp  = $data{'verp'};
-    my $tracking  = $data{'tracking'};
-    $tracking  = '' unless (($tracking  eq 'dsn')||($tracking  eq 'mdn'));
     $verp=0 unless($verp);
     my $merge  = $data{'merge'};
     $merge=0 unless($merge);
     my $dkim = $data{'dkim'};
     my $tag_as_last = $data{'tag_as_last'};
 
-    &do_log('debug', 'Bulk::store(<msg>,<rcpts>,from = %s,robot = %s,listname= %s,priority_message = %s, delivery_date= %s,verp = %s, tracking = %s, merge = %s, dkim: d= %s i=%s, last: %s)',$from,$robot,$listname,$priority_message,$delivery_date,$verp,$tracking, $merge,$dkim->{'d'},$dkim->{'i'},$tag_as_last);
+    &do_log('debug', 'Bulk::store(<msg>,<rcpts>,from = %s,robot = %s,listname= %s,priority_message = %s, delivery_date= %s,verp = %s, merge = %s, dkim: d= %s i=%s, last: %s)',$from,$robot,$listname,$priority_message,$delivery_date,$verp,$merge,$dkim->{'d'},$dkim->{'i'},$tag_as_last);
 
     $dbh = &List::db_get_handler();
 
     $priority_message = &Conf::get_robot_conf($robot,'sympa_priority') unless ($priority_message);
+
     $priority_packet = &Conf::get_robot_conf($robot,'sympa_packet_priority') unless ($priority_packet);
     
     unless ($dbh and $dbh->ping) {
 	return undef unless &List::db_connect();
     }
-
-
-    #creation of a MIME entity to extract the real sender of a message
-    my $parser = MIME::Parser->new();
-    $parser->output_to_core(1);
-
-    my $msg_as_entity= $parser->parse_data($msg);
- 
-    my $msg_head = $msg_as_entity->head;
-
-
-    my @sender_hdr = Mail::Address->parse($msg_head->get('From'));
-    my $message_sender = $sender_hdr[0]->address;
-
     
     $msg = MIME::Base64::encode($msg);
 
-    ##-----------------------------##
-    
     my $messagekey = &tools::md5_fingerprint($msg);
 
     # first store the message in bulk_spool_table 
@@ -490,24 +470,15 @@ sub store {
 	# if message is not found in bulkspool_table store it
 	if ($message_already_on_spool == 0) {
 	    my $statement      = sprintf "INSERT INTO bulkspool_table (messagekey_bulkspool, messageid_bulkspool, message_bulkspool, lock_bulkspool, dkim_d_bulkspool,dkim_i_bulkspool,dkim_selector_bulkspool, dkim_privatekey_bulkspool,dkim_header_list_bulkspool) VALUES (%s, %s, %s, 1, %s, %s, %s ,%s ,%s)",$dbh->quote($messagekey),$dbh->quote($msg_id),$dbh->quote($msg),$dbh->quote($dkim->{d}), $dbh->quote($dkim->{i}),$dbh->quote($dkim->{selector}),$dbh->quote($dkim->{private_key}), $dbh->quote($dkim->{header_list}); 
-	    
+
 	    my $statementtrace = sprintf "INSERT INTO bulkspool_table (messagekey_bulkspool, messageid_bulkspool, message_bulkspool, lock_bulkspool, dkim_d_bulkspool, dkim_i_bulkspool, dkim_selector_bulkspool, dkim_privatekey_bulkspool, dkim_header_list_bulkspool) VALUES (%s, %s, %s, 1, %s ,%s ,%s, %s, %s)",$dbh->quote($messagekey),$dbh->quote($msg_id),$dbh->quote(substr($msg, 0, 100)), $dbh->quote($dkim->{d}), $dbh->quote($dkim->{i}),$dbh->quote($dkim->{selector}),$dbh->quote(substr($dkim->{private_key},0,30)), $dbh->quote($dkim->{header_list});  
 	    # do_log('debug',"insert : $statement_trace");
-	    
-	    unless ($dbh->do($statement)) {
-		do_log('err','Unable to add message in bulkspool_table "%s"; error : %s', $statementtrace, $dbh->errstr);
-		return undef;
-	    }
 
-
-	    #log in stat_table to make statistics...
-	    unless($message_sender =~ /($robot)\@/) { #ignore messages sent by robot
-		unless ($message_sender =~ /($listname)-request/) { #ignore messages of requests
-
-		    &Log::db_stat_log({'robot' => $robot, 'list' => $listname, 'operation' => 'send_mail', 'parameter' => length($msg),
-				       'mail' => $message_sender, 'client' => '', 'daemon' => 'sympa.pl'});
+		unless ($dbh->do($statement)) {
+		    do_log('err','Unable to add message in bulkspool_table "%s"; error : %s', $statementtrace, $dbh->errstr);
+		    return undef;
 		}
-	    }
+
 	    $message_fingerprint = $messagekey;
 	}
     }
@@ -561,12 +532,12 @@ sub store {
 	     do_log('err','Duplicate message not stored in bulmailer_table');
 	     
 	 }else {
-	     my $statement = sprintf "INSERT INTO bulkmailer_table (messagekey_bulkmailer,messageid_bulkmailer,packetid_bulkmailer,receipients_bulkmailer,returnpath_bulkmailer,robot_bulkmailer,listname_bulkmailer, verp_bulkmailer, tracking_bulkmailer, merge_bulkmailer, priority_message_bulkmailer, priority_packet_bulkmailer, reception_date_bulkmailer, delivery_date_bulkmailer) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", $dbh->quote($messagekey),$dbh->quote($msg_id),$dbh->quote($packetid),$dbh->quote($rcptasstring),$dbh->quote($from),$dbh->quote($robot),$dbh->quote($listname),$verp,$dbh->quote($tracking),$merge,$priority_message, $priority_for_packet, $current_date,$delivery_date;
-	     unless ($sth = $dbh->do($statement)) {
-		 do_log('err','Unable to add packet in bulkmailer_table "%s"; error : %s', $statement, $dbh->errstr);
-		 return undef;
-	     }
-	 }
+	    my $statement = sprintf "INSERT INTO bulkmailer_table (messagekey_bulkmailer,messageid_bulkmailer,packetid_bulkmailer,receipients_bulkmailer,returnpath_bulkmailer,robot_bulkmailer,listname_bulkmailer, verp_bulkmailer, merge_bulkmailer, priority_message_bulkmailer, priority_packet_bulkmailer, reception_date_bulkmailer, delivery_date_bulkmailer) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", $dbh->quote($messagekey),$dbh->quote($msg_id),$dbh->quote($packetid),$dbh->quote($rcptasstring),$dbh->quote($from),$dbh->quote($robot),$dbh->quote($listname),$verp,$merge,$priority_message, $priority_for_packet, $current_date,$delivery_date;
+	    unless ($sth = $dbh->do($statement)) {
+		do_log('err','Unable to add packet in bulkmailer_table "%s"; error : %s', $statement, $dbh->errstr);
+		return undef;
+	    }
+	}
 	$packet_rank++;
     }
     # last : unlock message in bulkspool_table so it is now possible to remove this message if no packet have a ref on it			
@@ -652,7 +623,7 @@ sub store_test {
     my $listname = 'notalist';
     my $priority_message = 9;
     my $delivery_date = time;
-    my $verp  = 'on';
+    my $verp  = 1;
     my $merge  = 1;
     
     &do_log('debug', 'Bulk::store_test(<msg>,<rcpts>,from = %s,robot = %s,listname= %s,priority_message = %s,delivery_date= %s,verp = %s, merge = %s)',$from,$robot,$listname,$priority_message,$delivery_date,$verp,$merge);

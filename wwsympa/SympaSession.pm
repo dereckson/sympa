@@ -51,9 +51,9 @@ sub new {
     my $cookie = $context->{'cookie'};
     my $action = $context->{'action'};
     my $rss = $context->{'rss'};
-    my $ajax =  $context->{'ajax'};
 
     do_log('debug', 'SympaSession::new(%s,%s,%s)', $robot,$cookie,$action);
+
     my $session={};
     bless $session, $pkg;
     
@@ -62,7 +62,7 @@ sub new {
 	return undef;
     }
 
-#   passive_session are session not stored in the database, they are used for crawler bots and action such as css, wsdl, ajax and rss
+#   passive_session are session not stored in the database, they are used for crawler bots and action such as css, wsdl and rss
     
     if (&tools::is_a_crawler($robot,{'user_agent_string' => $ENV{'HTTP_USER_AGENT'}})) {
 	$session->{'is_a_crawler'} = 1;
@@ -380,9 +380,7 @@ sub purge_old_tickets {
 	    return undef;
 	}
 	unless ($sth->execute) {
-	    do_log('err','Unable to execute SQL stat
-
-ement "%s" : %s', $statement, $dbh->errstr);
+	    do_log('err','Unable to execute SQL statement "%s" : %s', $statement, $dbh->errstr);
 	    return undef;
 	}    
     }
@@ -450,12 +448,13 @@ sub list_sessions {
 sub get_session_cookie {
     my $http_cookie = shift;
 
-    my %cookies = parse CGI::Cookie($http_cookie);
-        
-    foreach (keys %cookies) {
-	my $cookie = $cookies{$_};
-	next unless ($cookie->name eq 'sympa_session');
-	return ($cookie->value);
+    if ($http_cookie =~/\S+/g) {
+	my %cookies = parse CGI::Cookie($http_cookie);
+	foreach (keys %cookies) {
+	    my $cookie = $cookies{$_};
+	    next unless ($cookie->name eq 'sympa_session');
+	    return ($cookie->value);
+	}
     }
 
     return (undef);
@@ -523,16 +522,6 @@ sub as_hashref {
   }
   
   return $data;
-}
-
-## Return 1 if the Session object corresponds to an anonymous session.
-sub is_anonymous {
-    my $self = shift;
-    if($self->{'email'} eq 'nobody' || $self->{'email'} eq '') {
-	return 1;
-    }else{
-	return 0;
-    }
 }
 
 1;

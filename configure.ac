@@ -20,8 +20,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 AC_PREREQ(2.60)
-AC_INIT(sympa, 6.2a.3, sympa-authors@cru.fr)
-AM_INIT_AUTOMAKE([foreign -Wall -Werror 1.9 tar-pax])
+AC_INIT(sympa, 6.1.4, sympa-authors@cru.fr)
+AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_PO_SUBDIRS
 
@@ -503,7 +503,6 @@ AC_CONFIG_FILES([
     src/Makefile
     src/etc/Makefile
     src/etc/script/Makefile
-    src/etc/script/js/Makefile
     src/lib/Makefile
     soap/Makefile
     doc/Makefile

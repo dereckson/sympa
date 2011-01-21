@@ -27,7 +27,6 @@ use strict "vars";
 
 use Exporter;
 use Carp;
-use Storable;
 
 use List;
 use Log;
@@ -38,7 +37,7 @@ use tools;
 use Sympa::Constants;
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(%params %Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
+our @EXPORT = qw(%Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
 
 sub DAEMON_MESSAGE {1};
 sub DAEMON_COMMAND {2};
@@ -49,7 +48,7 @@ sub DAEMON_ALL {7};
 my ($dbh, $sth, $db_connected, @sth_stack, $use_db);
 
 # parameters hash, keyed by parameter name
-our %params =
+my %params =
     map  { $_->{name} => $_ }
     grep { $_->{name} }
     @confdef::params;
@@ -108,21 +107,46 @@ sub load {
     my $no_db = shift;
     my $return_result = shift;
 
-    ## Loading the config file.
+
+    my $line_num = 0;
     my $config_err = 0;
     my($i, %o);
-    if(my $config_loading_result = &_load_config_file_to_hash({'path_to_config_file' => $config})) {
-	%o = %{$config_loading_result->{'config'}};
-	$config_err = $config_loading_result->{'errors'};
-    }else{
-        printf STDERR  "load: Unable to load %s. Aborting\n", $config;
+
+    ## Open the configuration file or return and read the lines.
+    unless (open(IN, $config)) {
+        printf STDERR  "load: Unable to open %s: %s\n", $config, $!;
         return undef;
     }
+    while (<IN>) {
+        $line_num++;
+        # skip empty or commented lines
+        next if (/^\s*$/ || /^[#;]/);
+	    # match "keyword value" pattern
+	    if (/^(\S+)\s+(.+)$/) {
+		my ($keyword, $value) = ($1, $2);
+		$value =~ s/\s*$//;
+		##  'tri' is a synonym for 'sort'
+		## (for compatibilyty with older versions)
+		$keyword = 'sort' if ($keyword eq 'tri');
+		##  'key_password' is a synonym for 'key_passwd'
+		## (for compatibilyty with older versions)
+		$keyword = 'key_passwd' if ($keyword eq 'key_password');
+		## Special case: `command`
+		if ($value =~ /^\`(.*)\`$/) {
+		    $value = qx/$1/;
+		    chomp($value);
+		}
+		$o{$keyword} = [ $value, $line_num ];
+	    } else {
+		printf STDERR  gettext("Error at line %d: %s\n"), $line_num, $config, $_;
+		$config_err++;
+	    }
+    }
+    close(IN);
 
-    # Returning the config file content if this is what has been asked.
     return (\%o) if ($return_result);
 
-    ## Some parameter values are hardcoded. In that case, ignore what was set in the config file and simply use the hardcoded value.
+    ## Hardcoded values
     foreach my $p (keys %hardcoded_params) {
 	$Ignored_Conf{$p} = $o{$p}[0] if (defined $o{$p});
 	$o{$p}[0] = $hardcoded_params{$p};
@@ -199,14 +223,7 @@ sub load {
 	    $config_err++;
 	    next;
 	}
-	if($params{$i}{'multiple'} == 1){
-	    foreach my $instance (@{$o{$i}}){
-		my $instance_value = $instance->[0] || $params{$i}->{'default'};
-		push @{$Conf{$i}}, $instance_value;
-	    }
-	}else{
-	    $Conf{$i} = $o{$i}[0] || $params{$i}->{'default'};
-	}
+	$Conf{$i} = $o{$i}[0] || $params{$i}->{'default'};
     }
 
     ## Some parameters depend on others
@@ -271,16 +288,7 @@ sub load {
 	}
     }
 
-    ## Parsing custom robot parameters.
-    foreach my $robot (keys %{$Conf{'robots'}}) {
-	my $csp_tmp_storage = undef;
-	foreach my $custom_p (@{$Conf{'robots'}{$robot}{'custom_robot_parameter'}}){
-	    if($custom_p =~ /(\S+)\s*\;\s*(.+)/) {
-		$csp_tmp_storage->{$1} = $2;
-	    }
-	}
-	$Conf{'robots'}{$robot}{'custom_robot_parameter'} = $csp_tmp_storage;
-    }
+
 
     my $nrcpt_by_domain =  &load_nrcpt_by_domain ;
     $Conf{'nrcpt_by_domain'} = $nrcpt_by_domain ;
@@ -348,16 +356,22 @@ sub load {
     ## Set Regexp for accepted list suffixes
     if (defined ($Conf{'list_check_suffixes'})) {
 	$Conf{'list_check_regexp'} = $Conf{'list_check_suffixes'};
-	$Conf{'list_check_regexp'} =~ s/[,\s]+/\|/g;
+	$Conf{'list_check_regexp'} =~ s/,/\|/g;
     }
 	
-    $Conf{'sympa'} = "$Conf{'email'}\@$Conf{'domain'}";
-    $Conf{'request'} = "$Conf{'email'}-request\@$Conf{'domain'}";
+    $Conf{'sympa'} = "$Conf{'email'}\@$Conf{'host'}";
+    $Conf{'request'} = "$Conf{'email'}-request\@$Conf{'host'}";
     $Conf{'trusted_applications'} = &load_trusted_application (); 
     $Conf{'crawlers_detection'} = &load_crawlers_detection (); 
     $Conf{'pictures_url'}  = $Conf{'static_content_url'}.'/pictures/';
     $Conf{'pictures_path'}  = $Conf{'static_content_path'}.'/pictures/';
 	
+    ## Parsing custom robot parameters.
+    foreach my $robot (keys %{$Conf{'robots'}}) {
+	if($Conf{'robots'}{$robot}{'custom_robot_parameter'} =~ /(\S+)\s*\;\s*(.+)/) {
+	    $Conf{'robots'}{$robot}{'custom_robot_parameter'} = {$1 => $2};
+	}
+    }
     return 1;
 }    
 
@@ -525,15 +539,7 @@ sub load_robots {
 		#$value = lc($value) unless ($keyword eq 'title' || $keyword eq 'logo_html_definition' || $keyword eq 'lang');
 
 		if ($valid_robot_key_words{$keyword}) {
-		    if($params{$keyword}{'multiple'} == 1){
-			if($robot_conf->{$robot}{$keyword}) {
-			    push @{$robot_conf->{$robot}{$keyword}}, $value;
-			}else{
-			    $robot_conf->{$robot}{$keyword} = [$value];
-			}
-		    }else{
-			$robot_conf->{$robot}{$keyword} = $value;
-		    }
+		    $robot_conf->{$robot}{$keyword} = $value;
 		    # printf STDERR "load robots config: $keyword = $value\n";
 		}else{
 		    printf STDERR "load robots config: unknown keyword $keyword\n";
@@ -552,9 +558,6 @@ sub load_robots {
 
 	$robot_conf->{$robot}{'title'} ||= $wwsconf->{'title'};
 	$robot_conf->{$robot}{'default_home'} ||= $wwsconf->{'default_home'};
-	$robot_conf->{$robot}{'use_html_editor'} ||= $wwsconf->{'use_html_editor'};
-	$robot_conf->{$robot}{'html_editor_file'} ||= $wwsconf->{'html_editor_file'};
-	$robot_conf->{$robot}{'html_editor_init'} ||= $wwsconf->{'html_editor_init'};
 
 	$robot_conf->{$robot}{'lang'} ||= $Conf{'lang'};
 	$robot_conf->{$robot}{'email'} ||= $Conf{'email'};
@@ -570,8 +573,6 @@ sub load_robots {
 
 	$robot_conf->{$robot}{'static_content_url'} ||= $Conf{'static_content_url'};
 	$robot_conf->{$robot}{'static_content_path'} ||= $Conf{'static_content_path'};
-	$robot_conf->{$robot}{'tracking_delivery_status_notification'} ||= $Conf{'tracking_delivery_status_notification'};
-	$robot_conf->{$robot}{'tracking_message_delivery_notification'} ||= $Conf{'tracking_message_delivery_notification'};
 
 	## CSS
 	$robot_conf->{$robot}{'css_url'} ||= $robot_conf->{$robot}{'static_content_url'}.'/css/'.$robot;
@@ -1005,7 +1006,7 @@ sub checkfiles {
     }
     if ($css_updated) {
 	## Notify main listmaster
-	&List::send_notify_to_listmaster('css_updated',  $Conf{'domain'}, ["Static CSS files have been updated ; check log file for details"]);
+	&List::send_notify_to_listmaster('css_updated',  $Conf{'host'}, ["Static CSS files have been updated ; check log file for details"]);
     }
 
 
@@ -1589,87 +1590,6 @@ sub conf_2_db {
 	    &Conf::set_robot_conf("*",$conf_parameters[$i]->{'name'},$global_conf->{$conf_parameters[$i]->{'name'}}[0]);
 	}       
     }
-}
-
-## Simply load a config file and returns a hash.
-## the returned hash contains two keys:
-## 1- the key 'config' points to a hash containing the data found in the config file.
-## 2- the key 'errors' contains the number of config entries that could not be loaded, due to an error.
-## Returns undef if something went wrong while attempting to read the file.
-sub _load_config_file_to_hash {
-    my $param = shift;
-    my $result;
-    $result->{'errors'} = 0;
-    my $line_num = 0;
-    ## Open the configuration file or return and read the lines.
-    unless (open(IN, $param->{'path_to_config_file'})) {
-        printf STDERR  "load: Unable to open %s: %s\n", $param->{'path_to_config_file'}, $!;
-        return undef;
-    }
-    while (<IN>) {
-        $line_num++;
-        # skip empty or commented lines
-        next if (/^\s*$/ || /^[\#;]/);
-	    # match "keyword value" pattern
-	    if (/^(\S+)\s+(.+)$/) {
-		my ($keyword, $value) = ($1, $2);
-		$value =~ s/\s*$//;
-		##  'tri' is a synonym for 'sort'
-		## (for compatibilyty with older versions)
-		$keyword = 'sort' if ($keyword eq 'tri');
-		##  'key_password' is a synonym for 'key_passwd'
-		## (for compatibilyty with older versions)
-		$keyword = 'key_passwd' if ($keyword eq 'key_password');
-		## Special case: `command`
-		if ($value =~ /^\`(.*)\`$/) {
-		    $value = qx/$1/;
-		    chomp($value);
-		}
-		if($params{$keyword}{'multiple'} == 1){
-		    if($result->{'config'}{$keyword}) {
-			push @{$result->{'config'}{$keyword}}, [$value, $line_num];
-		    }else{
-			$result->{'config'}{$keyword} = [[$value, $line_num]];
-		    }
-		}else{
-		    $result->{'config'}{$keyword} = [ $value, $line_num ];
-		}
-	    } else {
-		printf STDERR  gettext("Error at line %d: %s\n"), $line_num, $param->{'path_to_config_file'}, $_;
-		$result->{'errors'}++;
-	    }
-    }
-    close(IN);
-    return $result;
-}
-
-# Stores the config hash binary representation to a file.
-# Returns 1 or undef if something went wrong.
-sub _save_binary_cache {
-    my $param = shift;
-    eval {
-	&Storable::store($param->{'conf_to_save'},$param->{'target_file'});
-    };
-    if ($@) {
-	printf STDERR  'Failed to save the binary config %s. error: %s', $param->{'target_file'},$@;
-	return undef;
-    }
-    return 1;
-}
-
-# Loads the config hash binary representation from a file an returns it
-# Returns the hash or undef if something went wrong.
-sub _load_binary_cache {
-    my $param = shift;
-    my $result = undef;
-    eval {
-	$result = &Storable::retrieve($param->{'source_file'});
-    };
-    if ($@) {
-	printf STDERR  'Failed to load the binary config %s. error: %s', $param->{'source_file'},$@;
-	return undef;
-    }
-    return $result;
 }
 
 ## Packages must return true.
