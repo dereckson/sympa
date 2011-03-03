@@ -30,7 +30,6 @@ use Carp;
 use Storable;
 
 use List;
-use SDM;
 use Log;
 use Language;
 use wwslib;
@@ -47,7 +46,8 @@ sub DAEMON_CREATION {4};
 sub DAEMON_ALL {7};
 
 ## Database and SQL statement handlers
-my $sth;
+my ($dbh, $sth, $db_connected, @sth_stack, $use_db);
+
 # parameters hash, keyed by parameter name
 our %params =
     map  { $_->{name} => $_ }
@@ -63,8 +63,6 @@ foreach my $hash(@confdef::params){
     $db_storable_parameters{$hash->{'name'}} = 1 if (defined($hash->{'db'}) and $hash->{'db'} ne 'none');
     $optional_key_words{$hash->{'name'}} = 1 if ($hash->{'optional'}); 
 }
-
-our $params_by_categories = &_get_parameters_names_by_category();
 
 my %old_params = (
     trusted_ca_options     => 'capath,cafile',
@@ -246,18 +244,6 @@ sub get_robot_conf {
     return $Conf{$param} || $wwsconf->{$param};
 }
 
-## Returns a hash containing the values of all the parameters of the group
-## (as defined in confdef.pm) whose name is given as argument, in the context
-## of the robot given as argument.
-sub get_parameters_group {
-    my ($robot, $group) = @_;
-    &Log::do_log('debug3','Getting parameters for group "%s"',$group);
-    my $param_hash;
-    foreach my $param_name (keys %{$params_by_categories->{$group}}) {
-        $param_hash->{$param_name} = &get_robot_conf($robot,$param_name);
-    }
-    return $param_hash;
-}
 
 ## fetch the value from parameter $label of robot $robot from conf_table
 sub get_db_conf  {
@@ -265,15 +251,34 @@ sub get_db_conf  {
     my $robot = shift;
     my $label = shift;
 
+    $dbh = &List::db_get_handler();
+    my $sth;
+
     # if the value is related to a robot that is not explicitly defined, apply it to the default robot.
     $robot = '*' unless (-f $Conf{'etc'}.'/'.$robot.'/robot.conf') ;
     unless ($robot) {$robot = '*'};
 
-    unless ($sth = &SDM::do_query("SELECT value_conf AS value FROM conf_table WHERE (robot_conf =%s AND label_conf =%s)", &SDM::quote($robot),&SDM::quote($label))) {
-        &Log::do_log('err','Unable retrieve value of parameter %s for robot %s from the database', $label, $robot);
-        return undef;
-    }
+    ## Check database connection
+    unless ($dbh and $dbh->ping) {
+    return undef unless &List::db_connect();
+    $dbh = &List::db_get_handler();
+    }       
+    my $statement = sprintf "SELECT value_conf AS value FROM conf_table WHERE (robot_conf =%s AND label_conf =%s)", $dbh->quote($robot),$dbh->quote($label); 
 
+    unless ($sth = $dbh->prepare($statement)) {
+    do_log('err','Unable to prepare SQL statement: %s', $dbh->errstr);
+    return undef;
+    }
+    
+    unless ($sth->execute) {
+    do_log('err','Unable to execute SQL statement "%s": %s', $statement, $dbh->errstr);
+    return undef;
+    }
+    
+    unless ($dbh->do($statement)) {
+    do_log('err','Unable to execute SQL statement "%s": %s', $statement, $dbh->errstr);
+    return undef;
+    }
     my $value = $sth->fetchrow;
     
     $sth->finish();
@@ -287,7 +292,7 @@ sub set_robot_conf  {
     my $label = shift;
     my $value = shift;
     
-    &Log::do_log('info','Set config for robot %s , %s="%s"',$robot,$label, $value);
+    do_log('info','Set config for robot %s , %s="%s"',$robot,$label, $value);
 
     
     # set the current config before to update database.    
@@ -298,32 +303,53 @@ sub set_robot_conf  {
     $robot = '*' ;
     }
 
-    unless ($sth = &SDM::do_query("SELECT count(*) FROM conf_table WHERE (robot_conf=%s AND label_conf =%s)", &SDM::quote($robot),&SDM::quote($label))) {
-        &Log::do_log('err','Unable to check presence of parameter %s for robot %s in database', $label, $robot);
-        return undef;
-    }
+    my $dbh = &List::db_get_handler();
+    my $sth;
+    
+    my $statement = sprintf "SELECT count(*) FROM conf_table WHERE (robot_conf=%s AND label_conf =%s)", $dbh->quote($robot),$dbh->quote($label); 
+    ## Check database connection
+    unless ($dbh and $dbh->ping) {
+    return undef unless &db_connect();
+    }       
 
+    unless ($sth = $dbh->prepare($statement)) {
+    do_log('err','Unable to prepare SQL statement: %s', $dbh->errstr);
+    return undef;
+    }
+    
+    unless ($sth->execute) {
+    do_log('err','Unable to execute SQL statement "%s": %s', $statement, $dbh->errstr);
+    return undef;
+    }
+    
+    unless ($dbh->do($statement)) {
+    do_log('err','Unable to execute SQL statement "%s": %s', $statement, $dbh->errstr);
+    next;
+    }
     my $count = $sth->fetchrow;
     $sth->finish();
     
     if ($count == 0) {
-        unless ($sth = &SDM::do_query("INSERT INTO conf_table (robot_conf, label_conf, value_conf) VALUES (%s,%s,%s)",&SDM::quote($robot),&SDM::quote($label), &SDM::quote($value))) {
-            &Log::do_log('err','Unable add value %s for parameter %s in the robot %s DB conf', $value, $label, $robot);
-            return undef;
-        }
+    $statement = sprintf "INSERT INTO conf_table (robot_conf, label_conf, value_conf) VALUES (%s,%s,%s)",$dbh->quote($robot),$dbh->quote($label), $dbh->quote($value);
     }else{
-        unless ($sth = &SDM::do_query("UPDATE conf_table SET robot_conf=%s, label_conf=%s, value_conf=%s WHERE ( robot_conf  =%s AND label_conf =%s)",&SDM::quote($robot),&SDM::quote($label),&SDM::quote($value),&SDM::quote($robot),&SDM::quote($label))) {
-            &Log::do_log('err','Unable set parameter %s value to %s in the robot %s DB conf', $label, $value, $robot);
-            return undef;
-        } 
+    $statement = sprintf "UPDATE conf_table SET robot_conf=%s, label_conf=%s, value_conf=%s WHERE ( robot_conf  =%s AND label_conf =%s)",$dbh->quote($robot),$dbh->quote($label),$dbh->quote($value),$dbh->quote($robot),$dbh->quote($label); 
     }
+    unless ($sth = $dbh->prepare($statement)) {
+    do_log('err','Unable to prepare SQL statement: %s', $dbh->errstr);
+    return undef;
+    }
+    
+    unless ($sth->execute) {
+    do_log('err','Unable to execute SQL statement "%s": %s', $statement, $dbh->errstr);
+    return undef;
+    }    
 }
 
 
 # Store configs to database
 sub conf_2_db {
     my $config_file = shift;
-    &Log::do_log('info',"conf_2_db");
+    do_log('info',"conf_2_db");
 
     my @conf_parameters = @confdef::params ;
 
@@ -379,7 +405,7 @@ sub checkfiles_as_root {
     ## Check aliases file
     unless (-f $Conf{'sendmail_aliases'} || ($Conf{'sendmail_aliases'} =~ /^none$/i)) {
     unless (open ALIASES, ">$Conf{'sendmail_aliases'}") {
-        &Log::do_log('err',"Failed to create aliases file %s", $Conf{'sendmail_aliases'});
+        &do_log('err',"Failed to create aliases file %s", $Conf{'sendmail_aliases'});
         # printf STDERR "Failed to create aliases file %s", $Conf{'sendmail_aliases'};
         return undef;
     }
@@ -387,14 +413,14 @@ sub checkfiles_as_root {
     print ALIASES "## This aliases file is dedicated to Sympa Mailing List Manager\n";
     print ALIASES "## You should edit your sendmail.mc or sendmail.cf file to declare it\n";
     close ALIASES;
-    &Log::do_log('notice', "Created missing file %s", $Conf{'sendmail_aliases'});
+    &do_log('notice', "Created missing file %s", $Conf{'sendmail_aliases'});
     unless (&tools::set_file_rights(file => $Conf{'sendmail_aliases'},
                     user  => Sympa::Constants::USER,
                     group => Sympa::Constants::GROUP,
                     mode  => 0644,
                     ))
     {
-        &Log::do_log('err','Unable to set rights on %s',$Conf{'db_name'});
+        &do_log('err','Unable to set rights on %s',$Conf{'db_name'});
         return undef;
     }
     }
@@ -405,7 +431,7 @@ sub checkfiles_as_root {
     my $dir = &get_robot_conf($robot, 'static_content_path');
     if ($dir ne '' && ! -d $dir){
         unless ( mkdir ($dir, 0775)) {
-        &Log::do_log('err', 'Unable to create directory %s: %s', $dir, $!);
+        &do_log('err', 'Unable to create directory %s: %s', $dir, $!);
         printf STDERR 'Unable to create directory %s: %s',$dir, $!;
         $config_err++;
         }
@@ -415,7 +441,7 @@ sub checkfiles_as_root {
                         group => Sympa::Constants::GROUP,
                         ))
         {
-        &Log::do_log('err','Unable to set rights on %s',$Conf{'db_name'});
+        &do_log('err','Unable to set rights on %s',$Conf{'db_name'});
         return undef;
         }
     }
@@ -432,7 +458,7 @@ sub checkfiles {
     next unless $Conf{$p};
     
     unless (-x $Conf{$p}) {
-        &Log::do_log('err', "File %s does not exist or is not executable", $Conf{$p});
+        do_log('err', "File %s does not exist or is not executable", $Conf{$p});
         $config_err++;
     }
     }
@@ -440,9 +466,9 @@ sub checkfiles {
     foreach my $qdir ('spool','queue','queueautomatic','queuedigest','queuemod','queuetopic','queueauth','queueoutgoing','queuebounce','queuesubscribe','queuetask','queuedistribute','tmpdir')
     {
     unless (-d $Conf{$qdir}) {
-        &Log::do_log('info', "creating spool $Conf{$qdir}");
+        do_log('info', "creating spool $Conf{$qdir}");
         unless ( mkdir ($Conf{$qdir}, 0775)) {
-        &Log::do_log('err', 'Unable to create spool %s', $Conf{$qdir});
+        do_log('err', 'Unable to create spool %s', $Conf{$qdir});
         $config_err++;
         }
             unless (&tools::set_file_rights(
@@ -450,7 +476,7 @@ sub checkfiles {
                     user  => Sympa::Constants::USER,
                     group => Sympa::Constants::GROUP,
             )) {
-                &Log::do_log('err','Unable to set rights on %s',$Conf{$qdir});
+                &do_log('err','Unable to set rights on %s',$Conf{$qdir});
         $config_err++;
             }
     }
@@ -460,9 +486,9 @@ sub checkfiles {
     foreach my $qdir ('queue','queuedistribute','queueautomatic') {
         my $subdir = $Conf{$qdir}.'/bad';
     unless (-d $subdir) {
-        &Log::do_log('info', "creating spool $subdir");
+        do_log('info', "creating spool $subdir");
         unless ( mkdir ($subdir, 0775)) {
-        &Log::do_log('err', 'Unable to create spool %s', $subdir);
+        do_log('err', 'Unable to create spool %s', $subdir);
         $config_err++;
         }
             unless (&tools::set_file_rights(
@@ -470,7 +496,7 @@ sub checkfiles {
                     user  => Sympa::Constants::USER,
                     group => Sympa::Constants::GROUP,
             )) {
-                &Log::do_log('err','Unable to set rights on %s',$subdir);
+                &do_log('err','Unable to set rights on %s',$subdir);
         $config_err++;
             }
     }
@@ -479,9 +505,9 @@ sub checkfiles {
     ## Check cafile and capath access
     if (defined $Conf{'cafile'} && $Conf{'cafile'}) {
     unless (-f $Conf{'cafile'} && -r $Conf{'cafile'}) {
-        &Log::do_log('err', 'Cannot access cafile %s', $Conf{'cafile'});
+        &do_log('err', 'Cannot access cafile %s', $Conf{'cafile'});
         unless (&List::send_notify_to_listmaster('cannot_access_cafile', $Conf{'domain'}, [$Conf{'cafile'}])) {
-        &Log::do_log('err', 'Unable to send notify "cannot access cafile" to listmaster');    
+        &do_log('err', 'Unable to send notify "cannot access cafile" to listmaster');    
         }
         $config_err++;
     }
@@ -489,9 +515,9 @@ sub checkfiles {
 
     if (defined $Conf{'capath'} && $Conf{'capath'}) {
     unless (-d $Conf{'capath'} && -x $Conf{'capath'}) {
-        &Log::do_log('err', 'Cannot access capath %s', $Conf{'capath'});
+        &do_log('err', 'Cannot access capath %s', $Conf{'capath'});
         unless (&List::send_notify_to_listmaster('cannot_access_capath', $Conf{'domain'}, [$Conf{'capath'}])) {
-        &Log::do_log('err', 'Unable to send notify "cannot access capath" to listmaster');    
+        &do_log('err', 'Unable to send notify "cannot access capath" to listmaster');    
         }
         $config_err++;
     }
@@ -499,18 +525,18 @@ sub checkfiles {
 
     ## queuebounce and bounce_path pointing to the same directory
     if ($Conf{'queuebounce'} eq $wwsconf->{'bounce_path'}) {
-    &Log::do_log('err', 'Error in config: queuebounce and bounce_path parameters pointing to the same directory (%s)', $Conf{'queuebounce'});
+    &do_log('err', 'Error in config: queuebounce and bounce_path parameters pointing to the same directory (%s)', $Conf{'queuebounce'});
     unless (&List::send_notify_to_listmaster('queuebounce_and_bounce_path_are_the_same', $Conf{'domain'}, [$Conf{'queuebounce'}])) {
-        &Log::do_log('err', 'Unable to send notify "queuebounce_and_bounce_path_are_the_same" to listmaster');    
+        &do_log('err', 'Unable to send notify "queuebounce_and_bounce_path_are_the_same" to listmaster');    
     }
     $config_err++;
     }
 
     ## automatic_list_creation enabled but queueautomatic pointing to queue
     if (($Conf{automatic_list_feature} eq 'on') && $Conf{'queue'} eq $Conf{'queueautomatic'}) {
-        &Log::do_log('err', 'Error in config: queue and queueautomatic parameters pointing to the same directory (%s)', $Conf{'queue'});
+        &do_log('err', 'Error in config: queue and queueautomatic parameters pointing to the same directory (%s)', $Conf{'queue'});
         unless (&List::send_notify_to_listmaster('queue_and_queueautomatic_are_the_same', $Conf{'domain'}, [$Conf{'queue'}])) {
-            &Log::do_log('err', 'Unable to send notify "queue_and_queueautomatic_are_the_same" to listmaster');
+            &do_log('err', 'Unable to send notify "queue_and_queueautomatic_are_the_same" to listmaster');
         }
         $config_err++;
     }
@@ -521,7 +547,7 @@ sub checkfiles {
     if ($dir ne '' && -d $dir) {
         unless (-f $dir.'/index.html'){
         unless(open (FF, ">$dir".'/index.html')) {
-            &Log::do_log('err', 'Unable to create %s/index.html as an empty file to protect directory: %s', $dir, $!);
+            &do_log('err', 'Unable to create %s/index.html as an empty file to protect directory: %s', $dir, $!);
         }
         close FF;        
         }
@@ -531,7 +557,7 @@ sub checkfiles {
         my $pictures_dir = &get_robot_conf($robot, 'pictures_path');
         unless (-d $pictures_dir){
             unless (mkdir ($pictures_dir, 0775)) {
-            &Log::do_log('err', 'Unable to create directory %s',$pictures_dir);
+            do_log('err', 'Unable to create directory %s',$pictures_dir);
             $config_err++;
             }
             chmod 0775, $pictures_dir;
@@ -539,7 +565,7 @@ sub checkfiles {
             my $index_path = $pictures_dir.'/index.html';
             unless (-f $index_path){
             unless (open (FF, ">$index_path")) {
-                &Log::do_log('err', 'Unable to create %s as an empty file to protect directory', $index_path);
+                &do_log('err', 'Unable to create %s as an empty file to protect directory', $index_path);
             }
             close FF;
             }
@@ -566,7 +592,7 @@ sub checkfiles {
     unless (-d $dir) {
         unless ( &tools::mkdir_all($dir, 0755)) {
         &List::send_notify_to_listmaster('cannot_mkdir',  $robot, ["Could not create directory $dir: $!"]);
-        &Log::do_log('err','Failed to create directory %s',$dir);
+        &do_log('err','Failed to create directory %s',$dir);
         return undef;
         }
     }
@@ -579,14 +605,14 @@ sub checkfiles {
         ## Update the CSS if it is missing or if a new css.tt2 was installed
         if (! -f $dir.'/'.$css ||
         (stat($css_tt2_path))[9] > (stat($dir.'/'.$css))[9]) {
-        &Log::do_log('notice',"TT2 file $css_tt2_path has changed; updating static CSS file $dir/$css ; previous file renamed");
+        &do_log('notice',"TT2 file $css_tt2_path has changed; updating static CSS file $dir/$css ; previous file renamed");
         
         ## Keep copy of previous file
         rename $dir.'/'.$css, $dir.'/'.$css.'.'.time;
 
         unless (open (CSS,">$dir/$css")) {
             &List::send_notify_to_listmaster('cannot_open_file',  $robot, ["Could not open file $dir/$css: $!"]);
-            &Log::do_log('err','Failed to open (write) file %s',$dir.'/'.$css);
+            &do_log('err','Failed to open (write) file %s',$dir.'/'.$css);
             return undef;
         }
         
@@ -594,7 +620,7 @@ sub checkfiles {
             my $error = &tt2::get_error();
             $param->{'tt2_error'} = $error;
             &List::send_notify_to_listmaster('web_tt2_error', $robot, [$error]);
-            &Log::do_log('err', "Error while installing $dir/$css");
+            &do_log('err', "Error while installing $dir/$css");
         }
 
         $css_updated ++;
@@ -625,19 +651,19 @@ sub valid_robot {
 
     ## Missing etc directory
     unless (-d $Conf{'etc'}.'/'.$robot) {
-    &Log::do_log('err', 'Robot %s undefined ; no %s directory', $robot, $Conf{'etc'}.'/'.$robot);
+    &do_log('err', 'Robot %s undefined ; no %s directory', $robot, $Conf{'etc'}.'/'.$robot);
     return undef;
     }
 
     ## Missing expl directory
     unless (-d $Conf{'home'}.'/'.$robot) {
-    &Log::do_log('err', 'Robot %s undefined ; no %s directory', $robot, $Conf{'home'}.'/'.$robot);
+    &do_log('err', 'Robot %s undefined ; no %s directory', $robot, $Conf{'home'}.'/'.$robot);
     return undef;
     }
     
     ## Robot not loaded
     unless (defined $Conf{'robots'}{$robot}) {
-    &Log::do_log('err', 'Robot %s was not loaded by this Sympa process', $robot);
+    &do_log('err', 'Robot %s was not loaded by this Sympa process', $robot);
     return undef;
     }
 
@@ -654,7 +680,7 @@ sub get_sso_by_id {
     }
 
     foreach my $sso (@{$Conf{'auth_services'}{$param{'robot'}}}) {
-    &Log::do_log('notice', "SSO: $sso->{'service_id'}");
+    &do_log('notice', "SSO: $sso->{'service_id'}");
     next unless ($sso->{'service_id'} eq $param{'service_id'});
 
     return $sso;
@@ -673,7 +699,7 @@ sub _load_auth {
     my $is_main_robot = shift;
     # find appropriate auth.conf file
     my $config_file = &_get_config_file_name({'robot' => $robot, 'file' => "auth.conf"});
-    &Log::do_log('debug', 'Conf::_load_auth(%s)', $config_file);
+    &do_log('debug', 'Conf::_load_auth(%s)', $config_file);
 
     $robot ||= $Conf{'domain'};
     my $line_num = 0;
@@ -753,7 +779,7 @@ sub _load_auth {
 
     ## Open the configuration file or return and read the lines.
     unless (open(IN, $config_file)) {
-    &Log::do_log('notice',"_load_auth: Unable to open %s: %s", $config_file, $!);
+    do_log('notice',"_load_auth: Unable to open %s: %s", $config_file, $!);
     return undef;
     }
 
@@ -776,11 +802,11 @@ sub _load_auth {
     }elsif (/^\s*(\S+)\s+(.*\S)\s*$/o){
         my ($keyword,$value) = ($1,$2);
         unless (defined $valid_keywords{$current_paragraph->{'auth_type'}}{$keyword}) {
-        &Log::do_log('err',"_load_auth: unknown keyword '%s' in %s line %d", $keyword, $config_file, $line_num);
+        do_log('err',"_load_auth: unknown keyword '%s' in %s line %d", $keyword, $config_file, $line_num);
         next;
         }
         unless ($value =~ /^$valid_keywords{$current_paragraph->{'auth_type'}}{$keyword}$/) {
-        &Log::do_log('err',"_load_auth: unknown format '%s' for keyword '%s' in %s line %d", $value, $keyword, $config_file,$line_num);
+        do_log('err',"_load_auth: unknown format '%s' for keyword '%s' in %s line %d", $value, $keyword, $config_file,$line_num);
         next;
         }
 
@@ -798,13 +824,13 @@ sub _load_auth {
         
         if ($current_paragraph->{'auth_type'} eq 'cas') {
 	    unless (defined $current_paragraph->{'base_url'}) {
-            &Log::do_log('err','Incorrect CAS paragraph in auth.conf');
+            &do_log('err','Incorrect CAS paragraph in auth.conf');
             next;
             }
 
             eval "require AuthCAS";
             if ($@) {
-                &Log::do_log('err', 'Failed to load AuthCAS perl module');
+                &do_log('err', 'Failed to load AuthCAS perl module');
                 return undef;
             } 
 
@@ -825,7 +851,7 @@ sub _load_auth {
             
             $current_paragraph->{'cas_server'} = new AuthCAS(%{$cas_param});
             unless (defined $current_paragraph->{'cas_server'}) {
-            &Log::do_log('err', 'Failed to create CAS object for %s: %s', 
+            &do_log('err', 'Failed to create CAS object for %s: %s', 
                 $current_paragraph->{'base_url'}, &AuthCAS::get_errors());
             next;
             }
@@ -1366,7 +1392,7 @@ sub _infer_server_specific_parameter_values {
         if ($log_condition =~ /^\s*(ip|email)\s*\=\s*(.*)\s*$/i) {         
             $param->{'config_hash'}{'loging_condition'}{$1} = $2;
         }else{
-            &Log::do_log('err',"unrecognized log_condition token %s ; ignored",$log_condition);
+            &do_log('err',"unrecognized log_condition token %s ; ignored",$log_condition);
         }
     }    
 
@@ -1644,7 +1670,7 @@ sub _save_binary_cache {
     my $param = shift;
     my $lock = new Lock ($param->{'target_file'});
     unless (defined $lock) {
-        &Log::do_log('err','Could not create new lock');
+        &do_log('err','Could not create new lock');
         return undef;
     }
     $lock->set_timeout(2); 
@@ -1678,7 +1704,7 @@ sub _load_binary_cache {
 
     my $lock = new Lock ($param->{'config_file'});
     unless (defined $lock) {
-        &Log::do_log('err','Could not create new lock');
+        &do_log('err','Could not create new lock');
         return undef;
     }
     $lock->set_timeout(2); 
@@ -1741,17 +1767,5 @@ sub _create_robot_like_config_for_main_robot {
     $Conf{'robots'}{$Conf{'domain'}} = $main_conf_no_robots;
 }
 
-sub _get_parameters_names_by_category {
-    my $param_by_categories;
-    my $current_category;
-    foreach my $entry (@confdef::params) {
-        if ($entry->{'title'}) {
-            $current_category = $entry->{'title'};
-        }else{
-            $param_by_categories->{$current_category}{$entry->{'name'}} = 1;
-        }
-    }
-    return $param_by_categories;
-}
 ## Packages must return true.
 1;

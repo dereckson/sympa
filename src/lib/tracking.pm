@@ -23,11 +23,42 @@ package tracking;
 
 use strict;
 
+use DBI;
 use CGI;
 use Email::Simple;
 use Log;
 use MIME::Base64;
-use SDM;
+
+
+
+
+##############################################
+#   connection
+##############################################
+# Function use to connect to a database 
+# with the given arguments. 
+# 
+# IN :-$database (+): the database name
+#     -$hostname (+): the hostname of the database
+#     -$port (+): port to use
+#     -$login (+): user identifiant
+#     -$mdp (+): password for identification
+#
+# OUT : $dbh |undef
+#      
+##############################################
+sub connection{
+	my ($database, $hostname, $port, $login, $mdp) = @_;
+	
+	my $dsn = "DBI:mysql:database=$database:host=$hostname:port=$port";
+	my $dbh;
+
+	unless ($dbh = DBI->connect($dsn, $login, $mdp)) {
+		&do_log('err', "Can't connect to the database");
+		return undef;
+	}
+	return $dbh;
+}
 
 ##############################################
 #   get_recipients_status
@@ -36,25 +67,40 @@ use SDM;
 # the recipients who have a different DSN status than "delivered"
 # Use the pk identifiant of the mail
 # 
+# IN :-$dbh (+): the database connection
 #     -$pk_mail (+): the identifiant of the stored mail
 #
 # OUT : @pk_notifs |undef
 #      
 ##############################################
 sub get_recipients_status {
+#        my $dbh = shift;
         my $msgid  = shift;
 	my $listname = shift;
         my $robot =shift;
 
-        &Log::do_log('debug2', 'get_recipients_status(%s,%s,%s)', $msgid,$listname,$robot);
+        &do_log('debug2', 'get_recipients_status(%s,%s,%s)', $msgid,$listname,$robot);
 
+	my $dbh = &List::db_get_handler();
+
+	## Check database connection
+	unless ($dbh and $dbh->ping) {
+	    return undef unless &List::db_connect();
+	}
+	
         my $sth;
         my $pk;
 
 	# the message->head method return message-id including <blabla@dom> where mhonarc return blabla@dom that's why we test both of them
-        unless($sth = &SDM::do_query("SELECT recipient_notification AS recipient,  reception_option_notification AS reception_option, status_notification AS status, arrival_date_notification AS arrival_date, type_notification as type, message_notification as notification_message FROM notification_table WHERE (list_notification = %s AND robot_notification = %s AND (message_id_notification = %s OR CONCAT('<',message_id_notification,'>') = %s OR message_id_notification = %s ))",&SDM::quote($listname),&SDM::quote($robot),&SDM::quote($msgid),&SDM::quote($msgid),&SDM::quote('<'.$msgid.'>'))) {
-	    &Log::do_log('err','Unable to retrieve tracking informations for message %s, list %s@%s', $msgid, $listname, $robot);
-            return undef;
+        my $request = sprintf "SELECT recipient_notification AS recipient,  reception_option_notification AS reception_option, status_notification AS status, arrival_date_notification AS arrival_date, type_notification as type, message_notification as notification_message FROM notification_table WHERE (list_notification = %s AND robot_notification = %s AND (message_id_notification = %s OR CONCAT('<',message_id_notification,'>') = %s OR message_id_notification = %s ))",$dbh->quote($listname),$dbh->quote($robot),$dbh->quote($msgid),$dbh->quote($msgid),$dbh->quote('<'.$msgid.'>');
+	
+        unless ($sth = $dbh->prepare($request)) {
+                &do_log('err','Unable to prepare SQL statement : %s', $dbh->errstr);
+                return undef;
+        }
+        unless ($sth->execute) {
+                &do_log('err','Unable to execute SQL statement "%s" : %s', $request, $dbh->errstr);
+                return undef;
         }
         my @pk_notifs;
         while (my $pk_notif = $sth->fetchrow_hashref){
@@ -65,6 +111,7 @@ sub get_recipients_status {
 	    }	    
 	    push @pk_notifs, $pk_notif;
         }
+        $sth->finish();
         return \@pk_notifs;	
 }
 
@@ -90,18 +137,35 @@ sub db_init_notification_table{
     my $reception_option =  $params{'reception_option'};
     my @rcpt =  @{$params{'rcpt'}};
     
-    &Log::do_log('debug2', "db_init_notification_table (msgid = %s, listname = %s, reception_option = %s",$msgid,$listname,$reception_option);
+    &do_log('debug2', "db_init_notification_table (msgid = %s, listname = %s, reception_option = %s",$msgid,$listname,$reception_option);
 
+    my $dbh = connection($Conf::Conf{'db_name'}, $Conf::Conf{'db_host'}, $Conf::Conf{'db_port'}, $Conf::Conf{'db_user'}, $Conf::Conf{'db_passwd'});
+    unless ($dbh and $dbh->ping) {
+	&do_log('err', "Error : Can't join database");
+	return undef;
+    }
+    
+    my $sth;
     my $time = time ;
 
     foreach my $email (@rcpt){
 	my $email= lc($email);
 	
-	unless(&SDM::do_query("INSERT INTO notification_table (message_id_notification,recipient_notification,reception_option_notification,list_notification,robot_notification,date_notification) VALUES (%s,%s,%s,%s,%s,%s)",&SDM::quote($msgid),&SDM::quote($email),&SDM::quote($reception_option),&SDM::quote($listname),&SDM::quote($robot),$time)) {
-	    &Log::do_log('err','Unable to prepare notification table for user %s, message %s, list %s@%s', $email, $msgid, $listname, $robot);
-	    return undef;
+	my $request = sprintf "INSERT INTO notification_table (message_id_notification,recipient_notification,reception_option_notification,list_notification,robot_notification,date_notification) VALUES (%s,%s,%s,%s,%s,%s)",$dbh->quote($msgid),$dbh->quote($email),$dbh->quote($reception_option),$dbh->quote($listname),$dbh->quote($robot),$time;
+	
+	unless ($sth = $dbh->prepare($request)) {
+                &do_log('err','Unable to prepare SQL statement "%s": %s', $request, $dbh->errstr);
+                return undef;
 	}
+	unless ($sth->execute()) {
+                &do_log('err','Unable to execute SQL statement "%s" : %s', $request, $dbh->errstr);
+                return undef;
+	}
+
+
     } 
+    $sth -> finish;
+    $dbh -> disconnect;
     return 1;
 }
 
@@ -131,16 +195,34 @@ sub db_init_notification_table{
 sub db_insert_notification {
     my ($notification_id, $type, $status, $arrival_date ,$notification_as_string  ) = @_;
     
-    &Log::do_log('debug2', "db_insert_notification  :notification_id : %s, type : %s, recipient : %s, msgid : %s, status :%s",$notification_id, $type, $status); 
+    &do_log('debug2', "db_insert_notification  :notification_id : %s, type : %s, recipient : %s, msgid : %s, status :%s",$notification_id, $type, $status); 
     
     chomp $arrival_date;
     
+    my $dbh = connection($Conf::Conf{'db_name'}, $Conf::Conf{'db_host'}, $Conf::Conf{'db_port'}, $Conf::Conf{'db_user'}, $Conf::Conf{'db_passwd'});
+    
+    unless ($dbh and $dbh->ping) { 
+	&do_log('err', "Error : Can't join database"); 
+	return undef; 
+    } 
+    
     $notification_as_string = MIME::Base64::encode($notification_as_string);
     
-    unless(&SDM::do_query("UPDATE notification_table SET  `status_notification` = %s, `arrival_date_notification` = %s, `message_notification` = %s WHERE (pk_notification = %s)",&SDM::quote($status),&SDM::quote($arrival_date),&SDM::quote($notification_as_string),&SDM::quote($notification_id))) {
-	&Log::do_log('err','Unable to update notification %s in database', $notification_id);
+    my $request = sprintf "UPDATE notification_table SET  `status_notification` = %s, `arrival_date_notification` = %s, `message_notification` = %s WHERE (pk_notification = %s)",$dbh->quote($status),$dbh->quote($arrival_date),$dbh->quote($notification_as_string),$dbh->quote($notification_id);
+
+    my $sth;
+    
+    unless ($sth = $dbh->prepare($request)) {
+	&do_log('err','Unable to prepare SQL statement "%s": %s', $request, $dbh->errstr);
 	return undef;
     }
+    unless ($sth->execute()) {
+	&do_log('err','Unable to execute SQL statement "%s" : %s', $request, $dbh->errstr);
+	return undef;
+    }
+    
+    $sth -> finish;
+    $dbh -> disconnect;
 
     return 1;
 }
@@ -161,22 +243,36 @@ sub find_notification_id_by_message{
     my $listname = shift;	
     my $robot = shift;
 
-    &Log::do_log('debug2','find_notification_id_by_message(%s,%s,%s,%s)',$recipient,$msgid ,$listname,$robot );
+    do_log('debug2','find_notification_id_by_message(%s,%s,%s,%s)',$recipient,$msgid ,$listname,$robot );
     my $pk;
+
+    my $dbh = connection($Conf::Conf{'db_name'}, $Conf::Conf{'db_host'}, $Conf::Conf{'db_port'}, $Conf::Conf{'db_user'}, $Conf::Conf{'db_passwd'});
+    unless ($dbh and $dbh->ping) {
+          &do_log('err', "Error : Can't join database");
+          return undef;
+    }
+    
+    # the message->head method return message-id including <blabla@dom> where mhonarc return blabla@dom that's why we test both of them
+    my $request = sprintf "SELECT pk_notification FROM notification_table WHERE ( recipient_notification = %s AND list_notification = %s AND robot_notification = %s AND (message_id_notification = %s OR CONCAT('<',message_id_notification,'>') = %s OR message_id_notification = %s ))", $dbh->quote($recipient),$dbh->quote($listname),$dbh->quote($robot),$dbh->quote($msgid),$dbh->quote($msgid),$dbh->quote('<'.$msgid.'>');
     
     my $sth;
 
-    # the message->head method return message-id including <blabla@dom> where mhonarc return blabla@dom that's why we test both of them
-    unless($sth = &SDM::do_query("SELECT pk_notification FROM notification_table WHERE ( recipient_notification = %s AND list_notification = %s AND robot_notification = %s AND (message_id_notification = %s OR CONCAT('<',message_id_notification,'>') = %s OR message_id_notification = %s ))", &SDM::quote($recipient),&SDM::quote($listname),&SDM::quote($robot),&SDM::quote($msgid),&SDM::quote($msgid),&SDM::quote('<'.$msgid.'>'))) {
-	&Log::do_log('err','Unable to retrieve the tracking informations for user %s, message %s, list %s@%s', $recipient, $msgid, $listname, $robot);
+    unless ($sth = $dbh->prepare($request)) {
+	&do_log('err','Unable to prepare SQL statement %s : %s', $request, $dbh->errstr);
+	return undef;
+    }
+    unless ($sth->execute) {
+	&do_log('err','Unable to execute SQL statement "%s" : %s', $request, $dbh->errstr);
 	return undef;
     }
     
     my @pk_notifications = $sth->fetchrow_array;
     if ($#pk_notifications > 0){
-	&Log::do_log('err','Found more then one pk_notification maching  (recipient=%s,msgis=%s,listname=%s,robot%s)',$recipient,$msgid ,$listname,$robot );	
+	&do_log('err','Found more then one pk_notification maching  (recipient=%s,msgis=%s,listname=%s,robot%s)',$recipient,$msgid ,$listname,$robot );	
 	# we should return undef...
     }
+    $sth->finish();
+    $dbh -> disconnect;
     return @pk_notifications[0];
 }
 
@@ -198,20 +294,36 @@ sub remove_message_by_id{
     my $listname =shift;
     my $robot =shift;
 
-    &Log::do_log('debug2', 'Remove message id =  %s, listname = %s, robot = %s', $msgid,$listname,$robot );
+    &do_log('debug2', 'Remove message id =  %s, listname = %s, robot = %s', $msgid,$listname,$robot );
     my $sth;
-    unless($sth = &SDM::do_query("DELETE FROM notification_table WHERE `message_id_notification` = %s AND list_notification = %s AND robot_notification = %s", &SDM::quote($msgid),&SDM::quote($listname),&SDM::quote($robot))) {
-	&Log::do_log('err','Unable to remove the tracking informations for message %s, list %s@%s', $msgid, $listname, $robot);
-	return undef;
+
+    my $dbh = &List::db_get_handler();
+    my $sth;
+
+    unless ($dbh and $dbh->ping) {
+	return undef unless &List::db_connect();
     }
-    
+
+    my $request = sprintf "DELETE FROM notification_table WHERE `message_id_notification` = %s AND list_notification = %s AND robot_notification = %s", $dbh->quote($msgid),$dbh->quote($listname),$dbh->quote($robot);
+
+
+    &do_log('debug2', 'Request For Table : : %s', $request);
+    unless ($sth = $dbh->prepare($request)) {
+            &do_log('err','Unable to prepare SQL statement "%s": %s', $request, $dbh->errstr);
+            return undef;
+    }
+    unless ($sth->execute()) {
+            &do_log('err','Unable to execute SQL statement "%s" : %s', $request, $dbh->errstr);
+            return undef;
+    }
+    $sth -> finish;
     return 1;
 }
 
 ##############################################
 #   remove_message_by_period
 ##############################################
-# Function use to remove notifications older than number of days
+# Function use to remove notifications iolder than number of days
 # 
 # IN : $period
 #    : $listname
@@ -225,17 +337,29 @@ sub remove_message_by_period{
     my $listname =shift;
     my $robot =shift;
 
-    &Log::do_log('debug2', 'Remove message by period=  %s, listname = %s, robot = %s', $period,$listname,$robot );
+    &do_log('debug2', 'Remove message by period=  %s, listname = %s, robot = %s', $period,$listname,$robot );
     my $sth;
 
+    my $dbh = &List::db_get_handler();
+    my $sth;
+
+    unless ($dbh and $dbh->ping) {
+	return undef unless &List::db_connect();
+    }
     my $limit = time - ($period * 24 * 60 * 60);
 
-    unless($sth = &SDM::do_query("DELETE FROM notification_table WHERE `date_notification` < %s AND list_notification = %s AND robot_notification = %s", $limit,&SDM::quote($listname),&SDM::quote($robot))) {
-	&Log::do_log('err','Unable to remove the tracking informations older than %s days for list %s@%s', $limit, $listname, $robot);
-	return undef;
-    }
+    my $request = sprintf "DELETE FROM notification_table WHERE `date_notification` < %s AND list_notification = %s AND robot_notification = %s", $limit,$dbh->quote($listname),$dbh->quote($robot);
 
+    unless ($sth = $dbh->prepare($request)) {
+            &do_log('err','Unable to prepare SQL statement "%s": %s', $request, $dbh->errstr);
+            return undef;
+    }
+    unless ($sth->execute()) {
+            &do_log('err','Unable to execute SQL statement "%s" : %s', $request, $dbh->errstr);
+            return undef;
+    }
     my $deleted = $sth->rows;
+    $sth -> finish;
     return $deleted;
 }
 
