@@ -705,7 +705,7 @@ sub modify_list {
 
 =pod 
 
-=head2 sub close_family()
+=head2 sub close()
 
 Closes every list family.
 
@@ -740,7 +740,7 @@ Closes every list family.
 =cut
 
 #########################################
-# close_family                                 
+# close                                 
 #########################################
 # closure family action :
 #  - close every list family
@@ -748,9 +748,9 @@ Closes every list family.
 # IN : -$self
 # OUT : -$string
 #########################################
-sub close_family {
+sub close {
     my $self = shift;
-    &do_log('info','(%s)',$self->{'name'});
+    &do_log('info','Family::close(%s)',$self->{'name'});
 
     my $family_lists = $self->get_family_lists();
     my @impossible_close;
@@ -2439,9 +2439,9 @@ Sets changes (loads the users, installs or removes the aliases); deals with the 
 
 =item * admin::remove_aliases
 
-=item * List::add_list_member
+=item * List::add_user
 
-=item * List::_load_list_members_file
+=item * List::_load_users_file
 
 =item * Log::do_log
 
@@ -2494,18 +2494,16 @@ sub _set_status_changes {
     if (($old_status ne 'pending') && ($old_status ne 'open')) {
 	
 	if ($list->{'admin'}{'user_data_source'} eq 'file') {
-	    $list->{'users'} = &List::_load_list_members_file("$list->{'dir'}/subscribers.closed.dump");
+	    $list->{'users'} = &List::_load_users_file("$list->{'dir'}/subscribers.closed.dump");
 	}elsif ($list->{'admin'}{'user_data_source'} eq 'database') {
 	    unless (-f "$list->{'dir'}/subscribers.closed.dump") {
 		&do_log('notice', 'No subscribers to restore');
 	    }
-	    my @users = &List::_load_list_members_file("$list->{'dir'}/subscribers.closed.dump");
+	    my @users = &List::_load_users_file("$list->{'dir'}/subscribers.closed.dump");
 	    
 	    ## Insert users in database
-	    $list->add_list_member(@users);
-	    my $total = $list->{'add_outcome'}{'added_members'};
-	    if (defined $list->{'add_outcome'}{'errors'}) {
-		&Log::do_log('err', 'Failed to add users: %s',$list->{'add_outcome'}{'errors'}{'error_message'});
+	    foreach my $user (@users) {
+		$list->add_user($user);
 	    }
 	}
     }
