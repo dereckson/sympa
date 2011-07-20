@@ -390,7 +390,7 @@ sub amI {
 
   if ($list) {
       if ($function eq 'subscriber') {
-	  return SOAP::Data->name('result')->type('boolean')->value($list->is_list_member($user));
+	  return SOAP::Data->name('result')->type('boolean')->value($list->is_user($user));
       }elsif ($function =~ /^owner|editor$/) {
 	  return SOAP::Data->name('result')->type('boolean')->value($list->am_i($function, $user));
       }else {
@@ -442,7 +442,7 @@ sub info {
     my $user;
 
     # Part of the authorization code
-    $user = &List::get_global_user($sender);
+    $user = &List::get_user_db($sender);
      
     my $result = $list->check_list_authz('info','md5',
 					 {'sender' => $sender,
@@ -476,7 +476,7 @@ sub info {
 	if (($list->am_i('editor',$sender) || $list->am_i('editor',$sender))) {
 	    $result_item->{'isEditor'} = SOAP::Data->name('isEditor')->type('boolean')->value(1);
 	}
-	if ($list->is_list_member($sender)) {
+	if ($list->is_user($sender)) {
 	    $result_item->{'isSubscriber'} = SOAP::Data->name('isSubscriber')->type('boolean')->value(1);
 	}
 	
@@ -569,8 +569,8 @@ sub createList {
     # prepare parameters
     my $param = {};
     $param->{'user'}{'email'} = $sender;
-    if (&List::is_global_user($param->{'user'}{'email'})) {
-	$param->{'user'} = &List::get_global_user($sender);
+    if (&List::is_user_db($param->{'user'}{'email'})) {
+	$param->{'user'} = &List::get_user_db($sender);
     }
     my $parameters;
     $parameters->{'creation_email'} =$sender;
@@ -662,7 +662,7 @@ sub closeList {
 	 &Log::do_log('info','do_close_list: closing a pending list makes it purged');
 	 $list->purge($sender);
      }else{
-	 $list->close_list($sender);
+	 $list->close($sender);
 	 &Log::do_log('info','do_close_list: list %s closed',$listname);
      }     
      return 1;
@@ -738,7 +738,7 @@ sub add {
     }
 
 
-    if ($list->is_list_member($email)) {
+    if ($list->is_user($email)) {
       &Log::do_log('err', 'add %s@%s %s from %s : failed, user already member of the list', $listname,$robot,$email,$sender);
       my $error = "User already member of list $listname";
       die SOAP::Fault->faultcode('Server')
@@ -752,11 +752,10 @@ sub add {
 	$u->{'email'} = $email;
 	$u->{'gecos'} = $gecos;
 	$u->{'date'} = $u->{'update_date'} = time;
-
-	$list->add_list_member($u);
-	if (defined $list->{'add_outcome'}{'errors'}) {
+	
+	unless ($list->add_user($u)) {
 	    &Log::do_log('info', 'add %s@%s %s from %s : Unable to add user', $listname,$robot,$email,$sender);
-	    my $error = sprintf ("Unable to add user %s in list %s: %s"),$email,$listname,$list->{'add_outcome'}{'errors'}{'error_message'};
+	    my $error = "Unable to add user $email in list $listname";
 	    die SOAP::Fault->faultcode('Server')
 		->faultstring('Unable to add user')
 		->faultdetail($error);
@@ -765,8 +764,8 @@ sub add {
     }
     
     if ($List::use_db) {
-	my $u = &List::get_global_user($email);	
-	&List::update_global_user($email, {'lang' => $u->{'lang'} || $list->{'admin'}{'lang'},
+	my $u = &List::get_user_db($email);	
+	&List::update_user_db($email, {'lang' => $u->{'lang'} || $list->{'admin'}{'lang'},
 				       'password' => $u->{'password'} || &tools::tmp_passwd($email)
 				       });
     }
@@ -857,7 +856,7 @@ sub del {
 	    ->faultdetail($reason_string);
     }
 
-    my $user_entry = $list->get_list_member($email);
+    my $user_entry = $list->get_subscriber($email);
     unless ((defined $user_entry)) {
 	    &do_log('info', 'DEL %s %s from %s refused, not on list', $listname, $email, $sender);
 	    die SOAP::Fault->faultcode('Client')
@@ -870,7 +869,7 @@ sub del {
     
     ## Really delete and rewrite to disk.
     my $u;
-    unless ($u = $list->delete_list_member('users' => [$email], 'exclude' =>' 1')){
+    unless ($u = $list->delete_user('users' => [$email], 'exclude' =>' 1')){
 	my $error = "Unable to delete user $email from list $listname for command 'del'";
 	&do_log('info', 'DEL %s %s from %s failed, '.$error);
 	die SOAP::Fault->faultcode('Server')
@@ -937,7 +936,7 @@ sub review {
     my $user;
 
     # Part of the authorization code
-    $user = &List::get_global_user($sender);
+    $user = &List::get_user_db($sender);
      
     my $result = $list->check_list_authz('review','md5',
 					 {'sender' => $sender,
@@ -966,7 +965,7 @@ sub review {
 		&Log::do_log('notice','Unable to synchronize list %s.', $listname);
 	    }
 	}
-	unless ($user = $list->get_first_list_member({'sortby' => 'email'})) {
+	unless ($user = $list->get_first_user({'sortby' => 'email'})) {
 	    &Log::do_log('err', "SOAP : no subscribers in list '%s'", $list->{'name'});
 	    push @resultSoap, SOAP::Data->name('result')->type('string')->value('no_subscribers');
 	    return SOAP::Data->name('return')->value(\@resultSoap);
@@ -980,7 +979,7 @@ sub review {
 		$user->{'email'} =~ y/A-Z/a-z/;
 		push @resultSoap, SOAP::Data->name('item')->type('string')->value($user->{'email'});
 	    }
-	} while ($user = $list->get_next_list_member());
+	} while ($user = $list->get_next_user());
 	&Log::do_log('info', 'SOAP : review %s from %s accepted', $listname, $sender);
 	return SOAP::Data->name('return')->value(\@resultSoap);
     }
@@ -1037,7 +1036,7 @@ sub signoff {
     $list = new List ($listname, $robot);
     
     # Part of the authorization code
-    my $user = &List::get_global_user($sender);
+    my $user = &List::get_user_db($sender);
     
     my $result = $list->check_list_authz('unsubscribe','md5',
 					 {'email' => $sender,
@@ -1063,7 +1062,7 @@ sub signoff {
 	## Now check if we know this email on the list and
 	## remove it if found, otherwise just reject the
 	## command.
-	unless ($list->is_list_member($sender)) {
+	unless ($list->is_user($sender)) {
 	    &Log::do_log('info', 'SOAP : sign off %s from %s refused, not on list', $listname, $sender);
 	    
 	    ## Tell the owner somebody tried to unsubscribe
@@ -1078,7 +1077,7 @@ sub signoff {
 	}
 	
 	## Really delete and rewrite to disk.
-	$list->delete_list_member('users' => [$sender], 'exclude' =>' 1');
+	$list->delete_user('users' => [$sender], 'exclude' =>' 1');
 
 	## Notify the owner
 	if ($action =~ /notify/i) {
@@ -1094,8 +1093,7 @@ sub signoff {
 	}
 	
 	&Log::do_log('info', 'SOAP : sign off %s from %s accepted', $listname, $sender);
-
-     
+	
 	return SOAP::Data->name('result')->type('boolean')->value(1);
     }
 
@@ -1187,7 +1185,7 @@ sub subscribe {
   }
   if ($action =~ /do_it/i) {
       
-      my $is_sub = $list->is_list_member($sender);
+      my $is_sub = $list->is_user($sender);
       
       unless (defined($is_sub)) {
 	  &Log::do_log('err','SOAP subscribe : user lookup failed');
@@ -1209,7 +1207,7 @@ sub subscribe {
 	  die SOAP::Fault->faultcode('Server')
 	      ->faultstring('Undef.')
 		  ->faultdetail("SOAP subscribe : update user failed")
-		      unless $list->update_list_member($sender, $user);
+		      unless $list->update_user($sender, $user);
       }else {
 	  
 	  my $u;
@@ -1222,13 +1220,13 @@ sub subscribe {
 	  die SOAP::Fault->faultcode('Server')
 	      ->faultstring('Undef')
 		  ->faultdetail("SOAP subscribe : add user failed")
-		      unless $list->add_list_member($u);
+		      unless $list->add_user($u);
       }
       
       if ($List::use_db) {
-	  my $u = &List::get_global_user($sender);
+	  my $u = &List::get_user_db($sender);
 	  
-	  &List::update_global_user($sender, {'lang' => $u->{'lang'} || $list->{'admin'}{'lang'}
+	  &List::update_user_db($sender, {'lang' => $u->{'lang'} || $list->{'admin'}{'lang'}
 					  });
       }
       
@@ -1249,7 +1247,6 @@ sub subscribe {
       }
       &Log::do_log('info', 'SOAP subcribe : %s from %s accepted', $listname, $sender);
       
-
       return SOAP::Data->name('result')->type('boolean')->value(1);
   }
 
@@ -1340,13 +1337,13 @@ sub which {
 	     $result_item->{'isEditor'} = 1;
 	 }
 	$result_item->{'isSubscriber'} = 0;
-	if ($list->is_list_member($sender)) {
+	if ($list->is_user($sender)) {
 	    $result_item->{'isSubscriber'} = 1;
 	}
 	## determine bounce informations of this user for this list
  
 	my $subscriber ;
-	if($subscriber = $list->get_list_member($sender)) { 
+	if($subscriber = $list->get_subscriber($sender)) { 
 	    $result_item->{'bounceCount'} = 0;
 	    if ($subscriber->{'bounce'} =~ /^(\d+)\s+(\d+)\s+(\d+)(\s+(.*))?$/) {
 		$result_item->{'firstBounceDate'} =  $1;

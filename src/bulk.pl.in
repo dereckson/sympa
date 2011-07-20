@@ -50,7 +50,6 @@ use mail;
 use Bulk;
 use List;
 use tools;
-use tracking;
 use Sympa::Constants;
 
 my $daemon_name = &Log::set_daemon($0);
@@ -81,7 +80,7 @@ unless (Conf::load($sympa_conf_file)) {
 }
 
 ## Check database connectivity
-unless (&SDM::check_db_connect()) {
+unless (&List::check_db_connect()) {
     &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf::Conf{'db_name'});
 }
 
@@ -159,6 +158,7 @@ my $fh = 'fh0000000000';	## File handle for the stream.
 my $messagekey;       # the key of the current message in the message_table   
 my $messageasstring_init;  # the current message as a string
 my $messageasstring;  # the transformed message.
+my $last_check_date = 0;
 
 my $timeout = $Conf::Conf{'bulk_wait_to_fork'};
 my $last_check_date = time();
@@ -189,7 +189,7 @@ while (!$end) {
 		
 		## disconnect from database before fork
 		## to prevent DB handlers to be shared by different processes
-		my $dbh = &SDM::db_get_handler();
+		my $dbh = &List::db_get_handler();
 		$dbh->disconnect; # when loading conf in database disconnect because of sharing dbh may crash bulk.pl
 		
 		if($Conf::Conf{'bulk_max_count'} > 1) {
@@ -225,18 +225,14 @@ while (!$end) {
 	## Go through the bulk_mailer table and process messages
     if ($bulk = Bulk::next()) {
 	if ($bulk->{'messagekey'} ne $messagekey) {
-	    # current packet is not related to the same message as the previous packet
+	    # current packet is no related to the same message as the previous packet
             # so it is needed to fetch the new message from message_table 
-
-	    $messagekey = $bulk->{'messagekey'};
 	    $message_from_spool = &Bulk::message_from_spool($bulk->{'messagekey'});
 
 	    $messageasstring_init = $message_from_spool->{'messageasstring'};
-
-	    # &trace_smime($messageasstring_init,'initial');
-
+	    
 	    unless ( $messageasstring_init ) {
-		&do_log('err',"internal error : current packet (messagekey= %s) contains a ref to a null message",$bulk->{'messagekey'});
+		&do_log('err',"internal error : current packet (messagekey= %s) contain a ref to a null message",$bulk->{'messagekey'});
 		unless (&Bulk::remove($bulk->{'messagekey'},$bulk->{'packetid'})) {
 		    &do_log('err',"failed to remove processed packet '%s', messagekey '%s'", $bulk->{'messagekey'},$bulk->{'packetid'});
 		}
@@ -266,45 +262,30 @@ while (!$end) {
         #  -6 dkim sign
         # 
  
-
-	#my $list = new List($bulk->{'listname'}, $bulk->{'robot'});
-	my $listname= $bulk->{'listname'}; my $robot =  $bulk->{'robot'};
-
-	if (($bulk->{'verp'})||($bulk->{'merge'})||($bulk->{'tracking'}eq 'dsn')||($bulk->{'tracking'}eq 'mdn')){ # message needs personalization
-	    my $key ;
-	    	    
+	if (($bulk->{'verp'})||($bulk->{'merge'})){ # message needs personalization
+	    
 	    foreach $rcpt (@rcpts) {
-		my $message = new Message ({'messageasstring'=>$messageasstring_init,'noxsympato'=>'noxsympato'});
-		my $entity = $message->{'msg'};
-		my $notification_id;
-		my $return_path;
-		my $escaped_rcpt = $rcpt;
-		$escaped_rcpt  =~ s/\@/\=\=a\=\=/; 
-		
-		if(($bulk->{'tracking'} eq 'dsn')||($bulk->{'tracking'} eq 'mdn')){ # tracking by MDN required tracking by DSN to
-		    my $msgid = $entity->head->get('Message-Id'); chomp $msgid;		    
-		    $notification_id = &tracking::find_notification_id_by_message($rcpt, $msgid, $listname,$robot);
-		    $return_path = $Conf::Conf{'bounce_email_prefix'}.'+'.$escaped_rcpt.'=='.$listname.'=='.$notification_id.'@'.$robot;
-		    $entity->head->replace('Disposition-Notification-To',$return_path) if ($bulk->{'tracking'} eq 'mdn') ;
-		    if (($message->{'protected'})||($message->{'smime_crypted'})){
-			my $msg_body =$messageasstring_init; $msg_body =~ s/^.*\n\n//;      # remove headers
-			$messageasstring_init = $entity->head->as_string. "\n" . $msg_body; # concat headers from entity with original body
-		    }else{
-			$messageasstring_init = $entity->as_string;
-		    }
-		    # &trace_smime($messageasstring,'tracking');
-		}else{  # VERP
-		    $return_path = $Conf::Conf{'bounce_email_prefix'}.'+'.$escaped_rcpt.'=='.$listname.'@'.$robot; 
+		my $return_path = $bulk->{'returnpath'};
+		if ($bulk->{'verp'}) {
+		    my $return_path = $rcpt;
+		    $return_path =~ s/\@/\=\=a\=\=/; 
+		    $return_path = "$Conf::Conf{'bounce_email_prefix'}+$return_path\=\=$bulk->{'listname'}\@$bulk->{'robot'}"; 
 		}
-		if (($bulk->{'merge'}) && !($message->{'protected'})) {
+		if ($bulk->{'merge'}) { 
+		    
+		    ### Parse an MIME::Entity message
+		    my $parser = new MIME::Parser;
+		    $parser->output_to_core(1);
+		    my $entity = $parser->parse_data($messageasstring_init); ## Retrouver la méthode qui correspond
+		    
 		    unless(&Bulk::merge_msg ($entity, $rcpt, $bulk, $data)){
 			&do_log('err', 'Erreur d appel &Bulk::merge_msg');
-		    }		    
-		    $messageasstring = $entity->as_string;		    		
+		    }
+
+		    $messageasstring = $entity->as_string;		    
 		}else{
 		    $messageasstring = $messageasstring_init;
 		}
-
 		if (&Conf::get_robot_conf($bulk->{'robot'}, 'dkim_feature') eq 'on'){
 		    $messageasstring = &tools::remove_invalid_dkim_signature($messageasstring );
 		}
@@ -314,17 +295,14 @@ while (!$end) {
 									   'dkim_selector'=>    $message_from_spool->{'dkim_selector'},
 									   'dkim_privatekey' => $message_from_spool->{'dkim_privatekey'},
 									   'dkim_header_list' =>$message_from_spool->{'dkim_header_list'} } );
-		}
-
-		# &trace_smime($messageasstring,'dkim');
-
-		*SMTP = &mail::smtpto($return_path, \$rcpt, $bulk->{'robot'},$notification_id);
+		}		
+		*SMTP = &mail::smtpto($return_path, \$rcpt, $bulk->{'robot'});
 		# Message with customized data
 		print SMTP $messageasstring;
 		close SMTP;
 	    }
 	}else{ # message dont needs personalization, they can be sent by packet
-            if (&Conf::get_robot_conf($bulk->{'robot'}, 'dkim_feature') eq 'on'){
+	    if (&Conf::get_robot_conf($bulk->{'robot'}, 'dkim_feature') eq 'on'){
 		$messageasstring_init = &tools::remove_invalid_dkim_signature($messageasstring_init );
 	    }
 	    # Initial message
@@ -335,9 +313,6 @@ while (!$end) {
 										 'dkim_privatekey' => $message_from_spool->{'dkim_privatekey'},
 										 'dkim_header_list' =>$message_from_spool->{'dkim_header_list'} } );
 	    }
-
-	    # &trace_smime($messageasstring_init,'dkim 2');
-	    
 	    *SMTP = &mail::smtpto($bulk->{'returnpath'}, \@rcpts, $bulk->{'robot'});		
 	    print SMTP $messageasstring_init;
 	    close SMTP;
@@ -363,10 +338,8 @@ while (!$end) {
 	sleep $Conf::Conf{'bulk_sleep'}; 
     }
     &mail::reaper;
-
-    
 }
-&do_log('notice', 'bulk.pl exited normally due to signal');
+do_log('notice', 'bulk.pl exited normally due to signal');
 &tools::remove_pid($Conf::Conf{'pidfile_bulk'}, $$, $options);
 
 exit(0);
@@ -379,32 +352,3 @@ sub sigterm {
     $end = 1;
 }
 
-
-
-
-
-sub trace_smime {
-
-    my $messageasstring_init = shift;
-    my $where = shift;
-
-    my $trusted_ca_options = '';
-    $trusted_ca_options = "-CAfile $Conf::Conf{'cafile'} " if ($Conf::Conf{'cafile'});
-    $trusted_ca_options .= "-CApath $Conf::Conf{'capath'} " if ($Conf::Conf{'capath'});
-    
-    unless (open (MSGDUMP, "| $Conf::Conf{'openssl'} smime -verify  $trusted_ca_options > /dev/null")) {	
-	do_log('err', "unable to verify smime signature");
-	return undef ;
-    }
-    
-    print MSGDUMP $messageasstring_init;
-    
-    close MSGDUMP;
-    
-    my $status = $?/256 ;
-    unless ($status == 0) {
-	do_log('debug', "signature SMIME NOT OK   (%s)",$where);    
-    }else{
-	do_log('debug', "signature SMIME OK    (%s)",$where);    
-    }
-}

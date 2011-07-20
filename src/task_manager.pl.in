@@ -25,7 +25,7 @@
 ##         :  d		-> debug -d is equiv to -dF
 
 use lib '--modulesdir--';
-use strict "vars";
+use strict vars;
 
 use Task;
 use List;
@@ -36,14 +36,12 @@ use Time::Local;
 use Digest::MD5;
 use Scenario;
 use SympaSession;
-use tracking;
 use Bulk;
 use mail;
 use wwslib;
 use tt2;
 use tools;
 use Sympa::Constants;
-use SDM;
 
 my $opt_d;
 my $opt_F;
@@ -81,7 +79,7 @@ unless (Conf::load($sympa_conf_file)) {
 }
 
 ## Check databse connectivity
-unless (&SDM::check_db_connect()) {
+unless (&List::check_db_connect()) {
     &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf{'db_name'});
 }
 
@@ -326,6 +324,9 @@ while (!$end) {
 	}
     }
 
+    my $current_date = time; # current epoch date
+    my $rep = &tools::adate ($current_date);
+
     ## Execute existing tasks
     ## List all tasks
     unless (&Task::list_tasks($spool_task)) {
@@ -449,7 +450,8 @@ sub create {
     }
    
     &do_log ('notice', "with model $model_file");
-    
+    close (MODEL);
+
     ## creation
     open (TASK, ">$task_file");
     my $tt2 = Template->new({'START_TAG' => quotemeta('['),'END_TAG' => quotemeta(']'), 'ABSOLUTE' => 1});
@@ -704,7 +706,7 @@ sub chk_cmd {
 		return undef;
 	    }
 	    
-	    $Rused_labels->{$args[1]} =1 if ($cmd eq 'next' && ($args[1]));   
+	    $Rused_labels->{$args[1]} if ($cmd eq 'next' && ($args[1]));   
 	    $Rused_vars->{$args[0]} = 1 if ($var_commands{$cmd});
 	}
     }
@@ -1000,7 +1002,7 @@ sub select_subs {
     my $list = $task->{'list_object'};
     
     if ( $list->{'admin'}{'user_data_source'} =~ /database|file|include2/) {
-        for ( my $user = $list->get_first_list_member(); $user; $user = $list->get_next_list_member() ) { 
+        for ( my $user = $list->get_first_user(); $user; $user = $list->get_next_user() ) { 
             push (@users, $user);
 	}
     }
@@ -1053,7 +1055,7 @@ sub delete_subs_cmd {
 	if ($action =~ /reject/i) {
 	    error ($task->{'filepath'}, "error in delete_subs command : deletion of $email not allowed");
 	} else {
-	    my $u = $list->delete_list_member ($email) if (!$log);
+	    my $u = $list->delete_user ($email) if (!$log);
 	    &do_log ('notice', "--> $email deleted");
 	    $selection{$email} = {};
 	}
@@ -1119,36 +1121,12 @@ sub purge_logs_table {
     my ($task, $Rarguments, $context) = @_;
     my $date;
     my $execution_date = $task->{'date'};
-    my @slots = ();
     
     do_log('debug2','purge_logs_table()');
     unless(&Log::db_log_del()) {
 	&do_log('err','purge_logs_table(): Failed to delete logs');
 	return undef;
     }
-
-    #-----------Data aggregation, to make statistics-----------------
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($execution_date);
-    $min = 0;
-    $sec = 0;
-    $hour++;
-    my $date_end = timelocal($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst);
-
-    my $date_deb = $date_end-(86400*365);
-
-
-    #hour to hour
-    for  (my $i=$date_deb; $i <= $date_end; $i=$i+3600){
-	push(@slots, $i);
-	
-    }
-
-    for (my $j=1; $j <= scalar(@slots); $j++){
-	 
-	&Log::aggregate_data($slots[$j-1], $slots[$j]);
-    }
-    #-------------------------------------------------------------------
-
     &do_log('notice','purge_logs_table(): logs purged');
     return 1;
 }
@@ -1173,18 +1151,9 @@ sub purge_tables {
     my $removed = &Bulk::purge_bulkspool();
     unless(defined $removed) {
 	&do_log('err','Failed to purge bulkspool');
+	return undef;
     }
-    &do_log('notice','%s rows removed in bulkspool_table',$removed);    
-    #
-    my $removed = 0;
-    foreach my $robot (keys %{$Conf{'robots'}}) {
-	my $all_lists = &List::get_lists($robot);
-	foreach my $list ( @$all_lists ) {
-	    $removed += &tracking::remove_message_by_period($list->{'admin'}{'tracking'}{'retention_period'},$list->{'name'},$robot);   
-	}
-    }
-    &do_log('notice', "%s rows removed in tracking table",$removed);
-
+    &do_log('notice','%s rows removed in bulkspool_table',$removed);
     return 1;
 }
 
@@ -1206,7 +1175,7 @@ sub purge_user_table {
     do_log('debug2','purge_user_table()');
 
     ## Load user_table entries
-    my @users = &List::get_all_global_user();
+    my @users = &List::get_all_user_db();
 
     ## Load known subscribers/owners/editors
     my %known_people;
@@ -1238,7 +1207,7 @@ sub purge_user_table {
 	    }
 	    
 	    ## Subscribers
-	    for (my $user = $list->get_first_list_member(); $user; $user = $list->get_next_list_member()) {
+	    for (my $user = $list->get_first_user(); $user; $user = $list->get_next_user()) {
 		$known_people{$user->{'email'}} = 1;
 	    }
 	}
@@ -1254,7 +1223,7 @@ sub purge_user_table {
     }
     
     unless ($#purged_users < 0) {
-	unless (&List::delete_global_user(@purged_users)) {
+	unless (&List::delete_user_db(@purged_users)) {
 	    &do_log('err', 'purge_user_table error: Failed to delete users');
 	    return undef;
 	}
@@ -1283,7 +1252,7 @@ sub purge_orphan_bounces {
 	my $listname = $list->{'name'};
 	
 	## first time: loading DB entries into %bounced_users
-	for (my $user_ref = $list->get_first_bouncing_list_member(); $user_ref; $user_ref = $list->get_next_bouncing_list_member()){
+	for (my $user_ref = $list->get_first_bouncing_user(); $user_ref; $user_ref = $list->get_next_bouncing_user()){
 	    my $user_id = $user_ref->{'email'};
 	    $bounced_users{$listname}{$user_id} = 1;
 	}
@@ -1347,18 +1316,18 @@ sub purge_orphan_bounces {
 	 }
 	 my $refdate = (($list->get_latest_distribution_date() - $delay) * 3600 * 24);
 
-	 for (my $u = $list->get_first_bouncing_list_member(); $u ; $u = $list->get_next_bouncing_list_member()) {
+	 for (my $u = $list->get_first_bouncing_user(); $u ; $u = $list->get_next_bouncing_user()) {
 	     $u->{'bounce'} =~ /^(\d+)\s+(\d+)\s+(\d+)(\s+(.*))?$/;
 	     $u->{'last_bounce'} = $2;
 	     if ($u->{'last_bounce'} < $refdate) {
 		 my $email = $u->{'email'};
 
-		 unless ( $list->is_list_member($email) ) {
+		 unless ( $list->is_user($email) ) {
 		     do_log('info','expire_bounce: %s not subscribed', $email);
 		     next;
 		 }
 
-		 unless( $list->update_list_member($email, {'bounce' => 'NULL'},{'bounce_address' => 'NULL'})) {
+		 unless( $list->update_user($email, {'bounce' => 'NULL'},{'bounce_address' => 'NULL'})) {
 		     do_log('info','expire_bounce: failed update database for %s', $email);
 		     next;
 		 }
@@ -1591,11 +1560,11 @@ sub eval_bouncers {
 	close(COUNT);
 	
 	#for each bouncing user
-	for (my $user_ref = $list->get_first_bouncing_list_member(); $user_ref; $user_ref = $list->get_next_bouncing_list_member()){
+	for (my $user_ref = $list->get_first_bouncing_user(); $user_ref; $user_ref = $list->get_next_bouncing_user()){
 	    my $score = &get_score($user_ref,$list_traffic) || 0;
 	    
 	    ## copying score into DataBase
-	    unless ($list->update_list_member($user_ref->{'email'},{'score' => $score }) ) {
+	    unless ($list->update_user($user_ref->{'email'},{'score' => $score }) ) {
 		&do_log('err','Task eval_bouncers :Error while updating DB for user %s',$user_ref->{'email'});
 		next;
 	    }
@@ -1653,7 +1622,7 @@ sub process_bouncers {
 	}
 	
 	##  first, bouncing email are sorted in @bouncer 
-	for (my $user_ref = $list->get_first_bouncing_list_member(); $user_ref; $user_ref = $list->get_next_bouncing_list_member()) {	   
+	for (my $user_ref = $list->get_first_bouncing_user(); $user_ref; $user_ref = $list->get_next_bouncing_user()) {	   
 
 	    ## Skip included users (cannot be removed)
 	    next if ($user_ref->{'is_included'});
