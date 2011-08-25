@@ -78,6 +78,7 @@ $wwsympa_conf    = Sympa::Constants::WWSCONFIG;
 $sympa_conf_file = Sympa::Constants::CONFIG;
 
 $wwsconf = {};
+$adrlist = {};
 
 # Load WWSympa configuration
 unless ($wwsconf = &wwslib::load_config($wwsympa_conf)) {
@@ -108,7 +109,7 @@ if ($wwsconf->{'arc_path'}) {
 }
 
 ## Check databse connectivity
-unless (&SDM::check_db_connect()) {
+unless (&List::check_db_connect()) {
     &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf{'db_name'});
 }
 
@@ -117,7 +118,7 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
    open(STDERR, ">> /dev/null");
    open(STDOUT, ">> /dev/null");
    if (open(TTY, "/dev/tty")) {
-      ioctl(TTY, 0x20007471, 0);
+      ioctl(TTY, $TIOCNOTTY, 0);
       close(TTY);
    }
    setpgrp(0, 0);
@@ -262,13 +263,13 @@ while (!$end) {
 	       unless ($list->am_i('privileged_owner',$sender)|| $list->am_i('owner',$sender)||$list->am_i('editor', $sender)||&List::is_listmaster($sender,$list->{'domain'} )){
 		   # if not list owner or list editor or listmaster,n check if sender of remove order is sender of the message to remove
 
-		   my $new_message;
-		   unless ($new_message = new Message({'file'=>"$arcpath/arctxt/$message",'noxsympato'=>'noxsympato'})) {
-		      do_log('err',"unable to load new message $arcpath/arctxt/$message");
-		      next;
+		   unless (my $new_message = new Message("$arcpath/arctxt/$message",'noxsympato')) {
+		        do_log('err',"unable to load new message $arcpath/arctxt/$message");
+			next;
 		   }
-		   my $messagesender = lc($new_message->{'sender'});
-		   
+		   my $messagesender = $new_message->{'sender'};
+		   lc($messagesender);
+
 		   unless ($sender == $messagesender) {
 		       &do_log('err', 'remove command by unauthorized sender');
 		       return undef;
@@ -473,10 +474,7 @@ sub remove {
     }
 
     do_log('notice',"Removing $msgid in list $adrlist section $2");
-
-    &Log::db_stat_log({'robot' => $robot, 'list' => $adrlist, 'operation' => 'remove archive', 'parameter' => '', 'mail' => 'test@cru.fr','client' => $ip, 'daemon' => $daemon_name});
-
-    unless(&Log::db_log({'robot' => $robot,'list' => $adrlist,'action' => 'remove','parameters' => $msgid.','.$adrlist,'target_email' => '','msg_id' => $msgid,'status' => 'succes','error_type' => '','user_email' =>'','client' => $ip,'daemon' => $daemon_name})){
+    unless(&Log::db_log({'robot' => $robot,'list' => $adrlist,'action' => 'remove','parameters' => $msgid.','.$adrlist,'target_email' => '','msg_id' => $msgid,'status' => 'succes','error_type' => '','user_email' =>'','client' => $ip,'daemon' => $daemon_name})) {
 	&do_log('error','archived::remove: unable to log event');
     }
   
@@ -628,7 +626,7 @@ sub rebuild {
 	    &do_log('notice', 'Removing lock directory %s', $wwsconf->{'arc_path'}.'/'.$adrlist.'/'.$arc.'/.mhonarc.lck');
 	    rmdir $wwsconf->{'arc_path'}.'/'.$adrlist.'/'.$arc.'/.mhonarc.lck';
 
-	    $exitcode= system($cmd);
+	    $exitcode = system($cmd);
 	    $exitcode = $exitcode / 256;	    
 	}
 
@@ -874,7 +872,7 @@ sub mail2arc {
 	else
 	{
 	    ## recreate index file if needed and update it
-	    $newfile = &create_idx($monthdir) + 1;
+	    $newfile = $index = &create_idx($monthdir) + 1;
 	}
 	
 	my $file_to_archive = $queue.'/'.$file;
@@ -1146,7 +1144,7 @@ sub clean_archived_message{
 	$filtered_file = $Conf::Conf{'tmpdir'}.'/'.$params->{'file'};
     }
     my $file_to_archive = $params->{'path'}.'/'.$params->{'file'};
-    if (my $msg = new Message({'file'=>$file_to_archive,'noxsympato'=>'noxsympato'})){
+    if (my $msg = new Message($file_to_archive,1)){
 	if($msg->clean_html()){
 	    if(open TMP, ">$filtered_file") {
 		print TMP $msg->{'msg'}->as_string;

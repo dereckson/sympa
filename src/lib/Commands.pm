@@ -99,7 +99,7 @@ sub parse {
    my $sign_mod = shift;
    my $message = shift;
 
-   &do_log('debug2', 'Commands::parse(%s, %s, %s, %s, %s)', $sender, $robot, $i, $sign_mod, $message->{'msg'}->as_string );
+   &do_log('debug2', 'Commands::parse(%s, %s, %s, %s, %s)', $sender, $robot, $i, $sign_mod, $message );
 
    my $j;
    $cmd_line = '';
@@ -191,7 +191,7 @@ sub help {
 	
 	$data->{'is_owner'} = 1 if ($#owner > -1);
 	$data->{'is_editor'} = 1 if ($#editor > -1);
-	$data->{'user'} =  &List::get_global_user($sender);
+	$data->{'user'} =  &List::get_user_db($sender);
 	&Language::SetLang($data->{'user'}{'lang'}) if $data->{'user'}{'lang'};
 	$data->{'subject'} = gettext("User guide");
 	$data->{'auto_submitted'} = 'auto-replied';
@@ -620,7 +620,7 @@ sub review {
 
     if ($action =~ /do_it/i) {
 	my $is_owner = $list->am_i('owner', $sender);
-	unless ($user = $list->get_first_list_member({'sortby' => 'email'})) {
+	unless ($user = $list->get_first_user({'sortby' => 'email'})) {
 	    &report::reject_report_cmd('user','no_subscriber',{'listname' => $listname},$cmd_line); 
 	    &do_log('err', "No subscribers in list '%s'", $list->{'name'});
 	    return 'no_subscribers';
@@ -634,7 +634,7 @@ sub review {
 		$user->{'email'} =~ y/A-Z/a-z/;
 		push @users, $user;
 	    }
-	} while ($user = $list->get_next_list_member());
+	} while ($user = $list->get_next_user());
 	unless ($list->send_file('review', $sender, $robot, {'users' => \@users, 
 							     'total' => $list->get_total(),
 							     'subject' => "REVIEW $listname",
@@ -770,7 +770,7 @@ sub subscribe {
     }
 
     ## Unless rejected by scenario, don't go further if the user is subscribed already.
-    my $user_entry = $list->get_list_member($sender);    
+    my $user_entry = $list->get_subscriber($sender);    
     if ( defined($user_entry)) {
 	&report::reject_report_cmd('user','already_subscriber',{'email'=>$sender, 'listname'=>$list->{'name'}},$cmd_line);
 	&do_log('err','User %s is subscribed to %s already. Ignoring subscription request.', $sender, $list->{'name'});
@@ -806,7 +806,7 @@ sub subscribe {
     }
     if ($action =~ /do_it/i) {
 
-	my $user_entry = $list->get_list_member($sender);
+	my $user_entry = $list->get_subscriber($sender);
 	
 	if (defined $user_entry) {
 		
@@ -817,7 +817,7 @@ sub subscribe {
 		$user->{'gecos'} = $comment if $comment;
 	    $user->{'subscribed'} = 1;
 	    
-	    unless ($list->update_list_member($sender, $user)){
+	    unless ($list->update_user($sender, $user)){
 		my $error = "Unable to update user $user in list $listname";
 		&report::reject_report_cmd('intern',$error,{'listname'=>$which},$cmd_line,$sender,$robot);
 		return undef; 
@@ -831,20 +831,17 @@ sub subscribe {
 	    $u->{'gecos'} = $comment;
 	    $u->{'date'} = $u->{'update_date'} = time;
 
-	    $list->add_list_member($u);
-	    if (defined $list->{'add_outcome'}{'errors'}) {
-		my $error = sprintf "Unable to add user %s in list %s : %s",$user,$listname,$list->{'add_outcome'}{'errors'}{'error_message'};
-		my $error_type = 'intern';
-		$error_type = 'user' if (defined $list->{'add_outcome'}{'errors'}{'max_list_members_exceeded'});
-		&report::reject_report_cmd($error_type,$error,{'listname'=>$which},$cmd_line,$sender,$robot);
+	    unless ($list->add_user($u)){
+		my $error = "Unable to add user $user in list $listname";
+		&report::reject_report_cmd('intern',$error,{'listname'=>$which},$cmd_line,$sender,$robot);
 		return undef; 
 	    }
 	}
 	
 	if ($List::use_db) {
-	    my $u = &List::get_global_user($sender);
+	    my $u = &List::get_user_db($sender);
 	    
-	    &List::update_global_user($sender, {'lang' => $u->{'lang'} || $list->{'admin'}{'lang'},
+	    &List::update_user_db($sender, {'lang' => $u->{'lang'} || $list->{'admin'}{'lang'},
 					    'password' => $u->{'password'} || &tools::tmp_passwd($sender)
 					    });
 	}
@@ -1128,7 +1125,7 @@ sub signoff {
 	## Now check if we know this email on the list and
 	## remove it if found, otherwise just reject the
 	## command.
-	my $user_entry = $list->get_list_member($email);
+	my $user_entry = $list->get_subscriber($email);
 	unless ((defined $user_entry)) {
 	    &report::reject_report_cmd('user','your_email_not_found',{'email'=> $email, 'listname' => $list->{'name'}},$cmd_line); 
 	    &do_log('info', 'SIG %s from %s refused, not on list', $which, $email);
@@ -1145,7 +1142,7 @@ sub signoff {
 	}
 	
 	## Really delete and rewrite to disk.
-	unless ($list->delete_list_member('users' => [$email], 'exclude' =>' 1', 'parameter' => 'unsubscription')){
+	unless ($list->delete_user('users' => [$email], 'exclude' =>' 1')){
 	    my $error = "Unable to delete user $user from list $listname";
 	    &report::reject_report_cmd('intern',$error,{'listname'=>$which},$cmd_line,$sender,$robot);
 	}
@@ -1261,7 +1258,7 @@ sub add {
 	return 1;
     }
     if ($action =~ /do_it/i) {
-	if ($list->is_list_member($email)) {
+	if ($list->is_user($email)) {
 	  &report::reject_report_cmd('user','already_subscriber',{'email'=> $email, 'listname' => $which},$cmd_line); 
 	  &do_log('err',"ADD command rejected ; user '%s' already member of list '%s'", $email, $which);
 	  return undef; 
@@ -1274,23 +1271,19 @@ sub add {
 	    $u->{'gecos'} = $comment;
 	    $u->{'date'} = $u->{'update_date'} = time;
 	    
-	    $list->add_list_member($u);
-	    if (defined $list->{'add_outcome'}{'errors'}) {
-		my $error = sprintf "Unable to add user %s in list %s : %s",$user,$listname,$list->{'add_outcome'}{'errors'}{'error_message'};
-		my $error_type = 'intern';
-		$error_type = 'user' if (defined $list->{'add_outcome'}{'errors'}{'max_list_members_exceeded'});
-		&report::reject_report_cmd($error_type,$error,{'listname'=>$which},$cmd_line,$sender,$robot);
+	    unless ($list->add_user($u)) {
+		my $error = "Unable to add user $user in list $listname";
+		&report::reject_report_cmd('intern',$error,{'listname'=>$which},$cmd_line,$sender,$robot);
 		return undef; 
 	    }
-	
 	    $list->delete_subscription_request($email);
 	    &report::notice_report_cmd('now_subscriber',{'email'=> $email, 'listname' => $which},$cmd_line);  
 	}
 	
 	if ($List::use_db) {
-	    my $u = &List::get_global_user($email);
+	    my $u = &List::get_user_db($email);
 	    
-	    &List::update_global_user($email, {'lang' => $u->{'lang'} || $list->{'admin'}{'lang'},
+	    &List::update_user_db($email, {'lang' => $u->{'lang'} || $list->{'admin'}{'lang'},
 					   'password' => $u->{'password'} || &tools::tmp_passwd($email)
 					    });
 	}
@@ -1403,7 +1396,7 @@ sub invite {
 	return 1;
     }
     if ($action =~ /do_it/i) {
-	if ($list->is_list_member($email)) {
+	if ($list->is_user($email)) {
 	    &report::reject_report_cmd('user','already_subscriber',{'email'=> $email, 'listname' => $which},$cmd_line); 
 	    &do_log('err',"INVITE command rejected ; user '%s' already member of list '%s'", $email, $which);
 	    return undef;
@@ -1608,7 +1601,7 @@ sub remind {
 	    my $total=0;
 	    my $user;
 	    
-	    unless ($user = $list->get_first_list_member()) {
+	    unless ($user = $list->get_first_user()) {
 		my $error = "Unable to get subscribers for list $listname";
 		&report::reject_report_cmd('intern',$error,{'listname'=>$listname},$cmd_line,$sender,$robot);
 		return undef;
@@ -1620,7 +1613,7 @@ sub remind {
 		    &report::reject_report_cmd('intern_quiet','',{'listname'=> $listname},$cmd_line,$sender,$robot);
 		}
 		$total += 1 ;
-	    } while ($user = $list->get_next_list_member());
+	    } while ($user = $list->get_next_user());
 	    
 	    &report::notice_report_cmd('remind',{'total'=> $total,'listname' => $listname},$cmd_line);
 	    &do_log('info', 'REMIND %s  from %s accepted, sent to %d subscribers (%d seconds)',$listname,$sender,$total,time-$time_command);
@@ -1640,7 +1633,7 @@ sub remind {
 		
 		my $listname = $list->{'name'};
 
-		next unless ($user = $list->get_first_list_member()) ;
+		next unless ($user = $list->get_first_user()) ;
 
 		do {
 		    my $email = lc ($user->{'email'});
@@ -1672,12 +1665,12 @@ sub remind {
 			do_log('debug2','remind * : %s subscriber of %s', $email,$listname);
 			$count++ ;
 		    } 
-		} while ($user = $list->get_next_list_member());
+		} while ($user = $list->get_next_user());
 	    }
 	    &do_log('debug2','Sending REMIND * to %d users', $count);
 
 	    foreach my $email (keys %global_subscription) {
-		my $user = &List::get_global_user($email);
+		my $user = &List::get_user_db($email);
 		foreach my $key (keys %{$user}) {
 		    $global_info{$email}{$key} = $user->{$key}
 		    if ($user->{$key});
@@ -1797,7 +1790,7 @@ sub del {
     if ($action =~ /do_it/i) {
 	## Check if we know this email on the list and remove it. Otherwise
 	## just reject the message.
-	my $user_entry = $list->get_list_member($who);
+	my $user_entry = $list->get_subscriber($who);
 
 	unless ((defined $user_entry)) {
 	    &report::reject_report_cmd('user','your_email_not_found',{'email'=> $who, 'listname' => $which},$cmd_line); 
@@ -1811,7 +1804,7 @@ sub del {
 	
 	## Really delete and rewrite to disk.
 	my $u;
-	unless ($u = $list->delete_list_member('users' => [$who], 'exclude' =>' 1', 'parameter' => 'deletd by admin')){
+	unless ($u = $list->delete_user('users' => [$who], 'exclude' =>' 1')){
 	    my $error = "Unable to delete user $who from list $which for command 'del'";
 	    &report::reject_report_cmd('intern',$error,{'listname'=>$which},$cmd_line,$sender,$robot);
 	}
@@ -1934,7 +1927,7 @@ sub set {
 
     ## Check if we know this email on the list and remove it. Otherwise
     ## just reject the message.
-    unless ($list->is_list_member($sender) ) {
+    unless ($list->is_user($sender) ) {
 	&report::reject_report_cmd('user','email_not_found',{'email'=> $sender, 'listname' => $which},$cmd_line); 
 	&do_log('info', 'SET %s %s from %s refused, not on list',  $which, $mode, $sender);
 	return 'not allowed';
@@ -1957,7 +1950,7 @@ sub set {
 
 	my $update_mode = $mode;
 	$update_mode = '' if ($update_mode eq 'mail');
-	unless ($list->update_list_member($sender,{'reception'=> $update_mode, 'update_date' => time})) {
+	unless ($list->update_user($sender,{'reception'=> $update_mode, 'update_date' => time})) {
 	    my $error = "Failed to change subscriber '$sender' options for list $which";
 	    &report::reject_report_cmd('intern',$error,{'listname' => $which},$cmd_line,$sender,$robot);
 	    &do_log('info', 'SET %s %s from %s refused, update failed',  $which, $mode, $sender);
@@ -1970,7 +1963,7 @@ sub set {
     }
     
     if ($mode =~ /^(conceal|noconceal)/){
-	unless ($list->update_list_member($sender,{'visibility'=> $mode, 'update_date' => time})) {
+	unless ($list->update_user($sender,{'visibility'=> $mode, 'update_date' => time})) {
 	    my $error = "Failed to change subscriber '$sender' options for list $which";
 	    &report::reject_report_cmd('intern',$error,{'listname' => $which},$cmd_line,$sender,$robot);
 	    &do_log('info', 'SET %s %s from %s refused, update failed',  $which, $mode, $sender);
@@ -2038,7 +2031,7 @@ sub distribute {
     }
 
     ## Open and parse the file
-    my $message = new Message({'file'=>$file});
+    my $message = new Message($file);
     unless (defined $message) {
 	&do_log('err', 'Commands::distribute(): Unable to create Message object %s', $file);
 	&report::reject_report_msg('user','unfound_message',$sender,{'listname' => $name,'key'=> $key},$robot,'',$list);
@@ -2050,6 +2043,13 @@ sub distribute {
 
     my $msg_id = $hdr->get('Message-Id');
     my $msg_string = $msg->as_string;
+
+    ## encrypted message ## no used variable ???
+    if ($message->{'smime_crypted'}) {
+	$is_crypted = 'smime_crypted';
+    }else {
+	$is_crypted = 'not_crypted';
+    }
 
     $hdr->add('X-Validation-by', $sender);
 
@@ -2145,7 +2145,8 @@ sub confirm {
 	return 'wrong_auth';
     }
 
-    my $message = new Message ({'file'=>$file});
+    my $message = new Message ($file);
+
     unless (defined $message) {
 	&do_log('err', 'Commands::confirm(): Unable to create Message object %s', $file);
 	&report::reject_report_msg('user','wrong_format_message',$sender,{'key'=> $key},$robot,'','');
@@ -2154,9 +2155,11 @@ sub confirm {
 
     my $msg = $message->{'msg'};
     my $list = $message->{'list'};
+
     &Language::SetLang($list->{'admin'}{'lang'});
 
     my $name = $list->{'name'};
+   
     my $bytes = -s $file;
     my $hdr= $msg->head;
 

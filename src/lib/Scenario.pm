@@ -624,17 +624,17 @@ sub verify {
 	    ## Sender's user/subscriber attributes (if subscriber)
 	}elsif ($value =~ /\[user\-\>([\w\-]+)\]/i) {
 	    
-	    $context->{'user'} ||= &List::get_global_user($context->{'sender'});	    
+	    $context->{'user'} ||= &List::get_user_db($context->{'sender'});	    
 	    $value =~ s/\[user\-\>([\w\-]+)\]/$context->{'user'}{$1}/;
 	    
 	}elsif ($value =~ /\[user_attributes\-\>([\w\-]+)\]/i) {
 	    
-	    $context->{'user'} ||= &List::get_global_user($context->{'sender'});
+	    $context->{'user'} ||= &List::get_user_db($context->{'sender'});
 	    $value =~ s/\[user_attributes\-\>([\w\-]+)\]/$context->{'user'}{'attributes'}{$1}/;
 	    
 	}elsif (($value =~ /\[subscriber\-\>([\w\-]+)\]/i) && defined ($context->{'sender'} ne 'nobody')) {
 	    
-	    $context->{'subscriber'} ||= $list->get_list_member($context->{'sender'});
+	    $context->{'subscriber'} ||= $list->get_subscriber($context->{'sender'});
 	    $value =~ s/\[subscriber\-\>([\w\-]+)\]/$context->{'subscriber'}{$1}/;
 	    
 	    ## SMTP Header field
@@ -819,7 +819,7 @@ sub verify {
 
 	if ($condition_key eq 'is_subscriber') {
 
-	    if ($list2->is_list_member($args[1])) {
+	    if ($list2->is_user($args[1])) {
 		return $negation ;
 	    }else{
 		return -1 * $negation ;
@@ -999,7 +999,7 @@ sub search{
             return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
         }
 	
-	my $ds = new SQLSource($sql_conf->{'sql_named_filter_query'});
+	my $ds = new Datasource('SQL', $sql_conf->{'sql_named_filter_query'});
 	unless ($ds->connect() && $ds->ping) {
             do_log('notice','Unable to connect to the SQL server %s:%d',$sql_conf->{'db_host'}, $sql_conf->{'db_port'});
             return undef;
@@ -1079,7 +1079,7 @@ sub search{
 	
 	my $ldap;
 	my $param = &tools::dup_var(\%ldap_conf);
-	my $ds = new LDAPSource($param);
+	my $ds = new Datasource('LDAP', $param);
 	    
 	unless (defined $ds && ($ldap = $ds->connect())) {
 	    &do_log('err',"Unable to connect to the LDAP server '%s'", $param->{'ldap_host'});
