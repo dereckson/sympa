@@ -32,7 +32,6 @@ unless (require Crypt::CipherSaber) {
 require tools;
 
 use List;
-use SDM;
 use Log;
 
 ## Load sympa config
@@ -40,9 +39,9 @@ use Log;
 
 chdir $Conf::Conf{'home'};
 
-&SDM::db_connect() || die "Can't connect to database";
+&List::db_connect() || die "Can't connect to database";
 
-my $dbh = &SDM::db_get_handler();
+my $dbh = &List::db_get_handler();
 
 print "Searching uncrypted passwords\n";
 
@@ -73,7 +72,6 @@ while ($user = $sth->fetchrow_hashref('NAME_lc')) {
 
 $sth->finish();
 
-## Disconnect from Database
-SDM::db_disconnect if ($SDM::dbh);
+&List::db_disconnect();
 
 printf "Crypted %d passwords\n", $count;
