@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sympa-es\n"
 "POT-Creation-Date: 2002-07-16 17:27+0800\n"
-"PO-Revision-Date: 2011-07-24 15:29+0200\n"
+"PO-Revision-Date: 2012-01-28 20:23+0200\n"
 "Last-Translator: Daniel Viñar Ulriksen <dani@belvil.net>\n"
 "Language-Team: Español <sympa-users@sympa.org>\n"
 "MIME-Version: 1.0\n"
@@ -4766,14 +4766,13 @@ msgstr ""
 msgid "I subscribe to list %1"
 msgstr "Me suscribo a %1"
 
+# tenía francés y español en la misma línea. dejo solo español.
 #: ../web_tt2/subrequest.tt2:31
 msgid ""
 "To confirm your identity and prevent anyone from subscribing you to\n"
 "        this list against your will, a message containing an validation link "
 "was sent to the e-mail address you provided."
 msgstr ""
-"Pour valider votre identité et empêcher un tiers de vous abonner à\n"
-"votre insu, un message contenant un lien de validation vous a été envoyé. "
 "Para confirmar tu identidad y evitar que alguien te inscriba contra tu\n"
 "voluntad, se te ha enviado un mensaje que contiene un enlace de validación."
 
@@ -5086,7 +5085,7 @@ msgstr "Período explorado:"
 #. (date_to_formated)
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../web_tt2/viewlogs.tt2:113 ../wwsympa/wwsympa.fcgi.in:16678
+#: ../web_tt2/viewlogs.tt2:113 ../wwsympa/wwsympa.fcgi.in:16574
 msgid "%d %b %Y %H:%M:%S"
 msgstr "%d %b %Y %H:%M:%S"
 
@@ -5755,7 +5754,7 @@ msgid "%1 Digest %2"
 msgstr "Compilación del %2, lista %1 "
 
 #: ../mail_tt2/digest.tt2:10 ../mail_tt2/digest_plain.tt2:9
-#: ../mail_tt2/get_archive.tt2:9 ../src/lib/List.pm:2732
+#: ../mail_tt2/get_archive.tt2:9 ../src/lib/List.pm:2733
 msgid "Table of contents:"
 msgstr "Tabla de contenido:"
 
@@ -6283,7 +6282,7 @@ msgstr "No hay base de datos"
 #. (db_name)
 #: ../mail_tt2/listmaster_notification.tt2:32
 msgid "Cannot connect to database %1, still trying..."
-msgstr "Imposible conectarse a la base de datos %1, se sighe intentando..."
+msgstr "Imposible conectarse a la base de datos %1, se sigue intentando..."
 
 #. (db_type)
 #: ../mail_tt2/listmaster_notification.tt2:36
@@ -7562,6 +7561,8 @@ msgid ""
 "Because the new message is suspected to be a spam it is not attached to this "
 "one. You must use the web interface to reject or validate it."
 msgstr ""
+"Debido a que el nuevo mensaje es sospechoso de spam, no será adjuntado a "
+"este. Debe utilizar la interfaz web para rechazarlo o validarlo."
 
 #. (list.name)
 #: ../mail_tt2/moderate.tt2:26
@@ -7769,7 +7770,7 @@ msgid ""
 "order to confirm it "
 msgstr ""
 "Puedes ignorar esta solicitud, o visitar el enlace a continuación para "
-"confirmar tu pedido."
+"confirmar tu solicitud."
 
 #. (list)
 #: ../mail_tt2/sendpasswd.tt2:17
@@ -8643,9 +8644,10 @@ msgstr "mensaje recordatorio enviado a los suscriptores cada año"
 msgid "Update of list members based on the TTL"
 msgstr "Actualizar la lista de miembros basada en la TTL"
 
+# había un pequeño error
 #: ../src/etc/create_list_templates/discussion_list/comment.tt2:1
 msgid "Public discussion mailing list"
-msgstr "Lista de discución publica"
+msgstr "Lista de discusión publica"
 
 #: ../src/etc/create_list_templates/discussion_list/comment.tt2:2
 msgid "public archives"
@@ -8761,7 +8763,7 @@ msgstr "%d %b %Y  %H:%M"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/Commands.pm:966 ../wwsympa/wwsympa.fcgi.in:10131
+#: ../src/lib/Commands.pm:966 ../wwsympa/wwsympa.fcgi.in:10138
 msgid "%A"
 msgstr "%A"
 
@@ -8830,10 +8832,13 @@ msgstr "URL asociada a la carpeta static_content_path que acabamos de definir"
 #: ../src/lib/confdef.pm:348
 msgid "Secret used by Sympa to make MD5 fingerprint in web cookies secure"
 msgstr ""
+"Secreto utilizado por Sympa para generar la huella MD5 en las cookies "
+"seguras de web"
 
 #: ../src/lib/confdef.pm:1336 ../src/lib/confdef.pm:350
 msgid "Should not be changed ! May invalid all user password"
 msgstr ""
+"No debe ser modificada! Puede invalidar todas las contraseñas de usuario"
 
 #: ../src/lib/confdef.pm:356
 #, fuzzy
@@ -8845,12 +8850,16 @@ msgid ""
 "This parameter is a scenario, check sympa documentation about scenarios if "
 "you want to define one"
 msgstr ""
+"Este parámetro es un escenario, chequea la documentación sympa sobre "
+"escenarios si quieres definir uno"
 
 #: ../src/lib/confdef.pm:388
 msgid ""
 "Used to define a custom parameter for your server. Do not forget the "
 "semicolon between the param name and the param value."
 msgstr ""
+"Utilizado para definir parámetros por defecto en tu servidor. No te olvides "
+"del punto y coma entre el nombre y el valor del parámetro."
 
 #: ../src/lib/confdef.pm:395
 #, fuzzy
@@ -8859,13 +8868,15 @@ msgstr "Carpeta"
 
 #: ../src/lib/confdef.pm:400
 msgid "Directory containing mailing lists subdirectories"
-msgstr ""
+msgstr "Carpeta que contiene las subcarpetas de las listas de correo"
 
 #: ../src/lib/confdef.pm:407
 msgid ""
 "Directory for configuration files; it also contains scenari/ and templates/ "
 "directories"
 msgstr ""
+"Carpeta para los archivos de configuración; también contiene las carpetas "
+"scenari/ y templates/"
 
 #: ../src/lib/confdef.pm:411
 #, fuzzy
@@ -8874,7 +8885,7 @@ msgstr "Los modelos"
 
 #: ../src/lib/confdef.pm:416
 msgid "Syslog facility for sympa"
-msgstr ""
+msgstr "Funcionalidad Syslog para sympa"
 
 #: ../src/lib/confdef.pm:419
 #, fuzzy
@@ -8883,29 +8894,32 @@ msgstr "formato incorrecto de edit_list.conf"
 
 #: ../src/lib/confdef.pm:424
 msgid "Log verbosity"
-msgstr ""
+msgstr "Verbosidad del registro"
 
 #: ../src/lib/confdef.pm:427
 msgid "0: normal, 2,3,4: for debug"
-msgstr ""
+msgstr "0: normal, 2, 3,4: para debbugeo"
 
 #: ../src/lib/confdef.pm:432
 msgid "Communication mode with syslogd (unix | inet)"
-msgstr ""
+msgstr "Modo de comunicación con syslogd (unix | inet)"
 
 #: ../src/lib/confdef.pm:438
 msgid "File containing Sympa PID while running"
-msgstr ""
+msgstr "Archivo conteniendo el PID de Sympa mientras está ejecutándose"
 
 #: ../src/lib/confdef.pm:440
 msgid ""
 "Sympa also locks this file to ensure that it is not running more than once. "
 "Caution: user sympa need to write access without special privilege."
 msgstr ""
+"Sympa también bloquea esto para asegurarse que no corre más de una vez. "
+"Precaución: el usuario sympa necesita acceso de escritura sin privilegio "
+"especial. "
 
 #: ../src/lib/confdef.pm:450
 msgid "Umask used for file creation by Sympa"
-msgstr ""
+msgstr "Umask para la creación de archivos por Sympa"
 
 #: ../src/lib/confdef.pm:454
 #, fuzzy
@@ -8916,57 +8930,78 @@ msgstr "Listas pendientes"
 msgid ""
 "Max. number of Sendmail processes (launched by Sympa) running simultaneously"
 msgstr ""
+"Número máx. de procesos Sendmail (lanzados por Sympa) corriendo "
+"simultáneamente"
 
 #: ../src/lib/confdef.pm:465
 msgid ""
 "Proposed value is quite low, you can rise it up to 100, 200 or even 300 with "
 "powerfull systems."
 msgstr ""
+"El valor propuesto es un poco bajo, puedes aumentarlo hasta 100, 200 e "
+"incluso 300 para sistemas poderosos."
 
 #: ../src/lib/confdef.pm:475
 msgid ""
 "comma separated list of operations for which blacklist filter is applied"
 msgstr ""
+"lista separada por coma, de las operaciones para las cuales el filtro de "
+"lista negra se aplica"
 
 #: ../src/lib/confdef.pm:480
 msgid "Setting this parameter to \"none\" will hide the blacklist feature"
 msgstr ""
+"Colocando este parámetro en \"nada\" hará esconder la funcionalidad de lista "
+"negra"
 
 #: ../src/lib/confdef.pm:485
 msgid ""
 "If set, when a list editor report a spam, this external script is run by "
 "wwsympa or sympa, the spam is sent into script stdin"
 msgstr ""
+"Si se establece, cuando un editor de la lista notifica un spam, este script "
+"externo lo ejecuta wwsympa o sympa, el spam se envía a la entrada estandar "
+"del script"
 
 #: ../src/lib/confdef.pm:491
 msgid ""
 "Default maximum size (in bytes) for messages (can be re-defined for each "
 "list)"
 msgstr ""
+"Tamaño máximo predefinido (en bytes) de los mensajes (puede redefinirse en "
+"cada lista)"
 
 #: ../src/lib/confdef.pm:508
 msgid ""
 "Maximum number of recipients per call to Sendmail. The nrcpt_by_domain.conf "
 "file allows a different tuning per destination domain."
 msgstr ""
+"Máximo de destinatarios por cada invocación hecha a Sendmail. El fichero "
+"nrcpt_by_domain.conf permite establecer un número diferente por dominio de "
+"destino."
 
 #: ../src/lib/confdef.pm:514
 msgid "Max. number of different domains per call to Sendmail"
-msgstr ""
+msgstr "Máximo número de dominios diferentes por invocación de Sendmail."
 
 #: ../src/lib/confdef.pm:524
 msgid "Path to the MTA (sendmail, postfix, exim or qmail)"
 msgstr ""
+"Ruta de acceso al servidor de envío (o MTA; sendmail, postfix, exim o qmail)."
 
 #: ../src/lib/confdef.pm:527
 msgid ""
 "should point to a sendmail-compatible binary (eg: a binary named \"sendmail"
 "\" is distributed with Postfix)"
 msgstr ""
+"Debería apuntar a un ejecutable complatible con sendmail. Por ejemplo, un "
+"ejecutable llamado \"sendmail\" se distribuye con Postfix."
 
 #: ../src/lib/confdef.pm:539
 msgid "Specify which rfc2369 mailing list headers to add"
 msgstr ""
+"Especificar qué cabeceras rfc2369 (cabeceras para listas de correo) hay que "
+"añadir."
 
 #: ../src/lib/confdef.pm:545
 #, fuzzy
@@ -8977,27 +9012,35 @@ msgstr ""
 
 #: ../src/lib/confdef.pm:555
 msgid "Reject mail from automates (crontab, etc) sent to a list?"
-msgstr ""
+msgstr "¿Se rechaza correo automatizado (crontab, etc) enviado a la lista?"
 
 #: ../src/lib/confdef.pm:570
+#, fuzzy
 msgid ""
 "SMTP server to which Sympa verify if alias with the same name as the list to "
 "be created"
 msgstr ""
+"Servidor SMTP en el que Sympa verifica si un alias con el mismo nombre que "
+"la lista se creará."
 
 #: ../src/lib/confdef.pm:572
 msgid ""
 "Default value is real FQDN of host. Set [HOST]:[PORT] to specify non-"
 "standard port."
 msgstr ""
+"El valor predeterminado es el FQDN real del equipo (del host). Ponga [HOST]:"
+"[PORT] para especificar un puerto diferente del estándar."
 
 #: ../src/lib/confdef.pm:582
 msgid "SMTP HELO (EHLO) parameter used for alias verification"
 msgstr ""
+"Parámetro HELO (EHLO), de SMTP, que se usará para la verificación de un alias"
 
 #: ../src/lib/confdef.pm:584
 msgid "Default value is the host part of list_check_smtp parameter."
 msgstr ""
+"El valor predeterminado es la parte correspondiente a el host (al equipo) "
+"del parámetro list_check_smtp."
 
 #: ../src/lib/confdef.pm:591
 #, fuzzy
@@ -9006,43 +9049,53 @@ msgstr "Error del manejador de correo en masa"
 
 #: ../src/lib/confdef.pm:600
 msgid "Default priority for a packet to be sent by bulk."
-msgstr ""
+msgstr "Prioridad predeterminada de un paquete enviado mediante bulk."
 
 #: ../src/lib/confdef.pm:607
 msgid ""
 "Minimum number of packets in database before the bulk forks to increase "
 "sending rate"
 msgstr ""
+"Número mínimo de paquetes en base de datos antes de que el proceso bulk cree "
+"nuevos procesos para incremental el ratio de envío"
 
 #: ../src/lib/confdef.pm:614
 msgid "Max number of bulks that will run on the same server"
-msgstr ""
+msgstr "Número máximo de procesos bulk que se ejecutarán en el mismo servidor"
 
 #: ../src/lib/confdef.pm:621
 msgid ""
 "The number of seconds a slave bulk will remain running without processing a "
 "message before it spontaneously dies."
 msgstr ""
+"El número de segundos que un proceso hijo bulk permanecerá ejectuándose sin "
+"procesar ningún mensaje antes de morir espontáneamente."
 
 #: ../src/lib/confdef.pm:628
 msgid ""
 "The number of seconds a bulk sleeps between starting a new loop if it didn't "
 "find a message to send."
 msgstr ""
+"El número de segundos que un proceso bulk duerme entre ejecuciones si no "
+"encontró ningun mensaje a enviar."
 
 #: ../src/lib/confdef.pm:630
 msgid "Keep it small if you want your server to be reactive."
-msgstr ""
+msgstr "Permanece pequeño si quieres que el servidor se reactive."
 
 #: ../src/lib/confdef.pm:635
 msgid ""
 "Number of seconds a master bulk waits between two packets number checks."
 msgstr ""
+"Número de segundos que un proceso bulk master espera entre dos chequeos de "
+"números de paquete."
 
 #: ../src/lib/confdef.pm:637
 msgid ""
 "Keep it small if you expect brutal increases in the message sending load."
 msgstr ""
+"Mantener bajo si esperas un incremento brutal en la carga de envío de "
+"mensajes."
 
 #: ../src/lib/confdef.pm:640
 #, fuzzy
@@ -9051,7 +9104,7 @@ msgstr "cuota"
 
 #: ../src/lib/confdef.pm:645
 msgid "Default disk quota for shared repository"
-msgstr ""
+msgstr "Cuota de disco por defecto para el repositorio compartido"
 
 #: ../src/lib/confdef.pm:654
 #, fuzzy
@@ -9060,7 +9113,7 @@ msgstr "Los modelos"
 
 #: ../src/lib/confdef.pm:659
 msgid "Directory containing various specialized spools"
-msgstr ""
+msgstr "Directorio contenedor de varias colas especializadas"
 
 #: ../src/lib/confdef.pm:661
 msgid "All spool are created at runtime by sympa.pl"
@@ -9579,8 +9632,8 @@ msgstr "Error en la línea %d: %s\n"
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
 #: ../src/lib/Family.pm:2593 ../src/lib/Family.pm:388 ../src/lib/Family.pm:665
-#: ../src/lib/List.pm:1881 ../wwsympa/Auth.pm:435
-#: ../wwsympa/wwsympa.fcgi.in:1079 ../wwsympa/wwsympa.fcgi.in:2928
+#: ../src/lib/List.pm:1882 ../wwsympa/Auth.pm:435
+#: ../wwsympa/wwsympa.fcgi.in:1086 ../wwsympa/wwsympa.fcgi.in:2935
 msgid "%d %b %Y at %H:%M:%S"
 msgstr "%d %b %Y en %H:%M:%S"
 
@@ -10311,44 +10364,44 @@ msgstr "quién actualizó la configuración"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:2850
+#: ../src/lib/List.pm:2851
 msgid "%a, %d %b %Y %H:%M:%S"
 msgstr "%a, %d/%b/%Y %H:%M:%S"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:2851
+#: ../src/lib/List.pm:2852
 msgid "%a, %d %b %Y"
 msgstr "%a, %d/%b/%Y"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:3042 ../src/lib/List.pm:3043 ../src/lib/List.pm:3047
-#: ../wwsympa/wwsympa.fcgi.in:11343 ../wwsympa/wwsympa.fcgi.in:11412
-#: ../wwsympa/wwsympa.fcgi.in:11614 ../wwsympa/wwsympa.fcgi.in:11961
-#: ../wwsympa/wwsympa.fcgi.in:15458 ../wwsympa/wwsympa.fcgi.in:15465
-#: ../wwsympa/wwsympa.fcgi.in:16205 ../wwsympa/wwsympa.fcgi.in:16255
-#: ../wwsympa/wwsympa.fcgi.in:17028 ../wwsympa/wwsympa.fcgi.in:17029
-#: ../wwsympa/wwsympa.fcgi.in:4343 ../wwsympa/wwsympa.fcgi.in:4401
-#: ../wwsympa/wwsympa.fcgi.in:4978 ../wwsympa/wwsympa.fcgi.in:4979
-#: ../wwsympa/wwsympa.fcgi.in:6492 ../wwsympa/wwsympa.fcgi.in:7625
-#: ../wwsympa/wwsympa.fcgi.in:8240 ../wwsympa/wwsympa.fcgi.in:8287
-#: ../wwsympa/wwsympa.fcgi.in:8289 ../wwsympa/wwsympa.fcgi.in:8807
-#: ../wwsympa/wwsympa.fcgi.in:8808 ../wwsympa/wwsympa.fcgi.in:8842
-#: ../wwsympa/wwsympa.fcgi.in:8843 ../wwsympa/wwsympa.fcgi.in:9022
-#: ../wwsympa/wwsympa.fcgi.in:9023
+#: ../src/lib/List.pm:3043 ../src/lib/List.pm:3044 ../src/lib/List.pm:3048
+#: ../wwsympa/wwsympa.fcgi.in:11350 ../wwsympa/wwsympa.fcgi.in:11419
+#: ../wwsympa/wwsympa.fcgi.in:11621 ../wwsympa/wwsympa.fcgi.in:11968
+#: ../wwsympa/wwsympa.fcgi.in:15354 ../wwsympa/wwsympa.fcgi.in:15361
+#: ../wwsympa/wwsympa.fcgi.in:16101 ../wwsympa/wwsympa.fcgi.in:16151
+#: ../wwsympa/wwsympa.fcgi.in:16924 ../wwsympa/wwsympa.fcgi.in:16925
+#: ../wwsympa/wwsympa.fcgi.in:4350 ../wwsympa/wwsympa.fcgi.in:4408
+#: ../wwsympa/wwsympa.fcgi.in:4985 ../wwsympa/wwsympa.fcgi.in:4986
+#: ../wwsympa/wwsympa.fcgi.in:6499 ../wwsympa/wwsympa.fcgi.in:7632
+#: ../wwsympa/wwsympa.fcgi.in:8247 ../wwsympa/wwsympa.fcgi.in:8294
+#: ../wwsympa/wwsympa.fcgi.in:8296 ../wwsympa/wwsympa.fcgi.in:8814
+#: ../wwsympa/wwsympa.fcgi.in:8815 ../wwsympa/wwsympa.fcgi.in:8849
+#: ../wwsympa/wwsympa.fcgi.in:8850 ../wwsympa/wwsympa.fcgi.in:9029
+#: ../wwsympa/wwsympa.fcgi.in:9030
 msgid "%d %b %Y"
 msgstr "%d/%b/%Y"
 
-#: ../src/lib/List.pm:6443
+#: ../src/lib/List.pm:6457
 msgid "Attempt to exceed the max number of members (%s) for this list."
 msgstr ""
 
-#: ../src/lib/List.pm:6446
+#: ../src/lib/List.pm:6460
 msgid "Attempts to add some users in database failed."
 msgstr ""
 
-#: ../src/lib/List.pm:6448
+#: ../src/lib/List.pm:6462
 msgid "Added %s users out of %s required."
 msgstr "%s usuarios añadidos de %s que se requerían."
 
@@ -10480,17 +10533,17 @@ msgstr "(fecha desconocida)"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../wwsympa/wwsympa.fcgi.in:1080
+#: ../wwsympa/wwsympa.fcgi.in:1087
 msgid "%H:%M:%S"
 msgstr "%H:%M:%S"
 
-#: ../wwsympa/wwsympa.fcgi.in:4873
+#: ../wwsympa/wwsympa.fcgi.in:4880
 #, fuzzy
 msgid "Unable to add user %s in list %s : %s"
 msgstr "Imposible acceder al directorio %s: %m"
 
-#: ../wwsympa/wwsympa.fcgi.in:10691 ../wwsympa/wwsympa.fcgi.in:6217
-#: ../wwsympa/wwsympa.fcgi.in:9693
+#: ../wwsympa/wwsympa.fcgi.in:10698 ../wwsympa/wwsympa.fcgi.in:6224
+#: ../wwsympa/wwsympa.fcgi.in:9700
 #, fuzzy
 msgid "Unable to add users in list %s : %s"
 msgstr "Imposible acceder al directorio %s: %m"
@@ -10498,53 +10551,53 @@ msgstr "Imposible acceder al directorio %s: %m"
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
 #: ../wwsympa/SympaSession.pm:355 ../wwsympa/SympaSession.pm:356
-#: ../wwsympa/wwsympa.fcgi.in:12195 ../wwsympa/wwsympa.fcgi.in:12328
-#: ../wwsympa/wwsympa.fcgi.in:14671 ../wwsympa/wwsympa.fcgi.in:8194
+#: ../wwsympa/wwsympa.fcgi.in:12202 ../wwsympa/wwsympa.fcgi.in:12335
+#: ../wwsympa/wwsympa.fcgi.in:14678 ../wwsympa/wwsympa.fcgi.in:8201
 msgid "%d %b %y  %H:%M"
 msgstr "%d %b %y    %H:%M"
 
-#: ../wwsympa/wwsympa.fcgi.in:15640
+#: ../wwsympa/wwsympa.fcgi.in:15536
 msgid "Your unsubscription request to list %s was sent to the list owner."
 msgstr ""
 "Tu solicitud de darte de baja de la lista %s fue enviada al propietario de "
 "ésta. "
 
-#: ../wwsympa/wwsympa.fcgi.in:15642
+#: ../wwsympa/wwsympa.fcgi.in:15538
 msgid "You were successfully unsubscribed from list %s."
 msgstr "Fuiste dado de baja correctamente de la lista de correo %s."
 
-#: ../wwsympa/wwsympa.fcgi.in:15646
+#: ../wwsympa/wwsympa.fcgi.in:15542
 msgid ""
 "Unsubscription from list %s denied: Unsubscription from this list is closed."
 msgstr ""
 "Tu solicitud de darte de baja de la lista %s fracasó: no está permitido "
 "darse de baja de esa lista. "
 
-#: ../wwsympa/wwsympa.fcgi.in:15648
+#: ../wwsympa/wwsympa.fcgi.in:15544
 msgid "Unsubscription from list %s failed."
 msgstr "No se ha podido darte de baja de la lista %s."
 
-#: ../wwsympa/wwsympa.fcgi.in:16244
+#: ../wwsympa/wwsympa.fcgi.in:16140
 msgid "Mail sending"
 msgstr "Enviando un correo"
 
-#: ../wwsympa/wwsympa.fcgi.in:16245
+#: ../wwsympa/wwsympa.fcgi.in:16141
 #, fuzzy
 msgid "Subscription additions"
 msgstr "Suscripciones"
 
-#: ../wwsympa/wwsympa.fcgi.in:16246
+#: ../wwsympa/wwsympa.fcgi.in:16142
 #, fuzzy
 msgid "Unsubscription"
 msgstr "Darse de baja (anular suscripción):"
 
-#: ../wwsympa/wwsympa.fcgi.in:16247
+#: ../wwsympa/wwsympa.fcgi.in:16143
 msgid "Users deleted by admin"
 msgstr "Usuarios borrados por el administrador"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../wwsympa/wwsympa.fcgi.in:16623 ../wwsympa/wwsympa.fcgi.in:16624
+#: ../wwsympa/wwsympa.fcgi.in:16519 ../wwsympa/wwsympa.fcgi.in:16520
 msgid "%Y-%m-%d-%H-%M-%S"
 msgstr "%d/%m/%Y/%H/%M/%S"
 
@@ -10696,15 +10749,9 @@ msgstr "interrumpir la recepción de mensajes (útil para las vacaciones)"
 msgid "you do not receive your own posts"
 msgstr "No recibir mis propios mensajes"
 
-#~ msgid "Article to be tagged for list %1 from %2"
-#~ msgstr "Articulo a ser marcado para la lista %1 enviado por %2"
-
-#~ msgid ""
-#~ "To tag the message in list %1 for the appropriate topic, please use the "
-#~ "following link:"
-#~ msgstr ""
-#~ "Para elegir un tema adecuado a tu mensaje dirigido a la lista %1, visita "
-#~ "la página siguiente:"
+#: ../src/lib/confdef.pm:662
+msgid "Plugin"
+msgstr ""
 
 #~ msgid "URL:"
 #~ msgstr "URL:"
@@ -10757,6 +10804,16 @@ msgstr "No recibir mis propios mensajes"
 
 #~ msgid "Do Not Notify"
 #~ msgstr "No enviar notificación"
+
+#~ msgid "Article to be tagged for list %1 from %2"
+#~ msgstr "Articulo a ser marcado para la lista %1 enviado por %2"
+
+#~ msgid ""
+#~ "To tag the message in list %1 for the appropriate topic, please use the "
+#~ "following link:"
+#~ msgstr ""
+#~ "Para elegir un tema adecuado a tu mensaje dirigido a la lista %1, visita "
+#~ "la página siguiente:"
 
 #~ msgid "Error at line %d: %s"
 #~ msgstr "Error línea %d: %s"

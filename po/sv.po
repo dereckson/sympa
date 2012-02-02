@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: sympa\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2002-07-16 17:27+0800\n"
-"PO-Revision-Date: 2011-04-13 08:33+0200\n"
-"Last-Translator: Anonymous Pootle User\n"
+"PO-Revision-Date: 2011-10-24 11:10+0200\n"
+"Last-Translator: Pontus Freyhult <pontus_sympa_pootle@soua.net>\n"
 "Language-Team: Svenska <sv@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -31,9 +31,8 @@ msgid ""
 "archive, list moderation, list configuration."
 msgstr ""
 "Den här servern ger dig åtkomst till din e-postlista. På den här webbsidan "
-"kan du ställa in\n"
-"prenumerationsinställningar, avsluta prenumerationer, arkiv, listmoderering "
-"och listkonfiguration."
+"kan du ställa inprenumerationsinställningar, avsluta prenumerationer, arkiv, "
+"listmoderering och listkonfiguration."
 
 #: ../web_tt2/home.tt2:13
 msgid "Mailing lists categories"
@@ -161,6 +160,7 @@ msgstr "Ingen e-postlista tillgänglig."
 msgid ""
 "You <span style=\"font-weight: bold; font-size: 10px\">are</span> subscribed"
 msgstr ""
+"Du <span style=\"font-weight: bold; font-size: 10px\">är</span> prenumerant"
 
 #: ../web_tt2/list_menu.tt2:13
 msgid "Subscriber Options"
@@ -169,7 +169,7 @@ msgstr "Prenumerantinställningar"
 #. (list)
 #: ../web_tt2/list_menu.tt2:17
 msgid "Do you really want to unsubscribe from list %1?"
-msgstr "Vill du verkligen avsluta prenumerationen av listan %1?"
+msgstr "Vill du verkligen avsluta prenumerationen på listan %1?"
 
 #: ../web_tt2/list_menu.tt2:17 ../web_tt2/list_menu.tt2:30
 #: ../web_tt2/suspend_request.tt2:57
@@ -181,6 +181,8 @@ msgid ""
 "You <span style=\"font-weight: bold; font-size: 10px\">are not</span> "
 "subscribed"
 msgstr ""
+"Du <span style=\"font-weight: bold; font-size: 10px\">är inte</span> "
+"prenumerant"
 
 #. (list)
 #: ../web_tt2/list_menu.tt2:25
@@ -1050,16 +1052,18 @@ msgstr ""
 "användaranpassat attribut som heter \"organization\"."
 
 #: ../web_tt2/compose_mail.tt2:79
+#, fuzzy
 msgid "Select the source of your HTML newsletter"
-msgstr ""
+msgstr "Välj källan till ditt HTML-nyhetsbrev"
 
 #: ../web_tt2/compose_mail.tt2:82
 msgid "Send the page from the following URL:"
 msgstr "Skicka sidan från följande URL:"
 
 #: ../web_tt2/compose_mail.tt2:85
+#, fuzzy
 msgid "OR"
-msgstr ""
+msgstr "ELLER"
 
 #: ../web_tt2/compose_mail.tt2:87
 msgid "<strong>Send an HTML file from your computer:"
@@ -2512,24 +2516,20 @@ msgid "Listname"
 msgstr "Listnamn"
 
 #: ../web_tt2/get_inactive_lists.tt2:10
-#, fuzzy
 msgid "Number of subscribers"
-msgstr "modererad för prenumeranter"
+msgstr "Antal prenumeranter"
 
 #: ../web_tt2/get_inactive_lists.tt2:12
-#, fuzzy
 msgid "Send scenario"
-msgstr "Avsändare"
+msgstr "Sändningscenario"
 
 #: ../web_tt2/get_inactive_lists.tt2:13
-#, fuzzy
 msgid "Creator"
-msgstr "Skapa"
+msgstr "Skapare"
 
 #: ../web_tt2/get_inactive_lists.tt2:15
-#, fuzzy
 msgid "Editors"
-msgstr "Redigerare"
+msgstr "Redaktörer"
 
 #: ../web_tt2/get_inactive_lists.tt2:29
 msgid "none so far"
@@ -3438,8 +3438,8 @@ msgid ""
 "Please submit your email address, you will receive a message that gives you "
 "access to the appropriate form in order to choose your password."
 msgstr ""
-"Ange din e-postadress, du får ett meddelande som ger dig möjlighet att välja "
-"ett lösenord."
+"Vänligen ange din e-postadress, så kommer du få ett meddelande som ger dig "
+"möjlighet att välja ett lösenord."
 
 #: ../web_tt2/renewpasswd.tt2:27 ../web_tt2/sigrequest.tt2:29
 #: ../web_tt2/sso_login.tt2:17
@@ -4571,14 +4571,12 @@ msgstr "Skicka mig ett bekräftelselösenord"
 
 #. (init_email)
 #: ../web_tt2/sso_login.tt2:32
-#, fuzzy
 msgid ""
 "A confirmation password has been sent to your email address %1.<br />Please "
 "check your e-mail box for the message containing the confirmation link."
 msgstr ""
-"Ett bekräftelselösenord har skickats till din e-postadress %1.<br/> "
-"Kontrollera din e-post för att se meddelandet med bekräftelselösenordet som "
-"behövs nedan."
+"Ett bekräftelselösenord har skickats till din e-postadress %1.<br /> "
+"Kontrollera din e-post för att se meddelandet med bekräftelselänken."
 
 #. (listname)
 #: ../web_tt2/stats.tt2:4
@@ -4997,7 +4995,7 @@ msgstr "Sökperiod:"
 #. (date_to_formated)
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../web_tt2/viewlogs.tt2:113 ../wwsympa/wwsympa.fcgi.in:16678
+#: ../web_tt2/viewlogs.tt2:113 ../wwsympa/wwsympa.fcgi.in:16574
 msgid "%d %b %Y %H:%M:%S"
 msgstr "%d %b %Y %H:%M:%S"
 
@@ -5661,7 +5659,7 @@ msgid "%1 Digest %2"
 msgstr "%1 Samlingsbrev %2"
 
 #: ../mail_tt2/digest.tt2:10 ../mail_tt2/digest_plain.tt2:9
-#: ../mail_tt2/get_archive.tt2:9 ../src/lib/List.pm:2732
+#: ../mail_tt2/get_archive.tt2:9 ../src/lib/List.pm:2733
 msgid "Table of contents:"
 msgstr "Innehållsförteckning:"
 
@@ -6616,7 +6614,7 @@ msgstr " Användaren %1 har råkat ut för ett internt serverfel"
 #. (error)
 #: ../mail_tt2/listmaster_notification.tt2:297
 msgid "The following error occurred whila managing bounces: %&"
-msgstr ""
+msgstr "Följande fel uppstod när studsar hanterades: %&"
 
 #: ../mail_tt2/listmaster_notification.tt2:306
 #: ../mail_tt2/listmaster_notification.tt2:377
@@ -7163,7 +7161,7 @@ msgstr "Användaren \"%1\" har automatiskt tagits bort från listan %2. "
 #. (list.name)
 #: ../mail_tt2/listowner_notification.tt2:142
 msgid "List %1: Failed to change member email address"
-msgstr "Listan %1: Kunde inte ändra medlemse-postadress"
+msgstr "Listan %1: Kunde inte ändra medlems e-postadress"
 
 #. (current_email,new_email,datasource)
 #: ../mail_tt2/listowner_notification.tt2:146
@@ -7201,12 +7199,12 @@ msgstr "Här är en lista på listor från %1@%2"
 
 #: ../mail_tt2/list_unknown.tt2:3
 msgid "List unknown"
-msgstr "Okänd listan"
+msgstr "Okänd lista"
 
 #: ../mail_tt2/list_unknown.tt2:10
 msgid "This is an automatic response sent by Sympa Mailing Lists Manager."
 msgstr ""
-"Detta är ett automatiskt svarsmeddelande skicka av e-postlisthanteraren "
+"Detta är ett automatiskt svarsmeddelande skickat av e-postlisthanteraren "
 "Sympa."
 
 #: ../mail_tt2/list_unknown.tt2:12
@@ -7217,7 +7215,7 @@ msgstr "Följande e-postadress är inte en känd e-postlista:"
 msgid ""
 "To find out the correct listname, ask for this server's lists directory:"
 msgstr ""
-"För att hitta det riktiga listnamnen, titta i den här serverns listkatalog:"
+"För att hitta det riktiga listnamnet, titta i den här serverns listkatalog:"
 
 #. (conf.listmaster_email,conf.host)
 #: ../mail_tt2/list_unknown.tt2:20
@@ -7336,7 +7334,7 @@ msgid ""
 "already been confirmed."
 msgstr ""
 "Kunde inte få åtkomst till meddelande autentiserat med nyckeln %1. "
-"Meddelandet kan redan ha bekrfätats."
+"Meddelandet kan redan ha bekräftats."
 
 #. (key)
 #: ../mail_tt2/message_report.tt2:69
@@ -7691,17 +7689,14 @@ msgid "Help on Sympa: %1%2"
 msgstr "Hjälp för Sympa: %1%2"
 
 #: ../mail_tt2/sendssopasswd.tt2:6
-#, fuzzy
 msgid ""
 "To complete your account setup actions you need to confirm that you have \n"
 "supplied a working email address.  Please follow the link below to complete "
 "your account configuration."
 msgstr ""
-"För att slutföra din kontokonfigurering måste du bekräfta att du har angett "
-"en fungerande\n"
-"e-postadress. Ange följande e-postadress och lösenord i konfigurationsguiden "
-"för att \n"
-"slutföra ditt kontoskapande."
+"För att slutföra din kontokonfigurering måste du bekräfta att du har en "
+"fungerande\n"
+"e-postadress. Klicka på länken nedan för att slutföra din kontokonfigurering."
 
 #. (list.name)
 #: ../mail_tt2/stats_report.tt2:4
@@ -7867,7 +7862,7 @@ msgstr "Din prenumerationsadress är %1"
 
 #: ../mail_tt2/welcome.tt2:13
 msgid "General informations about mailing lists:"
-msgstr "Allmänn information om e-postlistor:"
+msgstr "Allmän information om e-postlistor:"
 
 #: ../mail_tt2/which.tt2:2
 msgid "Result of your command"
@@ -8638,7 +8633,7 @@ msgstr "%d %b %Y %H:%M"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/Commands.pm:966 ../wwsympa/wwsympa.fcgi.in:10131
+#: ../src/lib/Commands.pm:966 ../wwsympa/wwsympa.fcgi.in:10138
 msgid "%A"
 msgstr "%A"
 
@@ -9447,8 +9442,8 @@ msgstr "Fel på rad %d: %s\n"
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
 #: ../src/lib/Family.pm:2593 ../src/lib/Family.pm:388 ../src/lib/Family.pm:665
-#: ../src/lib/List.pm:1881 ../wwsympa/Auth.pm:435
-#: ../wwsympa/wwsympa.fcgi.in:1079 ../wwsympa/wwsympa.fcgi.in:2928
+#: ../src/lib/List.pm:1882 ../wwsympa/Auth.pm:435
+#: ../wwsympa/wwsympa.fcgi.in:1086 ../wwsympa/wwsympa.fcgi.in:2935
 msgid "%d %b %Y at %H:%M:%S"
 msgstr "%d %b %Y klockan %H:%M:%S"
 
@@ -9956,7 +9951,7 @@ msgstr "respektra befintliga huvudrader"
 
 #: ../src/lib/List.pm:1321
 msgid "Who can review subscribers"
-msgstr "Vem kan godkänna prenumeranter"
+msgstr "Vem kan se prenumeranter"
 
 #: ../src/lib/List.pm:1328
 msgid "RFC 2369 Header fields"
@@ -10171,44 +10166,44 @@ msgstr "vem uppdaterade konfigurationen"
 # Should we use swedish typography?
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:2850
+#: ../src/lib/List.pm:2851
 msgid "%a, %d %b %Y %H:%M:%S"
 msgstr "%a, %d %b %Y %H:%M:%S"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:2851
+#: ../src/lib/List.pm:2852
 msgid "%a, %d %b %Y"
 msgstr "%a, %d %b %Y"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:3042 ../src/lib/List.pm:3043 ../src/lib/List.pm:3047
-#: ../wwsympa/wwsympa.fcgi.in:11343 ../wwsympa/wwsympa.fcgi.in:11412
-#: ../wwsympa/wwsympa.fcgi.in:11614 ../wwsympa/wwsympa.fcgi.in:11961
-#: ../wwsympa/wwsympa.fcgi.in:15458 ../wwsympa/wwsympa.fcgi.in:15465
-#: ../wwsympa/wwsympa.fcgi.in:16205 ../wwsympa/wwsympa.fcgi.in:16255
-#: ../wwsympa/wwsympa.fcgi.in:17028 ../wwsympa/wwsympa.fcgi.in:17029
-#: ../wwsympa/wwsympa.fcgi.in:4343 ../wwsympa/wwsympa.fcgi.in:4401
-#: ../wwsympa/wwsympa.fcgi.in:4978 ../wwsympa/wwsympa.fcgi.in:4979
-#: ../wwsympa/wwsympa.fcgi.in:6492 ../wwsympa/wwsympa.fcgi.in:7625
-#: ../wwsympa/wwsympa.fcgi.in:8240 ../wwsympa/wwsympa.fcgi.in:8287
-#: ../wwsympa/wwsympa.fcgi.in:8289 ../wwsympa/wwsympa.fcgi.in:8807
-#: ../wwsympa/wwsympa.fcgi.in:8808 ../wwsympa/wwsympa.fcgi.in:8842
-#: ../wwsympa/wwsympa.fcgi.in:8843 ../wwsympa/wwsympa.fcgi.in:9022
-#: ../wwsympa/wwsympa.fcgi.in:9023
+#: ../src/lib/List.pm:3043 ../src/lib/List.pm:3044 ../src/lib/List.pm:3048
+#: ../wwsympa/wwsympa.fcgi.in:11350 ../wwsympa/wwsympa.fcgi.in:11419
+#: ../wwsympa/wwsympa.fcgi.in:11621 ../wwsympa/wwsympa.fcgi.in:11968
+#: ../wwsympa/wwsympa.fcgi.in:15354 ../wwsympa/wwsympa.fcgi.in:15361
+#: ../wwsympa/wwsympa.fcgi.in:16101 ../wwsympa/wwsympa.fcgi.in:16151
+#: ../wwsympa/wwsympa.fcgi.in:16924 ../wwsympa/wwsympa.fcgi.in:16925
+#: ../wwsympa/wwsympa.fcgi.in:4350 ../wwsympa/wwsympa.fcgi.in:4408
+#: ../wwsympa/wwsympa.fcgi.in:4985 ../wwsympa/wwsympa.fcgi.in:4986
+#: ../wwsympa/wwsympa.fcgi.in:6499 ../wwsympa/wwsympa.fcgi.in:7632
+#: ../wwsympa/wwsympa.fcgi.in:8247 ../wwsympa/wwsympa.fcgi.in:8294
+#: ../wwsympa/wwsympa.fcgi.in:8296 ../wwsympa/wwsympa.fcgi.in:8814
+#: ../wwsympa/wwsympa.fcgi.in:8815 ../wwsympa/wwsympa.fcgi.in:8849
+#: ../wwsympa/wwsympa.fcgi.in:8850 ../wwsympa/wwsympa.fcgi.in:9029
+#: ../wwsympa/wwsympa.fcgi.in:9030
 msgid "%d %b %Y"
 msgstr "%d %b %Y"
 
-#: ../src/lib/List.pm:6443
+#: ../src/lib/List.pm:6457
 msgid "Attempt to exceed the max number of members (%s) for this list."
 msgstr ""
 
-#: ../src/lib/List.pm:6446
+#: ../src/lib/List.pm:6460
 msgid "Attempts to add some users in database failed."
 msgstr ""
 
-#: ../src/lib/List.pm:6448
+#: ../src/lib/List.pm:6462
 msgid "Added %s users out of %s required."
 msgstr ""
 
@@ -10339,16 +10334,16 @@ msgstr "(okänt datum)"
 # (We follow ISO 8601 instead of swedish typography)
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../wwsympa/wwsympa.fcgi.in:1080
+#: ../wwsympa/wwsympa.fcgi.in:1087
 msgid "%H:%M:%S"
 msgstr "%H:%M:%S"
 
-#: ../wwsympa/wwsympa.fcgi.in:4873
+#: ../wwsympa/wwsympa.fcgi.in:4880
 msgid "Unable to add user %s in list %s : %s"
 msgstr ""
 
-#: ../wwsympa/wwsympa.fcgi.in:10691 ../wwsympa/wwsympa.fcgi.in:6217
-#: ../wwsympa/wwsympa.fcgi.in:9693
+#: ../wwsympa/wwsympa.fcgi.in:10698 ../wwsympa/wwsympa.fcgi.in:6224
+#: ../wwsympa/wwsympa.fcgi.in:9700
 #, fuzzy
 msgid "Unable to add users in list %s : %s"
 msgstr "Kunde inte ladda listämnen."
@@ -10356,54 +10351,54 @@ msgstr "Kunde inte ladda listämnen."
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
 #: ../wwsympa/SympaSession.pm:355 ../wwsympa/SympaSession.pm:356
-#: ../wwsympa/wwsympa.fcgi.in:12195 ../wwsympa/wwsympa.fcgi.in:12328
-#: ../wwsympa/wwsympa.fcgi.in:14671 ../wwsympa/wwsympa.fcgi.in:8194
+#: ../wwsympa/wwsympa.fcgi.in:12202 ../wwsympa/wwsympa.fcgi.in:12335
+#: ../wwsympa/wwsympa.fcgi.in:14678 ../wwsympa/wwsympa.fcgi.in:8201
 msgid "%d %b %y  %H:%M"
 msgstr "%d %b %y  %H:%M"
 
-#: ../wwsympa/wwsympa.fcgi.in:15640
-#, fuzzy
+#: ../wwsympa/wwsympa.fcgi.in:15536
 msgid "Your unsubscription request to list %s was sent to the list owner."
-msgstr "Din begäran har skickats vidare till listägaren"
+msgstr ""
+"Din begäran att avsluta prenumerationen på listan %s har skickats vidare "
+"till listägaren."
 
-#: ../wwsympa/wwsympa.fcgi.in:15642
-#, fuzzy
+#: ../wwsympa/wwsympa.fcgi.in:15538
 msgid "You were successfully unsubscribed from list %s."
-msgstr "Du begärde att din prenumeration på listan %1 skulle avslutas"
+msgstr "Din prenumeration på listan %s har sagts upp."
 
-#: ../wwsympa/wwsympa.fcgi.in:15646
-#, fuzzy
+#: ../wwsympa/wwsympa.fcgi.in:15542
 msgid ""
 "Unsubscription from list %s denied: Unsubscription from this list is closed."
-msgstr "det är inte möjligt att prenumerera"
+msgstr ""
+"Uppsägning av prenumeration på listan %s nekades: Uppsägning av "
+"prenumeration på denna lista är stängd."
 
-#: ../wwsympa/wwsympa.fcgi.in:15648
-#, fuzzy
+#: ../wwsympa/wwsympa.fcgi.in:15544
 msgid "Unsubscription from list %s failed."
-msgstr "det är inte möjligt att prenumerera"
+msgstr "Uppsägning av prenumeration på listan %s misslyckades."
 
-#: ../wwsympa/wwsympa.fcgi.in:16244
+#: ../wwsympa/wwsympa.fcgi.in:16140
 #, fuzzy
 msgid "Mail sending"
 msgstr "E-postdomän:"
 
-#: ../wwsympa/wwsympa.fcgi.in:16245
+#: ../wwsympa/wwsympa.fcgi.in:16141
 #, fuzzy
 msgid "Subscription additions"
 msgstr "Prenumerationer"
 
-#: ../wwsympa/wwsympa.fcgi.in:16246
+#: ../wwsympa/wwsympa.fcgi.in:16142
 #, fuzzy
 msgid "Unsubscription"
 msgstr "Prenumerationsavslutning:"
 
-#: ../wwsympa/wwsympa.fcgi.in:16247
+#: ../wwsympa/wwsympa.fcgi.in:16143
 msgid "Users deleted by admin"
 msgstr ""
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../wwsympa/wwsympa.fcgi.in:16623 ../wwsympa/wwsympa.fcgi.in:16624
+#: ../wwsympa/wwsympa.fcgi.in:16519 ../wwsympa/wwsympa.fcgi.in:16520
 msgid "%Y-%m-%d-%H-%M-%S"
 msgstr "%Y-%m-%d-%H-%M-%S"
 
@@ -10579,16 +10574,6 @@ msgstr ""
 msgid "Log intensity"
 msgstr ""
 
-#~ msgid "Article to be tagged for list %1 from %2"
-#~ msgstr "Artikel som ska märkas för listan %1 from %2"
-
-#~ msgid ""
-#~ "To tag the message in list %1 for the appropriate topic, please use the "
-#~ "following link:"
-#~ msgstr ""
-#~ "För att märka meddelande till listan %1 med lämpliga ämnen, använd "
-#~ "följande länk:"
-
 #~ msgid "URL:"
 #~ msgstr "URL:"
 
@@ -10639,6 +10624,16 @@ msgstr ""
 
 #~ msgid "Do Not Notify"
 #~ msgstr "Skicka ingen notifiering"
+
+#~ msgid "Article to be tagged for list %1 from %2"
+#~ msgstr "Artikel som ska märkas för listan %1 from %2"
+
+#~ msgid ""
+#~ "To tag the message in list %1 for the appropriate topic, please use the "
+#~ "following link:"
+#~ msgstr ""
+#~ "För att märka meddelande till listan %1 med lämpliga ämnen, använd "
+#~ "följande länk:"
 
 #~ msgid "Error at line %d: %s"
 #~ msgstr "Fel på rad %d: %s"
