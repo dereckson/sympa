@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: Jens Krehbiel-Graether <jens.krehbiel-graether@okg-"
 "computer.de>\n"
 "POT-Creation-Date: 2002-07-16 17:27+0800\n"
-"PO-Revision-Date: 2011-07-24 10:49+0200\n"
+"PO-Revision-Date: 2012-01-15 21:04+0200\n"
 "Last-Translator: Anonymous Pootle User\n"
 "Language-Team: Deutsch\n"
 "MIME-Version: 1.0\n"
@@ -5086,7 +5086,7 @@ msgstr "Suchzeitraum: "
 #. (date_to_formated)
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../web_tt2/viewlogs.tt2:113 ../wwsympa/wwsympa.fcgi.in:16678
+#: ../web_tt2/viewlogs.tt2:113 ../wwsympa/wwsympa.fcgi.in:16574
 msgid "%d %b %Y %H:%M:%S"
 msgstr "%d. %B %Y %H:%M:%S"
 
@@ -5767,7 +5767,7 @@ msgid "%1 Digest %2"
 msgstr "%1 Nachrichtenkompilat %2"
 
 #: ../mail_tt2/digest.tt2:10 ../mail_tt2/digest_plain.tt2:9
-#: ../mail_tt2/get_archive.tt2:9 ../src/lib/List.pm:2732
+#: ../mail_tt2/get_archive.tt2:9 ../src/lib/List.pm:2733
 msgid "Table of contents:"
 msgstr "Inhaltsverzeichnis:"
 
@@ -8797,7 +8797,7 @@ msgstr "%d.%e.%Y %H:%M"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/Commands.pm:966 ../wwsympa/wwsympa.fcgi.in:10131
+#: ../src/lib/Commands.pm:966 ../wwsympa/wwsympa.fcgi.in:10138
 msgid "%A"
 msgstr "%A"
 
@@ -9707,20 +9707,20 @@ msgid ""
 "page"
 msgstr "Standard-Linienanzahl der Protokolleinträge auf der Protokoll-Seite"
 
-#: ../src/lib/Conf.pm:967
+#: ../src/lib/Conf.pm:966
 #, fuzzy
 msgid "Conf::load_nrcpt_by_domain(): Error at line %d: %s"
 msgstr "Conf::load_nrcpt_by_domain(): Fehler in Zeile %d: %s"
 
-#: ../src/lib/Conf.pm:1311
+#: ../src/lib/Conf.pm:1310
 msgid "Error at line %d: %s\n"
 msgstr "Fehler in Zeile %d: %s\n"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
 #: ../src/lib/Family.pm:2593 ../src/lib/Family.pm:388 ../src/lib/Family.pm:665
-#: ../src/lib/List.pm:1881 ../wwsympa/Auth.pm:435
-#: ../wwsympa/wwsympa.fcgi.in:1079 ../wwsympa/wwsympa.fcgi.in:2928
+#: ../src/lib/List.pm:1882 ../wwsympa/Auth.pm:435
+#: ../wwsympa/wwsympa.fcgi.in:1086 ../wwsympa/wwsympa.fcgi.in:2935
 msgid "%d %b %Y at %H:%M:%S"
 msgstr "%d. %B %Y um %H:%M:%S"
 
@@ -10455,46 +10455,46 @@ msgstr "Konfigurationsaktualisierung durchgeführt von"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:2850
+#: ../src/lib/List.pm:2851
 msgid "%a, %d %b %Y %H:%M:%S"
 msgstr "%a, %d. %B %Y %H:%M:%S"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:2851
+#: ../src/lib/List.pm:2852
 msgid "%a, %d %b %Y"
 msgstr "%a, %d. %B %Y"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:3042 ../src/lib/List.pm:3043 ../src/lib/List.pm:3047
-#: ../wwsympa/wwsympa.fcgi.in:11343 ../wwsympa/wwsympa.fcgi.in:11412
-#: ../wwsympa/wwsympa.fcgi.in:11614 ../wwsympa/wwsympa.fcgi.in:11961
-#: ../wwsympa/wwsympa.fcgi.in:15458 ../wwsympa/wwsympa.fcgi.in:15465
-#: ../wwsympa/wwsympa.fcgi.in:16205 ../wwsympa/wwsympa.fcgi.in:16255
-#: ../wwsympa/wwsympa.fcgi.in:17028 ../wwsympa/wwsympa.fcgi.in:17029
-#: ../wwsympa/wwsympa.fcgi.in:4343 ../wwsympa/wwsympa.fcgi.in:4401
-#: ../wwsympa/wwsympa.fcgi.in:4978 ../wwsympa/wwsympa.fcgi.in:4979
-#: ../wwsympa/wwsympa.fcgi.in:6492 ../wwsympa/wwsympa.fcgi.in:7625
-#: ../wwsympa/wwsympa.fcgi.in:8240 ../wwsympa/wwsympa.fcgi.in:8287
-#: ../wwsympa/wwsympa.fcgi.in:8289 ../wwsympa/wwsympa.fcgi.in:8807
-#: ../wwsympa/wwsympa.fcgi.in:8808 ../wwsympa/wwsympa.fcgi.in:8842
-#: ../wwsympa/wwsympa.fcgi.in:8843 ../wwsympa/wwsympa.fcgi.in:9022
-#: ../wwsympa/wwsympa.fcgi.in:9023
+#: ../src/lib/List.pm:3043 ../src/lib/List.pm:3044 ../src/lib/List.pm:3048
+#: ../wwsympa/wwsympa.fcgi.in:11350 ../wwsympa/wwsympa.fcgi.in:11419
+#: ../wwsympa/wwsympa.fcgi.in:11621 ../wwsympa/wwsympa.fcgi.in:11968
+#: ../wwsympa/wwsympa.fcgi.in:15354 ../wwsympa/wwsympa.fcgi.in:15361
+#: ../wwsympa/wwsympa.fcgi.in:16101 ../wwsympa/wwsympa.fcgi.in:16151
+#: ../wwsympa/wwsympa.fcgi.in:16924 ../wwsympa/wwsympa.fcgi.in:16925
+#: ../wwsympa/wwsympa.fcgi.in:4350 ../wwsympa/wwsympa.fcgi.in:4408
+#: ../wwsympa/wwsympa.fcgi.in:4985 ../wwsympa/wwsympa.fcgi.in:4986
+#: ../wwsympa/wwsympa.fcgi.in:6499 ../wwsympa/wwsympa.fcgi.in:7632
+#: ../wwsympa/wwsympa.fcgi.in:8247 ../wwsympa/wwsympa.fcgi.in:8294
+#: ../wwsympa/wwsympa.fcgi.in:8296 ../wwsympa/wwsympa.fcgi.in:8814
+#: ../wwsympa/wwsympa.fcgi.in:8815 ../wwsympa/wwsympa.fcgi.in:8849
+#: ../wwsympa/wwsympa.fcgi.in:8850 ../wwsympa/wwsympa.fcgi.in:9029
+#: ../wwsympa/wwsympa.fcgi.in:9030
 msgid "%d %b %Y"
 msgstr "%d. %B %Y"
 
-#: ../src/lib/List.pm:6443
+#: ../src/lib/List.pm:6451
 msgid "Attempt to exceed the max number of members (%s) for this list."
 msgstr ""
 "Versuch, die maximal zulässige Mitgliederzahl der Liste (%s) zu "
 "überschreiten."
 
-#: ../src/lib/List.pm:6446
+#: ../src/lib/List.pm:6454
 msgid "Attempts to add some users in database failed."
 msgstr "Der Versuch, Benutzer zur Datenbank hinzuzufügen, ist gescheitert."
 
-#: ../src/lib/List.pm:6448
+#: ../src/lib/List.pm:6456
 msgid "Added %s users out of %s required."
 msgstr "%s Benutzer von %s erforderlichen wurden hinzugefügt."
 
@@ -10624,16 +10624,16 @@ msgstr "(unbekanntes Datum)"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../wwsympa/wwsympa.fcgi.in:1080
+#: ../wwsympa/wwsympa.fcgi.in:1087
 msgid "%H:%M:%S"
 msgstr "%H:%M:%S"
 
-#: ../wwsympa/wwsympa.fcgi.in:4873
+#: ../wwsympa/wwsympa.fcgi.in:4880
 msgid "Unable to add user %s in list %s : %s"
 msgstr "Konnte Benutzer %s zur Liste %s nicht hinzufügen: %s"
 
-#: ../wwsympa/wwsympa.fcgi.in:10691 ../wwsympa/wwsympa.fcgi.in:6217
-#: ../wwsympa/wwsympa.fcgi.in:9693
+#: ../wwsympa/wwsympa.fcgi.in:10698 ../wwsympa/wwsympa.fcgi.in:6224
+#: ../wwsympa/wwsympa.fcgi.in:9700
 #, fuzzy
 msgid "Unable to add users in list %s : %s"
 msgstr "Kann Listen-Themen nicht laden."
@@ -10641,52 +10641,54 @@ msgstr "Kann Listen-Themen nicht laden."
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
 #: ../wwsympa/SympaSession.pm:355 ../wwsympa/SympaSession.pm:356
-#: ../wwsympa/wwsympa.fcgi.in:12195 ../wwsympa/wwsympa.fcgi.in:12328
-#: ../wwsympa/wwsympa.fcgi.in:14671 ../wwsympa/wwsympa.fcgi.in:8194
+#: ../wwsympa/wwsympa.fcgi.in:12202 ../wwsympa/wwsympa.fcgi.in:12335
+#: ../wwsympa/wwsympa.fcgi.in:14678 ../wwsympa/wwsympa.fcgi.in:8201
 msgid "%d %b %y  %H:%M"
 msgstr "%d. %b %y %H:%M"
 
-#: ../wwsympa/wwsympa.fcgi.in:15640
+#: ../wwsympa/wwsympa.fcgi.in:15536
 #, fuzzy
 msgid "Your unsubscription request to list %s was sent to the list owner."
 msgstr "Ihre Anfrage wurde an den Listeneigentümer weitergeleitet."
 
-#: ../wwsympa/wwsympa.fcgi.in:15642
+#: ../wwsympa/wwsympa.fcgi.in:15538
 #, fuzzy
 msgid "You were successfully unsubscribed from list %s."
 msgstr "Sie haben die Abmeldung von Liste %1 beantragt"
 
-#: ../wwsympa/wwsympa.fcgi.in:15646
+#: ../wwsympa/wwsympa.fcgi.in:15542
 msgid ""
 "Unsubscription from list %s denied: Unsubscription from this list is closed."
 msgstr ""
+"Abmelden von Liste %s verweigert: Von dieser Liste ist die Abmeldung nicht "
+"zugelassen."
 
-#: ../wwsympa/wwsympa.fcgi.in:15648
+#: ../wwsympa/wwsympa.fcgi.in:15544
 #, fuzzy
 msgid "Unsubscription from list %s failed."
 msgstr "Abbestellen der Liste %1"
 
-#: ../wwsympa/wwsympa.fcgi.in:16244
+#: ../wwsympa/wwsympa.fcgi.in:16140
 msgid "Mail sending"
 msgstr "E-Mail wird gesendet"
 
-#: ../wwsympa/wwsympa.fcgi.in:16245
+#: ../wwsympa/wwsympa.fcgi.in:16141
 #, fuzzy
 msgid "Subscription additions"
 msgstr "Abonnements"
 
-#: ../wwsympa/wwsympa.fcgi.in:16246
+#: ../wwsympa/wwsympa.fcgi.in:16142
 #, fuzzy
 msgid "Unsubscription"
 msgstr "Abbestellen:"
 
-#: ../wwsympa/wwsympa.fcgi.in:16247
+#: ../wwsympa/wwsympa.fcgi.in:16143
 msgid "Users deleted by admin"
 msgstr "Benutzer vom Administrator gelöscht"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../wwsympa/wwsympa.fcgi.in:16623 ../wwsympa/wwsympa.fcgi.in:16624
+#: ../wwsympa/wwsympa.fcgi.in:16519 ../wwsympa/wwsympa.fcgi.in:16520
 msgid "%Y-%m-%d-%H-%M-%S"
 msgstr "%d. %m %Y %H:%M:%S"
 
@@ -10838,16 +10840,6 @@ msgstr "keine Nachricht (nützlich für Urlaube)"
 msgid "you do not receive your own posts"
 msgstr "Sie empfangen Ihre eigenen Nachrichten nicht"
 
-#~ msgid "Article to be tagged for list %1 from %2"
-#~ msgstr "Zu markierende Nachricht für Liste %1 von %2"
-
-#~ msgid ""
-#~ "To tag the message in list %1 for the appropriate topic, please use the "
-#~ "following link:"
-#~ msgstr ""
-#~ "Um die Nachricht in Liste %1 mit dem angebrachten Thema zu markieren, "
-#~ "verwenden Sie bitte den folgenden Link:"
-
 #~ msgid "URL:"
 #~ msgstr "URL:"
 
@@ -10900,6 +10892,16 @@ msgstr "Sie empfangen Ihre eigenen Nachrichten nicht"
 
 #~ msgid "Do Not Notify"
 #~ msgstr "Nicht benachrichtigen"
+
+#~ msgid "Article to be tagged for list %1 from %2"
+#~ msgstr "Zu markierende Nachricht für Liste %1 von %2"
+
+#~ msgid ""
+#~ "To tag the message in list %1 for the appropriate topic, please use the "
+#~ "following link:"
+#~ msgstr ""
+#~ "Um die Nachricht in Liste %1 mit dem angebrachten Thema zu markieren, "
+#~ "verwenden Sie bitte den folgenden Link:"
 
 #~ msgid "Error at line %d: %s"
 #~ msgstr "Fehler in Zeile %d: %s"
