@@ -50,7 +50,6 @@ use mail;
 use Bulk;
 use List;
 use tools;
-use tracking;
 use Sympa::Constants;
 
 my $daemon_name = &Log::set_daemon($0);
@@ -63,7 +62,7 @@ local $main::daemon_usage = 'DAEMON_MASTER'; ## Default is to launch bulk as mas
 ##  --mail : logs every sendmail calls
 my %options;
 unless (&GetOptions(\%main::options, 'debug|d', 'foreground|F','mail|m')) {
-    &Log::fatal_err("Unknown options.");
+    &fatal_err("Unknown options.");
 }
 
 if ($main::options{'debug'}) {
@@ -77,23 +76,23 @@ my $sympa_conf_file = Sympa::Constants::CONFIG;
 
 # Load sympa.conf
 unless (Conf::load($sympa_conf_file)) {
-    &Log::fatal_err("Unable to load sympa configuration, file $sympa_conf_file has errors.");
+    &fatal_err("Unable to load sympa configuration, file $sympa_conf_file has errors.");
 }
 
 ## Check database connectivity
-unless (&SDM::check_db_connect()) {
-    &Log::fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf::Conf{'db_name'});
+unless (&List::check_db_connect()) {
+    &fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf::Conf{'db_name'});
 }
 
-&Log::do_openlog($Conf::Conf{'syslog'}, $Conf::Conf{'log_socket_type'}, 'bulk');
+do_openlog($Conf::Conf{'syslog'}, $Conf::Conf{'log_socket_type'}, 'bulk');
 
 # setting log_level using conf unless it is set by calling option
 if ($main::options{'log_level'}) {
     &Log::set_log_level($main::options{'log_level'});
-    &Log::do_log('info', "Configuration file read, log level set using options : $main::options{'log_level'}"); 
+    do_log('info', "Configuration file read, log level set using options : $main::options{'log_level'}"); 
 }else{
     &Log::set_log_level($Conf::Conf{'log_level'});
-    &Log::do_log('info', "Configuration file read, default log level $Conf::Conf{'log_level'}"); 
+    do_log('info', "Configuration file read, default log level $Conf::Conf{'log_level'}"); 
 }
 
 ## Set the process as main bulk daemon by default.
@@ -109,11 +108,11 @@ unless ($main::options{'debug'} || $main::options{'foreground'}) {
    }
    setpgrp(0, 0);
    if ((my $child_pid = fork) != 0) {
-       &Log::do_log('info',"Starting bulk master daemon, pid %s",$child_pid);
+       do_log('info',"Starting bulk master daemon, pid %s",$child_pid);
        exit(0);
    }
 }
-&Log::do_openlog($Conf::Conf{'syslog'}, $Conf::Conf{'log_socket_type'}, 'bulk');
+do_openlog($Conf::Conf{'syslog'}, $Conf::Conf{'log_socket_type'}, 'bulk');
 ## If process is running in foreground, don't write STDERR to a dedicated file
 my $options;
 $options->{'stderr_to_tty'} = 1 if ($main::options{'foreground'});
@@ -132,7 +131,7 @@ $< = $> = (getpwnam(Sympa::Constants::USER))[2];
 
 ## Check if the UID has correctly been set (usefull on OS X)
 unless (($( == (getgrnam(Sympa::Constants::GROUP))[2]) && ($< == (getpwnam(Sympa::Constants::USER))[2])) {
-    &Log::fatal_err("Failed to change process userID and groupID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via SUDO.");
+    &fatal_err("Failed to change process userID and groupID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via SUDO.");
 }
 
 ## Sets the UMASK
@@ -140,13 +139,13 @@ umask(oct($Conf::Conf{'umask'}));
 
 ## Change to list root
 unless (chdir($Conf::Conf{'home'})) {
-    &Log::do_log('err','unable to change directory');
+    &do_log('err','unable to change directory');
     exit (-1);
 }
 
 my $pinfo = &List::_apply_defaults();
 
-&Log::do_log('notice', "bulk.pl %s Started", Sympa::Constants::VERSION);
+do_log('notice', "bulk.pl %s Started", Sympa::Constants::VERSION);
 
 
 ## Catch SIGTERM, in order to exit cleanly, whenever possible.
@@ -157,19 +156,16 @@ my $opensmtp = 0 ;
 my $fh = 'fh0000000000';	## File handle for the stream.
 
 my $messagekey;       # the key of the current message in the message_table   
-my $messageasstring_init;  # the current message as a string
-my $messageasstring;  # the transformed message.
+my $messageasstring;  # the current message as a string
+my $last_check_date = 0;
 
 my $timeout = $Conf::Conf{'bulk_wait_to_fork'};
-my $last_check_date = time();
 
 $options->{'multiple_process'} = 1;
 $Conf::Conf{'maxsmtp'} = int($Conf::Conf{'maxsmtp'}/$Conf::Conf{'bulk_max_count'});
 
 while (!$end) {
-    &List::init_list_cache();
     my $bulk;
-    my $message_from_spool ;
 	
     unless ($main::options{'foreground'}) {
         ## 
@@ -180,32 +176,27 @@ while (!$end) {
 	    
 	    ## Start new processes if at least 'bulk_fork_threshold' (sympa.conf parameter) in the bulkmailer_table table
 	    ## Only if no bulk child process is still running
-	    my $number_of_pids = &tools::get_number_of_pids($Conf::Conf{'pidfile_bulk'});
-	    unless (defined($number_of_pids)){
-		&tools::write_pid($Conf::Conf{'pidfile_bulk'}, $$, $options);
-		$number_of_pids = &tools::get_number_of_pids($Conf::Conf{'pidfile_bulk'});
-	    }
-	    if((my $r_packets = &Bulk::there_is_too_much_remaining_packets()) && defined($number_of_pids) && ($number_of_pids <= 1) ){
+	    if((my $r_packets = &Bulk::there_is_too_much_remaining_packets()) && 
+	       !(&tools::get_number_of_pids($Conf::Conf{'pidfile_bulk'}) > 1)){
 		
 		## disconnect from database before fork
 		## to prevent DB handlers to be shared by different processes
-		my $dbh = &SDM::db_get_handler();
+		my $dbh = &List::db_get_handler();
 		$dbh->disconnect; # when loading conf in database disconnect because of sharing dbh may crash bulk.pl
 		
 		if($Conf::Conf{'bulk_max_count'} > 1) {
-		    &Log::do_log('info','Workload increased: %s packets to process. Creating %s child bulks to increase sending rate.', $r_packets, $Conf::Conf{'bulk_max_count'}-1);
+		    &do_log('info','Workload increased: %s packets to process. Creating %s child bulks to increase sending rate.', $r_packets, $Conf::Conf{'bulk_max_count'}-1);
 		    for my $process_count(1..$Conf::Conf{'bulk_max_count'}-1){
 			if ((my $child_pid = fork) != 0) {
-			    &Log::do_log('info', "Starting bulk child daemon, pid %s", $child_pid);
+			    do_log('info', "Starting bulk child daemon, pid %s", $child_pid);
 			    # Saves the pid number
 			    &tools::write_pid($Conf::Conf{'pidfile_bulk'}, $child_pid, $options);
-			    sleep 1; 
 			}else{
 			    ## We're in a child bulk process
 			    $date_of_last_activity = time();
 			    $main::daemon_usage = 'DAEMON_SLAVE'; # automatic lists creation
-			    &Log::do_openlog($Conf::Conf{'syslog'}, $Conf::Conf{'log_socket_type'}, 'bulk');
-			    &Log::do_log('info', "Bulk slave daemon started with pid %s", $$);
+			    do_openlog($Conf::Conf{'syslog'}, $Conf::Conf{'log_socket_type'}, 'bulk');
+			    do_log('info', "Bulk slave daemon started with pid %s", $$);
 			    last;
 			}
 		    }
@@ -218,140 +209,49 @@ while (!$end) {
     if (($main::daemon_usage eq 'DAEMON_SLAVE') && 
 		(time() - $date_of_last_activity > $Conf::Conf{'bulk_lazytime'}) && 
 		!(my $r_packets = &Bulk::there_is_too_much_remaining_packets())){
-		&Log::do_log('info', "Process %s didn't send any message since %s seconds, exiting.", $$, $Conf::Conf{'bulk_lazytime'});
+		&do_log('info', "Process %s didn't send any message since %s seconds, exiting.", $$, $Conf::Conf{'bulk_lazytime'});
 		last;
     }
 	
 	## Go through the bulk_mailer table and process messages
     if ($bulk = Bulk::next()) {
 	if ($bulk->{'messagekey'} ne $messagekey) {
-	    # current packet is not related to the same message as the previous packet
-            # so it is needed to fetch the new message from message_table 
-
-	    $messagekey = $bulk->{'messagekey'};
-	    $message_from_spool = &Bulk::message_from_spool($bulk->{'messagekey'});
-
-	    $messageasstring_init = $message_from_spool->{'messageasstring'};
-
-	    # &trace_smime($messageasstring_init,'initial');
-
-	    unless ( $messageasstring_init ) {
-		&Log::do_log('err',"internal error : current packet (messagekey= %s) contains a ref to a null message",$bulk->{'messagekey'});
+	    # current packet is no related to the same message as the previous packet
+	    # so it is needed to fetch the new message from message_table 
+	    $messageasstring = &Bulk::messageasstring($bulk->{'messagekey'});
+	    unless ( $messageasstring ) {
+		&do_log('err',"internal error : current packet (messagekey= %s) contain a ref to a null message",$bulk->{'messagekey'});
 		unless (&Bulk::remove($bulk->{'messagekey'},$bulk->{'packetid'})) {
-		    &Log::do_log('err',"failed to remove processed packet '%s', messagekey '%s'", $bulk->{'messagekey'},$bulk->{'packetid'});
+		    &do_log('err',"failed to remove processed packet '%s', messagekey '%s'", $bulk->{'messagekey'},$bulk->{'packetid'});
 		}
+		next;
 	    }
-	    $messagekey = $bulk->{'messagekey'};
 	}
-
-	my $data; #HASH which will contain the attributes of the subscriber
-	
-	# Initialization of the HASH : $data. It will be used by parse_tt2 to personalized messages.
-	$data->{'listname'} = $bulk->{'listname'};
-	$data->{'robot'} = $bulk->{'robot'};
-	$data->{'to'} = $bulk->{'receipients'};
-	$data->{'wwsympa_url'} = &Conf::get_robot_conf($bulk->{'robot'},'wwsympa_url');
-	
-	my $rcpt; # It is the email of a subscriber, use it in the foreach
-	my @rcpts = split /,/,$bulk->{'receipients'}; # Contain all the subscribers
-	## Use an intermediate handler to encode to filesystem_encoding
-	my $user;
-	
-	# message transformation must be done in the folowing order 
-        #  -1 headers modifications (done in sympa.pl)
-        #  -2 merge
-        #  -3 smime sign
-        #  -4 smime encrypt
-	#  -5 remove existing signature if altered 
-        #  -6 dkim sign
-        # 
- 
-
-	#my $list = new List($bulk->{'listname'}, $bulk->{'robot'});
-	my $listname= $bulk->{'listname'}; my $robot =  $bulk->{'robot'};
-
-	if (($bulk->{'verp'})||($bulk->{'merge'})||($bulk->{'tracking'}eq 'dsn')||($bulk->{'tracking'}eq 'mdn')){ # message needs personalization
-	    my $key ;
-	    	    
-	    foreach $rcpt (@rcpts) {
-		my $message = new Message ({'messageasstring'=>$messageasstring_init,'noxsympato'=>'noxsympato'});
-		my $entity = $message->{'msg'};
-		my $notification_id;
-		my $return_path;
-		my $escaped_rcpt = $rcpt;
-		$escaped_rcpt  =~ s/\@/\=\=a\=\=/; 
-		
-		if(($bulk->{'tracking'} eq 'dsn')||($bulk->{'tracking'} eq 'mdn')){ # tracking by MDN required tracking by DSN to
-		    my $msgid = $entity->head->get('Message-Id'); chomp $msgid;		    
-		    $notification_id = &tracking::find_notification_id_by_message($rcpt, $msgid, $listname,$robot);
-		    $return_path = $Conf::Conf{'bounce_email_prefix'}.'+'.$escaped_rcpt.'=='.$listname.'=='.$notification_id.'@'.$robot;
-		    $entity->head->replace('Disposition-Notification-To',$return_path) if ($bulk->{'tracking'} eq 'mdn') ;
-		    if (($message->{'protected'})||($message->{'smime_crypted'})){
-			my $msg_body =$messageasstring_init; $msg_body =~ s/^.*\n\n//;      # remove headers
-			$messageasstring_init = $entity->head->as_string. "\n" . $msg_body; # concat headers from entity with original body
-		    }else{
-			$messageasstring_init = $entity->as_string;
-		    }
-		    # &trace_smime($messageasstring,'tracking');
-		}else{  # VERP
-		    $return_path = $Conf::Conf{'bounce_email_prefix'}.'+'.$escaped_rcpt.'=='.$listname.'@'.$robot; 
-		}
-		if (($bulk->{'merge'}) && !($message->{'protected'})) {
-		    unless(&Bulk::merge_msg ($entity, $rcpt, $bulk, $data)){
-			&Log::do_log('err', 'Erreur d appel &Bulk::merge_msg');
-		    }		    
-		    $messageasstring = $entity->as_string;		    		
-		}else{
-		    $messageasstring = $messageasstring_init;
-		}
-
-		if (&Conf::get_robot_conf($bulk->{'robot'}, 'dkim_feature') eq 'on'){
-		    $messageasstring = &tools::remove_invalid_dkim_signature($messageasstring );
-		}
-		if ($message_from_spool->{'dkim_d'}){ # apply dkim signature AFTER any other message transformation.
-		    $messageasstring = &tools::dkim_sign($messageasstring,{'dkim_d'=>           $message_from_spool->{'dkim_d'},
-									   'dkim_i'=>           $message_from_spool->{'dkim_i'},
-									   'dkim_selector'=>    $message_from_spool->{'dkim_selector'},
-									   'dkim_privatekey' => $message_from_spool->{'dkim_privatekey'},
-									   'dkim_header_list' =>$message_from_spool->{'dkim_header_list'} } );
-		}
-
-		# &trace_smime($messageasstring,'dkim');
-
-		*SMTP = &mail::smtpto($return_path, \$rcpt, $bulk->{'robot'},$notification_id);
-		# Message with customized data
+	my @rcpts = split /,/,$bulk->{'receipients'};
+	if ($bulk->{'verp'}){   
+	    foreach my $rcpt (@rcpts) {
+		my $return_path = $rcpt;
+		$return_path =~ s/\@/\=\=a\=\=/; 
+		$return_path = "$Conf::Conf{'bounce_email_prefix'}+$return_path\=\=$bulk->{'listname'}\@$bulk->{'robot'}"; # VERP broken if no listname is provided
+		*SMTP = &mail::smtpto($return_path, \$rcpt, $bulk->{'robot'});
 		print SMTP $messageasstring;
 		close SMTP;
 	    }
-	}else{ # message dont needs personalization, they can be sent by packet
-            if (&Conf::get_robot_conf($bulk->{'robot'}, 'dkim_feature') eq 'on'){
-		$messageasstring_init = &tools::remove_invalid_dkim_signature($messageasstring_init );
-	    }
-	    # Initial message
-	    if ($message_from_spool->{'dkim_d'}){
-		$messageasstring_init = &tools::dkim_sign($messageasstring_init,{'dkim_d'=>           $message_from_spool->{'dkim_d'},
-										 'dkim_i'=>           $message_from_spool->{'dkim_i'},
-										 'dkim_selector'=>    $message_from_spool->{'dkim_selector'},
-										 'dkim_privatekey' => $message_from_spool->{'dkim_privatekey'},
-										 'dkim_header_list' =>$message_from_spool->{'dkim_header_list'} } );
-	    }
-
-	    # &trace_smime($messageasstring_init,'dkim 2');
-	    
-	    *SMTP = &mail::smtpto($bulk->{'returnpath'}, \@rcpts, $bulk->{'robot'});		
-	    print SMTP $messageasstring_init;
+	}else{
+	    *SMTP = &mail::smtpto($bulk->{'returnpath'}, \@rcpts, $bulk->{'robot'});
+	    print SMTP $messageasstring;
 	    close SMTP;
 	}
 	
 	## Remove packet once it has been processed
 	unless (&Bulk::remove($bulk->{'messagekey'},$bulk->{'packetid'})) {
-	    &Log::do_log('err',"failed to remove processed packet '%s', messagekey '%s'", $bulk->{'messagekey'},$bulk->{'packetid'});
+	    &do_log('err',"failed to remove processed packet '%s', messagekey '%s'", $bulk->{'messagekey'},$bulk->{'packetid'});
+	    return undef;
 	}
-
 	
-	if($bulk->{'priority_packet'} == $Conf::Conf{'sympa_packet_priority'} + 5){
-	    &Log::do_log('notice','Done sending message %s to list %s@%s (priority %s) in %s seconds since scheduled expedition date.', 
-		    $bulk->{'messageid'}, 
+	if($bulk->{'priority_packet'} == $Conf::Conf{'sympa_packet_priority'} + 1){
+	    &do_log('notice','Done sending message %s to list %s@%s (priority %s) in %s seconds since scheduled expedition date. Now sending VERP.', 
+		    $bulk->{'messagekey'}, 
 		    $bulk->{'listname'}, 
 		    $bulk->{'robot'}, 
 		    $bulk->{'priority_message'}, 
@@ -363,10 +263,8 @@ while (!$end) {
 	sleep $Conf::Conf{'bulk_sleep'}; 
     }
     &mail::reaper;
-
-    
 }
-&Log::do_log('notice', 'bulk.pl exited normally due to signal');
+do_log('notice', 'bulk.pl exited normally due to signal');
 &tools::remove_pid($Conf::Conf{'pidfile_bulk'}, $$, $options);
 
 exit(0);
@@ -375,36 +273,7 @@ exit(0);
 ## When we catch SIGTERM, just change the value of the loop
 ## variable.
 sub sigterm {
-    &Log::do_log('notice', 'signal TERM received, still processing current task');
+    &do_log('notice', 'signal TERM received, still processing current task');
     $end = 1;
 }
 
-
-
-
-
-sub trace_smime {
-
-    my $messageasstring_init = shift;
-    my $where = shift;
-
-    my $trusted_ca_options = '';
-    $trusted_ca_options = "-CAfile $Conf::Conf{'cafile'} " if ($Conf::Conf{'cafile'});
-    $trusted_ca_options .= "-CApath $Conf::Conf{'capath'} " if ($Conf::Conf{'capath'});
-    
-    unless (open (MSGDUMP, "| $Conf::Conf{'openssl'} smime -verify  $trusted_ca_options > /dev/null")) {	
-	&Log::do_log('err', "unable to verify smime signature");
-	return undef ;
-    }
-    
-    print MSGDUMP $messageasstring_init;
-    
-    close MSGDUMP;
-    
-    my $status = $?/256 ;
-    unless ($status == 0) {
-	&Log::do_log('debug', "signature SMIME NOT OK   (%s)",$where);    
-    }else{
-	&Log::do_log('debug', "signature SMIME OK    (%s)",$where);    
-    }
-}

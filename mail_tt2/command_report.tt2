@@ -1,4 +1,4 @@
-From: [% conf.email_gecos %] <[% conf.email %]@[% conf.host %]>
+From: SYMPA <[% conf.email %]@[% conf.host %]>
 To: [% to %]
 Subject: [% FILTER qencode %][%|loc%]Results of your commands[%END%][%END%]
 X-Loop: [% conf.sympa %]
@@ -15,12 +15,8 @@ X-Loop: [% conf.sympa %]
 [%- FOREACH notice = notices -%]
 > [% notice.cmd -%]
 
-> [% notice.entry %]
 [% IF notice.entry == 'smime' -%]
 [%|loc%]Your message signature was successfully verified using S/MIME.[%END%]
-
-[% ELSIF notice.entry == 'dkim' -%]
-[%|loc%]Your message contain a DKIM signature. It was succesfully verified[%END%]
 
 [% ELSIF notice.entry == 'req_forward' -%]
 [%|loc%]Your request to subscribe/unsubscribe has been forwarded to the list's
@@ -137,8 +133,6 @@ Your configuration regarding this command has not been updated.[%END-%]
 You probably confirmed your %1 using a different
 email address. Please try using your canonical address.[%END-%]
 
-[% ELSE %]
-[% u_err.entry %]
 [% END -%]
 [% END -%]
 [% END -%]

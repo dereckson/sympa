@@ -46,7 +46,7 @@ install-exec-hook:
 
 archived.pl bounced.pl wwsympa.fcgi: Makefile
 	rm -f $@
-	$(AM_V_GEN)$(SED) \
+	sed \
 		-e 's|--PERL--|$(PERL)|' \
 		-e 's|--modulesdir--|$(modulesdir)|' \
 		< $(srcdir)/$@.in > $@

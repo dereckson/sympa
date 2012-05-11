@@ -124,7 +124,6 @@ nobase_default_DATA = list_task_models/expire.yearly.task \
 		      scenari/send.publicnoattachment \
 		      scenari/send.public_nobcc \
 		      scenari/send.publicnomultipart \
-		      scenari/spam_status.x-spam-status \
 		      scenari/subscribe.auth \
 		      scenari/subscribe.auth_notify \
 		      scenari/subscribe.auth_owner \
@@ -140,8 +139,6 @@ nobase_default_DATA = list_task_models/expire.yearly.task \
 		      scenari/topics_visibility.conceal \
 		      scenari/topics_visibility.identified \
 		      scenari/topics_visibility.noconceal \
-		      scenari/tracking.owner \
-		      scenari/tracking.private \
 		      scenari/unsubscribe.auth \
 		      scenari/unsubscribe.auth_notify \
 		      scenari/unsubscribe.closed \
@@ -168,18 +165,17 @@ DEFAULT_SCENARIOS = add.owner \
 		    send.private \
 		    subscribe.open \
 		    topics_visibility.noconceal \
-		    tracking.owner \
 		    unsubscribe.open \
 		    visibility.conceal
 
 list_aliases.tt2: Makefile list_aliases.tt2.in
 	rm -f $@
-	$(AM_V_GEN)$(SED) \
+	sed \
 		-e 's|--libexecdir--|$(libexecdir)|' \
 		< $(srcdir)/$@.in > $@
 
 install-data-hook:
 	cd  $(DESTDIR)$(defaultdir)/scenari; \
 	for file in $(DEFAULT_SCENARIOS); do \
-		$(LN_S) -f $$file `echo $$file | $(SED) -e 's/\.[^.]*$$/.default/'`; \
+		ln -sf $$file `echo $$file | sed -e 's/\.[^.]*$$/.default/'`; \
 	done

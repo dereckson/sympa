@@ -97,12 +97,8 @@ dl {
                  border-radius:4px;
                 }
 
-#ActionHeader #MainMenuLinks {
-				border: none;		
-                }
-
 #ActionHeader span.search_form {
-				margin-bottom:1em;
+				margin-top:1em;
 				}
 
 #Clock {
@@ -358,16 +354,6 @@ td.review_cels_mail {
                   -icab-border-radius:4px;
                   border-radius:4px;
                   }
-
-.news_container {
-	background-color: [% color_3 %];
-        border: 1px solid [% color_2 %];
-	-moz-border-radius: 4px;
-	-webkit-border-radius:4px;
-	-KHTML-border-radius:4px;
-	-icab-border-radius:4px;
-	padding: 5px;
-	}
 
 .edit_list_request_enum{ 
                          margin: 1em;
@@ -1137,17 +1123,6 @@ a.ArcMenuLinksSortInactive {
                         text-decoration: none;
                         padding: 0px 0px 0px 3px;}
 
-.ArcActions {
-	     float:right;
-	     margin-top: -2.9em;
-	     margin-right:0.5em
-}
-
-.ArcActions form {
-		   border: none!important;
-}
-
-
 .block {
          border: 1px dotted [% color_2 %];
          padding: 7px;
@@ -1278,27 +1253,6 @@ h7 strong {
             }
 
 
-.formError {
-	    float:right;
-            background: [% color_7 %];
-            z-index:610!important;
-            border: 2px ridge [% color_12 %];
-            padding:1em 0.5em;
-            -moz-border-radius:20px;
-            -webkit-border-radius:20px;
-            -KHTML-border-radius:20px;
-            -icab-border-radius:20px;
-            border-radius:20px;
-	    display:none;
-            }
-
-#ErrorMsg a {
-	color: [% color_4 %]!important;
-}
-
-#ErrorMsg a:hover {
-	color: [% color_5 %]!important;
-}
 
 #ErrorMsg .MainMenuLinks { 
                            color:[% color_4 %];
@@ -1322,10 +1276,9 @@ h7 strong {
                                  }
 
 #noticeMsg { 
-	     position: absolute;
-	     top:20%;left:25%;right:25%;
-	     z-index: 700!important;
-             border: 2px ridge [% color_12 %];
+             margin-top:1.5em;
+	     width:98%;
+             border: 5px ridge [% color_12 %];
              font-family:serif;
              font-size: 1.6em;
              font-weight: bold;
@@ -1359,37 +1312,6 @@ h7 strong {
                                   border:2px inset [% color_5 %];
                                   color:[% color_5 %]!important;
                                   }
-
-
-
-div.messageContent {
-	text-align: left;
-	color:[% color_5 %]!important;
-	font-size: 0.8em;
-	font-weight: normal;
-	height: 400px;
-	overflow-y: scroll;
-}
-
-
-
-div.hiddenform { 
-            position:absolute;
-            width:40%;
-	    background: [% color_3 %];
-            z-index:610!important;
-            border: 2px ridge [% color_12 %];
-            padding:1em 0.5em;
-            -moz-border-radius:20px;
-            -webkit-border-radius:20px;
-            -KHTML-border-radius:20px;
-            -icab-border-radius:20px;
-            border-radius:20px;
-	    display:none;
-            }
-
-
-
 
 p.listenum {
              margin: 0 0 0.5em 1.5em;
@@ -1755,7 +1677,6 @@ table.listOfItems {
 
 table.listOfItems td { 
                        font-size: smaller;
-		       padding: 5px;
                        border:1px solid [% color_12 %];
                        }
 
@@ -1857,7 +1778,7 @@ table.preferences th {
 #bandeau_top #Identity_not_connect {
 
                                      width:99%;
-                                     text-align: right;
+                                     text-align: left;
                                      font-size: 1em;
                                      font-weight: bold;
                                      font-family:serif!important;
@@ -1910,10 +1831,10 @@ clear:none;
                       }
 
 #bandeau_top .remember { 
-                         float:left;
+                         float:right;
                          font-size: 0.9em;
                          font-family:serif!important;
-                         text-align:left;
+                         text-align:right;
                          font-weight: bold;
                          color:[% color_5 %]!important;
                          width:25%;
@@ -2116,7 +2037,6 @@ clear:none;
                                            text-decoration:none;
                                            }
 
-/*
 .columns {
            -moz-column-width:40%;
            -moz-column-count:2;
@@ -2138,15 +2058,6 @@ clear:none;
            column-gap:1em;
            column-rule: 1px solid black;
            }
-
-.columns div {
-	   -moz-column-break-inside: avoid!important;
-
-	   -webkit-column-break-inside: avoid!important;
-
-	   column-break-inside: avoid!important;
-           }
-*/
 
 .menu_search { 
                width:100%;
@@ -2197,116 +2108,5 @@ span.bottom_page {
             border: none!important;
             }
 
-/********************/
-/* For the calendar */
-/********************/
-.divCal {
-    	position:absolute;
-    	border:1px [% color_9 %];
-    	background:[% color_9 %];
-	z-index:500;
-	}
-
-.divCal a{
-    	text-decoration:none;
-    	width:100%;
-	}
-
-.divCal table {
-    		font-size:12px;
-    		font-family:Tahoma;
-    		text-align:center;
-    		margin:0px;
-    		width:140px;
-		}
-
-.divCal td {
-    		margin : 0px;
-    		border:1px solid [% color_8 %];
-		}
-.divCal .zoneTitre {
-    		font-size:12px;
-    		font-family:Tahoma;
-    		text-align:center;
-    		margin:0px;
-   		background:[% color_9 %];
-		}
-
-.divCal .zoneNav {
-    		font-size:10px;
-    		font-family:Tahoma;
-    		text-align:center;
-    		margin:0px;
-    		cursor:pointer;
-		}
-
-.divCal .zoneMois {
-    		font-family:Tahoma;
-    		width:70px;
-    		margin:0px;
-		}
-
-.divCal .zoneAnnee {
-    		font-size:10px;
-    		font-weight:bold;
-    		text-align:right;
-    		margin:0px;
-    		width:100%;
-		}
-
-.divCal .nSemaine {
-    		font-family:Tahoma;
-		width:30px;
-		margin:0px;
-		color:[% color_4 %];
-		}
-
-.divCal div{
-    		margin : 0px;
-		}
-
-.divCal .td {
-    		color:[% color_5 %];
-		} /*par defaut*/
-
-.divCal .tdx .enWeekend {
-    			background:[% color_8 %];
-			}
-
-.divCal .tdx .enFeriee {
-    			background:[% color_8 %];
-			}
-
-.divCal .tdx .enMois {
-    			color:black;
-    			font-weight:bold;
-			}
-
-.divCal .tdx .aujourdhui {
-    			border:2px solid [% color_7 %];
-			}
-
-.divCal .tdxNow {
-    		color:black;
-    		font-weight:bold;
-		}
-
-.divCal .tdxNow:hover {
-   			 background:[% color_4 %];
-			}
-
-.divCal .tdx:hover {
-    			background:[% color_3 %];
-			}
-
-.divCal .tdx:hover .enWeekend {
-    				background:[% color_6 %];
-				}
-
-.divCal .tdx:hover .enMois {
-    				color:[% color_2 %];
-    				font-weight:bold;
-    				background:[% color_6 %];
-				} /*pour firefox */
 
 [% END %]

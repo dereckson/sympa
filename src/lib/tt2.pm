@@ -128,7 +128,7 @@ sub maketext {
 
     ## Strangely the path is sometimes empty...
     ## TODO : investigate
-#    &Log::do_log('notice', "PATH: $path ; $template_name");
+#    &do_log('notice', "PATH: $path ; $template_name");
 
     ## Sample code to dump the STASH
     # my $s = $stash->_dump();    
@@ -152,29 +152,6 @@ sub locdatetime {
 	my @arg = ($6+0, $5+0, $4+0, $3+0 || 1, $2-1, $1-1900, 0,0,0);
         return sub { gettext_strftime($_[0], @arg); };
     }
-}
-
-# IN:
-#    $context: Context.
-#    $init: Indentation (or its length) of each paragraphm if any.
-#    $subs: Indentation (or its length) of other lines if any.
-#    $cols: Line width, defaults to 78.
-# OUT:
-#    Subref to generate folded text.
-sub wrap {
-    my ($context, $init, $subs, $cols) = @_;
-    $init = '' unless defined $init;
-    $init = ' ' x $init if $init =~ /^\d+$/;
-    $subs = '' unless defined $subs;
-    $subs = ' ' x $subs if $subs =~ /^\d+$/;
-
-    return sub {
-        my $text = shift;
-        my $nl = $text =~ /\n$/;
-        my $ret = &tools::wrap_text($text, $init, $subs, $cols);
-        $ret =~ s/\n$// unless $nl;
-        $ret;
-    };
 }
 
 ## To add a directory to the TT2 include_path
@@ -235,7 +212,6 @@ sub parse_tt2 {
 	    loc => [\&tt2::maketext, 1],
 	    helploc => [\&tt2::maketext, 1],
 	    locdt => [\&tt2::locdatetime, 1],
-	    wrap => [\&tt2::wrap, 1],
 	    qencode => [\&qencode, 0],
  	    escape_xml => [\&escape_xml, 0],
 	    escape_url => [\&escape_url, 0],
@@ -245,9 +221,6 @@ sub parse_tt2 {
 	    }
     };
     
-    unless($options->{'is_not_template'}){
-	$config->{'INCLUDE_PATH'} = $include_path;
-    }
     if ($allow_absolute) {
 	$config->{'ABSOLUTE'} = 1;
 	$allow_absolute = 0;
@@ -257,8 +230,8 @@ sub parse_tt2 {
 
     unless ($tt2->process($template, $data, $output)) {
 	$last_error = $tt2->error();
-	&Log::do_log('err', 'Failed to parse %s : %s', $template, $tt2->error());
-	&Log::do_log('err', 'Looking for TT2 files in %s', join(',',@{$include_path}));
+	&do_log('err', 'Failed to parse %s : %s', $template, $tt2->error());
+	&do_log('err', 'Looking for TT2 files in %s', join(',',@{$include_path}));
 
 
 	return undef;

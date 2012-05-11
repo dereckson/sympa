@@ -23,17 +23,14 @@ webtemplate_DATA = active_lists.tt2 \
 		   add_request.tt2 \
 		   admin_menu.tt2 \
 		   admin.tt2 \
-		   ajax.tt2 \
 		   arc_manage.tt2 \
 		   arc_protect.tt2 \
 		   arcsearch_form.tt2 \
 		   arcsearch.tt2 \
 		   arc.tt2 \
-		   auto_signoff.tt2 \
 		   blacklist.tt2 \
 		   button_footer.tt2 \
 		   button_header.tt2 \
-		   ca.tt2 \
 		   change_email.tt2 \
 		   change_email_request.tt2 \
 	     	   choosepasswd.tt2 \
@@ -53,13 +50,8 @@ webtemplate_DATA = active_lists.tt2 \
 		   dumpvars.tt2 \
 		   d_upload.tt2 \
 		   edit_attributes.tt2 \
-		   edit_config.tt2 \
 		   editfile.tt2 \
 		   edit_list_request.tt2 \
-		   oauth_check.tt2 \
-		   oauth_authorize.tt2 \
-		   select_voot_provider_request.tt2 \
-		   select_voot_groups_request.tt2 \
 		   editsubscriber.tt2 \
 		   edit_template.tt2 \
 		   error.tt2 \
@@ -89,7 +81,6 @@ webtemplate_DATA = active_lists.tt2 \
 		   latest_arc.tt2 \
 		   latest_d_read.tt2 \
 		   latest_lists.tt2 \
-		   lca.tt2 \
 		   list_button_footer.tt2 \
 		   list_button_header.tt2 \
 		   list_menu.tt2 \
@@ -106,9 +97,7 @@ webtemplate_DATA = active_lists.tt2 \
 		   menu.tt2 \
 		   menu_search.tt2 \
 		   modindex.tt2 \
-		   modform.tt2 \
 		   nav.tt2 \
-		   news.tt2 \
 		   notice.tt2 \
 		   picture_upload.tt2 \
 		   pref.tt2 \
@@ -128,7 +117,6 @@ webtemplate_DATA = active_lists.tt2 \
 		   setlang.tt2 \
 		   set_pending_list_request.tt2 \
 		   show_cert.tt2 \
-		   show_exclude.tt2 \
 		   show_sessions.tt2 \
 		   sigrequest.tt2 \
 		   skinsedit.tt2 \
@@ -137,11 +125,8 @@ webtemplate_DATA = active_lists.tt2 \
 		   subindex.tt2 \
 		   suboptions.tt2 \
 		   subrequest.tt2 \
-		   subscriber_table.tt2 \
-		   suspend_request.tt2 \
 		   ticket.tt2 \
 		   title.tt2 \
-		   tracking.tt2 \
 		   tt2_error.tt2 \
 		   viewbounce.tt2 \
 		   viewlogs.tt2 \
@@ -153,6 +138,6 @@ EXTRA_DIST = $(webtemplate_DATA)
 
 install-data-hook:
 	cd $(DESTDIR)$(webtemplatedir); \
-	$(LN_S) -f review.tt2 search.tt2; \
-	$(LN_S) -f lists.tt2 which.tt2; \
-	$(LN_S) -f lists.tt2 search_list.tt2
+	ln -sf review.tt2 search.tt2; \
+	ln -sf lists.tt2 which.tt2; \
+	ln -sf lists.tt2 search_list.tt2

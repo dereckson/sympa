@@ -40,7 +40,7 @@ my %persistent_cache;
 sub new {
    my($pkg, @args) = @_;
     my %parameters = @args;
-    &Log::do_log('debug2', '');
+    &do_log('debug2', '');
  
     my $scenario = {};
 
@@ -49,7 +49,7 @@ sub new {
     ## Parameter 'directory' is optional, used in List context only
     unless ($parameters{'robot'} && 
 	    ($parameters{'file_path'} || ($parameters{'function'} && $parameters{'name'}))) {
-	&Log::do_log('err', 'Missing parameter');
+	&do_log('err', 'Missing parameter');
 	return undef;
     }
 
@@ -64,7 +64,7 @@ sub new {
 	my @tokens = split /\//, $parameters{'file_path'};
 	my $filename = $tokens[$#tokens];
 	unless ($filename =~ /^([^\.]+)\.(.+)$/) {
-	    &Log::do_log('err',"Failed to determine scenario type and name from '$parameters{'file_path'}'");
+	    &do_log('err',"Failed to determine scenario type and name from '$parameters{'file_path'}'");
 	    return undef;
 	}
 	($parameters{'function'}, $parameters{'name'}) = ($1, $2);
@@ -102,7 +102,7 @@ sub new {
     if (defined $scenario->{'file_path'}) {
 	## Get the data from file
 	unless (open SCENARIO, $scenario->{'file_path'}) {
-	    &Log::do_log('err',"Failed to open scenario '$scenario->{'file_path'}'");
+	    &do_log('err',"Failed to open scenario '$scenario->{'file_path'}'");
 	    return undef;
 	}
 	my $data = join '', <SCENARIO>;
@@ -118,7 +118,7 @@ sub new {
 	
     }else {
 	## Default rule is 'true() smtp -> reject'
-	&Log::do_log('err',"Unable to find scenario file '$parameters{'function'}.$parameters{'name'}', please report to listmaster"); 
+	&do_log('err',"Unable to find scenario file '$parameters{'function'}.$parameters{'name'}', please report to listmaster"); 
 	$scenario_struct = &_parse_scenario($parameters{'function'}, $parameters{'robot'}, $parameters{'name'}, 'true() smtp -> reject', $parameters{'directory'});
 	$scenario->{'file_path'} = 'ERROR'; ## special value
 	$scenario->{'data'} = 'true() smtp -> reject';
@@ -128,7 +128,7 @@ sub new {
     $scenario->{'date'} = time;
 
     unless (ref($scenario_struct) eq 'HASH') {
-	&Log::do_log('err',"Failed to load scenario '$parameters{'function'}.$parameters{'name'}'");
+	&do_log('err',"Failed to load scenario '$parameters{'function'}.$parameters{'name'}'");
 	return undef;
     }
 
@@ -142,22 +142,21 @@ sub new {
 
     ## Keep the scenario in memory
     $all_scenarios{$scenario->{'file_path'}} = $scenario;
-
+    
     return $scenario;
 }
 
 ## Parse scenario rules
 sub _parse_scenario {
     my ($function, $robot, $scenario_name, $paragraph, $directory ) = @_;
-    &Log::do_log('debug2', "($function, $scenario_name, $robot)");
+    &do_log('debug2', "($function, $scenario_name, $robot)");
     
     my $structure = {};
     $structure->{'name'} = $scenario_name ;
     my @scenario;
     my @rules = split /\n/, $paragraph;
 
-    foreach my $current_rule (@rules) {	
-	my @auth_methods_list;
+    foreach my $current_rule (@rules) {
 	next if ($current_rule =~ /^\s*\w+\s*$/o); # skip paragraph name
 	my $rule = {};
 	$current_rule =~ s/\#.*$//;         # remove comments
@@ -172,29 +171,41 @@ sub _parse_scenario {
         
 	if ($current_rule =~ /\s*(include\s*\(?\'?(.*)\'?\)?)\s*$/i) {
 	    $rule->{'condition'} = $1;
-	    push(@scenario, $rule);
-	}elsif ($current_rule =~ /^\s*(.*?)\s+((\s*(md5|pgp|smtp|smime|dkim)\s*,?)*)\s*->\s*(.*)\s*$/gi) {
-	    $rule->{'condition'} = $1;
-	    $rule->{'action'} = $5;
-	    my $auth_methods = $2 || 'smtp';
-	    $auth_methods=~ s/\s//g;
-	    @auth_methods_list = split ',', $auth_methods;
+	}elsif ($current_rule =~ /^\s*(.*)\s+(md5|pgp|smtp|smime)((\s*,\s*(md5|pgp|smtp|smime))*)\s*->\s*(.*)\s*$/i) {
+	    $rule->{'condition'}=$1;
+	    $rule->{'auth_method'}=$2 || 'smtp';
+	    $rule->{'action'} = $6;
 	}else {
-	    &Log::do_log('err', "error rule syntaxe in scenario $function rule line $. expected : <condition> <auth_mod> -> <action>");
-	    &Log::do_log('err',"error parsing $current_rule");
+	    do_log('err', "error rule syntaxe in scenario $function rule line $. expected : <condition> <auth_mod> -> <action>");
+	    do_log('err',"error parsing $current_rule");
 	    return undef;
 	}
 
+	
+#	## Make action an ARRAY
+#	my $action = $6;
+#	my @actions;
+#	while ($action =~ s/^\s*((\w+)(\s?\([^\)]*\))?)(\s|\,|$)//) {
+#	    push @actions, $1;
+#	}
+#	$rule->{action} = \@actions;
+	       
+	push(@scenario,$rule);
+
 	## Duplicate the rule for each mentionned authentication method
-	foreach my $auth_method (@auth_methods_list) {
+        my $auth_list = $3 ; 
+        while ($auth_list =~ /\s*,\s*(md5|pgp|smtp|smime)((\s*,\s*(md5|pgp|smtp|smime))*)\s*/i) {
 	    push(@scenario,{'condition' => $rule->{condition}, 
-                            'auth_method' => $auth_method,
+                            'auth_method' => $1,
                             'action' => $rule->{action}});
+	    $auth_list = $2;
+#	    do_log('debug3', "load rule ite: $rule->{'condition'} $1 -> $rule->{'action'}");
 	}
+	
     }
-
+    
     $structure->{'rules'} = \@scenario;
-
+   
     return $structure; 
 }
 
@@ -206,7 +217,7 @@ sub _parse_scenario {
 # using 1 auth method to perform 1 operation
 #
 # IN : -$operation (+) : scalar
-#      -$auth_method (+) : 'smtp'|'md5'|'pgp'|'smime'|'dkim'
+#      -$auth_method (+) : 'smtp'|'md5'|'pgp'|'smime'
 #      -$robot (+) : scalar
 #      -$context (+) : ref(HASH) containing information
 #        to evaluate scenario (scenario var)
@@ -232,7 +243,7 @@ sub request_action {
     my $robot=shift;
     my $context = shift;
     my $debug = shift;
-    &Log::do_log('debug', 'List::request_action %s,%s,%s',$operation,$auth_method,$robot);
+    do_log('debug', 'List::request_action %s,%s,%s',$operation,$auth_method,$robot);
 
     my $trace_scenario ;
 
@@ -245,8 +256,8 @@ sub request_action {
     $context->{'msg_encrypted'} = 'smime' if (defined $context->{'message'} && 
 					      $context->{'message'}->{'smime_crypted'} eq 'smime_crypted');
     ## Check that authorization method is one of those known by Sympa
-    unless ( $auth_method =~ /^(smtp|md5|pgp|smime|dkim)/) {
-	&Log::do_log('info',"fatal error : unknown auth method $auth_method in List::get_action");
+    unless ( $auth_method =~ /^(smtp|md5|pgp|smime)/) {
+	do_log('info',"fatal error : unknown auth method $auth_method in List::get_action");
 	return undef;
     }
     my (@rules, $name, $scenario) ;
@@ -260,7 +271,7 @@ sub request_action {
 
     ## Include a Blacklist rules if configured for this action
     if ($Conf::Conf{'blacklist'}{$operation}) {
-	foreach my $auth ('smtp','dkim','md5','pgp','smime'){
+	foreach my $auth ('smtp','md5','pgp','smime'){
 	    my $blackrule = {'condition' => "search('blacklist.txt',[sender])",
 			     'action' => 'reject,quiet',
 			     'auth_method' => $auth};	
@@ -270,7 +281,7 @@ sub request_action {
 
     if ($context->{'listname'}) {
         unless ( $context->{'list_object'} = new List ($context->{'listname'}, $robot) ){
-	    &Log::do_log('info',"request_action :  unable to create object $context->{'listname'}");
+	    do_log('info',"request_action :  unable to create object $context->{'listname'}");
 	    return undef ;
 	}
 	$trace_scenario = 'scenario request '.$operation.' for list '.$context->{'listname'}.'@'.$robot.' :';
@@ -303,7 +314,7 @@ sub request_action {
 			  'condition' => ''
 			  };
 	    if ($log_it){
-		 &Log::do_log('info',"$trace_scenario rejected reason parameter not defined");
+		 do_log('info',"$trace_scenario rejected reason parameter not defined");
 	    }
 	    return $return;
 	}
@@ -323,14 +334,14 @@ sub request_action {
 
 	## pending/closed lists => send/visibility are closed
 	unless ($list->{'admin'}{'status'} eq 'open') {
-	    if ($operation =~ /^(send|visibility)$/) {
+	    if ($operation =~ /^send|visibility$/) {
 		my $return = {'action' => 'reject',
 			      'reason' => 'list-no-open',
 			      'auth_method' => '',
 			      'condition' => ''
 			      };
 		if ($log_it){
-		    &Log::do_log('info',"$trace_scenario rejected reason list not open");
+		    do_log('info',"$trace_scenario rejected reason list not open");
 		}
 		return $return;
 	    }
@@ -366,7 +377,7 @@ sub request_action {
     }
 
     unless ((defined $scenario) && (defined $scenario->{'rules'})) {
-	&Log::do_log('err',"Failed to load scenario for '$operation'");
+	do_log('err',"Failed to load scenario for '$operation'");
 	return undef ;
     }
 
@@ -374,7 +385,7 @@ sub request_action {
     $name = $scenario->{'name'};
 
     unless ($name) {
-	# &Log::do_log('err',"internal error : configuration for operation $operation is not yet performed by scenario");
+	# do_log('err',"internal error : configuration for operation $operation is not yet performed by scenario");
 	return undef;
     }
 
@@ -389,6 +400,7 @@ sub request_action {
 	## Add rules at the beginning of the array
 	unshift @rules, @{$include_scenario->{'rules'}};
     }
+
     ## Look for 'include' directives amongst rules first
     foreach my $index (0..$#rules) {
 	if ($rules[$index]{'condition'} =~ /^\s*include\s*\(?\'?([\w\.]+)\'?\)?\s*$/i) {
@@ -408,15 +420,15 @@ sub request_action {
 
     my $return = {};
     foreach my $rule (@rules) {
-	# &Log::do_log('info', 'List::request_action : verify rule %s',$rule->{'condition'});
+	# &do_log('info', 'List::request_action : verify rule %s',$rule->{'condition'});
 
 	if ($auth_method eq $rule->{'auth_method'}) {
 	    my $result =  &verify ($context,$rule->{'condition'});
 
 	    ## Cope with errors
 	    if (! defined ($result)) {
-		&Log::do_log('info',"error in $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'}" );
-		&Log::do_log('info', 'Error in %s scenario, in list %s', $context->{'scenario'}, $context->{'listname'});
+		&do_log('info',"error in $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'}" );
+		&do_log('info', 'Error in %s scenario, in list %s', $context->{'scenario'}, $context->{'listname'});
 		
 		if ($debug) {
 		    $return = {'action' => 'reject',
@@ -427,7 +439,7 @@ sub request_action {
 		    return $return;
 		}
 		unless (&List::send_notify_to_listmaster('error-performing-condition', $robot, [$context->{'listname'}."  ".$rule->{'condition'}] )) {
-		    &Log::do_log('notice',"Unable to send notify 'error-performing-condition' to listmaster");
+		    &do_log('notice',"Unable to send notify 'error-performing-condition' to listmaster");
 		}
 		return undef;
 	    }
@@ -435,7 +447,7 @@ sub request_action {
 	    ## Rule returned false
 	    if ($result == -1) {
 		if ($log_it){
-		    &Log::do_log('info',"$trace_scenario condition $rule->{'condition'} with authentication method $rule->{'auth_method'} ignored");
+		    do_log('info',"$trace_scenario condition $rule->{'condition'} with authentication method $rule->{'auth_method'} ignored");
 		}
 		next;
 	    }
@@ -443,9 +455,6 @@ sub request_action {
 	    my $action = $rule->{'action'};
 
             ## reject : get parameters
-	    if ($action =~ /^(ham|spam|unsure)/) {
-		$action = $1 ;		
-	    }
 	    if ($action =~/^reject(\((.+)\))?(\s?,\s?(quiet))?/) {
 
 		if ($4 eq 'quiet') { 
@@ -476,11 +485,11 @@ sub request_action {
 	    $return->{'action'} = $action;
 	    
 	    if ($log_it){
-		&Log::do_log('info',"$trace_scenario condition $rule->{'condition'} with authentication method $rule->{'auth_method'} condition applied result : $action");
+		do_log('info',"$trace_scenario condition $rule->{'condition'} with authentication method $rule->{'auth_method'} condition applied result : $action");
 	    }	    
 	    
 	    if ($result == 1) {
-		&Log::do_log('debug3',"rule $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'} accepted");
+		&do_log('debug3',"rule $rule->{'condition'},$rule->{'auth_method'},$rule->{'action'} accepted");
 		if ($debug) {
 		    $return->{'auth_method'} = $rule->{'auth_method'};
 		    $return->{'condition'} = $rule->{'condition'};
@@ -489,18 +498,18 @@ sub request_action {
 		}
 
 		## Check syntax of returned action
-		unless ($action =~ /^(do_it|reject|request_auth|owner|editor|editorkey|listmaster|ham|spam|unsure)/) {
-		    &Log::do_log('err', "Matched unknown action '%s' in scenario", $rule->{'action'});
+		unless ($action =~ /^(do_it|reject|request_auth|owner|editor|editorkey|listmaster)/) {
+		    &do_log('err', "Matched unknown action '%s' in scenario", $rule->{'action'});
 		    return undef;
 		}
 		return $return;
 	    }
 	}
     }
-    &Log::do_log('debug3',"no rule match, reject");
+    &do_log('debug3',"no rule match, reject");
 
     if ($log_it){
-	&Log::do_log('info',"$trace_scenario : no rule match request rejected");
+	do_log('info',"$trace_scenario : no rule match request rejected");
     }	    
 
     $return = {'action' => 'reject',
@@ -514,16 +523,16 @@ sub request_action {
 ## check if email respect some condition
 sub verify {
     my ($context, $condition) = @_;
-    &Log::do_log('debug2', '(%s)', $condition);
+    &do_log('debug2', '(%s)', $condition);
     
     my $robot = $context->{'robot_domain'};
     
 #    while (my($k,$v) = each %{$context}) {
-#	&Log::do_log('debug3',"verify: context->{$k} = $v");
+#	do_log('debug3',"verify: context->{$k} = $v");
 #    }
     
     unless (defined($context->{'sender'} )) {
-	&Log::do_log('info',"internal error, no sender find in List::verify, report authors");
+	do_log('info',"internal error, no sender find in List::verify, report authors");
 	return undef;
     }
     
@@ -532,7 +541,7 @@ sub verify {
     my $list;
     if ($context->{'listname'} && ! defined $context->{'list_object'}) {
         unless ( $context->{'list_object'} = new List ($context->{'listname'}, $robot) ){
-	    &Log::do_log('info',"Unable to create object $context->{'listname'}");
+	    &do_log('info',"Unable to create object $context->{'listname'}");
 	    return undef ;
 	}
     }    
@@ -555,7 +564,7 @@ sub verify {
 	
     }
     unless ($condition =~ /(\!)?\s*(true|is_listmaster|verify_netmask|is_editor|is_owner|is_subscriber|less_than|match|equal|message|older|newer|all|search|customcondition\:\:\w+)\s*\(\s*(.*)\s*\)\s*/i) {
-	&Log::do_log('err', "error rule syntaxe: unknown condition $condition");
+	&do_log('err', "error rule syntaxe: unknown condition $condition");
 	return undef;
     }
     my $negation = 1 ;
@@ -595,25 +604,19 @@ sub verify {
 		
 		$value =~ s/\[conf\-\>([\w\-]+)\]/$conf_value/;
 	    }else{
-		&Log::do_log('debug',"undefine variable context $value in rule $condition");
+		do_log('debug',"undefine variable context $value in rule $condition");
 		# a condition related to a undefined context variable is always false
 		return -1 * $negation;
 	    }
 	    
 	    ## List param
 	}elsif ($value =~ /\[list\-\>([\w\-]+)\]/i) {
-	    my $param = $1;
-
-	    if ($param =~ /^(name|total)$/) {
-		$value =~ s/\[list\-\>([\w\-]+)\]/$list->{$param}/;
-	    }elsif ($param eq 'address') {
-		my $list_address = $list->get_list_address();
-		$value =~ s/\[list\-\>([\w\-]+)\]/$list_address/;
-	    
-	    }elsif ($list->{'admin'}{$param} and (!ref($list->{'admin'}{$param})) ) {
-		$value =~ s/\[list\-\>([\w\-]+)\]/$list->{'admin'}{$param}/;
+	    if ($1 =~ /^name|total$/) {
+		$value =~ s/\[list\-\>([\w\-]+)\]/$list->{$1}/;
+	    }elsif ($list->{'admin'}{$1} and (!ref($list->{'admin'}{$1})) ) {
+		$value =~ s/\[list\-\>([\w\-]+)\]/$list->{'admin'}{$1}/;
 	    }else{
-		&Log::do_log('err','Unknown list parameter %s in rule %s', $value, $condition);
+		do_log('err','Unknown list parameter %s in rule %s', $value, $condition);
 		return undef;
 	    }
 	    
@@ -624,17 +627,17 @@ sub verify {
 	    ## Sender's user/subscriber attributes (if subscriber)
 	}elsif ($value =~ /\[user\-\>([\w\-]+)\]/i) {
 	    
-	    $context->{'user'} ||= &List::get_global_user($context->{'sender'});	    
+	    $context->{'user'} ||= &List::get_user_db($context->{'sender'});	    
 	    $value =~ s/\[user\-\>([\w\-]+)\]/$context->{'user'}{$1}/;
 	    
 	}elsif ($value =~ /\[user_attributes\-\>([\w\-]+)\]/i) {
 	    
-	    $context->{'user'} ||= &List::get_global_user($context->{'sender'});
+	    $context->{'user'} ||= &List::get_user_db($context->{'sender'});
 	    $value =~ s/\[user_attributes\-\>([\w\-]+)\]/$context->{'user'}{'attributes'}{$1}/;
 	    
 	}elsif (($value =~ /\[subscriber\-\>([\w\-]+)\]/i) && defined ($context->{'sender'} ne 'nobody')) {
 	    
-	    $context->{'subscriber'} ||= $list->get_list_member($context->{'sender'});
+	    $context->{'subscriber'} ||= $list->get_subscriber($context->{'sender'});
 	    $value =~ s/\[subscriber\-\>([\w\-]+)\]/$context->{'subscriber'}{$1}/;
 	    
 	    ## SMTP Header field
@@ -698,7 +701,7 @@ sub verify {
 	    if (defined ($context->{$1})) {
 		$value =~ s/\[(\w+)\]/$context->{$1}/i;
 	    }else{
-		&Log::do_log('debug',"undefine variable context $value in rule $condition");
+		&do_log('debug',"undefine variable context $value in rule $condition");
 		# a condition related to a undefined context variable is always false
 		return -1 * $negation;
  #		return undef;
@@ -714,37 +717,37 @@ sub verify {
     $condition_key =~ s/^\s*//g;
     $condition_key =~ s/\s*$//g;
     # condition that require 0 argument
-    if ($condition_key =~ /^(true|all)$/i) {
+    if ($condition_key =~ /^true|all$/i) {
 	unless ($#args == -1){ 
-	    &Log::do_log('err',"error rule syntaxe : incorrect number of argument or incorrect argument syntaxe $condition") ; 
+	    do_log('err',"error rule syntaxe : incorrect number of argument or incorrect argument syntaxe $condition") ; 
 	    return undef ;
 	}
 	# condition that require 1 argument
-    }elsif ($condition_key =~ /^(is_listmaster|verify_netmask)$/) {
+    }elsif ($condition_key =~ /^is_listmaster|verify_netmask$/) {
 	unless ($#args == 0) { 
-	     &Log::do_log('err',"error rule syntaxe : incorrect argument number for condition $condition_key") ; 
+	     do_log('err',"error rule syntaxe : incorrect argument number for condition $condition_key") ; 
 	    return undef ;
 	}
 	# condition that require 1 or 2 args (search : historical reasons)
     }elsif ($condition_key =~ /^search$/o) {
 	unless ($#args == 1 || $#args == 0) {
-	    &Log::do_log('err',"error rule syntaxe : Incorrect argument number for condition $condition_key") ; 
+	    do_log('err',"error rule syntaxe : Incorrect argument number for condition $condition_key") ; 
 	    return undef ;
 	}
 	# condition that require 2 args
-    }elsif ($condition_key =~ /^(is_owner|is_editor|is_subscriber|less_than|match|equal|message|newer|older)$/o) {
+    }elsif ($condition_key =~ /^is_owner|is_editor|is_subscriber|less_than|match|equal|message|newer|older$/o) {
 	unless ($#args == 1) {
-	    &Log::do_log('err',"error rule syntaxe : incorrect argument number (%d instead of %d) for condition $condition_key", $#args+1, 2) ; 
+	    do_log('err',"error rule syntaxe : incorrect argument number (%d instead of %d) for condition $condition_key", $#args+1, 2) ; 
 	    return undef ;
 	}
     }elsif ($condition_key !~ /^customcondition::/o) {
-	&Log::do_log('err', "error rule syntaxe : unknown condition $condition_key");
+	do_log('err', "error rule syntaxe : unknown condition $condition_key");
 	return undef;
     }
 
     ## Now eval the condition
     ##### condition : true
-    if ($condition_key =~ /^(true|any|all)$/i) {
+    if ($condition_key =~ /^true|any|all$/i) {
 	return $negation;
     }
     ##### condition is_listmaster
@@ -771,7 +774,7 @@ sub verify {
 	}
 	my $block;
 	unless ($block = new2 Net::Netmask ($args[0])) { 
-	    &Log::do_log('err', "error rule syntaxe : failed to parse netmask '$args[0]'");
+	    do_log('err', "error rule syntaxe : failed to parse netmask '$args[0]'");
 	    return undef;
 	}
 	if ($block->match ($ENV{'REMOTE_ADDR'})) {
@@ -782,13 +785,13 @@ sub verify {
     }
 
     ##### condition older
-    if ($condition_key =~ /^(older|newer)$/) {
+    if ($condition_key =~ /^older|newer$/) {
 	 
 	$negation *= -1 if ($condition_key eq 'newer');
  	my $arg0 = &tools::epoch_conv($args[0]);
  	my $arg1 = &tools::epoch_conv($args[1]);
  
-	&Log::do_log('debug3', '%s(%d, %d)', $condition_key, $arg0, $arg1);
+	&do_log('debug3', '%s(%d, %d)', $condition_key, $arg0, $arg1);
  	if ($arg0 <= $arg1 ) {
  	    return $negation;
  	}else{
@@ -798,7 +801,7 @@ sub verify {
 
 
     ##### condition is_owner, is_subscriber and is_editor
-    if ($condition_key =~ /^(is_owner|is_subscriber|is_editor)$/i) {
+    if ($condition_key =~ /^is_owner|is_subscriber|is_editor$/i) {
 	my ($list2);
 
 	if ($args[1] eq 'nobody') {
@@ -813,13 +816,13 @@ sub verify {
 	}
 		
 	if (! $list2) {
-	    &Log::do_log('err',"unable to create list object \"$args[0]\"");
+	    do_log('err',"unable to create list object \"$args[0]\"");
 	    return -1 * $negation ;
 	}
 
 	if ($condition_key eq 'is_subscriber') {
 
-	    if ($list2->is_list_member($args[1])) {
+	    if ($list2->is_user($args[1])) {
 		return $negation ;
 	    }else{
 		return -1 * $negation ;
@@ -843,7 +846,7 @@ sub verify {
     ##### match
     if ($condition_key eq 'match') {
 	unless ($args[1] =~ /^\/(.*)\/$/) {
-	    &Log::do_log('err', 'Match parameter %s is not a regexp', $args[1]);
+	    &do_log('err', 'Match parameter %s is not a regexp', $args[1]);
 	    return undef;
 	}
 	my $regexp = $1;
@@ -893,7 +896,7 @@ sub verify {
     if ($condition_key eq 'equal') {
 	if (ref($args[0])) {
 	    foreach my $arg (@{$args[0]}) {
-		&Log::do_log('debug3', 'ARG: %s', $arg);
+		&do_log('debug3', 'ARG: %s', $arg);
 		return $negation 
 		    if ($arg =~ /^$args[1]$/i);
 	    }
@@ -918,7 +921,7 @@ sub verify {
     if ($condition_key eq 'less_than') {
 	if (ref($args[0])) {
 	    foreach my $arg (@{$args[0]}) {
-		&Log::do_log('debug3', 'ARG: %s', $arg);
+		&do_log('debug3', 'ARG: %s', $arg);
 		return $negation 
 		    if (&tools::smart_lessthan($arg, $args[1]));
 	    }
@@ -942,7 +945,7 @@ sub search{
 
     my $sender = $context->{'sender'};
 
-    &Log::do_log('debug2', 'List::search(%s,%s,%s)', $filter_file, $sender, $robot);
+    &do_log('debug2', 'List::search(%s,%s,%s)', $filter_file, $sender, $robot);
     
     if ($filter_file =~ /\.sql$/) {
  
@@ -969,13 +972,13 @@ sub search{
 	    my ($var, $key) = split /\-\>/, $full_var;
 	    
 	    unless (defined $context->{$var}) {
-		&Log::do_log('err', "Failed to parse variable '%s' in filter '%s'", $var, $file);
+		&do_log('err', "Failed to parse variable '%s' in filter '%s'", $var, $file);
 		return undef;
 	    }
 
 	    if (defined $key) { ## Should be a hash
 		unless (defined $context->{$var}{$key}) {
-		    &Log::do_log('err', "Failed to parse variable '%s.%s' in filter '%s'", $var, $key, $file);
+		    &do_log('err', "Failed to parse variable '%s.%s' in filter '%s'", $var, $key, $file);
 		    return undef;
 		}
 
@@ -995,13 +998,13 @@ sub search{
  
         if (defined ($persistent_cache{'named_filter'}{$filter_file}{$filter}) &&
             (time <= $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} + $timeout)){ ## Cache has 1hour lifetime
-            &Log::do_log('notice', 'Using previous SQL named filter cache');
+            &do_log('notice', 'Using previous SQL named filter cache');
             return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
         }
 	
-	my $ds = new SQLSource($sql_conf->{'sql_named_filter_query'});
-	unless (defined $ds && $ds->connect() && $ds->ping) {
-            &Log::do_log('notice','Unable to connect to the SQL server %s:%d',$sql_conf->{'db_host'}, $sql_conf->{'db_port'});
+	my $ds = new Datasource('SQL', $sql_conf->{'sql_named_filter_query'});
+	unless ($ds->connect() && $ds->ping) {
+            do_log('notice','Unable to connect to the SQL server %s:%d',$sql_conf->{'db_host'}, $sql_conf->{'db_port'});
             return undef;
         }
 	
@@ -1012,13 +1015,13 @@ sub search{
 
         $statement = sprintf $statement, @statement_args;
         unless ($ds->query($statement)) {
-            &Log::do_log('debug','%s named filter cancelled', $file);
+            do_log('debug','%s named filter cancelled', $file);
             return undef;
         }
  
         my $res = $ds->fetch;
         $ds->disconnect();
-        &Log::do_log('debug2','Result of SQL query : %d = %s', $res->[0], $statement);
+        do_log('debug2','Result of SQL query : %d = %s', $res->[0], $statement);
  
         if ($res->[0] == 0){
             $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'} = 0;
@@ -1033,7 +1036,7 @@ sub search{
 	my $file = &tools::get_filename('etc',{},"search_filters/$filter_file", $robot, $list);
 	
 	unless ($file) {
-	    &Log::do_log('err', 'Could not find search filter %s', $filter_file);
+	    &do_log('err', 'Could not find search filter %s', $filter_file);
 	    return undef;
 	}   
 	my $timeout = 3600;	
@@ -1052,13 +1055,13 @@ sub search{
 	    my ($var, $key) = split /\-\>/, $full_var;
 	    
 	    unless (defined $context->{$var}) {
-		&Log::do_log('err', "Failed to parse variable '%s' in filter '%s'", $var, $file);
+		&do_log('err', "Failed to parse variable '%s' in filter '%s'", $var, $file);
 		return undef;
 	    }
 
 	    if (defined $key) { ## Should be a hash
 		unless (defined $context->{$var}{$key}) {
-		    &Log::do_log('err', "Failed to parse variable '%s.%s' in filter '%s'", $var, $key, $file);
+		    &do_log('err', "Failed to parse variable '%s.%s' in filter '%s'", $var, $key, $file);
 		    return undef;
 		}
 
@@ -1073,16 +1076,16 @@ sub search{
 	
 	if (defined ($persistent_cache{'named_filter'}{$filter_file}{$filter}) &&
 	    (time <= $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} + $timeout)){ ## Cache has 1hour lifetime
-	    &Log::do_log('notice', 'Using previous LDAP named filter cache');
+	    &do_log('notice', 'Using previous LDAP named filter cache');
 	    return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
 	}
 	
 	my $ldap;
 	my $param = &tools::dup_var(\%ldap_conf);
-	my $ds = new LDAPSource($param);
+	my $ds = new Datasource('LDAP', $param);
 	    
 	unless (defined $ds && ($ldap = $ds->connect())) {
-	    &Log::do_log('err',"Unable to connect to the LDAP server '%s'", $param->{'ldap_host'});
+	    &do_log('err',"Unable to connect to the LDAP server '%s'", $param->{'ldap_host'});
 	    return undef;
 	    }
 	    
@@ -1093,11 +1096,11 @@ sub search{
 				 scope => "$ldap_conf{'scope'}",
 				 attrs => ['1.1']);
 	    unless ($mesg) {
-		&Log::do_log('err',"Unable to perform LDAP search");
+		do_log('err',"Unable to perform LDAP search");
 		return undef;
 	    }    
 	    unless ($mesg->code == 0) {
-		&Log::do_log('err','Ldap search failed');
+		do_log('err','Ldap search failed');
 		return undef;
 	    }
 
@@ -1108,13 +1111,13 @@ sub search{
 		$persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'} = 1;
 	    }
 	    
-	$ds->disconnect() or &Log::do_log('notice','List::search_ldap.Unbind impossible');
+	$ds->disconnect() or do_log('notice','List::search_ldap.Unbind impossible');
 	    $persistent_cache{'named_filter'}{$filter_file}{$filter}{'update'} = time;
 	    
 	    return $persistent_cache{'named_filter'}{$filter_file}{$filter}{'value'};
 
     }elsif($filter_file =~ /\.txt$/){ 
-	# &Log::do_log('info', 'List::search: eval %s', $filter_file);
+	# &do_log('info', 'List::search: eval %s', $filter_file);
 	my @files = &tools::get_filename('etc',{'order'=>'all'},"search_filters/$filter_file", $robot, $list); 
 
 	## Raise an error except for blacklist.txt
@@ -1122,32 +1125,32 @@ sub search{
 	    if ($filter_file eq 'blacklist.txt') {
 		return -1;
 	    }else {
-		&Log::do_log('err', 'Could not find search filter %s', $filter_file);
+		&do_log('err', 'Could not find search filter %s', $filter_file);
 		return undef;
 	    }
 	}
 
 	my $sender = lc($sender);
 	foreach my $file (@files) {
-	    &Log::do_log('debug3', 'List::search: found file  %s', $file);
+	    &do_log('debug3', 'List::search: found file  %s', $file);
 	    unless (open FILE, $file) {
-		&Log::do_log('err', 'Could not open file %s', $file);
+		&do_log('err', 'Could not open file %s', $file);
 		return undef;
 	    } 
 	    while (<FILE>) {
-		# &Log::do_log('debug3', 'List::search: eval rule %s', $_);
+		# &do_log('debug3', 'List::search: eval rule %s', $_);
 		next if (/^\s*$/o || /^[\#\;]/o);
 		my $regexp= $_ ;
 		chomp $regexp;
 		$regexp =~ s/\*/.*/ ; 
 		$regexp = '^'.$regexp.'$';
-		# &Log::do_log('debug3', 'List::search: eval  %s =~ /%s/i', $sender,$regexp);
+		# &do_log('debug3', 'List::search: eval  %s =~ /%s/i', $sender,$regexp);
 		return 1  if ($sender =~ /$regexp/i);
 	    }
 	}
 	return -1;
     } else {
-	&Log::do_log('err',"Unknown filter file type %s", $filter_file);
+	do_log('err',"Unknown filter file type %s", $filter_file);
     	return undef;
     }
 }
@@ -1158,10 +1161,10 @@ sub verify_custom {
         my $timeout = 3600;
 	
 	my $filter = join ('*', @{$args_ref});
-	&Log::do_log('debug2', 'List::verify_custom(%s,%s,%s,%s)', $condition, $filter, $robot, $list);
+	&do_log('debug2', 'List::verify_custom(%s,%s,%s,%s)', $condition, $filter, $robot, $list);
         if (defined ($persistent_cache{'named_filter'}{$condition}{$filter}) &&
             (time <= $persistent_cache{'named_filter'}{$condition}{$filter}{'update'} + $timeout)){ ## Cache has 1hour lifetime
-            &Log::do_log('notice', 'Using previous custom condition cache %s', $filter);
+            &do_log('notice', 'Using previous custom condition cache %s', $filter);
             return $persistent_cache{'named_filter'}{$condition}{$filter}{'value'};
         }
 
@@ -1169,19 +1172,19 @@ sub verify_custom {
 	#my $file = &tools::get_filename('etc',{},"custom_conditions/${condition}.pm", $robot, $list);
 	my $file = &tools::get_filename('etc',{},"custom_conditions/${condition}.pm", $robot);
 	unless ($file) {
-	    &Log::do_log('err', 'No module found for %s custom condition', $condition);
+	    &do_log('err', 'No module found for %s custom condition', $condition);
 	    return undef;
 	}
-	&Log::do_log('notice', 'Use module %s for custom condition', $file);
+	&do_log('notice', 'Use module %s for custom condition', $file);
 	eval { require "$file"; };
 	if ($@) {
-	    &Log::do_log('err', 'Error requiring %s : %s (%s)', $condition, "$@", ref($@));
+	    &do_log('err', 'Error requiring %s : %s (%s)', $condition, "$@", ref($@));
 	    return undef;
 	}
 	my $res;
 	eval "\$res = CustomCondition::${condition}::verify(\@{\$args_ref});";
 	if ($@) {
-	    &Log::do_log('err', 'Error evaluating %s : %s (%s)', $condition, "$@", ref($@));
+	    &do_log('err', 'Error evaluating %s : %s (%s)', $condition, "$@", ref($@));
 	    return undef;
 	}
 
