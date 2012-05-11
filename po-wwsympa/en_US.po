@@ -4007,6 +4007,7 @@ msgstr ""
 "robot.conf file or in file /etc/sympa.conf."
 
 #: ../web_tt2/help_editlist.tt2:101
+#, fuzzy
 msgid ""
 "This parameter will be interpreted only if the user_data_source value is set "
 "to include. The file should contain one e-mail address per line (lines "
@@ -4017,6 +4018,7 @@ msgstr ""
 "beginning with a \"#\" are ignored)."
 
 #: ../web_tt2/help_editlist.tt2:103
+#, fuzzy
 msgid ""
 "This paragraph defines parameters for a two-level query returning a list of "
 "subscribers. Usually the first-level query returns a list of DNs and the "
@@ -4031,6 +4033,7 @@ msgstr ""
 "the Net::LDAP (perlldap) PERL module."
 
 #: ../web_tt2/help_editlist.tt2:105
+#, fuzzy
 msgid ""
 "This paragraph defines parameters for a query returning a list of "
 "subscribers. This paragraph is used only if user_data_source is set to "
@@ -4041,6 +4044,7 @@ msgstr ""
 "include. This feature requires the Net::LDAP (perlldap) PERL module."
 
 #: ../web_tt2/help_editlist.tt2:107
+#, fuzzy
 msgid ""
 "This parameter will be interpreted only if user_data_source is set to "
 "include. All subscribers of list listname become subscribers of the current "
@@ -4087,6 +4091,7 @@ msgstr ""
 "scenario."
 
 #: ../web_tt2/help_editlist.tt2:112
+#, fuzzy
 msgid ""
 "This parameter will be interpreted only if the user_data_source value is set "
 "to include, and is used to begin a paragraph defining the SQL query "
@@ -7230,6 +7235,30 @@ msgstr ""
 #~ "\"_blank\" title=\"Example of charter aimed at owners and moderators "
 #~ "(French)\" href=\"http://listes.cru.fr/cnil/charte.proprio.html\">Owner "
 #~ "and moderator charter</a>."
+
+#, fuzzy
+#~ msgid ""
+#~ "<a href=\"%1/help/suspend\">suspend or resume</a> your subscription of "
+#~ "each list;"
+#~ msgstr "a <a href=\"%1/help/user\">user guide</a> about the use of Sympa;"
+
+#, fuzzy
+#~ msgid ""
+#~ "Please refer to the <a href=\"%1/help/suspend\"><strong>subscription "
+#~ "management documentation</strong></a>."
+#~ msgstr ""
+#~ "Please refer to the <a href=\"%1/help/arc\"><strong>archive "
+#~ "documentation</strong></a>."
+
+#, fuzzy
+#~ msgid "Manage your subscriptions"
+#~ msgstr "Checking your subscriptions"
+
+#, fuzzy
+#~ msgid ""
+#~ "<strong>To resume your subscription</strong> to one or more lists, follow "
+#~ "these steps:"
+#~ msgstr "<strong>date of subscription</strong> to the list;"
 
 #~ msgid ""
 #~ " The '<strong>Cleartext</strong>' option archives the message under its "

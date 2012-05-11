@@ -3755,6 +3755,7 @@ msgstr ""
 "megfelelő robot.conf állományban vagy az /etc/sympa.conf-ban van beállítva."
 
 #: ../web_tt2/help_editlist.tt2:101
+#, fuzzy
 msgid ""
 "This parameter will be interpreted only if the user_data_source value is set "
 "to include. The file should contain one e-mail address per line (lines "
@@ -3765,6 +3766,7 @@ msgstr ""
 "tartalmaznia (a \"#\"-tel kezdődő sorok figyelmen kívül lesznek hagyva)."
 
 #: ../web_tt2/help_editlist.tt2:103
+#, fuzzy
 msgid ""
 "This paragraph defines parameters for a two-level query returning a list of "
 "subscribers. Usually the first-level query returns a list of DNs and the "
@@ -3780,6 +3782,7 @@ msgstr ""
 "PERL modul szükséges."
 
 #: ../web_tt2/help_editlist.tt2:105
+#, fuzzy
 msgid ""
 "This paragraph defines parameters for a query returning a list of "
 "subscribers. This paragraph is used only if user_data_source is set to "
@@ -3846,6 +3849,7 @@ msgstr ""
 "megtekintés (review) scenario szabályozza."
 
 #: ../web_tt2/help_editlist.tt2:112
+#, fuzzy
 msgid ""
 "This parameter will be interpreted only if the user_data_source value is set "
 "to include, and is used to begin a paragraph defining the SQL query "
@@ -6501,6 +6505,26 @@ msgstr ""
 #~ msgstr ""
 #~ "A listatulajdonosok és szerkesztők részére gyakran külön szabályzatot "
 #~ "készítenek."
+
+#, fuzzy
+#~ msgid ""
+#~ "<a href=\"%1/help/suspend\">suspend or resume</a> your subscription of "
+#~ "each list;"
+#~ msgstr ""
+#~ "egy <a href=\"%1/help/user\">felhasználók számára készült leírás</a> a "
+#~ "Sympa levelezőlista-rendszer használatáról"
+
+#, fuzzy
+#~ msgid ""
+#~ "Please refer to the <a href=\"%1/help/suspend\"><strong>subscription "
+#~ "management documentation</strong></a>."
+#~ msgstr ""
+#~ "Kérjük tekintse meg az <a href=\"%1/help/arc\"><strong>archívumokról "
+#~ "szóló leírást</strong></a>."
+
+#, fuzzy
+#~ msgid "Manage your subscriptions"
+#~ msgstr "A feliratkozások áttekintése"
 
 #~ msgid "Expert mode"
 #~ msgstr "Haladó mód"

@@ -4106,6 +4106,7 @@ msgstr ""
 "el fichero robot.conf correspondiente o en el fichero /etc/sympa.conf"
 
 #: ../web_tt2/help_editlist.tt2:101
+#, fuzzy
 msgid ""
 "This parameter will be interpreted only if the user_data_source value is set "
 "to include. The file should contain one e-mail address per line (lines "
@@ -4116,6 +4117,7 @@ msgstr ""
 "(y se ignoran las líneas que empiezan por un \"#\")"
 
 #: ../web_tt2/help_editlist.tt2:103
+#, fuzzy
 msgid ""
 "This paragraph defines parameters for a two-level query returning a list of "
 "subscribers. Usually the first-level query returns a list of DNs and the "
@@ -4131,6 +4133,7 @@ msgstr ""
 "Net::LDAP (perlldap). "
 
 #: ../web_tt2/help_editlist.tt2:105
+#, fuzzy
 msgid ""
 "This paragraph defines parameters for a query returning a list of "
 "subscribers. This paragraph is used only if user_data_source is set to "
@@ -4142,6 +4145,7 @@ msgstr ""
 "(perlldap)."
 
 #: ../web_tt2/help_editlist.tt2:107
+#, fuzzy
 msgid ""
 "This parameter will be interpreted only if user_data_source is set to "
 "include. All subscribers of list listname become subscribers of the current "
@@ -4190,6 +4194,7 @@ msgstr ""
 "conotrolado por el escenario 'review'."
 
 #: ../web_tt2/help_editlist.tt2:112
+#, fuzzy
 msgid ""
 "This parameter will be interpreted only if the user_data_source value is set "
 "to include, and is used to begin a paragraph defining the SQL query "
@@ -7434,6 +7439,31 @@ msgstr ""
 #~ "propietarios y moderadores (Francés)\" href=\"http://listes.cru.fr/cnil/"
 #~ "charte.proprio.html\">carta de bienvenida para moderadores y "
 #~ "propietarios</a>."
+
+#, fuzzy
+#~ msgid ""
+#~ "<a href=\"%1/help/suspend\">suspend or resume</a> your subscription of "
+#~ "each list;"
+#~ msgstr ""
+#~ "una <a href=\"%1/help/user\">guía de usuario</a> acerca del uso de Sympa;"
+
+#, fuzzy
+#~ msgid ""
+#~ "Please refer to the <a href=\"%1/help/suspend\"><strong>subscription "
+#~ "management documentation</strong></a>."
+#~ msgstr ""
+#~ "Por favor revisa la <a href=\"%1/help/arc\"><strong>documentación del "
+#~ "archivo</strong></a>"
+
+#, fuzzy
+#~ msgid "Manage your subscriptions"
+#~ msgstr "Comprobar tus suscripciones"
+
+#, fuzzy
+#~ msgid ""
+#~ "<strong>To resume your subscription</strong> to one or more lists, follow "
+#~ "these steps:"
+#~ msgstr "<strong>fecha de la suscripción</strong> a la lista;"
 
 #~ msgid "Expert mode"
 #~ msgstr "Modo Experto"

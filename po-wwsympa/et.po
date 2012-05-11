@@ -5492,6 +5492,12 @@ msgid ""
 "the list."
 msgstr ""
 
+#, fuzzy
+#~ msgid ""
+#~ "<a href=\"%1/help/suspend\">suspend or resume</a> your subscription of "
+#~ "each list;"
+#~ msgstr "Sympa <a href=\"%1/help/user\">kasutajajuhend</a>;"
+
 #~ msgid "Expert mode"
 #~ msgstr "Asjatundja reziim"
 

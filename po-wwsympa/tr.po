@@ -5537,6 +5537,13 @@ msgid ""
 "the list."
 msgstr ""
 
+#, fuzzy
+#~ msgid ""
+#~ "<a href=\"%1/help/suspend\">suspend or resume</a> your subscription of "
+#~ "each list;"
+#~ msgstr ""
+#~ "Sympa kullanımı hakkında <a href=\"%1/help/user\">kullanıcı kılavuzu</a>"
+
 #~ msgid "Expert mode"
 #~ msgstr "Uzman modu"
 

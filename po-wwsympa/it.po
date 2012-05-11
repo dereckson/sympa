@@ -3209,6 +3209,7 @@ msgstr ""
 "stabilito nel file robot.conf relativo o nel file /etc/sympa.conf"
 
 #: ../web_tt2/help_editlist.tt2:101
+#, fuzzy
 msgid ""
 "This parameter will be interpreted only if the user_data_source value is set "
 "to include. The file should contain one e-mail address per line (lines "
@@ -3219,6 +3220,7 @@ msgstr ""
 "righe che iniziano per # sono ignorate)"
 
 #: ../web_tt2/help_editlist.tt2:103
+#, fuzzy
 msgid ""
 "This paragraph defines parameters for a two-level query returning a list of "
 "subscribers. Usually the first-level query returns a list of DNs and the "
@@ -3233,6 +3235,7 @@ msgstr ""
 "Questa caratteristica richiede il modulo Perl Net::LDAP (perlldap)"
 
 #: ../web_tt2/help_editlist.tt2:105
+#, fuzzy
 msgid ""
 "This paragraph defines parameters for a query returning a list of "
 "subscribers. This paragraph is used only if user_data_source is set to "
@@ -3300,6 +3303,7 @@ msgstr ""
 "scenario review"
 
 #: ../web_tt2/help_editlist.tt2:112
+#, fuzzy
 msgid ""
 "This parameter will be interpreted only if the user_data_source value is set "
 "to include, and is used to begin a paragraph defining the SQL query "

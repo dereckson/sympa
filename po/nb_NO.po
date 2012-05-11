@@ -93,7 +93,7 @@ msgstr "Hjem"
 #: ../web_tt2/compose_mail.tt2:5 ../web_tt2/create_list_request.tt2:26
 #: ../web_tt2/create_list_request.tt2:33 ../web_tt2/create_list_request.tt2:38
 #: ../web_tt2/create_list_request.tt2:42 ../web_tt2/create_list_request.tt2:68
-#: ../web_tt2/create_list_request.tt2:73 ../web_tt2/create_list_request.tt2:93
+#: ../web_tt2/create_list_request.tt2:73 ../web_tt2/create_list_request.tt2:97
 #: ../web_tt2/d_control.tt2:5 ../web_tt2/d_editfile.tt2:12
 #: ../web_tt2/d_editfile.tt2:14 ../web_tt2/d_properties.tt2:10
 #: ../web_tt2/d_properties.tt2:6 ../web_tt2/d_properties.tt2:8
@@ -120,7 +120,7 @@ msgstr "Listesjef"
 msgid "Privileged owner"
 msgstr "Priviligert eier"
 
-#: ../src/lib/List.pm:1221 ../web_tt2/login_menu.tt2:15
+#: ../src/lib/List.pm:349 ../web_tt2/login_menu.tt2:15
 msgid "Owner"
 msgstr "Eier"
 
@@ -227,24 +227,28 @@ msgstr "Abonnement"
 msgid "Statistics"
 msgstr "Status"
 
-#: ../web_tt2/list_menu.tt2:76 ../web_tt2/list_menu.tt2:78
+#: ../web_tt2/list_menu.tt2:69
+msgid "OpenSocial"
+msgstr ""
+
+#: ../web_tt2/list_menu.tt2:77 ../web_tt2/list_menu.tt2:79
 msgid "Archive"
 msgstr "Arkiv"
 
-#: ../web_tt2/list_menu.tt2:84 ../web_tt2/list_menu.tt2:86
+#: ../web_tt2/list_menu.tt2:85 ../web_tt2/list_menu.tt2:87
 msgid "Post"
 msgstr "Post"
 
-#: ../web_tt2/list_menu.tt2:90
+#: ../web_tt2/list_menu.tt2:91
 msgid "RSS"
 msgstr "RSS"
 
-#: ../src/lib/List.pm:1359 ../web_tt2/list_menu.tt2:95
-#: ../web_tt2/list_menu.tt2:97
+#: ../src/lib/List.pm:876 ../web_tt2/list_menu.tt2:96
+#: ../web_tt2/list_menu.tt2:98
 msgid "Shared documents"
 msgstr "Felles dokumenter"
 
-#: ../web_tt2/list_menu.tt2:103
+#: ../web_tt2/list_menu.tt2:104
 msgid "Review members"
 msgstr "Se medlemmer"
 
@@ -269,7 +273,7 @@ msgstr "Feilrate:"
 msgid "Owners"
 msgstr "Eiere"
 
-#: ../src/lib/List.pm:706 ../web_tt2/list_panel.tt2:42
+#: ../src/lib/List.pm:432 ../web_tt2/list_panel.tt2:42
 #: ../web_tt2/list_panel.tt2:45
 msgid "Moderators"
 msgstr "Moderatorer"
@@ -517,7 +521,7 @@ msgid "Add subscribers"
 msgstr "Legg til abonnenter"
 
 #: ../web_tt2/add_request.tt2:13 ../web_tt2/editsubscriber.tt2:62
-#: ../web_tt2/review.tt2:107 ../web_tt2/review.tt2:141
+#: ../web_tt2/review.tt2:109 ../web_tt2/review.tt2:143
 #: ../web_tt2/reviewbouncing.tt2:127
 msgid "quiet"
 msgstr "stille"
@@ -673,7 +677,7 @@ msgid "Search field:"
 msgstr "Søkefelt:"
 
 #: ../src/etc/mhonarc-ressources.tt2:52 ../web_tt2/arcsearch_form.tt2:16
-#: ../web_tt2/review.tt2:90 ../web_tt2/reviewbouncing.tt2:13
+#: ../web_tt2/review.tt2:92 ../web_tt2/reviewbouncing.tt2:13
 msgid "Search"
 msgstr "Søk"
 
@@ -1252,19 +1256,19 @@ msgstr "Temaer:"
 msgid "--Select a topic--"
 msgstr "--Velg et tema--"
 
-#: ../web_tt2/create_list_request.tt2:89
+#: ../web_tt2/create_list_request.tt2:93
 msgid "Other"
 msgstr "Andre"
 
-#: ../web_tt2/create_list_request.tt2:93
+#: ../web_tt2/create_list_request.tt2:97
 msgid "A few lines describing the list"
 msgstr "Noen linjer for å beskrive listen"
 
-#: ../web_tt2/create_list_request.tt2:94
+#: ../web_tt2/create_list_request.tt2:98
 msgid "Description:"
 msgstr "Beskrivelse:"
 
-#: ../web_tt2/create_list_request.tt2:97
+#: ../web_tt2/create_list_request.tt2:101
 msgid "Submit your creation request"
 msgstr "Send inn din forespørsel om opprettelse av liste"
 
@@ -1592,7 +1596,7 @@ msgstr "tittel"
 msgid "URL"
 msgstr "URL"
 
-#: ../web_tt2/d_read.tt2:352 ../web_tt2/review.tt2:73
+#: ../web_tt2/d_read.tt2:352 ../web_tt2/review.tt2:75
 msgid "Add"
 msgstr "Legg til"
 
@@ -1700,7 +1704,7 @@ msgstr "Rediger listekonfigurasjon"
 msgid "parameter name"
 msgstr "parameterverdi"
 
-#: ../src/lib/List.pm:1302 ../web_tt2/edit_config.tt2:17
+#: ../src/lib/List.pm:710 ../web_tt2/edit_config.tt2:17
 msgid "value"
 msgstr "verdi"
 
@@ -1865,7 +1869,7 @@ msgstr "scenariokilde"
 #: ../mail_tt2/summary.tt2:4 ../web_tt2/edit_list_request.tt2:102
 #: ../web_tt2/edit_list_request.tt2:104 ../web_tt2/edit_list_request.tt2:260
 #: ../web_tt2/edit_list_request.tt2:262 ../web_tt2/editsubscriber.tt2:47
-#: ../web_tt2/editsubscriber.tt2:55 ../web_tt2/error.tt2:107
+#: ../web_tt2/editsubscriber.tt2:55 ../web_tt2/error.tt2:108
 #: ../web_tt2/rss.tt2:4 ../web_tt2/subindex.tt2:39
 msgid ":"
 msgstr ""
@@ -2106,53 +2110,53 @@ msgstr ""
 
 # Could (should?) be translated with SYSTEMFEIL (%1)
 #. (s_err.action)
-#: ../web_tt2/error.tt2:34
+#: ../web_tt2/error.tt2:35
 msgid "SYSTEM ERROR (%1)"
 msgstr "SYSTEM ERROR (%1)"
 
 #. (u_err.action)
-#: ../web_tt2/error.tt2:43
+#: ../web_tt2/error.tt2:44
 msgid "ERROR (%1) "
 msgstr "ERROR (%1) "
 
-#: ../web_tt2/error.tt2:44
+#: ../web_tt2/error.tt2:45
 msgid "Wrong parameters"
 msgstr "Gale parametre"
 
-#: ../web_tt2/error.tt2:45
+#: ../web_tt2/error.tt2:46
 msgid "Unknown action"
 msgstr "Ukjent handling"
 
 #. (u_err.params)
-#: ../web_tt2/error.tt2:46
+#: ../web_tt2/error.tt2:47
 #, fuzzy
 msgid "Syntax errors with the following parameters: %1"
 msgstr "Syntaksfeil ved følgende parametre : %1"
 
 #. (u_err.list)
-#: ../web_tt2/error.tt2:47
+#: ../web_tt2/error.tt2:48
 #, fuzzy
 msgid "%1: unknown list"
 msgstr "%1 : ukjent liste"
 
 #. (u_err.new_robot)
-#: ../web_tt2/error.tt2:48
+#: ../web_tt2/error.tt2:49
 #, fuzzy
 msgid "%1: unknown robot"
 msgstr "%1 : ukjent robot"
 
 #. (u_err.family)
-#: ../web_tt2/error.tt2:49
+#: ../web_tt2/error.tt2:50
 #, fuzzy
 msgid "%1: unknown family"
 msgstr "%1 : ukjent familie"
 
 #. (u_err.email)
-#: ../web_tt2/error.tt2:50
+#: ../web_tt2/error.tt2:51
 msgid "You are already logged in as %1"
 msgstr "Du er allerede logget inn som %1"
 
-#: ../web_tt2/error.tt2:51
+#: ../web_tt2/error.tt2:52
 #, fuzzy
 msgid ""
 "You can not get a password reminder; probably because your password is "
@@ -2161,22 +2165,22 @@ msgstr ""
 "Du kan ikke få en passordpåminnelse, antagligvis fordi ditt passord "
 "håndteres utenfor Sympa (Single Sign-On-system eller LDAP-katalog)."
 
-#: ../web_tt2/error.tt2:52
+#: ../web_tt2/error.tt2:53
 msgid "Please provide email address"
 msgstr "Vennligst skriv inn e-postadresse"
 
 #. (u_err.argument)
-#: ../web_tt2/error.tt2:53
+#: ../web_tt2/error.tt2:54
 msgid "Missing argument %1"
 msgstr "Mangler argument %1"
 
-#: ../web_tt2/error.tt2:54
+#: ../web_tt2/error.tt2:55
 msgid ""
 "You didn't define the web page you want to use to create your newsletter. "
 "Please specify either an URL or a file to upload."
 msgstr ""
 
-#: ../web_tt2/error.tt2:55 ../web_tt2/error.tt2:56
+#: ../web_tt2/error.tt2:56 ../web_tt2/error.tt2:57
 msgid ""
 "You specified both an URL and a file to upload. Sympa can't choose which one "
 "to send. Please fill the form with one of them only. A web page OR a file to "
@@ -2184,31 +2188,31 @@ msgid ""
 msgstr ""
 
 #. (u_err.argument)
-#: ../web_tt2/error.tt2:57
+#: ../web_tt2/error.tt2:58
 msgid "Wrong value for parameter %1"
 msgstr "Feil verdi i parameter %1"
 
-#: ../web_tt2/error.tt2:147 ../web_tt2/error.tt2:58
+#: ../web_tt2/error.tt2:150 ../web_tt2/error.tt2:59
 msgid "You need to login"
 msgstr "Du må logge inn"
 
 #. (u_err.email)
-#: ../web_tt2/error.tt2:59
+#: ../web_tt2/error.tt2:60
 msgid "Address \"%1\" is incorrect"
 msgstr "Adresse \"%1\" er feil"
 
-#: ../web_tt2/error.tt2:60
+#: ../web_tt2/error.tt2:61
 msgid "Provided password is incorrect"
 msgstr "Passordet som ble oppgitt er feil"
 
-#: ../web_tt2/error.tt2:61
+#: ../web_tt2/error.tt2:62
 msgid ""
 "You did not choose a password, request a reminder of the initial password"
 msgstr ""
 "Du valgte ikke et passord, send en forespørsel om passordpåminnelse med det "
 "opprinnelige passordet"
 
-#: ../web_tt2/error.tt2:62
+#: ../web_tt2/error.tt2:63
 msgid ""
 "Your password is stored in an LDAP directory, therefore Sympa cannot post "
 "you a reminder"
@@ -2217,82 +2221,82 @@ msgstr ""
 "deg en passordpåminnelse"
 
 #. (u_err.nb_days)
-#: ../web_tt2/error.tt2:63
+#: ../web_tt2/error.tt2:64
 msgid "The period is too long (%1 days)"
 msgstr "Perioden er for lang (%1 dager)"
 
 # Could use "medlemmer" instead
-#: ../web_tt2/error.tt2:64
+#: ../web_tt2/error.tt2:65
 msgid "List has no subscribers"
 msgstr "Listen har ingen abonnenter"
 
 #. (u_err.page)
-#: ../web_tt2/error.tt2:65
+#: ../web_tt2/error.tt2:66
 msgid "No page %1"
 msgstr "Ingen side %1"
 
-#: ../web_tt2/error.tt2:66
+#: ../web_tt2/error.tt2:67
 msgid "Missing filter"
 msgstr "Mangler filter"
 
 #. (u_err.email)
-#: ../web_tt2/error.tt2:68
+#: ../web_tt2/error.tt2:69
 msgid "Not subscribed: %1"
 msgstr "Ikke abonnent: %1"
 
 #. (u_err.list)
-#: ../web_tt2/error.tt2:69
+#: ../web_tt2/error.tt2:70
 msgid "You are not subscribed to list %1"
 msgstr "Du abonnerer ikke på listen %1"
 
-#: ../web_tt2/error.tt2:71
+#: ../web_tt2/error.tt2:72
 msgid "Check the additional information"
 msgstr "Se tilleggsinformasjonen"
 
 #. (u_err.reception_mode)
-#: ../web_tt2/error.tt2:72
+#: ../web_tt2/error.tt2:73
 msgid "%1 is not an available reception mode"
 msgstr "%1 er ikke tilgjengelig i mottaksmodus"
 
 #. (u_err.file)
-#: ../web_tt2/error.tt2:73
+#: ../web_tt2/error.tt2:74
 #, fuzzy
 msgid "%1: file not editable"
 msgstr "%1 : filen er ikke skrivbar"
 
 #. (u_err.list)
-#: ../web_tt2/error.tt2:74
+#: ../web_tt2/error.tt2:75
 msgid "You are already subscribed to the list %1"
 msgstr "Du abonnerer allerede på listen %1"
 
 #. (u_err.email,u_err.list)
-#: ../web_tt2/error.tt2:75
+#: ../web_tt2/error.tt2:76
 msgid "%1 is already subscribed to the list %2"
 msgstr "%1 er allerede påmeldt listen %2"
 
-#: ../web_tt2/error.tt2:76
+#: ../web_tt2/error.tt2:77
 msgid "Please provide your password"
 msgstr "Vennligst oppgi passordet ditt"
 
-#: ../web_tt2/error.tt2:77
+#: ../web_tt2/error.tt2:78
 msgid "The passwords you typed do not match"
 msgstr "Passordene du oppga er ikke like"
 
 #. (u_err.tpl)
-#: ../web_tt2/error.tt2:78
+#: ../web_tt2/error.tt2:79
 msgid "Provided path is incorrect for template '%1'"
 msgstr "Stien du oppga er feil for malen '%1'"
 
 #. (u_err.path)
-#: ../web_tt2/error.tt2:79
+#: ../web_tt2/error.tt2:80
 msgid "Cannot open file '%1'"
 msgstr "Kan ikke åpne filen '%1'"
 
-#: ../web_tt2/error.tt2:80
+#: ../web_tt2/error.tt2:81
 msgid "You need to provide list name"
 msgstr "Du må oppgi et listenavn"
 
-#: ../web_tt2/error.tt2:81
+#: ../web_tt2/error.tt2:82
 #, fuzzy
 msgid ""
 "Failed to moderate a message; it was probably moderated by another moderator"
@@ -2300,270 +2304,277 @@ msgstr ""
 "Feilet ved moderering av en melding ; den var antagligvis moderert av en "
 "annen moderator"
 
-#: ../web_tt2/error.tt2:82
+#: ../web_tt2/error.tt2:83
 msgid "Tagging message is required for this list"
 msgstr "Merking av melding er påkrevd for denne listen"
 
-#: ../web_tt2/error.tt2:83
+#: ../web_tt2/error.tt2:84
 msgid "Archives are empty for this list"
 msgstr "Arkivene er tomme for denne listen"
 
-#: ../web_tt2/error.tt2:84
+#: ../web_tt2/error.tt2:85
 msgid "You did not select an action to perform"
 msgstr "Du valgte ikke en handling som skal utføres"
 
 #. (u_err.email)
-#: ../web_tt2/error.tt2:85
+#: ../web_tt2/error.tt2:86
 msgid "No bounce for user  %1"
 msgstr "Ingen returmeldinger for bruker %1"
 
-#: ../web_tt2/error.tt2:86
+#: ../web_tt2/error.tt2:87
 msgid "List has no bouncing subscribers"
 msgstr "Listen har ingen abonnenter (medlemmer) hvis adresse returnerer e-post"
 
-#: ../web_tt2/error.tt2:87
+#: ../web_tt2/error.tt2:88
 #, fuzzy
 msgid "No parameter was edited"
 msgstr "parameterverdi"
 
 #. (u_err.email)
-#: ../web_tt2/error.tt2:88
+#: ../web_tt2/error.tt2:89
 msgid "Config file has been modified by %1. Cannot apply your changes"
 msgstr ""
 "Konfigurasjonsfilen har blitt endret av %1. Kan ikke utføre dine endringer"
 
-#: ../web_tt2/error.tt2:89
+#: ../web_tt2/error.tt2:90
 msgid "Topic \"other\" is a reserved word"
 msgstr "Temaet \\\"annet\\\" er et reservert ord"
 
 #. (u_err.p_name)
-#: ../web_tt2/error.tt2:90
+#: ../web_tt2/error.tt2:91
 msgid "Parameter '%1' is mandatory. Ignoring deletion."
 msgstr ""
 
 #. (u_err.param)
-#: ../web_tt2/error.tt2:91
+#: ../web_tt2/error.tt2:92
 msgid "Parameter '%1' must have values"
 msgstr "Parameter '%1' må ha en verdi"
 
 #. (u_err.param,u_err.val)
-#: ../web_tt2/error.tt2:92
+#: ../web_tt2/error.tt2:93
 #, fuzzy
 msgid "Parameter '%1' has got wrong value: '%2'"
 msgstr "Parameter '%1' har feil verdi: '%2'"
 
 #. (u_err.listname)
-#: ../web_tt2/error.tt2:93
+#: ../web_tt2/error.tt2:94
 msgid "The list '%1' is already closed"
 msgstr "Listen '%1' er allerede stengt"
 
 #. (u_err.listname)
-#: ../web_tt2/error.tt2:94
+#: ../web_tt2/error.tt2:95
 msgid "The list '%1' is not closed"
 msgstr "Listen '%1' er ikke stengt"
 
 #. (u_err.bad_listname)
-#: ../web_tt2/error.tt2:95
+#: ../web_tt2/error.tt2:96
 #, fuzzy
 msgid "'%1': bad listname"
 msgstr "'%1': ugyldig listenavn"
 
 #. (u_err.new_listname)
-#: ../web_tt2/error.tt2:96
+#: ../web_tt2/error.tt2:97
 msgid "'%1' list already exists"
 msgstr "'%1': listen finnes allerede"
 
 #. (u_err.new_listname)
-#: ../web_tt2/error.tt2:97
+#: ../web_tt2/error.tt2:98
 #, fuzzy
 msgid "Incorrect listname '%1': matches one of service aliases"
 msgstr "Feil listenavn '%1' : matcher en av tjenestealiasene"
 
 #. (u_err.listname)
-#: ../web_tt2/error.tt2:98
+#: ../web_tt2/error.tt2:99
 #, fuzzy
 msgid "Failed to remove list aliases for list %1"
 msgstr "Ingen eiere er definert for listen %1."
 
 #. (u_err.path)
-#: ../web_tt2/error.tt2:99
+#: ../web_tt2/error.tt2:100
 #, fuzzy
 msgid "%1: No such file or directory"
 msgstr "%1 : Fil eller katalog finnes ikke"
 
 #. (u_err.path)
-#: ../web_tt2/error.tt2:100
+#: ../web_tt2/error.tt2:101
 #, fuzzy
 msgid "Unable to read %1: empty document"
 msgstr "Kan ikke lese %1 : tomt dokument"
 
-#: ../web_tt2/error.tt2:101
+#: ../web_tt2/error.tt2:102
 msgid "There is no shared documents"
 msgstr "Det finnes ingen felles dokumenter"
 
-#: ../web_tt2/error.tt2:102
+#: ../web_tt2/error.tt2:103
 msgid "The shared document space is empty"
 msgstr "Det felles dokument-området er tomt"
 
-#: ../web_tt2/error.tt2:103
+#: ../web_tt2/error.tt2:104
 msgid "The shared directory cannot have any description"
 msgstr "Felleskatalogen kan ikke ha noen beskrivelse"
 
-#: ../web_tt2/error.tt2:104
+#: ../web_tt2/error.tt2:105
 msgid "No description specified"
 msgstr "Ingen beskrivelse  er definert"
 
 #. (u_err.path)
-#: ../web_tt2/error.tt2:105
+#: ../web_tt2/error.tt2:106
 msgid "Unable to describe, the document '%1' does not exist"
 msgstr "Kan ikke vise beskrivelse, dokumentet '%1' eksisterer ikke"
 
-#: ../web_tt2/error.tt2:106
+#: ../web_tt2/error.tt2:107
 msgid "Data has changed on disk. Cannot apply your changes"
 msgstr "Data har blitt endret på disk. Kan ikke utføre dine endringer"
 
 #. (u_err.name)
-#: ../web_tt2/error.tt2:107
+#: ../web_tt2/error.tt2:108
 #, fuzzy
 msgid "%1: incorrect name"
 msgstr "%1 : feil navn"
 
-#: ../web_tt2/error.tt2:108
+#: ../web_tt2/error.tt2:109
 #, fuzzy
 msgid "Failed: your content is empty"
 msgstr "Feilet : innholdet ditt er tomt"
 
 #. (u_err.path)
-#: ../web_tt2/error.tt2:109
+#: ../web_tt2/error.tt2:110
 #, fuzzy
 msgid "Cannot overwrite file %1:"
 msgstr "Kan ikke overskrive filen %1"
 
 #. (u_err.path)
-#: ../web_tt2/error.tt2:110
+#: ../web_tt2/error.tt2:111
 #, fuzzy
 msgid "A directory named '%1' already exists:"
 msgstr "En katalog med navnet '%1' finnes allerede"
 
 #. (u_err.name)
-#: ../web_tt2/error.tt2:111
+#: ../web_tt2/error.tt2:112
 #, fuzzy
 msgid "This is an already existing document: '%1'"
 msgstr "Dette er et allerede eksisterende dokument : '%1'"
 
-#: ../web_tt2/error.tt2:112
+#: ../web_tt2/error.tt2:113
 msgid "No name specified"
 msgstr "Intet navn er spesifisert"
 
-#: ../web_tt2/error.tt2:113
+#: ../web_tt2/error.tt2:114
 msgid "The document repository exceed disk quota."
 msgstr "Dokumentlageret overskrider diskkvoten."
 
 #. (u_err.path)
-#: ../web_tt2/error.tt2:114
+#: ../web_tt2/error.tt2:115
 #, fuzzy
 msgid "Cannot upload file %1:"
 msgstr "Kan ikke laste opp filen %1"
 
 #. (u_err.dir)
-#: ../web_tt2/error.tt2:115
+#: ../web_tt2/error.tt2:116
 msgid "You're not authorized to upload an INDEX.HTML in %1"
 msgstr ""
 "Du er ikke autorisert til å laste opp en fil med navn INDEX.HTML til %1"
 
-#: ../web_tt2/error.tt2:116
+#: ../web_tt2/error.tt2:117
 msgid "The upload failed, try it again"
 msgstr "Opplastingen feilet, prøv igjen"
 
 #. (u_err.name,u_err.reason)
-#: ../web_tt2/error.tt2:117
+#: ../web_tt2/error.tt2:118
 #, fuzzy
 msgid "Directory %1 and its contents could not be copied: %2"
 msgstr "Katalogen %1 og dets innhold kunne ikke bli kopiert : %2"
 
 #. (u_err.name,u_err.reason)
-#: ../web_tt2/error.tt2:118
+#: ../web_tt2/error.tt2:119
 #, fuzzy
 msgid "File %1 was not copied: %2 "
 msgstr "Filen %1 ble ikke kopiert : %2"
 
 #. (u_err.directory)
-#: ../web_tt2/error.tt2:119
+#: ../web_tt2/error.tt2:120
 #, fuzzy
 msgid "Failed: %1 not empty"
 msgstr "Feilet : %1 er ikke tom"
 
-#: ../web_tt2/error.tt2:120
+#: ../web_tt2/error.tt2:121
 msgid "No certificate for this list"
 msgstr "Intet sertifikat for denne listen"
 
-#: ../web_tt2/error.tt2:121
+#: ../web_tt2/error.tt2:122
 msgid "This list has no message topic"
 msgstr "Denne listen har ikke et meldingstema"
 
-#: ../web_tt2/error.tt2:122
+#: ../web_tt2/error.tt2:123
 msgid "Tag message with topic is required for this list"
 msgstr "Å merke meldinger med tema er påkrevd for denne listen"
 
 #. (u_err.email)
-#: ../web_tt2/error.tt2:123
+#: ../web_tt2/error.tt2:124
 msgid "No entry for user '%1'"
 msgstr "Intet innlegg for bruker '%1'"
 
-#: ../web_tt2/error.tt2:124
+#: ../web_tt2/error.tt2:125
 msgid "Please select archive months"
 msgstr "Vennligst velg arkivmåneder"
 
-#: ../web_tt2/error.tt2:125
+#: ../web_tt2/error.tt2:126
 msgid "No SOAP service"
 msgstr "Ingen SOAP-tjeneste"
 
-#: ../web_tt2/error.tt2:126
+#: ../web_tt2/error.tt2:127
 msgid "Authentication failed"
 msgstr "Autentisering feilet"
 
 #. (u_err.status)
-#: ../web_tt2/error.tt2:127
+#: ../web_tt2/error.tt2:128
 msgid "Service unavailable because list status is '%1'"
 msgstr ""
 
 #. (u_err.argument)
-#: ../web_tt2/error.tt2:128
+#: ../web_tt2/error.tt2:129
 #, fuzzy
 msgid "This Template '%1' already exists"
 msgstr "filen %1 eksisterer allerede"
 
 #. (u_err.file_del)
-#: ../web_tt2/error.tt2:129
+#: ../web_tt2/error.tt2:130
 #, fuzzy
 msgid "Cannot delete this file '%1'"
 msgstr "Kan ikke åpne filen '%1'"
 
 #. (u_err.filename)
-#: ../web_tt2/error.tt2:130
+#: ../web_tt2/error.tt2:131
 #, fuzzy
 msgid "Invalid filename: '%1'"
 msgstr "Kunne ikke lese filen : '%1'."
 
 #. (u_err.listname)
-#: ../web_tt2/error.tt2:131
+#: ../web_tt2/error.tt2:132
 msgid ""
 "Failed to update member email in list '%1', list owner has been notified."
 msgstr ""
 
 #. (u_err.listname)
-#: ../web_tt2/error.tt2:132
+#: ../web_tt2/error.tt2:133
 msgid ""
 "Failed to update admin email in list '%1', list owner has been notified."
 msgstr ""
 
+#. (base_url,path_cgi,u_err.oauth_provider)
+#: ../web_tt2/error.tt2:134
+msgid ""
+"Failed to include members from VOOT group, use the following link to check "
+"the OAuth status : <a href=\"%1%2/oauth_check/%3\">%1%2/oauth_check/%3</a>"
+msgstr ""
+
 #. (auth.action)
-#: ../web_tt2/error.tt2:141
+#: ../web_tt2/error.tt2:144
 msgid "AUTHORIZATION REJECT (%1)"
 msgstr "AUTORISASJON AVVIST (%1)"
 
 #. (auth.listname)
-#: ../web_tt2/error.tt2:143
+#: ../web_tt2/error.tt2:146
 #, fuzzy
 msgid ""
 "Could not change your subscription address for the list '%1' \n"
@@ -2579,7 +2590,7 @@ msgstr "Stengte lister"
 
 #: ../src/etc/mhonarc-ressources.tt2:212 ../src/etc/mhonarc-ressources.tt2:328
 #: ../web_tt2/get_closed_lists.tt2:29 ../web_tt2/get_closed_lists.tt2:9
-#: ../web_tt2/modindex.tt2:135 ../web_tt2/review.tt2:139
+#: ../web_tt2/modindex.tt2:135 ../web_tt2/review.tt2:141
 #: ../web_tt2/reviewbouncing.tt2:131 ../web_tt2/reviewbouncing.tt2:60
 #: ../web_tt2/subindex.tt2:10 ../web_tt2/subindex.tt2:57
 #: ../web_tt2/subscriber_table.tt2:7
@@ -2856,7 +2867,7 @@ msgid " The latest lists of this robot"
 msgstr "De siste listene på denne roboten (domenet)"
 
 #. (occurrence)
-#: ../web_tt2/lists.tt2:7 ../web_tt2/review.tt2:110
+#: ../web_tt2/lists.tt2:7 ../web_tt2/review.tt2:112
 msgid "%1 occurrence(s) found"
 msgstr "%1 treff funnet"
 
@@ -3323,117 +3334,169 @@ msgstr "Din henvendelse har blitt sendt videre til listeeieren"
 msgid "%1 subscribers added"
 msgstr "%1 abonnenter lagt til"
 
-#. (notice.total)
 #: ../web_tt2/notice.tt2:16
+#, fuzzy
+msgid "You're not allowed to make sync, time limit in action"
+msgstr "du har ikke tillatelse til å utføre denne handlingen."
+
+#. (notice.total)
+#: ../web_tt2/notice.tt2:19
 msgid "%1 addresses have been removed"
 msgstr "%1 adresser ble slettet"
 
 #. (notice.action)
-#: ../web_tt2/notice.tt2:19
+#: ../web_tt2/notice.tt2:22
 msgid "%1: action completed"
 msgstr "%1 : handling fullført"
 
 #. (notice.action)
-#: ../web_tt2/notice.tt2:22
+#: ../web_tt2/notice.tt2:25
 msgid "%1: action will complete soon"
 msgstr "%1 : handling straks utført"
 
-#: ../web_tt2/notice.tt2:25
+#: ../web_tt2/notice.tt2:28
 msgid "Configuration file has been updated"
 msgstr "Konfigurasjonsfilen har blitt oppdatert"
 
-#: ../web_tt2/notice.tt2:28
+#: ../web_tt2/notice.tt2:31
 msgid "List has been purged"
 msgstr "Listen har blitt slettet"
 
-#: ../web_tt2/notice.tt2:31
+#: ../web_tt2/notice.tt2:34
 msgid "List has been closed"
 msgstr "Listen har blitt stengt"
 
-#: ../web_tt2/notice.tt2:34
+#: ../web_tt2/notice.tt2:37
 msgid "List has been restored"
 msgstr "Listen har blitt gjenopprettet"
 
 #. (notice.path)
-#: ../web_tt2/notice.tt2:37
+#: ../web_tt2/notice.tt2:40
 msgid "File %1 successfully uploaded!"
 msgstr "Vellykket opplasting av filen %1!"
 
 #. (notice.path)
-#: ../web_tt2/notice.tt2:40
+#: ../web_tt2/notice.tt2:43
 msgid "File %1 unziped!"
 msgstr "Filen %1 pakket ut (unzippet)!"
 
 #. (notice.path)
-#: ../web_tt2/notice.tt2:43
+#: ../web_tt2/notice.tt2:46
 msgid "Old file %1 has been erased"
 msgstr "Gammel fil %1 har blitt slettet"
 
 #. (notice.path)
-#: ../web_tt2/notice.tt2:46
+#: ../web_tt2/notice.tt2:49
 msgid "File %1 waiting for moderation"
 msgstr "Filen %1 venter på moderering"
 
 #. (notice.path)
-#: ../web_tt2/notice.tt2:49
+#: ../web_tt2/notice.tt2:52
 msgid "File %1 saved"
 msgstr "Filen %1 er lagret"
 
-#: ../web_tt2/notice.tt2:52
+#: ../web_tt2/notice.tt2:55
 msgid "Your password has been emailed to you"
 msgstr "Passordet ditt har blitt sendt til deg i e-post"
 
-#: ../web_tt2/notice.tt2:55
+#: ../web_tt2/notice.tt2:58
 msgid "To choose your password go to 'preferences', from the upper menu."
 msgstr "For å velge ditt passord, gå til 'innstillinger', fra den øvre menyen."
 
 #. (notice.list)
-#: ../web_tt2/notice.tt2:58
+#: ../web_tt2/notice.tt2:61
 msgid "No message and no document to moderate for list %1"
 msgstr "Ingen meldinger eller dokumenter å moderere for listen %1"
 
-#: ../web_tt2/notice.tt2:61
+#: ../web_tt2/notice.tt2:64
 msgid "The list of list members have been built/updated."
 msgstr "Oversikten over listemedlemmer har blitt bygget/oppdatert."
 
-#: ../web_tt2/notice.tt2:64
+#: ../web_tt2/notice.tt2:67
 msgid "The list of list members will be built/updated soon (a few minutes)."
 msgstr ""
 "Oversikten over listemedlemmer vil bygges/oppdateres snart (noen få "
 "minutter)."
 
-#: ../web_tt2/notice.tt2:67
+#: ../web_tt2/notice.tt2:70
 msgid "Concerned subscribers have been notified about deleted topics."
 msgstr "Berørte abonnenter har blitt varslet om slettede tema."
 
 #. (notice.total)
-#: ../web_tt2/notice.tt2:70
+#: ../web_tt2/notice.tt2:73
 msgid "%1 addresses have been subscribed"
 msgstr "%1 adresser har blitt påmeldt"
 
-#: ../web_tt2/notice.tt2:73
+#: ../web_tt2/notice.tt2:76
 msgid "You have been authenticated"
 msgstr "Du er autentisert"
 
 #. (notice.orig_file,notice.new_file)
-#: ../web_tt2/notice.tt2:76
+#: ../web_tt2/notice.tt2:79
 msgid "File %1 has been renamed to %2"
 msgstr "Filen %1 har blitt omnavnet til %2"
 
-#: ../web_tt2/notice.tt2:79
+#: ../web_tt2/notice.tt2:82
 #, fuzzy
 msgid "List has been set to the pending status; listmaster need to validate it"
 msgstr "Listens status er ubekreftet : listesjefen må godkjenne den"
 
-#: ../web_tt2/notice.tt2:82
+#: ../web_tt2/notice.tt2:85
 msgid "List name has been lowercased"
 msgstr ""
 
 #. (notice.notified_user)
-#: ../web_tt2/notice.tt2:85
+#: ../web_tt2/notice.tt2:88
 #, fuzzy
 msgid "User %1 has been notified"
 msgstr "Listen har blitt stengt"
+
+#: ../web_tt2/oauth_authorize.tt2:4
+msgid "OAuth authorize"
+msgstr ""
+
+#. (consumer_key)
+#: ../web_tt2/oauth_authorize.tt2:7
+#, fuzzy
+msgid "Authorize %1 ?"
+msgstr "Forfatter"
+
+#: ../web_tt2/oauth_authorize.tt2:12
+#, fuzzy
+msgid "Authorize"
+msgstr "Forfatter"
+
+#: ../web_tt2/oauth_authorize.tt2:13
+msgid "Don't authorize"
+msgstr ""
+
+#: ../web_tt2/oauth_check.tt2:4
+msgid "OAuth check"
+msgstr ""
+
+#: ../web_tt2/oauth_check.tt2:10
+msgid "Got new access token, everything is alright."
+msgstr ""
+
+#: ../web_tt2/oauth_check.tt2:12
+#, fuzzy
+msgid "Everything is alright."
+msgstr "Alt om denne listen:"
+
+#: ../web_tt2/oauth_check.tt2:15
+msgid ""
+"Unable to check, provider may not be available or access token may be "
+"outdated and failed to be get new one."
+msgstr ""
+
+#: ../web_tt2/oauth_check.tt2:18
+msgid "Unable to load consumer, configuration may be erroneous."
+msgstr ""
+
+#: ../web_tt2/oauth_check.tt2:21
+#, fuzzy
+msgid "Unknown provider."
+msgstr "Ukjent feil."
 
 #: ../web_tt2/picture_upload.tt2:4
 msgid "Setting your picture for this list"
@@ -3677,14 +3740,14 @@ msgid "Remind all subscribers"
 msgstr "Påminnelse til alle abonnenter"
 
 #. (total)
-#: ../web_tt2/review.tt2:62 ../web_tt2/reviewbouncing.tt2:19
+#: ../web_tt2/review.tt2:64 ../web_tt2/reviewbouncing.tt2:19
 msgid ""
 "Do you really want to send a subscription reminder message to the %1 "
 "subscribers?"
 msgstr ""
 "Ønsker du virkelig å sende abonnementspåminnelse til de %1 abonnentene?"
 
-#: ../web_tt2/review.tt2:127 ../web_tt2/review.tt2:27
+#: ../web_tt2/review.tt2:129 ../web_tt2/review.tt2:27
 #: ../web_tt2/reviewbouncing.tt2:115 ../web_tt2/reviewbouncing.tt2:44
 #: ../web_tt2/viewlogs.tt2:31
 msgid "Previous page"
@@ -3695,7 +3758,7 @@ msgstr "Forrige side"
 msgid "page %1 / %2"
 msgstr "side %1 / %2"
 
-#: ../web_tt2/review.tt2:133 ../web_tt2/review.tt2:33
+#: ../web_tt2/review.tt2:135 ../web_tt2/review.tt2:33
 #: ../web_tt2/reviewbouncing.tt2:121 ../web_tt2/reviewbouncing.tt2:50
 #: ../web_tt2/viewlogs.tt2:37
 msgid "Next page"
@@ -3705,7 +3768,7 @@ msgstr "Neste side"
 msgid "Table which display list bounces"
 msgstr "Tabell som viser returmeldinger for listen"
 
-#: ../web_tt2/review.tt2:149 ../web_tt2/reviewbouncing.tt2:61
+#: ../web_tt2/review.tt2:151 ../web_tt2/reviewbouncing.tt2:61
 #: ../web_tt2/show_exclude.tt2:15 ../web_tt2/subindex.tt2:11
 #: ../web_tt2/subscriber_table.tt2:12 ../web_tt2/subscriber_table.tt2:15
 #: ../web_tt2/viewlogs.tt2:54 ../web_tt2/viewlogs.tt2:63
@@ -3742,7 +3805,7 @@ msgstr "Se på siste returmelding"
 msgid "no score"
 msgstr "scenariokilde"
 
-#: ../web_tt2/review.tt2:106 ../web_tt2/review.tt2:140
+#: ../web_tt2/review.tt2:108 ../web_tt2/review.tt2:142
 #: ../web_tt2/reviewbouncing.tt2:126
 msgid "Delete selected email addresses"
 msgstr "Slett valgte e-postadresser"
@@ -3773,7 +3836,7 @@ msgstr "Administrer lister"
 msgid "Page size"
 msgstr "Sidestørrelse"
 
-#: ../web_tt2/review.tt2:130 ../web_tt2/review.tt2:30
+#: ../web_tt2/review.tt2:132 ../web_tt2/review.tt2:30
 #: ../web_tt2/viewlogs.tt2:34
 msgid "page"
 msgstr "side"
@@ -3790,54 +3853,59 @@ msgstr ""
 msgid "Synchronize members with data sources"
 msgstr "Synkroniser medlemmer med datakilder"
 
-#: ../web_tt2/review.tt2:62
+#: ../web_tt2/review.tt2:60
+#, fuzzy
+msgid "<strong>Last update:"
+msgstr "Siste oppdatering:"
+
+#: ../web_tt2/review.tt2:64
 msgid "Remind all"
 msgstr "Send påminnelse til alle abonnenter"
 
-#: ../web_tt2/review.tt2:71
+#: ../web_tt2/review.tt2:73
 msgid "Add an user: "
 msgstr "Legg til en bruker:"
 
-#: ../web_tt2/review.tt2:75
+#: ../web_tt2/review.tt2:77
 #, fuzzy
 msgid "Add quietly"
 msgstr "stille"
 
-#: ../web_tt2/review.tt2:76
+#: ../web_tt2/review.tt2:78
 msgid "Multiple add"
 msgstr "Legg til flere"
 
-#: ../web_tt2/review.tt2:88
+#: ../web_tt2/review.tt2:90
 msgid "Search user by e-mail: "
 msgstr "Søk etter bruker via e-postadresse:"
 
-#: ../web_tt2/review.tt2:89
+#: ../web_tt2/review.tt2:91
 msgid "Search user by email"
 msgstr "Søk etter bruker via e-postadresse"
 
-#: ../web_tt2/review.tt2:94
+#: ../web_tt2/review.tt2:96
 msgid "Selection too wide, can not show selection"
 msgstr "Utvalget for bredt, kan ikke vise utvalget"
 
 #. (similar_subscribers_occurence)
-#: ../web_tt2/review.tt2:118
+#: ../web_tt2/review.tt2:120
 msgid " Other similar subscriber's email(s) (%1)"
 msgstr ""
 
-#: ../web_tt2/review.tt2:138
+#: ../web_tt2/review.tt2:140
 msgid "Do you really want to unsubscribe ALL selected subscribers?"
 msgstr "Ønsker du virkelig å melde ALLE de valgte  medlemmene ut av listen?"
 
-#: ../web_tt2/review.tt2:146
+#: ../web_tt2/review.tt2:148
 msgid "Excluded users"
 msgstr ""
 
-#: ../web_tt2/review.tt2:147 ../web_tt2/show_exclude.tt2:13
+#: ../web_tt2/review.tt2:149 ../web_tt2/show_exclude.tt2:13
 #, fuzzy
 msgid "List of exclude"
 msgstr "Mappevisning"
 
-#: ../web_tt2/review.tt2:150 ../web_tt2/show_exclude.tt2:16
+#: ../web_tt2/review.tt2:152 ../web_tt2/show_exclude.tt2:16
 #, fuzzy
 msgid "Since"
 msgstr "Størrelse"
@@ -4048,6 +4116,32 @@ msgstr "eier"
 #: ../web_tt2/search_user.tt2:37
 msgid "editor"
 msgstr "redaktør"
+
+#: ../web_tt2/select_voot_groups_request.tt2:4
+#, fuzzy
+msgid "Select group"
+msgstr "--Velg et tema--"
+
+#: ../web_tt2/select_voot_groups_request.tt2:6
+msgid ""
+"Hereafter is the list of the groups you accepted to share with Sympa. Select "
+"which group you want members to be included in your list."
+msgstr ""
+
+#: ../web_tt2/select_voot_groups_request.tt2:20
+#, fuzzy
+msgid "Set as source"
+msgstr "datakilden"
+
+#: ../web_tt2/select_voot_provider_request.tt2:4
+msgid "Select VOOT provider"
+msgstr ""
+
+#: ../web_tt2/select_voot_provider_request.tt2:6
+msgid ""
+"Hereafter is the list of VOOT providers that share group information with "
+"Sympa. Select which provider you want to use your groups from."
+msgstr ""
 
 #: ../web_tt2/serveradmin.tt2:7
 msgid "Manage lists"
@@ -5186,7 +5280,7 @@ msgstr "Søkeperiode"
 #. (date_to_formated)
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../web_tt2/viewlogs.tt2:113 ../wwsympa/wwsympa.fcgi.in:16678
+#: ../web_tt2/viewlogs.tt2:113 ../wwsympa/wwsympa.fcgi.in:16940
 msgid "%d %b %Y %H:%M:%S"
 msgstr "%d %b %Y %H:%M:%S"
 
@@ -5827,7 +5921,7 @@ msgid "%1 Digest %2"
 msgstr "%1 Sammendrag %2"
 
 #: ../mail_tt2/digest.tt2:10 ../mail_tt2/digest_plain.tt2:9
-#: ../mail_tt2/get_archive.tt2:9 ../src/lib/List.pm:2732
+#: ../mail_tt2/get_archive.tt2:9 ../src/lib/List.pm:3523
 msgid "Table of contents:"
 msgstr "Innholdsliste:"
 
@@ -6217,7 +6311,7 @@ msgstr ""
 msgid "To subscribe just hit the following link:"
 msgstr "For å abonnere trykk på den følgende mailto-urlen :"
 
-#. (conf.sympa,subject)
+#. (conf.sympa,list.name)
 #: ../mail_tt2/invite.tt2:10
 #, fuzzy
 msgid "Or send a message to %1 with subject: \"sub %2\""
@@ -7428,39 +7522,53 @@ msgstr ""
 "Din melding til listen '%1' (vedlagt under) ble avvist.\n"
 "Du fikk ikke sende meldingen av følgende årsaker :"
 
+#. (consumer_name,oauth_provider)
 #: ../mail_tt2/message_report.tt2:96
+msgid "Your OAuth token used by consumer %1 may have expired."
+msgstr ""
+
+#. (consumer_name,oauth_provider,conf.wwsympa_url)
+#: ../mail_tt2/message_report.tt2:105
+msgid ""
+"Sympa failed to retreive data using %1 consumer, this may be because your "
+"access token for OAuth provider %2 is out of date.\n"
+"\n"
+"Visit  %3/oauth_check/%2 to check the token state and renew it if necessary."
+msgstr ""
+
+#: ../mail_tt2/message_report.tt2:111
 msgid "Message distribution"
 msgstr ""
 
 #. (list.name)
-#: ../mail_tt2/message_report.tt2:100
+#: ../mail_tt2/message_report.tt2:115
 msgid "Your message for list %1 has been forwarded to editor(s)"
 msgstr ""
 
 #. (key,list.name)
-#: ../mail_tt2/message_report.tt2:104
+#: ../mail_tt2/message_report.tt2:119
 msgid "Message %1 for list '%2' has been distributed."
 msgstr ""
 
 #. (key,list.name)
-#: ../mail_tt2/message_report.tt2:108
+#: ../mail_tt2/message_report.tt2:123
 msgid ""
 "Message %1 for list '%2' has been validated; it will be distributed soon."
 msgstr ""
 
 #. (key,list.name)
-#: ../mail_tt2/message_report.tt2:112
+#: ../mail_tt2/message_report.tt2:127
 msgid "Message %1 for list '%2' has been rejected."
 msgstr ""
 
 #. (key,list.name)
-#: ../mail_tt2/message_report.tt2:116
+#: ../mail_tt2/message_report.tt2:131
 msgid ""
 "Your message for list '%2' with the %1 ID has been confirmed and distributed."
 msgstr ""
 
 #. (key,list.name)
-#: ../mail_tt2/message_report.tt2:120
+#: ../mail_tt2/message_report.tt2:135
 msgid ""
 "Your message for list '%2' with the %1 ID has been confirmed; it will be "
 "distributed soon."
@@ -8659,7 +8767,7 @@ msgstr "%d %b %y  %H:%M"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/Commands.pm:966 ../wwsympa/wwsympa.fcgi.in:10131
+#: ../src/lib/Commands.pm:966 ../wwsympa/wwsympa.fcgi.in:10504
 msgid "%A"
 msgstr "%A"
 
@@ -9450,11 +9558,11 @@ msgid ""
 "page"
 msgstr ""
 
-#: ../src/lib/Conf.pm:967
+#: ../src/lib/Conf.pm:966
 msgid "Conf::load_nrcpt_by_domain(): Error at line %d: %s"
 msgstr ""
 
-#: ../src/lib/Conf.pm:1311
+#: ../src/lib/Conf.pm:1310
 #, fuzzy
 msgid "Error at line %d: %s\n"
 msgstr "Feil på linje %d : %s"
@@ -9462,787 +9570,836 @@ msgstr "Feil på linje %d : %s"
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
 #: ../src/lib/Family.pm:2593 ../src/lib/Family.pm:388 ../src/lib/Family.pm:665
-#: ../src/lib/List.pm:1881 ../wwsympa/Auth.pm:435
-#: ../wwsympa/wwsympa.fcgi.in:1079 ../wwsympa/wwsympa.fcgi.in:2928
+#: ../src/lib/List.pm:2672 ../wwsympa/Auth.pm:435
+#: ../wwsympa/wwsympa.fcgi.in:1142 ../wwsympa/wwsympa.fcgi.in:3000
 msgid "%d %b %Y at %H:%M:%S"
 msgstr "%d %b %Y at %H:%M:%S"
 
-#: ../src/lib/List.pm:325
-msgid "Account"
-msgstr "Konto"
+#: ../src/lib/List.pm:331
+msgid "Subject of the list"
+msgstr "Listens emne"
 
-#: ../src/lib/List.pm:329
-msgid "Who can add subscribers"
-msgstr "Hvem kan legge til abonnenter"
+#: ../src/lib/List.pm:339
+msgid "Visibility of the list"
+msgstr "Listens synlighet"
 
-#: ../src/lib/List.pm:333
-msgid "Anonymous sender"
-msgstr "Anonym avsender"
-
-#: ../src/lib/List.pm:338
-msgid "frequency"
-msgstr "frekvens"
-
-#: ../src/lib/List.pm:1460 ../src/lib/List.pm:343
-msgid "access right"
-msgstr "tilgangsrettighet"
-
-#: ../src/lib/List.pm:347
-msgid "Text archives"
-msgstr "Tekstarkiver"
-
-#: ../src/lib/List.pm:352
-msgid "Archive encrypted mails as cleartext"
-msgstr "Arkiver krypterte epost som ren tekst"
-
-#: ../src/lib/List.pm:1196 ../src/lib/List.pm:1236 ../src/lib/List.pm:359
-#: ../src/lib/List.pm:560 ../src/lib/List.pm:686 ../src/lib/List.pm:721
-msgid "reception mode"
-msgstr ""
-
-#: ../src/lib/List.pm:362
-msgid "Available subscription options"
-msgstr "Tilgjengelige valg for abonnement"
-
-#: ../src/lib/List.pm:370
-msgid "warn rate"
-msgstr ""
-
-#: ../src/lib/List.pm:377
-msgid "halt rate"
-msgstr ""
-
-#: ../src/lib/List.pm:381
-msgid "Bounces management"
-msgstr "Returbehandling"
-
-#: ../src/lib/List.pm:388 ../src/lib/List.pm:409
-msgid "threshold"
-msgstr "terskel"
-
-#: ../src/lib/List.pm:393 ../src/lib/List.pm:414
-msgid "action for this population"
-msgstr ""
-
-#: ../src/lib/List.pm:398 ../src/lib/List.pm:419
-msgid "notification"
-msgstr "varsel"
-
-#: ../src/lib/List.pm:402
-msgid "Management of bouncers, 1st level"
-msgstr "Behandling av returer, første nivå"
-
-#: ../src/lib/List.pm:423
-msgid "Management of bouncers, 2nd level"
-msgstr "Behandling av returer, andre nivå"
-
-#: ../src/lib/List.pm:430
-msgid "Expiration of unmoderated messages"
-msgstr ""
-
-#: ../src/lib/List.pm:436
-msgid "Secret string for generating unique keys"
-msgstr "Hemmelig streng for generering av unike nøkler"
-
-#: ../src/lib/List.pm:441
-msgid "tracking message by delivery status notification"
-msgstr ""
-
-#: ../src/lib/List.pm:446
-msgid "tracking message by message delivery notification"
-msgstr ""
-
-#: ../src/lib/List.pm:450
-#, fuzzy
-msgid "who can view message tracking"
-msgstr "Meldingsmerking"
-
-#: ../src/lib/List.pm:457
-msgid "Tracking datas are removed after this number of days"
-msgstr ""
-
-#: ../src/lib/List.pm:462
-#, fuzzy
-msgid "Message tracking feature"
-msgstr "Meldingsmerking"
-
-#: ../src/lib/List.pm:1116 ../src/lib/List.pm:1416 ../src/lib/List.pm:466
-msgid "epoch date"
-msgstr ""
-
-#: ../src/lib/List.pm:470
-msgid "human readable"
-msgstr ""
-
-#: ../src/lib/List.pm:475
-#, fuzzy
-msgid "who created the list"
-msgstr "hvem oppdaterte konfigurasjonen"
-
-#: ../src/lib/List.pm:479
-msgid "Creation of the list"
-msgstr "Opprettelse av listen"
-
-#: ../src/lib/List.pm:490
-msgid "internal identifier"
-msgstr "intern identifikator"
-
-#: ../src/lib/List.pm:498
-msgid "label"
-msgstr ""
-
-#: ../src/lib/List.pm:504
-msgid "additional comment"
-msgstr "tilleggskommentar"
-
-#: ../src/lib/List.pm:511
-msgid "type"
-msgstr "type"
-
-#: ../src/lib/List.pm:517
-msgid "possible attribute values (if enum is used)"
-msgstr "mulige attributtverdier (hvis enum er brukt)"
-
-#: ../src/lib/List.pm:522
-#, fuzzy
-msgid "is the attribute optional?"
-msgstr "er attributtet valgfritt ?"
-
-#: ../src/lib/List.pm:528
-msgid "Custom user attributes"
-msgstr ""
-
-#: ../src/lib/List.pm:534
-msgid "Custom header field"
-msgstr ""
-
-#: ../src/lib/List.pm:539
-msgid "Subject tagging"
-msgstr "Emnemerking"
-
-#: ../src/lib/List.pm:553
-msgid "custom parameters"
-msgstr ""
-
-#: ../src/lib/List.pm:1201 ../src/lib/List.pm:1241 ../src/lib/List.pm:565
-#: ../src/lib/List.pm:691 ../src/lib/List.pm:726
-msgid "visibility"
-msgstr "synlighet"
-
-#: ../src/lib/List.pm:569
-msgid "Subscription profile"
-msgstr ""
-
-#: ../src/lib/List.pm:573
-msgid "Who can delete subscribers"
-msgstr "Hvem kan slette abonnenter"
-
-#: ../src/lib/List.pm:578
-msgid "Delivery time (hh:mm)"
-msgstr ""
-
-#: ../src/lib/List.pm:428 ../src/lib/List.pm:455 ../src/lib/List.pm:586
-msgid "days"
-msgstr "dager"
-
-#: ../src/lib/List.pm:592
-msgid "hour"
-msgstr "time"
-
-#: ../src/lib/List.pm:598
-msgid "minute"
-msgstr "minutt"
-
-#: ../src/lib/List.pm:602
-msgid "Digest frequency"
-msgstr "Frekvens for listesammendrag"
-
-#: ../src/lib/List.pm:610
-msgid "Digest maximum number of messages"
-msgstr "Maksimalt antall meldinger i listesammendrag"
-
-#: ../src/lib/List.pm:617
-msgid "Inclusions timeout for message distribution"
-msgstr ""
-
-#: ../src/lib/List.pm:624
-#, fuzzy
-msgid "Insert DKIM signature to messages sent to the list"
-msgstr "Hvem kan abonnere på listen"
-
-#: ../src/lib/List.pm:632
-msgid ""
-"The categories of messages sent to the list that will be signed using DKIM."
-msgstr ""
-
-#: ../src/lib/List.pm:639
-msgid "File path for list DKIM private key"
-msgstr ""
-
-#: ../src/lib/List.pm:647
-msgid "Selector for DNS lookup of DKIM public key"
-msgstr ""
-
-#: ../src/lib/List.pm:675
-#, fuzzy
-msgid "DKIM configuration"
-msgstr "Konfigurasjonsfil"
-
-#: ../src/lib/List.pm:1191 ../src/lib/List.pm:681
+#: ../src/lib/List.pm:353 ../src/lib/List.pm:436
 msgid "email address"
 msgstr "e-postadresse"
 
-#: ../src/lib/List.pm:1206 ../src/lib/List.pm:696
+#: ../src/lib/List.pm:360 ../src/lib/List.pm:455
 msgid "name"
 msgstr "navn"
 
-#: ../src/lib/List.pm:1211 ../src/lib/List.pm:701
+#: ../src/lib/List.pm:366 ../src/lib/List.pm:461
 msgid "private information"
 msgstr "privat informasjon"
 
-#: ../src/lib/List.pm:736
-#, fuzzy
-msgid "Periodical subscription expiration task"
-msgstr "Regelmessig oppgave for abonnementsutløping"
+#: ../src/lib/List.pm:372 ../src/lib/List.pm:422
+msgid "profile"
+msgstr "profil"
 
-#: ../src/lib/List.pm:747
-msgid "Attachment type"
-msgstr "Vedleggtype"
-
-#: ../src/lib/List.pm:751
-msgid "Forced reply address"
+#: ../src/lib/List.pm:378 ../src/lib/List.pm:410 ../src/lib/List.pm:443
+#: ../src/lib/List.pm:487 ../src/lib/List.pm:617 ../src/lib/List.pm:632
+msgid "reception mode"
 msgstr ""
 
-#: ../src/lib/List.pm:757
+#: ../src/lib/List.pm:384 ../src/lib/List.pm:416 ../src/lib/List.pm:449
+#: ../src/lib/List.pm:493 ../src/lib/List.pm:638
+msgid "visibility"
+msgstr "synlighet"
+
+#: ../src/lib/List.pm:503
+msgid "Topics for the list"
+msgstr "Tema for listen"
+
+#: ../src/lib/List.pm:511
 msgid "Internet domain"
 msgstr ""
 
-#: ../src/lib/List.pm:763
-msgid "File inclusion"
-msgstr ""
-
-#: ../src/lib/List.pm:767
-msgid "data location URL"
-msgstr ""
-
-#: ../src/lib/List.pm:1065 ../src/lib/List.pm:773 ../src/lib/List.pm:806
-#: ../src/lib/List.pm:887
-msgid "remote user"
-msgstr ""
-
-#: ../src/lib/List.pm:1070 ../src/lib/List.pm:780 ../src/lib/List.pm:812
-#: ../src/lib/List.pm:893
-msgid "remote password"
-msgstr ""
-
-#: ../src/lib/List.pm:1026 ../src/lib/List.pm:1084 ../src/lib/List.pm:785
-#: ../src/lib/List.pm:848 ../src/lib/List.pm:972
-msgid "short name for this source"
-msgstr "kortnavn for denne kilden"
-
-#: ../src/lib/List.pm:790
-msgid "Remote file inclusion"
-msgstr ""
-
-#: ../src/lib/List.pm:1004 ../src/lib/List.pm:1043 ../src/lib/List.pm:796
-#: ../src/lib/List.pm:877
-msgid "remote host"
-msgstr ""
-
-#: ../src/lib/List.pm:1010 ../src/lib/List.pm:801 ../src/lib/List.pm:882
-msgid "remote port"
-msgstr ""
-
-#: ../src/lib/List.pm:816
-msgid "suffix"
-msgstr ""
-
-#: ../src/lib/List.pm:822
-msgid "filter"
-msgstr "filter"
-
-#: ../src/lib/List.pm:828
-msgid "extracted attribute"
-msgstr ""
-
-#: ../src/lib/List.pm:833
-msgid "selection (if multiple)"
-msgstr ""
-
-#: ../src/lib/List.pm:838
-msgid "search scope"
-msgstr ""
-
-#: ../src/lib/List.pm:844
-msgid "connection timeout"
-msgstr ""
-
-#: ../src/lib/List.pm:872
-msgid "LDAP query inclusion"
-msgstr ""
-
-#: ../src/lib/List.pm:897
-msgid "first-level suffix"
-msgstr ""
-
-#: ../src/lib/List.pm:903
-msgid "first-level filter"
-msgstr ""
-
-#: ../src/lib/List.pm:908
-msgid "first-level extracted attribute"
-msgstr ""
-
-#: ../src/lib/List.pm:913
-msgid "first-level selection"
-msgstr ""
-
-#: ../src/lib/List.pm:918
-msgid "first-level search scope"
-msgstr ""
-
-#: ../src/lib/List.pm:924
-msgid "first-level connection timeout"
-msgstr ""
-
-#: ../src/lib/List.pm:930
-msgid "first-level regular expression"
-msgstr ""
-
-#: ../src/lib/List.pm:934
-msgid "second-level suffix template"
-msgstr ""
-
-#: ../src/lib/List.pm:940
-msgid "second-level filter template"
-msgstr ""
-
-#: ../src/lib/List.pm:946
-msgid "second-level extracted attribute"
-msgstr ""
-
-#: ../src/lib/List.pm:951
-msgid "second-level selection"
-msgstr ""
-
-#: ../src/lib/List.pm:956
-msgid "second-level search scope"
-msgstr ""
-
-#: ../src/lib/List.pm:962
-msgid "second-level connection timeout"
-msgstr ""
-
-#: ../src/lib/List.pm:968
-msgid "second-level regular expression"
-msgstr ""
-
-#: ../src/lib/List.pm:994
-msgid "LDAP 2-level query inclusion"
-msgstr ""
-
-#: ../src/lib/List.pm:999
-msgid "List inclusion"
-msgstr ""
-
-#: ../src/lib/List.pm:1016
-msgid "remote path of sympa list dump"
-msgstr ""
-
-#: ../src/lib/List.pm:1021
-msgid "certificate for authentication by remote Sympa"
-msgstr ""
-
-#: ../src/lib/List.pm:1033
-msgid "remote list inclusion"
-msgstr ""
-
-#: ../src/lib/List.pm:1038
-msgid "database type"
-msgstr "databasetype"
-
-#: ../src/lib/List.pm:1047
-msgid "database port"
-msgstr "databaseport"
-
-#: ../src/lib/List.pm:1052
-msgid "database name"
-msgstr "databasenavn"
-
-#: ../src/lib/List.pm:1056
-msgid "connection options"
-msgstr "tilkoblingsinnstillinger"
-
-#: ../src/lib/List.pm:1061
-#, fuzzy
-msgid "environment variables for database connection"
-msgstr "omgivelsesvariable for databasetilkobling"
-
-#: ../src/lib/List.pm:1076
-msgid "SQL query"
-msgstr "SQL-spørring"
-
-#: ../src/lib/List.pm:1080
-msgid "Directory where the database is stored (used for DBD::CSV only)"
-msgstr "Folder hvor databasen er lagret (brukes kun med DBD::CSV)"
-
-#: ../src/lib/List.pm:1091
-msgid "SQL query inclusion"
-msgstr ""
-
-#: ../src/lib/List.pm:1097
-#, fuzzy
-msgid "Notify subscribers when they are included from a data source?"
-msgstr "Du abonnerer allerede på listen %1"
-
-#: ../src/lib/List.pm:1101
-msgid "Who can view list information"
-msgstr "Hvem kan se listeinformasjonen"
-
-#: ../src/lib/List.pm:1105
-msgid "Who can invite people"
-msgstr "Hvem kan invitere folk"
-
-#: ../src/lib/List.pm:1111
+#: ../src/lib/List.pm:521
 msgid "Language of the list"
 msgstr "Listens språk"
 
-#: ../src/lib/List.pm:1136
-msgid "Regular expression applied to prevent loops with robots"
-msgstr "Regulært uttrykk benyttet til å forhindre løkker med roboter"
-
-#: ../src/lib/List.pm:1143
+#: ../src/lib/List.pm:539
 #, fuzzy
 msgid "Maximum number of list members"
 msgstr "Administrer lister"
 
-#: ../src/lib/List.pm:1150
-msgid "Maximum message size"
-msgstr "Maksimal meldingsstørrelse"
-
-#: ../src/lib/List.pm:1156
-msgid "Message topic name"
-msgstr "Temanavn for melding"
-
-#: ../src/lib/List.pm:1161
-msgid "Message topic keywords"
-msgstr "Temanøkkelord for melding"
-
-#: ../src/lib/List.pm:1167
-msgid "Message topic title"
-msgstr "Tematittel for melding"
-
-#: ../src/lib/List.pm:1172
-msgid "Topics for message categorization"
-msgstr "Tema for meldingsinndeling"
-
-#: ../src/lib/List.pm:1178
-msgid "Defines to which part of messages topic keywords are applied"
-msgstr "Definerer hvilken del av meldinger temanøkkelord hører til"
-
-#: ../src/lib/List.pm:1185
-msgid "Message tagging"
-msgstr "Meldingsmerking"
-
-#: ../src/lib/List.pm:1216 ../src/lib/List.pm:1246
-msgid "profile"
-msgstr "profil"
-
-#: ../src/lib/List.pm:1257
+#: ../src/lib/List.pm:550
 msgid "Priority"
 msgstr "Prioritet"
 
-#: ../src/lib/List.pm:1263
-msgid "Reject mail from automates (crontab, etc)?"
-msgstr ""
-
-#: ../src/lib/List.pm:1267
-msgid "Who can start a remind process"
-msgstr "Hvem kan starte en påminnelsesprosess"
-
-#: ../src/lib/List.pm:1272
-msgid "Return-path of the REMIND command"
-msgstr "Return-path til REMIND-kommandoen"
-
-#: ../src/lib/List.pm:1296 ../src/lib/List.pm:1316
-msgid "Reply address"
-msgstr "Svaradresse"
-
-#: ../src/lib/List.pm:1307
-msgid "other email address"
-msgstr "annen e-postadresse"
-
-#: ../src/lib/List.pm:1312
-msgid "respect of existing header field"
-msgstr "respektere eksisterende meldingshode"
-
-#: ../src/lib/List.pm:1321
-msgid "Who can review subscribers"
-msgstr "Hvem kan se medlemslisten"
-
-#: ../src/lib/List.pm:1328
-msgid "RFC 2369 Header fields"
-msgstr "RFC 2369-meldingshoder"
-
-#: ../src/lib/List.pm:1332
+#: ../src/lib/List.pm:562
 msgid "Who can send messages"
 msgstr "Hvem kan sende meldinger"
 
-#: ../src/lib/List.pm:1339
-msgid "Serial number of the config"
-msgstr "Konfigurasjonens serienummer"
-
-#: ../src/lib/List.pm:1344
-msgid "Who can view"
-msgstr "Hvem kan se"
-
-#: ../src/lib/List.pm:1348
-msgid "Who can edit"
-msgstr "Hvem kan redigere"
-
-#: ../src/lib/List.pm:1355 ../src/lib/List.pm:1467
-msgid "quota"
-msgstr "kvote"
-
-#: ../src/lib/List.pm:1364 ../src/lib/List.pm:1369
-msgid "email address protection method"
-msgstr "beskyttelsesmetode for e-postadresser"
-
-#: ../src/lib/List.pm:1375
-msgid "Status of the list"
-msgstr "Listens status"
-
-#: ../src/lib/List.pm:1383
-msgid "Timeout for fetch of include_sql_query"
+#: ../src/lib/List.pm:568
+msgid "Delivery time (hh:mm)"
 msgstr ""
 
-#: ../src/lib/List.pm:1389
-msgid "Subject of the list"
-msgstr "Listens emne"
+#: ../src/lib/List.pm:576
+msgid "Digest frequency"
+msgstr "Frekvens for listesammendrag"
 
-#: ../src/lib/List.pm:1393
-msgid "Who can subscribe to the list"
-msgstr "Hvem kan abonnere på listen"
+#: ../src/lib/List.pm:1094 ../src/lib/List.pm:2061 ../src/lib/List.pm:581
+msgid "days"
+msgstr "dager"
 
-#: ../src/lib/List.pm:1399
-msgid "Topics for the list"
-msgstr "Tema for listen"
+#: ../src/lib/List.pm:588
+msgid "hour"
+msgstr "time"
 
-#: ../src/lib/List.pm:1406
-msgid "Inclusions timeout"
+#: ../src/lib/List.pm:595
+msgid "minute"
+msgstr "minutt"
+
+#: ../src/lib/List.pm:605
+msgid "Digest maximum number of messages"
+msgstr "Maksimalt antall meldinger i listesammendrag"
+
+#: ../src/lib/List.pm:614
+msgid "Available subscription options"
+msgstr "Tilgjengelige valg for abonnement"
+
+#: ../src/lib/List.pm:628
+msgid "Subscription profile"
 msgstr ""
 
-#: ../src/lib/List.pm:1410
-msgid "Who can unsubscribe"
-msgstr "Hvem kan avslutte abonnement"
+#: ../src/lib/List.pm:647
+msgid "Topics for message categorization"
+msgstr "Tema for meldingsinndeling"
 
-#: ../src/lib/List.pm:1431
-msgid "Last update of config"
-msgstr "Siste oppdatering av konfigurasjon"
+#: ../src/lib/List.pm:651
+msgid "Message topic name"
+msgstr "Temanavn for melding"
 
-#: ../src/lib/List.pm:1438
-msgid "User data source"
-msgstr "Brukerdatakilde"
+#: ../src/lib/List.pm:658
+msgid "Message topic keywords"
+msgstr "Temanøkkelord for melding"
 
-#: ../src/lib/List.pm:1444
-#, fuzzy
-msgid "Allow picture display? (must be enabled for the current robot)"
-msgstr "Tillat bildevisning ? (må være aktivert for nåværende robot)"
+#: ../src/lib/List.pm:664
+msgid "Message topic title"
+msgstr "Tematittel for melding"
 
-#: ../src/lib/List.pm:1450
+#: ../src/lib/List.pm:675
+msgid "Defines to which part of messages topic keywords are applied"
+msgstr "Definerer hvilken del av meldinger temanøkkelord hører til"
+
+#: ../src/lib/List.pm:683
+msgid "Message tagging"
+msgstr "Meldingsmerking"
+
+#: ../src/lib/List.pm:691 ../src/lib/List.pm:706
+msgid "Reply address"
+msgstr "Svaradresse"
+
+#: ../src/lib/List.pm:699
+msgid "Forced reply address"
+msgstr ""
+
+#: ../src/lib/List.pm:717
+msgid "other email address"
+msgstr "annen e-postadresse"
+
+#: ../src/lib/List.pm:722
+msgid "respect of existing header field"
+msgstr "respektere eksisterende meldingshode"
+
+#: ../src/lib/List.pm:731
+msgid "Anonymous sender"
+msgstr "Anonym avsender"
+
+#: ../src/lib/List.pm:737
+msgid "Custom header field"
+msgstr ""
+
+#: ../src/lib/List.pm:745
+msgid "Subject tagging"
+msgstr "Emnemerking"
+
+#: ../src/lib/List.pm:752
+msgid "Attachment type"
+msgstr "Vedleggtype"
+
+#: ../src/lib/List.pm:759
+msgid "Maximum message size"
+msgstr "Maksimal meldingsstørrelse"
+
+#: ../src/lib/List.pm:770
 #, fuzzy
 msgid "Allow message personnalization"
 msgstr "Tema for meldingsinndeling"
 
-#: ../src/lib/List.pm:1456
-msgid "Visibility of the list"
-msgstr "Listens synlighet"
+#: ../src/lib/List.pm:780
+msgid "Reject mail from automates (crontab, etc)?"
+msgstr ""
 
-#: ../src/lib/List.pm:1472
-msgid "Maximum number of month archived"
-msgstr "Maksimalt antall arkiverte måneder"
+#: ../src/lib/List.pm:812
+msgid "RFC 2369 Header fields"
+msgstr "RFC 2369-meldingshoder"
 
-#: ../src/lib/List.pm:1477
+#: ../src/lib/List.pm:825
+msgid "Who can view list information"
+msgstr "Hvem kan se listeinformasjonen"
+
+#: ../src/lib/List.pm:831
+msgid "Who can subscribe to the list"
+msgstr "Hvem kan abonnere på listen"
+
+#: ../src/lib/List.pm:837
+msgid "Who can add subscribers"
+msgstr "Hvem kan legge til abonnenter"
+
+#: ../src/lib/List.pm:843
+msgid "Who can unsubscribe"
+msgstr "Hvem kan avslutte abonnement"
+
+#: ../src/lib/List.pm:849
+msgid "Who can delete subscribers"
+msgstr "Hvem kan slette abonnenter"
+
+#: ../src/lib/List.pm:855
+msgid "Who can invite people"
+msgstr "Hvem kan invitere folk"
+
+#: ../src/lib/List.pm:861
+msgid "Who can start a remind process"
+msgstr "Hvem kan starte en påminnelsesprosess"
+
+#: ../src/lib/List.pm:867
+msgid "Who can review subscribers"
+msgstr "Hvem kan se medlemslisten"
+
+#: ../src/lib/List.pm:880
+msgid "Who can view"
+msgstr "Hvem kan se"
+
+#: ../src/lib/List.pm:885
+msgid "Who can edit"
+msgstr "Hvem kan redigere"
+
+#: ../src/lib/List.pm:890 ../src/lib/List.pm:914
+msgid "quota"
+msgstr "kvote"
+
+#: ../src/lib/List.pm:905
 msgid "Web archives"
 msgstr "Webarkiver"
 
-#: ../src/lib/List.pm:1483
-msgid "Welcome return-path"
+#: ../src/lib/List.pm:909 ../src/lib/List.pm:945
+msgid "access right"
+msgstr "tilgangsrettighet"
+
+#: ../src/lib/List.pm:924
+msgid "Maximum number of month archived"
+msgstr "Maksimalt antall arkiverte måneder"
+
+#: ../src/lib/List.pm:933
+msgid "Text archives"
+msgstr "Tekstarkiver"
+
+#: ../src/lib/List.pm:937
+msgid "frequency"
+msgstr "frekvens"
+
+#: ../src/lib/List.pm:956
+msgid "Archive encrypted mails as cleartext"
+msgstr "Arkiver krypterte epost som ren tekst"
+
+#: ../src/lib/List.pm:2161 ../src/lib/List.pm:963
+msgid "email address protection method"
+msgstr "beskyttelsesmetode for e-postadresser"
+
+#: ../src/lib/List.pm:974
+msgid "Bounces management"
+msgstr "Returbehandling"
+
+#: ../src/lib/List.pm:978
+msgid "warn rate"
 msgstr ""
 
-#: ../src/lib/List.pm:1488
+#: ../src/lib/List.pm:988
+msgid "halt rate"
+msgstr ""
+
+#: ../src/lib/List.pm:1001
+msgid "Management of bouncers, 1st level"
+msgstr "Behandling av returer, første nivå"
+
+#: ../src/lib/List.pm:1005 ../src/lib/List.pm:1034
+msgid "threshold"
+msgstr "terskel"
+
+#: ../src/lib/List.pm:1015 ../src/lib/List.pm:1044
+msgid "action for this population"
+msgstr ""
+
+#: ../src/lib/List.pm:1021 ../src/lib/List.pm:1050
+msgid "notification"
+msgstr "varsel"
+
+#: ../src/lib/List.pm:1030
+msgid "Management of bouncers, 2nd level"
+msgstr "Behandling av returer, andre nivå"
+
+#: ../src/lib/List.pm:1059
 msgid "percentage of list members in VERP mode"
 msgstr "prosent listemedlemmer i VERP-modus"
 
-#: ../src/lib/List.pm:368 ../src/lib/List.pm:375
+#: ../src/lib/List.pm:1068
 #, fuzzy
-msgid "%"
-msgstr "%A"
+msgid "Message tracking feature"
+msgstr "Meldingsmerking"
 
-#: ../src/lib/List.pm:386 ../src/lib/List.pm:407
-msgid "points"
+#: ../src/lib/List.pm:1072
+msgid "tracking message by delivery status notification"
 msgstr ""
 
-#: ../src/lib/List.pm:544
-#, fuzzy
-msgid "var name"
-msgstr "Etternavn"
-
-#: ../src/lib/List.pm:549
-#, fuzzy
-msgid "var value"
-msgstr "Standardverdi"
-
-#: ../src/lib/List.pm:608
-#, fuzzy
-msgid "messages"
-msgstr "# melding"
-
-#: ../src/lib/List.pm:1381 ../src/lib/List.pm:1404 ../src/lib/List.pm:616
-#: ../src/lib/List.pm:843 ../src/lib/List.pm:923 ../src/lib/List.pm:961
-msgid "seconds"
+#: ../src/lib/List.pm:1080
+msgid "tracking message by message delivery notification"
 msgstr ""
 
-#: ../src/lib/List.pm:654
-msgid "List of headers to be included ito the message for signature"
-msgstr ""
-
-#: ../src/lib/List.pm:661
-msgid "DKIM \"d=\" tag, you should probably use the default value"
-msgstr ""
-
-#: ../src/lib/List.pm:668
-msgid "DKIM \"i=\" tag, you should probably leave this parameter empty"
-msgstr ""
-
-#: ../src/lib/List.pm:711
+#: ../src/lib/List.pm:1088
 #, fuzzy
-msgid "the data source"
-msgstr "datakilden"
+msgid "who can view message tracking"
+msgstr "Meldingsmerking"
 
-#: ../src/lib/List.pm:716
-#, fuzzy
-msgid "data source parameters"
-msgstr "datakilde-parametre"
-
-#: ../src/lib/List.pm:732
-#, fuzzy
-msgid "Moderators defined in an external data source"
-msgstr "Moderatorene er definert i en ekstern datakilde"
-
-#: ../src/lib/List.pm:741
-msgid "Family name"
-msgstr "Familienavn"
-
-#: ../src/lib/List.pm:854 ../src/lib/List.pm:978
-msgid "use SSL (LDAPS)"
-msgstr "bruk SSL (LDAPS)"
-
-#: ../src/lib/List.pm:859 ../src/lib/List.pm:983
-msgid "SSL version"
-msgstr "SSL-versjon"
-
-#: ../src/lib/List.pm:864 ../src/lib/List.pm:988
-msgid "SSL ciphers used"
+#: ../src/lib/List.pm:1093
+msgid "Tracking datas are removed after this number of days"
 msgstr ""
 
-#: ../src/lib/List.pm:1120 ../src/lib/List.pm:1421
-msgid "date"
-msgstr "dato"
-
-#: ../src/lib/List.pm:1125
-msgid "who ran the instantiation"
+#: ../src/lib/List.pm:1106
+msgid "Welcome return-path"
 msgstr ""
 
-#: ../src/lib/List.pm:1129
-msgid "Latest family instantiation"
+#: ../src/lib/List.pm:1115
+msgid "Return-path of the REMIND command"
+msgstr "Return-path til REMIND-kommandoen"
+
+#: ../src/lib/List.pm:1126
+#, fuzzy
+msgid "Notify subscribers when they are included from a data source?"
+msgstr "Du abonnerer allerede på listen %1"
+
+#: ../src/lib/List.pm:1134
+msgid "Timeout for fetch of include_sql_query"
 msgstr ""
 
-#: ../src/lib/List.pm:1141
-#, fuzzy
-msgid "list members"
-msgstr "Listemedlemmer"
+#: ../src/lib/List.pm:1145
+msgid "User data source"
+msgstr "Brukerdatakilde"
 
-#: ../src/lib/List.pm:1148
-#, fuzzy
-msgid "bytes"
-msgstr "farvel!"
+#: ../src/lib/List.pm:1153
+msgid "File inclusion"
+msgstr ""
+
+#: ../src/lib/List.pm:1161
+msgid "Remote file inclusion"
+msgstr ""
+
+#: ../src/lib/List.pm:1165 ../src/lib/List.pm:1207 ../src/lib/List.pm:1247
+#: ../src/lib/List.pm:1348 ../src/lib/List.pm:1500 ../src/lib/List.pm:1577
+#: ../src/lib/List.pm:1626 ../src/lib/List.pm:1733 ../src/lib/List.pm:1891
+msgid "short name for this source"
+msgstr "kortnavn for denne kilden"
+
+#: ../src/lib/List.pm:1171
+msgid "data location URL"
+msgstr ""
+
+#: ../src/lib/List.pm:1178 ../src/lib/List.pm:1284 ../src/lib/List.pm:1385
+#: ../src/lib/List.pm:1539 ../src/lib/List.pm:1663 ../src/lib/List.pm:1770
+#: ../src/lib/List.pm:1930
+msgid "remote user"
+msgstr ""
+
+#: ../src/lib/List.pm:1184 ../src/lib/List.pm:1289 ../src/lib/List.pm:1390
+#: ../src/lib/List.pm:1545 ../src/lib/List.pm:1668 ../src/lib/List.pm:1775
+#: ../src/lib/List.pm:1936
+msgid "remote password"
+msgstr ""
+
+#: ../src/lib/List.pm:1196
+msgid "List inclusion"
+msgstr ""
+
+#: ../src/lib/List.pm:1203
+msgid "remote list inclusion"
+msgstr ""
+
+#: ../src/lib/List.pm:1213 ../src/lib/List.pm:1253 ../src/lib/List.pm:1354
+#: ../src/lib/List.pm:1512 ../src/lib/List.pm:1632 ../src/lib/List.pm:1739
+#: ../src/lib/List.pm:1903
+msgid "remote host"
+msgstr ""
+
+#: ../src/lib/List.pm:1219 ../src/lib/List.pm:1259 ../src/lib/List.pm:1360
+#: ../src/lib/List.pm:1638 ../src/lib/List.pm:1745
+msgid "remote port"
+msgstr ""
 
 #: ../src/lib/List.pm:1226
-msgid "the datasource"
-msgstr "datakilden"
+msgid "remote path of sympa list dump"
+msgstr ""
 
-#: ../src/lib/List.pm:1231
-msgid "datasource parameters"
-msgstr "datakilde-parametre"
+#: ../src/lib/List.pm:1233
+msgid "certificate for authentication by remote Sympa"
+msgstr ""
 
-#: ../src/lib/List.pm:1251
+#: ../src/lib/List.pm:1243
+msgid "LDAP query inclusion"
+msgstr ""
+
+#: ../src/lib/List.pm:1296 ../src/lib/List.pm:1675
+msgid "suffix"
+msgstr ""
+
+#: ../src/lib/List.pm:1301 ../src/lib/List.pm:1680
+msgid "search scope"
+msgstr ""
+
+#: ../src/lib/List.pm:1307 ../src/lib/List.pm:1686
+msgid "connection timeout"
+msgstr ""
+
+#: ../src/lib/List.pm:1314 ../src/lib/List.pm:1693
+msgid "filter"
+msgstr "filter"
+
+#: ../src/lib/List.pm:1321 ../src/lib/List.pm:1700
+msgid "extracted attribute"
+msgstr ""
+
+#: ../src/lib/List.pm:1328 ../src/lib/List.pm:1713
+msgid "selection (if multiple)"
+msgstr ""
+
+#: ../src/lib/List.pm:1334 ../src/lib/List.pm:1486 ../src/lib/List.pm:1563
+#: ../src/lib/List.pm:1719 ../src/lib/List.pm:1877 ../src/lib/List.pm:1960
+#, fuzzy
+msgid "Time ranges when inclusion is not allowed"
+msgstr "Å legge til en bruker til listen er ikke tillatt."
+
+#: ../src/lib/List.pm:1344
+msgid "LDAP 2-level query inclusion"
+msgstr ""
+
+#: ../src/lib/List.pm:1397 ../src/lib/List.pm:1782
+msgid "first-level suffix"
+msgstr ""
+
+#: ../src/lib/List.pm:1402 ../src/lib/List.pm:1787
+msgid "first-level search scope"
+msgstr ""
+
+#: ../src/lib/List.pm:1408 ../src/lib/List.pm:1793
+msgid "first-level connection timeout"
+msgstr ""
+
+#: ../src/lib/List.pm:1415 ../src/lib/List.pm:1800
+msgid "first-level filter"
+msgstr ""
+
+#: ../src/lib/List.pm:1422 ../src/lib/List.pm:1807
+msgid "first-level extracted attribute"
+msgstr ""
+
+#: ../src/lib/List.pm:1428 ../src/lib/List.pm:1813
+msgid "first-level selection"
+msgstr ""
+
+#: ../src/lib/List.pm:1434 ../src/lib/List.pm:1819
+msgid "first-level regular expression"
+msgstr ""
+
+#: ../src/lib/List.pm:1441 ../src/lib/List.pm:1826
+msgid "second-level suffix template"
+msgstr ""
+
+#: ../src/lib/List.pm:1446 ../src/lib/List.pm:1831
+msgid "second-level search scope"
+msgstr ""
+
+#: ../src/lib/List.pm:1452 ../src/lib/List.pm:1837
+msgid "second-level connection timeout"
+msgstr ""
+
+#: ../src/lib/List.pm:1459 ../src/lib/List.pm:1844
+msgid "second-level filter template"
+msgstr ""
+
+#: ../src/lib/List.pm:1466 ../src/lib/List.pm:1851
+msgid "second-level extracted attribute"
+msgstr ""
+
+#: ../src/lib/List.pm:1473 ../src/lib/List.pm:1858
+msgid "second-level selection"
+msgstr ""
+
+#: ../src/lib/List.pm:1479 ../src/lib/List.pm:1864
+msgid "second-level regular expression"
+msgstr ""
+
+#: ../src/lib/List.pm:1496
+msgid "SQL query inclusion"
+msgstr ""
+
+#: ../src/lib/List.pm:1506 ../src/lib/List.pm:1897
+msgid "database type"
+msgstr "databasetype"
+
+#: ../src/lib/List.pm:1518 ../src/lib/List.pm:1909
+msgid "database port"
+msgstr "databaseport"
+
+#: ../src/lib/List.pm:1523 ../src/lib/List.pm:1914
+msgid "database name"
+msgstr "databasenavn"
+
+#: ../src/lib/List.pm:1529 ../src/lib/List.pm:1920
+msgid "connection options"
+msgstr "tilkoblingsinnstillinger"
+
+#: ../src/lib/List.pm:1534 ../src/lib/List.pm:1925
+#, fuzzy
+msgid "environment variables for database connection"
+msgstr "omgivelsesvariable for databasetilkobling"
+
+#: ../src/lib/List.pm:1551 ../src/lib/List.pm:1942
+msgid "SQL query"
+msgstr "SQL-spørring"
+
+#: ../src/lib/List.pm:1558 ../src/lib/List.pm:1949
+msgid "Directory where the database is stored (used for DBD::CSV only)"
+msgstr "Folder hvor databasen er lagret (brukes kun med DBD::CSV)"
+
+#: ../src/lib/List.pm:1573
+msgid "VOOT group inclusion"
+msgstr ""
+
+#: ../src/lib/List.pm:1583
+#, fuzzy
+msgid "user"
+msgstr "Brukere"
+
+#: ../src/lib/List.pm:1589
+#, fuzzy
+msgid "provider"
+msgstr "profil"
+
+#: ../src/lib/List.pm:1595
+msgid "group"
+msgstr ""
+
+#: ../src/lib/List.pm:1605
+msgid "Inclusions timeout"
+msgstr ""
+
+#: ../src/lib/List.pm:1614
+msgid "Inclusions timeout for message distribution"
+msgstr ""
+
+#: ../src/lib/List.pm:1622
+msgid "LDAP query custom attribute"
+msgstr ""
+
+#: ../src/lib/List.pm:1707 ../src/lib/List.pm:1871 ../src/lib/List.pm:1954
+msgid "Name of email entry"
+msgstr ""
+
+#: ../src/lib/List.pm:1729
+msgid "LDAP 2-level query custom attribute"
+msgstr ""
+
+#: ../src/lib/List.pm:1887
+msgid "SQL query custom attribute"
+msgstr ""
+
+#: ../src/lib/List.pm:1972
+#, fuzzy
+msgid "Insert DKIM signature to messages sent to the list"
+msgstr "Hvem kan abonnere på listen"
+
+#: ../src/lib/List.pm:1983
+#, fuzzy
+msgid "DKIM configuration"
+msgstr "Konfigurasjonsfil"
+
+#: ../src/lib/List.pm:1988
+msgid "File path for list DKIM private key"
+msgstr ""
+
+#: ../src/lib/List.pm:1998
+msgid "Selector for DNS lookup of DKIM public key"
+msgstr ""
+
+#: ../src/lib/List.pm:2039
+msgid ""
+"The categories of messages sent to the list that will be signed using DKIM."
+msgstr ""
+
+#: ../src/lib/List.pm:2053
+msgid "Account"
+msgstr "Konto"
+
+#: ../src/lib/List.pm:2060
+msgid "Expiration of unmoderated messages"
+msgstr ""
+
+#: ../src/lib/List.pm:2071
+msgid "Secret string for generating unique keys"
+msgstr "Hemmelig streng for generering av unike nøkler"
+
+#: ../src/lib/List.pm:2081
+msgid "custom parameters"
+msgstr ""
+
+#: ../src/lib/List.pm:2101
+#, fuzzy
+msgid "Periodical subscription expiration task"
+msgstr "Regelmessig oppgave for abonnementsutløping"
+
+#: ../src/lib/List.pm:2132
+msgid "Regular expression applied to prevent loops with robots"
+msgstr "Regulært uttrykk benyttet til å forhindre løkker med roboter"
+
+#: ../src/lib/List.pm:2142
+#, fuzzy
+msgid "Allow picture display? (must be enabled for the current robot)"
+msgstr "Tillat bildevisning ? (må være aktivert for nåværende robot)"
+
+#: ../src/lib/List.pm:2168
+msgid "Creation of the list"
+msgstr "Opprettelse av listen"
+
+#: ../src/lib/List.pm:2122 ../src/lib/List.pm:2172 ../src/lib/List.pm:2211
+msgid "epoch date"
+msgstr ""
+
+#: ../src/lib/List.pm:2178
+msgid "human readable"
+msgstr ""
+
+#: ../src/lib/List.pm:2183
+#, fuzzy
+msgid "who created the list"
+msgstr "hvem oppdaterte konfigurasjonen"
+
+#: ../src/lib/List.pm:2194
+msgid "Last update of config"
+msgstr "Siste oppdatering av konfigurasjon"
+
+#: ../src/lib/List.pm:2222
+msgid "Status of the list"
+msgstr "Listens status"
+
+#: ../src/lib/List.pm:2230
+msgid "Serial number of the config"
+msgstr "Konfigurasjonens serienummer"
+
+#: ../src/lib/List.pm:2239
+msgid "Custom user attributes"
+msgstr ""
+
+#: ../src/lib/List.pm:2243
+msgid "internal identifier"
+msgstr "intern identifikator"
+
+#: ../src/lib/List.pm:2250
+msgid "label"
+msgstr ""
+
+#: ../src/lib/List.pm:2257
+msgid "additional comment"
+msgstr "tilleggskommentar"
+
+#: ../src/lib/List.pm:2263
+msgid "type"
+msgstr "type"
+
+#: ../src/lib/List.pm:2270
+msgid "possible attribute values (if enum is used)"
+msgstr "mulige attributtverdier (hvis enum er brukt)"
+
+#: ../src/lib/List.pm:2276
+#, fuzzy
+msgid "is the attribute optional?"
+msgstr "er attributtet valgfritt ?"
+
+#: ../src/lib/List.pm:394
 #, fuzzy
 msgid "Owners defined in an external data source"
 msgstr "Eiere definert i en ekstern datakilde"
 
-#: ../src/lib/List.pm:1276
-msgid "Periodical subscription reminder task"
-msgstr "Regelmessig abonnementspåminnelse-oppgave"
+#: ../src/lib/List.pm:398
+msgid "the datasource"
+msgstr "datakilden"
 
-#: ../src/lib/List.pm:1281
+#: ../src/lib/List.pm:404
+msgid "datasource parameters"
+msgstr "datakilde-parametre"
+
+#: ../src/lib/List.pm:471
+#, fuzzy
+msgid "Moderators defined in an external data source"
+msgstr "Moderatorene er definert i en ekstern datakilde"
+
+#: ../src/lib/List.pm:475
+#, fuzzy
+msgid "the data source"
+msgstr "datakilden"
+
+#: ../src/lib/List.pm:481
+#, fuzzy
+msgid "data source parameters"
+msgstr "datakilde-parametre"
+
+#: ../src/lib/List.pm:531
+msgid "Family name"
+msgstr "Familienavn"
+
+#: ../src/lib/List.pm:540
+#, fuzzy
+msgid "list members"
+msgstr "Listemedlemmer"
+
+#: ../src/lib/List.pm:606
+#, fuzzy
+msgid "messages"
+msgstr "# melding"
+
+#: ../src/lib/List.pm:760
+#, fuzzy
+msgid "bytes"
+msgstr "farvel!"
+
+#: ../src/lib/List.pm:790
 #, fuzzy
 msgid "Incoming SMTP header fields to be removed"
 msgstr "Innkommende SMTP-meldingshoder som skal fjernes"
 
-#: ../src/lib/List.pm:1288
+#: ../src/lib/List.pm:801
 #, fuzzy
 msgid "Outgoing SMTP header fields to be removed"
 msgstr "Utgående SMTP-meldingshoder som skal fjernes"
 
-#: ../src/lib/List.pm:1354 ../src/lib/List.pm:1466
+#: ../src/lib/List.pm:891 ../src/lib/List.pm:915
 msgid "Kbytes"
 msgstr ""
 
-#: ../src/lib/List.pm:1427
+#: ../src/lib/List.pm:979 ../src/lib/List.pm:989
+#, fuzzy
+msgid "%"
+msgstr "%A"
+
+#: ../src/lib/List.pm:1006 ../src/lib/List.pm:1035
+msgid "points"
+msgstr ""
+
+#: ../src/lib/List.pm:1135 ../src/lib/List.pm:1308 ../src/lib/List.pm:1409
+#: ../src/lib/List.pm:1453 ../src/lib/List.pm:1606 ../src/lib/List.pm:1615
+#: ../src/lib/List.pm:1687 ../src/lib/List.pm:1794 ../src/lib/List.pm:1838
+msgid "seconds"
+msgstr ""
+
+#: ../src/lib/List.pm:1266 ../src/lib/List.pm:1367 ../src/lib/List.pm:1645
+#: ../src/lib/List.pm:1752
+msgid "use SSL (LDAPS)"
+msgstr "bruk SSL (LDAPS)"
+
+#: ../src/lib/List.pm:1272 ../src/lib/List.pm:1373 ../src/lib/List.pm:1651
+#: ../src/lib/List.pm:1758
+msgid "SSL version"
+msgstr "SSL-versjon"
+
+#: ../src/lib/List.pm:1278 ../src/lib/List.pm:1379 ../src/lib/List.pm:1657
+#: ../src/lib/List.pm:1764
+msgid "SSL ciphers used"
+msgstr ""
+
+#: ../src/lib/List.pm:2008
+msgid "List of headers to be included ito the message for signature"
+msgstr ""
+
+#: ../src/lib/List.pm:2018
+msgid "DKIM \"d=\" tag, you should probably use the default value"
+msgstr ""
+
+#: ../src/lib/List.pm:2028
+msgid "DKIM \"i=\" tag, you should probably leave this parameter empty"
+msgstr ""
+
+#: ../src/lib/List.pm:2085
+#, fuzzy
+msgid "var name"
+msgstr "Etternavn"
+
+#: ../src/lib/List.pm:2091
+#, fuzzy
+msgid "var value"
+msgstr "Standardverdi"
+
+#: ../src/lib/List.pm:2107
+msgid "Latest family instantiation"
+msgstr ""
+
+#: ../src/lib/List.pm:2111
+msgid "who ran the instantiation"
+msgstr ""
+
+#: ../src/lib/List.pm:2117 ../src/lib/List.pm:2205
+msgid "date"
+msgstr "dato"
+
+#: ../src/lib/List.pm:2152
+msgid "Periodical subscription reminder task"
+msgstr "Regelmessig abonnementspåminnelse-oppgave"
+
+#: ../src/lib/List.pm:2198
 msgid "who updated the config"
 msgstr "hvem oppdaterte konfigurasjonen"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:2850
+#: ../src/lib/List.pm:3641
 msgid "%a, %d %b %Y %H:%M:%S"
 msgstr "%a, %d %b %Y %H:%M:%S"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:2851
+#: ../src/lib/List.pm:3642
 msgid "%a, %d %b %Y"
 msgstr "%d %b %Y"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../src/lib/List.pm:3042 ../src/lib/List.pm:3043 ../src/lib/List.pm:3047
-#: ../wwsympa/wwsympa.fcgi.in:11343 ../wwsympa/wwsympa.fcgi.in:11412
-#: ../wwsympa/wwsympa.fcgi.in:11614 ../wwsympa/wwsympa.fcgi.in:11961
-#: ../wwsympa/wwsympa.fcgi.in:15458 ../wwsympa/wwsympa.fcgi.in:15465
-#: ../wwsympa/wwsympa.fcgi.in:16205 ../wwsympa/wwsympa.fcgi.in:16255
-#: ../wwsympa/wwsympa.fcgi.in:17028 ../wwsympa/wwsympa.fcgi.in:17029
-#: ../wwsympa/wwsympa.fcgi.in:4343 ../wwsympa/wwsympa.fcgi.in:4401
-#: ../wwsympa/wwsympa.fcgi.in:4978 ../wwsympa/wwsympa.fcgi.in:4979
-#: ../wwsympa/wwsympa.fcgi.in:6492 ../wwsympa/wwsympa.fcgi.in:7625
-#: ../wwsympa/wwsympa.fcgi.in:8240 ../wwsympa/wwsympa.fcgi.in:8287
-#: ../wwsympa/wwsympa.fcgi.in:8289 ../wwsympa/wwsympa.fcgi.in:8807
-#: ../wwsympa/wwsympa.fcgi.in:8808 ../wwsympa/wwsympa.fcgi.in:8842
-#: ../wwsympa/wwsympa.fcgi.in:8843 ../wwsympa/wwsympa.fcgi.in:9022
-#: ../wwsympa/wwsympa.fcgi.in:9023
+#: ../src/lib/List.pm:3833 ../src/lib/List.pm:3834 ../src/lib/List.pm:3838
+#: ../wwsympa/wwsympa.fcgi.in:11716 ../wwsympa/wwsympa.fcgi.in:11785
+#: ../wwsympa/wwsympa.fcgi.in:11987 ../wwsympa/wwsympa.fcgi.in:12334
+#: ../wwsympa/wwsympa.fcgi.in:15720 ../wwsympa/wwsympa.fcgi.in:15727
+#: ../wwsympa/wwsympa.fcgi.in:16467 ../wwsympa/wwsympa.fcgi.in:16517
+#: ../wwsympa/wwsympa.fcgi.in:17290 ../wwsympa/wwsympa.fcgi.in:17291
+#: ../wwsympa/wwsympa.fcgi.in:4415 ../wwsympa/wwsympa.fcgi.in:4473
+#: ../wwsympa/wwsympa.fcgi.in:5050 ../wwsympa/wwsympa.fcgi.in:5051
+#: ../wwsympa/wwsympa.fcgi.in:6564 ../wwsympa/wwsympa.fcgi.in:7697
+#: ../wwsympa/wwsympa.fcgi.in:8312 ../wwsympa/wwsympa.fcgi.in:8359
+#: ../wwsympa/wwsympa.fcgi.in:8361 ../wwsympa/wwsympa.fcgi.in:8885
+#: ../wwsympa/wwsympa.fcgi.in:8886 ../wwsympa/wwsympa.fcgi.in:8920
+#: ../wwsympa/wwsympa.fcgi.in:8921 ../wwsympa/wwsympa.fcgi.in:9100
+#: ../wwsympa/wwsympa.fcgi.in:9101
 msgid "%d %b %Y"
 msgstr "%d %b %Y"
 
-#: ../src/lib/List.pm:6443
+#: ../src/lib/List.pm:7241
 msgid "Attempt to exceed the max number of members (%s) for this list."
 msgstr ""
 
-#: ../src/lib/List.pm:6446
+#: ../src/lib/List.pm:7244
 msgid "Attempts to add some users in database failed."
 msgstr ""
 
-#: ../src/lib/List.pm:6448
+#: ../src/lib/List.pm:7246
 msgid "Added %s users out of %s required."
 msgstr ""
 
@@ -10373,17 +10530,17 @@ msgstr "(ukjent dato)"
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../wwsympa/wwsympa.fcgi.in:1080
+#: ../wwsympa/wwsympa.fcgi.in:1143
 msgid "%H:%M:%S"
 msgstr "%H:%M:%S"
 
-#: ../wwsympa/wwsympa.fcgi.in:4873
+#: ../wwsympa/wwsympa.fcgi.in:4945
 #, fuzzy
 msgid "Unable to add user %s in list %s : %s"
 msgstr "Kunne ikke aksesserere katalogen %s : %m"
 
-#: ../wwsympa/wwsympa.fcgi.in:10691 ../wwsympa/wwsympa.fcgi.in:6217
-#: ../wwsympa/wwsympa.fcgi.in:9693
+#: ../wwsympa/wwsympa.fcgi.in:10066 ../wwsympa/wwsympa.fcgi.in:11064
+#: ../wwsympa/wwsympa.fcgi.in:6289
 #, fuzzy
 msgid "Unable to add users in list %s : %s"
 msgstr "Kunne ikke aksesserere katalogen %s : %m"
@@ -10391,52 +10548,52 @@ msgstr "Kunne ikke aksesserere katalogen %s : %m"
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
 #: ../wwsympa/SympaSession.pm:355 ../wwsympa/SympaSession.pm:356
-#: ../wwsympa/wwsympa.fcgi.in:12195 ../wwsympa/wwsympa.fcgi.in:12328
-#: ../wwsympa/wwsympa.fcgi.in:14671 ../wwsympa/wwsympa.fcgi.in:8194
+#: ../wwsympa/wwsympa.fcgi.in:12568 ../wwsympa/wwsympa.fcgi.in:12701
+#: ../wwsympa/wwsympa.fcgi.in:15044 ../wwsympa/wwsympa.fcgi.in:8266
 msgid "%d %b %y  %H:%M"
 msgstr "%d %b %y  %H:%M"
 
-#: ../wwsympa/wwsympa.fcgi.in:15640
+#: ../wwsympa/wwsympa.fcgi.in:15902
 #, fuzzy
 msgid "Your unsubscription request to list %s was sent to the list owner."
 msgstr "Din henvendelse har blitt sendt videre til listeeieren"
 
-#: ../wwsympa/wwsympa.fcgi.in:15642
+#: ../wwsympa/wwsympa.fcgi.in:15904
 #, fuzzy
 msgid "You were successfully unsubscribed from list %s."
 msgstr "Du ba om å ble meldt ut av listen %1"
 
-#: ../wwsympa/wwsympa.fcgi.in:15646
+#: ../wwsympa/wwsympa.fcgi.in:15908
 msgid ""
 "Unsubscription from list %s denied: Unsubscription from this list is closed."
 msgstr ""
 
-#: ../wwsympa/wwsympa.fcgi.in:15648
+#: ../wwsympa/wwsympa.fcgi.in:15910
 #, fuzzy
 msgid "Unsubscription from list %s failed."
 msgstr "Jeg melder meg ut av listen %1"
 
-#: ../wwsympa/wwsympa.fcgi.in:16244
+#: ../wwsympa/wwsympa.fcgi.in:16506
 msgid "Mail sending"
 msgstr ""
 
-#: ../wwsympa/wwsympa.fcgi.in:16245
+#: ../wwsympa/wwsympa.fcgi.in:16507
 #, fuzzy
 msgid "Subscription additions"
 msgstr "Abonnement"
 
-#: ../wwsympa/wwsympa.fcgi.in:16246
+#: ../wwsympa/wwsympa.fcgi.in:16508
 #, fuzzy
 msgid "Unsubscription"
 msgstr "Alt om denne listen :"
 
-#: ../wwsympa/wwsympa.fcgi.in:16247
+#: ../wwsympa/wwsympa.fcgi.in:16509
 msgid "Users deleted by admin"
 msgstr ""
 
 #. This entry is a date/time format
 #. Check the strftime manpage for format details : http://docs.freebsd.org/info/gawk/gawk.info.Time_Functions.html
-#: ../wwsympa/wwsympa.fcgi.in:16623 ../wwsympa/wwsympa.fcgi.in:16624
+#: ../wwsympa/wwsympa.fcgi.in:16885 ../wwsympa/wwsympa.fcgi.in:16886
 #, fuzzy
 msgid "%Y-%m-%d-%H-%M-%S"
 msgstr "%Y/%m/%d/%H/%M/%S"
@@ -10591,6 +10748,84 @@ msgstr "ingen e-post (praktisk ved ferie)"
 #: ../wwsympa/wwslib.pm:37
 msgid "you do not receive your own posts"
 msgstr "du mottar ikke selv dine egne meldinger"
+
+#: ../web_tt2/editfile.tt2:31
+msgid ""
+"List description: This text is sent as an answer to the mail command INFO. "
+"It can also be included in the <em>Welcome message</em>."
+msgstr ""
+
+#. (+cpt)
+#: ../web_tt2/javascript.tt2:1056
+msgid "microcal"
+msgstr ""
+
+#: ../web_tt2/javascript.tt2:1096
+msgid "\"+src.id+\"_cal"
+msgstr ""
+
+#: ../web_tt2/modindex.tt2:128
+msgid "Toggle spams"
+msgstr ""
+
+#: ../web_tt2/viewmod.tt2:18
+msgid "Do Not Notify"
+msgstr ""
+
+#. (list.name,msg_from)
+#: ../mail_tt2/moderate.tt2:3
+msgid "Article to be tagged for list %1 from %2"
+msgstr ""
+
+#. (list.name)
+#: ../mail_tt2/moderate.tt2:21
+msgid ""
+"To tag the message in list %1 for the appropriate topic, please use the "
+"following link:"
+msgstr ""
+
+#: ../web_tt2/edit_config.tt2:7
+msgid "[%confparam.title%]"
+msgstr ""
+
+#: ../web_tt2/edit_config.tt2:16
+msgid "[% confparam.title %]"
+msgstr ""
+
+#: ../web_tt2/edit_config.tt2:28
+msgid "[% confparam.query %]"
+msgstr ""
+
+#: ../src/lib/confdef.pm:43
+msgid "Directories and file location"
+msgstr ""
+
+#: ../src/lib/confdef.pm:234
+msgid "Syslog"
+msgstr ""
+
+#: ../src/lib/confdef.pm:260
+msgid "Log intensity"
+msgstr ""
+
+#: ../src/lib/confdef.pm:573
+msgid "Internationalization"
+msgstr ""
+
+#: ../mail_tt2/sendssopasswd.tt2:7
+msgid ""
+"To complete your account setup actions you need to confirm that you have \n"
+"supplied a working email address.  Please enter the following email and "
+"password\n"
+"in the setup wizard to complete your account configuration."
+msgstr ""
+
+#. (list.name)
+#: ../mail_tt2/message_report.tt2:52
+msgid ""
+"Your message could not be sent because its size \n"
+"was over the maximum size allowed on this list."
+msgstr ""
 
 #, fuzzy
 #~ msgid "URL:"
