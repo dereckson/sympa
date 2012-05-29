@@ -125,6 +125,7 @@ Returns a default option of the list for subscription.
 
 Returns the number of subscribers to the list.
 
+
 =item get_global_user ( USER )
 
 Returns a hash with the information regarding the indicated
@@ -277,8 +278,8 @@ my @param_order = qw (subject visibility info subscribe add unsubscribe del owne
 		      default_user_options msg_topic msg_topic_keywords_apply_on msg_topic_tagging reply_to_header reply_to forced_reply_to * 
 		      verp_rate tracking welcome_return_path remind_return_path user_data_source include_file include_remote_file 
 		      include_list include_remote_sympa_list include_ldap_query
-                      include_ldap_2level_query include_sql_query include_admin ttl distribution_ttl creation update 
-		      status serial custom_attribute);
+                      include_ldap_2level_query include_sql_query include_voot_group include_admin ttl distribution_ttl creation update 
+		      status serial custom_attribute include_ldap_ca include_ldap_2level_ca include_sql_ca);
 
 ## List parameters aliases
 my %alias = ('reply-to' => 'reply_to',
@@ -322,1207 +323,1964 @@ my %alias = ('reply-to' => 'reply_to',
 ##               that should always be saved in the config file
 ## field_type :  used to select passwords web input type
 ###############################################################
-%::pinfo = ('account' => {'format' => '\S+',
-			  'length' => 10,
-			  'gettext_id' => "Account",
-			  'group' => 'other'
-			  },
-	    'add' => {'scenario' => 'add',
-		      'gettext_id' => "Who can add subscribers",
-		      'group' => 'command'
-		      },
-	    'anonymous_sender' => {'format' => '.+',
-				   'gettext_id' => "Anonymous sender",
-				   'group' => 'sending'
-				   },
-	    'archive' => {'format' => {'period' => {'format' => ['day','week','month','quarter','year'],
-						    'synonym' => {'weekly' => 'week'},
-						    'gettext_id' => "frequency",
-						    'order' => 1
-						},
-				       'access' => {'format' => ['open','private','public','owner','closed'],
-						    'synonym' => {'open' => 'public'},
-						    'gettext_id' => "access right",
-						    'order' => 2
-						}
-				   },
-			  'gettext_id' => "Text archives",
-			  'group' => 'archives'
-		      },
-	    'archive_crypted_msg' => {'format' => ['original','decrypted'],
-				    'default' => 'original',
-				    'gettext_id' => "Archive encrypted mails as cleartext",
-				    'group' => 'archives'
-				    },
-           'available_user_options' => {'format' => {'reception' => {'format' => ['mail','notice','digest','digestplain','summary','nomail','txt','html','urlize','not_me'],
-								     'occurrence' => '1-n',
-								     'split_char' => ',',
-								     'default' => 'mail,notice,digest,digestplain,summary,nomail,txt,html,urlize,not_me',
-								     'gettext_id' => "reception mode"
-								     },
-						     },
-					 'gettext_id' => "Available subscription options",
-					 'group' => 'sending'
-				     },
+%::pinfo = (
 
-	    'bounce' => {'format' => {'warn_rate' => {'format' => '\d+',
-						      'length' => 3,
-						      'gettext_unit' => '%',
-						      'default' => {'conf' => 'bounce_warn_rate'},
-						      'gettext_id' => "warn rate",
-						      'order' => 1
-						  },
-				      'halt_rate' => {'format' => '\d+',
-						      'length' => 3,
-						      'gettext_unit' => '%',
-						      'default' => {'conf' => 'bounce_halt_rate'},
-						      'gettext_id' => "halt rate",
-						      'order' => 2
-						  }
-				  },
-			 'gettext_id' => "Bounces management",
-			 'group' => 'bounces'
-		     },
-	    'bouncers_level1' => {'format' => {'rate' => {'format' => '\d+',
-								 'length' => 2,
-								 'gettext_unit' => 'points',
-								 'default' => {'conf' => 'default_bounce_level1_rate'},
-								 'gettext_id' => "threshold",
-								 'order' => 1
-								 },
-				               'action' => {'format' => ['remove_bouncers','notify_bouncers','none'],
-								   'default' => 'notify_bouncers',
-								   'gettext_id' => "action for this population",
-								   'order' => 2
-								   },
-					       'notification' => {'format' => ['none','owner','listmaster'],
-									 'default' => 'owner',
-									 'gettext_id' => "notification",
-									 'order' => 3
-									 }
-					   },
-				      'gettext_id' => "Management of bouncers, 1st level",
-				      'group' => 'bounces'
-				  },
-	     'bouncers_level2' => {'format' => {'rate' => {'format' => '\d+',
-								 'length' => 2,
-								 'gettext_unit' => 'points',
-								 'default' => {'conf' => 'default_bounce_level2_rate'},
-								 'gettext_id' => "threshold",
-								 'order' => 1
-								 },
-				               'action' => {'format' =>  ['remove_bouncers','notify_bouncers','none'],
-								   'default' => 'remove_bouncers',
-								   'gettext_id' => "action for this population",
-								   'order' => 2
-								   },
-					       'notification' => {'format' => ['none','owner','listmaster'],
-									 'default' => 'owner',
-									 'gettext_id' => "notification",
-									 'order' => 3
-									 }
-								     },
-				      'gettext_id' => "Management of bouncers, 2nd level",
-				      'group' => 'bounces'
-				  },
-	    'clean_delay_queuemod' => {'format' => '\d+',
-				       'length' => 3,
-				       'gettext_unit' => 'days',
-				       'default' => {'conf' => 'clean_delay_queuemod'},
-				       'gettext_id' => "Expiration of unmoderated messages",
-				       'group' => 'other'
-				       },
-	    'cookie' => {'format' => '\S+',
-			 'length' => 15,
-			 'default' => {'conf' => 'cookie'},
-			 'gettext_id' => "Secret string for generating unique keys",
-			 'group' => 'other'
-		     },
-	    'tracking' => {'format' => {'delivery_status_notification' => {'format' => ['on','off'],
-										'default' =>  {'conf' => 'tracking_delivery_status_notification'},
-										'gettext_id' => "tracking message by delivery status notification",
-										'order' => 1
-									   },
-					'message_delivery_notification' => {'format' => ['on','on_demand','off'],
-										'default' =>  {'conf' => 'tracking_message_delivery_notification'},
-										'gettext_id' => "tracking message by message delivery notification",
-										'order' => 2
-									   },
-					'tracking' => {'scenario' => 'tracking',
-						       'gettext_id' => "who can view message tracking",
-						       'order' => 3 
-						       },
-					'retention_period' => {'format' => '\d+',
-    							       'default' =>  {'conf' => 'tracking_default_retention_period'},
-							       'gettext_unit' => 'days',
-							       'length' => 5,
-							       'gettext_id' => "Tracking datas are removed after this number of days",
-							       'order' => 4 
-  						               }
-				        },
-			   'group' => 'bounces',
-			   'gettext_id' => "Message tracking feature"
-			   },		
-	    'creation' => {'format' => {'date_epoch' => {'format' => '\d+',
-							 'occurrence' => '1',
-							 'gettext_id' => "epoch date",
-							 'order' => 3
-						     },
-					'date' => {'format' => '.+',
-						   'gettext_id' => "human readable",
-						   'order' => 2
-						   },
-					'email' => {'format' => 'listmaster|'.&tools::get_regexp('email'),
-						    'occurrence' => '1',
-						    'gettext_id' => "who created the list",
-						    'order' => 1
-						    }
-				    },
-			   'gettext_id' => "Creation of the list",
-			   'occurrence' => '0-1',
-			   'internal' => 1,
-			   'group' => 'other'
-
-		       },
-	'custom_attribute' => {
+	### Global definition page ###
+	
+	'subject' => {
+		'group' => 'description',
+		'gettext_id' => "Subject of the list",
+		'format' => '.+',
+		'occurrence' => '1',
+		'length' => 50
+	},
+	
+	'visibility' => {
+		'group' => 'description',
+		'gettext_id' => "Visibility of the list",
+		'scenario' => 'visibility',
+		'synonym' => {
+			'public' => 'noconceal',
+			'private' => 'conceal'
+		}
+	},
+	
+	'owner' => {
+		'group' => 'description',
+		'gettext_id' => "Owner",
 		'format' => {
-			'id' => {
-				'format' => '\w+',
-				'length' => 20,
-				'gettext_id' => "internal identifier",
+			'email' => {
+				'order' => 1,
+				'gettext_id' => "email address",
+				'format' => &tools::get_regexp('email'),
 				'occurrence' => '1',
-				'order' =>1
+				'length' => 30
 			},
-			'name' => {
+			'gecos' => {
+				'order' => 2,
+				'gettext_id' => "name",
 				'format' => '.+',
-				'length' =>30,
-				'occurrence' => '1',
-				'gettext_id' => "label",
-				'order' => 2
+				'length' => 30
 			},
-			'comment' => {
+			'info' => {
+				'order' => 3,
+				'gettext_id' => "private information",
 				'format' => '.+',
-				'length' => 100,
-				'gettext_id' => "additional comment",
-				'order' => 3
+				'length' => 30
 			},
-			'type' => {
-				'format' => ['string','text','integer','enum'],
-				'default' => 'string',
-				'occurence' => 1,
-				'gettext_id' => "type",
-				'order' => 4
+			'profile' => {
+				'order' => 4,
+				'gettext_id' => "profile",
+				'format' => ['privileged', 'normal'],
+				'default' => 'normal'
 			},
-			'enum_values' => {
-				'format' => '.+',
-				'length' => 100,
-				'gettext_id' => "possible attribute values (if enum is used)",
-				'order' => 5
+			'reception' => {
+				'order' => 5,
+				'gettext_id' => "reception mode",
+				'format' => ['mail', 'nomail'],
+				'default' => 'mail'
 			},
-			'optional' => {
-				'format' => ['required','optional'],
-				'gettext_id' => "is the attribute optional?",
-				'order' => 6
+			'visibility' => {
+				'order' => 6,
+				'gettext_id' => "visibility",
+				'format' => ['conceal', 'noconceal'],
+				'default' => 'noconceal'
 			}
-		
+		},
+		'occurrence' => '1-n'
+	},
+	
+	'owner_include' => {
+		'group' => 'description',,
+		'gettext_id' => 'Owners defined in an external data source',
+		'format' => {
+			'source' => {
+				'order' => 1,
+				'gettext_id' => 'the datasource',
+				'datasource' => 1,
+				'occurrence' => '1'
+			},
+			'source_parameters' => {
+				'order' => 2,
+				'gettext_id' => 'datasource parameters',
+				'format' => '.*',
+				'occurrence' => '0-1'
+			},
+			'reception' => {
+				'order' => 4,
+				'gettext_id' => 'reception mode',
+				'format' => ['mail', 'nomail'],
+				'default' => 'mail'
+			},
+			'visibility' => {
+				'order' => 5,
+				'gettext_id' => "visibility",
+				'format' => ['conceal', 'noconceal'],
+				'default' => 'noconceal'
+			},
+			'profile' => {
+				'order' => 3,
+				'gettext_id' => 'profile',
+				'format' => ['privileged', 'normal'],
+				'default' => 'normal'
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'editor' => {
+		'group' => 'description',
+		'gettext_id' => "Moderators",
+		'format' => {
+			'email' => {
+				'order' => 1,
+				'gettext_id' => "email address",
+				'format' => &tools::get_regexp('email'),
+				'occurrence' => '1',
+				'length' => 30
+			},
+			'reception' => {
+				'order' => 4,
+				'gettext_id' => "reception mode",
+				'format' => ['mail', 'nomail'],
+				'default' => 'mail'
+			},
+			'visibility' => {
+				'order' => 5,
+				'gettext_id' => "visibility",
+				'format' => ['conceal', 'noconceal'],
+				'default' => 'noconceal'
+			},
+			'gecos' => {
+				'order' => 2,
+				'gettext_id' => "name",
+				'format' => '.+',
+				'length' => 30
+			},
+			'info' => {
+				'order' => 3,
+				'gettext_id' => "private information",
+				'format' => '.+',
+				'length' => 30
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'editor_include' => {
+		'group' => 'description',
+		'gettext_id' => 'Moderators defined in an external data source',
+		'format' => {
+			'source' => {
+				'order' => 1,
+				'gettext_id' => 'the data source',
+				'datasource' => 1,
+				'occurrence' => '1'
+			},
+			'source_parameters' => {
+				'order' => 2,
+				'gettext_id' => 'data source parameters',
+				'format' => '.*',
+				'occurrence' => '0-1'
+			},
+			'reception' => {
+				'order' => 3,
+				'gettext_id' => 'reception mode',
+				'format' => ['mail', 'nomail'],
+				'default' => 'mail'
+			},
+			'visibility' => {
+				'order' => 5,
+				'gettext_id' => "visibility",
+				'format' => ['conceal', 'noconceal'],
+				'default' => 'noconceal'
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'topics' => {
+		'group' => 'description',
+		'gettext_id' => "Topics for the list",
+		'format' => '[\-\w]+(\/[\-\w]+)?',
+		'split_char' => ', ',
+		'occurrence' => '0-n'
+	},
+	
+	'host' => {
+		'group' => 'description',
+		'gettext_id' => "Internet domain",
+		'format' => &tools::get_regexp('host'),
+		'default' => {
+			'conf' => 'host'
+		},
+		'length' => 20
+	},
+	
+	'lang' => {
+		'group' => 'description',
+		'gettext_id' => "Language of the list",
+		'format' => [], ## &Language::GetSupportedLanguages() called later
+		'file_format' => '\w+',
+		'default' => {
+			'conf' => 'lang'
+		}
+	},
+	
+	'family_name' => {
+		'group' => 'description',
+		'gettext_id' => 'Family name',
+		'format' => &tools::get_regexp('family_name'),
+		'occurrence' => '0-1',
+		'internal' => 1
+	},
+	
+	'max_list_members' => {
+		'group' => 'description',
+		'gettext_id' => "Maximum number of list members",
+		'gettext_unit' => 'list members',
+		'format' => '\d+',
+		'length' => 8,
+		'default' => {
+			'conf' => 'default_max_list_members'
+		}
+	},
+	
+	'priority' => {
+		'group' => 'description',
+		'gettext_id' => "Priority",
+		'format' => [0..9, 'z'],
+		'length' => 1,
+		'default' => {
+			'conf' => 'default_list_priority'
+		}
+	},
+	
+	### Sending page ###
+	
+	'send' => {
+		'group' => 'sending',
+		'gettext_id' => "Who can send messages",
+		'scenario' => 'send'
+	},
+	
+	'delivery_time' => {
+		'group' => 'sending',
+		'gettext_id' => "Delivery time (hh:mm)",
+		'format' => '[0-2]?\d\:[0-6]\d',
+		'occurrence' => '0-1',
+		'length' => 5
+	},
+	
+	'digest' => {
+		'group' => 'sending',
+		'gettext_id' => "Digest frequency",
+		'file_format' => '\d+(\s*,\s*\d+)*\s+\d+:\d+',
+		'format' => {
+			'days' => {
+				'order' => 1,
+				'gettext_id' => "days",
+				'format' => [0..6],
+				'file_format' => '1|2|3|4|5|6|7',
+				'occurrence' => '1-n'
+			},
+			'hour' => {
+				'order' => 2,
+				'gettext_id' => "hour",
+				'format' => '\d+',
+				'occurrence' => '1',
+				'length' => 2
+			},
+			'minute' => {
+				'order' => 3,
+				'gettext_id' => "minute",
+				'format' => '\d+',
+				'occurrence' => '1',
+				'length' => 2
+			}
+		},
+	},
+	
+	'digest_max_size' => {
+		'group' => 'sending',
+		'gettext_id' => "Digest maximum number of messages",
+		'gettext_unit' => 'messages',
+		'format' => '\d+',
+		'default' => 25,
+		'length' => 2
+	},
+	
+	'available_user_options' => {
+		'group' => 'sending',
+		'gettext_id' => "Available subscription options",
+		'format' => {
+			'reception' => {
+				'gettext_id' => "reception mode",
+				'format' => ['mail', 'notice', 'digest', 'digestplain', 'summary', 'nomail', 'txt', 'html', 'urlize', 'not_me'],
+				'occurrence' => '1-n',
+				'split_char' => ', ',
+				'default' => 'mail,notice,digest,digestplain,summary,nomail,txt,html,urlize,not_me'
+			}
+		}
+	},
+	
+	'default_user_options' => {
+		'group' => 'sending',
+		'gettext_id' => "Subscription profile",
+		'format' => {
+			'reception' => {
+				'order' => 1,
+				'gettext_id' => "reception mode",
+				'format' => ['digest', 'digestplain', 'mail', 'nomail', 'summary', 'notice', 'txt', 'html', 'urlize', 'not_me'],
+				'default' => 'mail'
+			},
+			'visibility' => {
+				'order' => 2,
+				'gettext_id' => "visibility",
+				'format' => ['conceal', 'noconceal'],
+				'default' => 'noconceal'
+			}
+		},
+	},
+	
+	'msg_topic' => {
+		'group' => 'sending',
+		'gettext_id' => "Topics for message categorization",
+		'format' => {
+			'name' => {
+				'order' => 1	,
+				'gettext_id' => "Message topic name",
+				'format' => '[\-\w]+',
+				'occurrence' => '1',
+				'length' => 15
+			}, 
+			'keywords' => {
+				'order' => 2,
+				'gettext_id' => "Message topic keywords",
+				'format' => '[^,\n]+(,[^,\n]+)*',
+				'occurrence' => '0-1'
+			},
+			'title' => {
+				'order' => 3,
+				'gettext_id' => "Message topic title",
+				'format' => '.+',
+				'occurrence' => '1',
+				'length' => 35
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'msg_topic_keywords_apply_on' => {
+		'group' => 'sending',
+		'gettext_id' => "Defines to which part of messages topic keywords are applied",
+		'format' => ['subject', 'body', 'subject_and_body'],
+		'occurrence' => '0-1',
+		'default' => 'subject'
+	},
+	
+	'msg_topic_tagging' => {
+		'group' => 'sending',
+		'gettext_id' => "Message tagging",
+		'format' => ['required_sender', 'required_moderator', 'optional'],
+		'occurrence' => '0-1',
+		'default' => 'optional'
+	},
+	
+	'reply_to' => {
+		'group' => 'sending',
+		'gettext_id' => "Reply address",
+		'format' => '\S+',
+		'default' => 'sender',
+		'obsolete' => 1
+	},
+	
+	'forced_reply_to' => {
+		'group' => 'sending',
+		'gettext_id' => "Forced reply address",
+		'format' => '\S+',
+		'obsolete' => 1
+	},
+	
+	'reply_to_header' => {
+		'group' => 'sending',
+		'gettext_id' => "Reply address",
+		'format' => {
+			'value' => {
+				'order' => 1,
+				'gettext_id' => "value",
+				'format' => ['sender', 'list', 'all', 'other_email'],
+				'default' => 'sender',
+				'occurrence' => '1'
+			},
+			'other_email' => {
+				'order' => 2,
+				'gettext_id' => "other email address",
+				'format' => &tools::get_regexp('email')
+			},
+			'apply' => {
+				'order' => 3,
+				'gettext_id' => "respect of existing header field",
+				'format' => ['forced', 'respect'],
+				'default' => 'respect'
+			}
+		}
+	},
+	
+	'anonymous_sender' => {
+		'group' => 'sending',
+		'gettext_id' => "Anonymous sender",
+		'format' => '.+'
+	},
+	
+	'custom_header' => {
+		'group' => 'sending',
+		'gettext_id' => "Custom header field",
+		'format' => '\S+:\s+.*',
+		'occurrence' => '0-n',
+		'length' => 30
+	},
+	
+	'custom_subject' => {
+		'group' => 'sending',
+		'gettext_id' => "Subject tagging",
+		'format' => '.+',
+		'length' => 15
+	},
+	
+	'footer_type' => {
+		'group' => 'sending',
+		'gettext_id' => "Attachment type",
+		'format' => ['mime', 'append'],
+		'default' => 'mime'
+	},
+	
+	'max_size' => {
+		'group' => 'sending',
+		'gettext_id' => "Maximum message size",
+		'gettext_unit' => 'bytes',
+		'format' => '\d+',
+		'length' => 8,
+		'default' => {
+			'conf' => 'max_size'
+		}
+	},
+	
+	'merge_feature' => {
+		'group' => 'sending',
+		'gettext_id' => "Allow message personnalization",
+		'format' => ['on', 'off'],
+		'occurence' => '0-1',
+		'default' => {
+			'conf' => 'merge_feature'
+		}
+	},
+	
+	'reject_mail_from_automates_feature' => {
+		'group' => 'sending',
+		'gettext_id' => "Reject mail from automates (crontab, etc)?",
+		'format' => ['on', 'off'],
+		'occurence' => '0-1',
+		'default' => {
+			'conf' => 'reject_mail_from_automates_feature'
+		}
+	},
+	
+	'remove_headers' => {
+		'group' => 'sending',
+		'gettext_id' => 'Incoming SMTP header fields to be removed',
+		'format' => '\S+',
+		'default' => {
+			'conf' => 'remove_headers'
 		},
 		'occurrence' => '0-n',
-		'gettext_id' => "Custom user attributes",
-		'group' => 'other'
+		'split_char' => ', '
 	},
-	    'custom_header' => {'format' => '\S+:\s+.*',
-				'length' => 30,
-				'occurrence' => '0-n',
-				'gettext_id' => "Custom header field",
-				'group' => 'sending'
+	
+	'remove_outgoing_headers' => {
+		'group' => 'sending',
+		'gettext_id' => 'Outgoing SMTP header fields to be removed',
+		'format' => '\S+',
+		'default' => {
+			'conf' => 'remove_outgoing_headers'
+		},
+		'occurrence' => '0-n',
+		'split_char' => ', '
+	},
+	
+	'rfc2369_header_fields' => {
+		'group' => 'sending',
+		'gettext_id' => "RFC 2369 Header fields",
+		'format' => ['help', 'subscribe', 'unsubscribe', 'post', 'owner', 'archive'],
+		'default' => {
+			'conf' => 'rfc2369_header_fields'
+		},
+		'occurrence' => '0-n',
+		'split_char' => ', '
+	},
+	
+	### Command page ###
+	
+	'info' => {
+		'group' => 'command',
+		'gettext_id' => "Who can view list information",
+		'scenario' => 'info'
+	},
+	
+	'subscribe' => {
+		'group' => 'command',
+		'gettext_id' => "Who can subscribe to the list",
+		'scenario' => 'subscribe'
+	},
+	
+	'add' => {
+		'group' => 'command',
+		'gettext_id' => "Who can add subscribers",
+		'scenario' => 'add'
+	},
+	
+	'unsubscribe' => {
+		'group' => 'command',
+		'gettext_id' => "Who can unsubscribe",
+		'scenario' => 'unsubscribe'
+	},
+	
+	'del' => {
+		'group' => 'command',
+		'gettext_id' => "Who can delete subscribers",
+		'scenario' => 'del'
+	},
+	
+	'invite' => {
+		'group' => 'command',
+		'gettext_id' => "Who can invite people",
+		'scenario' => 'invite'
+	},
+	
+	'remind' => {
+		'group' => 'command',
+		'gettext_id' => "Who can start a remind process",
+		'scenario' => 'remind'
+	},
+	
+	'review' => {
+		'group' => 'command',
+		'gettext_id' => "Who can review subscribers",
+		'scenario' => 'review',
+		'synonym' => {
+			'open' => 'public'
+		}
+	},
+	
+	'shared_doc' => {
+		'group' => 'command',
+		'gettext_id' => "Shared documents",
+		'format' => {
+			'd_read' => {
+				'order' => 1,
+				'gettext_id' => "Who can view",
+				'scenario' => 'd_read'
+			},
+			'd_edit' => {
+				'order' => 2,
+				'gettext_id' => "Who can edit",
+				'scenario' => 'd_edit'
+			},
+			'quota' => {
+				'order' => 3,
+				'gettext_id' => "quota",
+				'gettext_unit' => 'Kbytes',
+				'format' => '\d+',
+				'default' => {
+					'conf' => 'default_shared_quota'
 				},
-	    'custom_subject' => {'format' => '.+',
-				 'length' => 15,
-				 'gettext_id' => "Subject tagging",
-				 'group' => 'sending'
-				 },
-	    'custom_vars' => {'format' => {'name' => {'format' => '\S+',
-						      'occurrence' => '1',
-						      'gettext_id' => 'var name',
-						      'order' => 1
-						      },
-					   'value' => {'format' => '\S+',
-						       'occurrence' => '1',
-						       'gettext_id' => 'var value',
-						       'order' => 2
-						       }
-				       },
-			      'gettext_id' => "custom parameters",
-			      'occurrence' => '0-n',
-			      'group' => 'other'
-			      },			      
-
-            'default_user_options' => {'format' => {'reception' => {'format' => ['digest','digestplain','mail','nomail','summary','notice','txt','html','urlize','not_me'],
-								    'default' => 'mail',
-								    'gettext_id' => "reception mode",
-								    'order' => 1
-								    },
-						    'visibility' => {'format' => ['conceal','noconceal'],
-								     'default' => 'noconceal',
-								     'gettext_id' => "visibility",
-								     'order' => 2
-								     }
-						},
-				       'gettext_id' => "Subscription profile",
-				       'group' => 'sending'
-				   },
-	    'del' => {'scenario' => 'del',
-		      'gettext_id' => "Who can delete subscribers",
-		      'group' => 'command'
-		      },
-	    'delivery_time' => {'format' => '[0-2]?\d\:[0-6]\d',
-				'length' => 5,
-				'gettext_id' => "Delivery time (hh:mm)",
-				'occurrence' => '0-1',
-				'group' => 'sending'
-		      },
-	    'digest' => {'file_format' => '\d+(\s*,\s*\d+)*\s+\d+:\d+',
-			 'format' => {'days' => {'format' => [0..6],
-						 'file_format' => '1|2|3|4|5|6|7',
-						 'occurrence' => '1-n',
-						 'gettext_id' => "days",
-						 'order' => 1
-						 },
-				      'hour' => {'format' => '\d+',
-						 'length' => 2,
-						 'occurrence' => '1',
-						 'gettext_id' => "hour",
-						 'order' => 2
-						 },
-				      'minute' => {'format' => '\d+',
-						   'length' => 2,
-						   'occurrence' => '1',
-						   'gettext_id' => "minute",
-						   'order' => 3
-						   }
-				  },
-			 'gettext_id' => "Digest frequency",
-			 'group' => 'sending'
-		     },
-
-	    'digest_max_size' => {'format' => '\d+',
-				  'length' => 2,
-				  'gettext_unit' => 'messages',
-				  'default' => 25,
-				  'gettext_id' => "Digest maximum number of messages",				  
-				  'group' => 'sending'
-		       },	    
-
-	    'distribution_ttl' => {'format' => '\d+',
-		      'length' => 6,
-		      'gettext_unit' => 'seconds',
-		      'gettext_id' => "Inclusions timeout for message distribution",
-		      'group' => 'data_source'
-		      },
-
-	    'dkim_feature' => {'format' => ['on','off'],
-			      'occurence' => '0-1',
-			      'default' => {'conf' => 'dkim_feature'},
-			      'gettext_id' => "Insert DKIM signature to messages sent to the list",
-			      'comment' =>  "Enable/Disable DKIM. This feature require Mail::DKIM to installed and may be some custom scenario to be updated",
-			      'group' => 'dkim',
-			  },
-	    'dkim_signature_apply_on'=> {'format' => ['md5_authenticated_messages','smime_authenticated_messages','dkim_authenticated_messages','editor_validated_messages','none','any'],
-					 'occurrence' => '0-n',
-					 'split_char' => ',',
-					 'default' => {'conf' => 'dkim_signature_apply_on'},
-					 'gettext_id' => "The categories of messages sent to the list that will be signed using DKIM.",
-					 'comment' => "This parameter controls in which case messages must be signed using DKIM, you may sign every message choosing 'any' or a subset. The parameter value is a comma separated list of keywords",
-					 'group' => 'dkim',
-					 },
-	    'dkim_parameters'=> {'format' => {'private_key_path'=> {'format' => '\S+',
-		                         			  'occurence' => '0-1',
-			                                          'default' => {'conf' => 'dkim_private_key_path'},
-			                                          'gettext_id' => "File path for list DKIM private key",
-								  'comment' => "The file must contain a RSA pem encoded private key", 
-								  'order' => 1
-					                         },
-					     'selector' => { 'format' => '\S+',
-		                         			  'occurence' => '0-1',
-			                                          'default' => {'conf' => 'dkim_selector'},
-							          'comment' => "The selector is used in order to build the DNS query for public key. It is up to you to choose the value you want but verify that you can query the public DKIM key for <selector>._domainkey.your_domain",
-			                                          'gettext_id' => "Selector for DNS lookup of DKIM public key",
-								  'order' => 2
-                                                                  },
-							          
-					     'header_list'=>      { 'format' => '\S+',
-		                         			  'occurence' => '0-1',
-			                                          'default' => {'conf' => 'dkim_header_list'},
-			                                          'gettext_id' => 'List of headers to be included ito the message for signature',
-								  'comment' => 'You should probably use teh default value which is the value recommended by RFC4871',
-								  'order' => 4
-                                                                  },
-					     'signer_domain' =>   {'format' => '\S+',
-		                         			  'occurence' => '0-1',
-			                                          'default' => {'conf' => 'dkim_signer_domain'},
-			                                          'gettext_id' => 'DKIM "d=" tag, you should probably use the default value',
-								   'omment' => ' The DKIM "d=" tag, is the domain of the signing entity. the list domain MUST must be included in the "d=" domain',
-								  'order' => 5
-								 },
-                                             'signer_identity'=>  {'format' => '\S+',
-		                         			  'occurence' => '0-1',
-								  'comment' => 'DKIM "i=" tag, you should probably not use this parameter, as recommended by RFC 4871, default for list brodcasted messages is i=<listname>-request@<domain>',
-			                                          'gettext_id' => 'DKIM "i=" tag, you should probably leave this parameter empty',
-								  'order' => 6
-								 },
-					     },
-			      'group' => 'dkim',
-			      'comment' => 'A set of parameters in order to define outgoing DKIM signature', 
-			      'occurrence' => '0-1',
-			      'gettext_id' => "DKIM configuration",
-			  },
-			      
-	    'editor' => {'format' => {'email' => {'format' => &tools::get_regexp('email'),
-						  'length' => 30,
-						  'occurrence' => '1',
-						  'gettext_id' => "email address",
-						  'order' => 1
-						  },
-				      'reception' => {'format' => ['mail','nomail'],
-						      'default' => 'mail',
-						      'gettext_id' => "reception mode",
-						      'order' => 4
-						      },
-				      'visibility' => {'format' => ['conceal','noconceal'],
-						      'default' => 'noconceal',
-						      'gettext_id' => "visibility",
-						      'order' => 5
-						      },
-				      'gecos' => {'format' => '.+',
-						  'length' => 30,
-						  'gettext_id' => "name",
-						  'order' => 2
-						  },
-				      'info' => {'format' => '.+',
-						 'length' => 30,
-						 'gettext_id' => "private information",
-						 'order' => 3
-						 }
-				  },
-			 'occurrence' => '0-n',
-			 'gettext_id' => "Moderators",
-			 'group' => 'description'
-			 },
-	    'editor_include' => {'format' => {'source' => {'datasource' => 1,
-							   'occurrence' => '1',
-							   'gettext_id' => 'the data source',
-							   'order' => 1
-							   },
-					      'source_parameters' => {'format' => '.*',
-								      'occurrence' => '0-1',
-								      'gettext_id' => 'data source parameters',
-								      'order' => 2
-    								      },
-					      'reception' => {'format' => ['mail','nomail'],
-							      'default' => 'mail',
-							      'gettext_id' => 'reception mode',
-							       'order' => 3
-							      },
-				              'visibility' => {'format' => ['conceal','noconceal'],
-							       'default' => 'noconceal',
-							       'gettext_id' => "visibility",
-							       'order' => 5
-					                      }
-					      
-					      },
-				  'occurrence' => '0-n',
-				  'gettext_id' => 'Moderators defined in an external data source',
-				  'group' => 'description',
-			      },
-	    'expire_task' => {'task' => 'expire',
-			      'gettext_id' => "Periodical subscription expiration task",
-			      'group' => 'other'
-			 },
- 	    'family_name' => {'format' => &tools::get_regexp('family_name'),
- 			      'occurrence' => '0-1',
- 			      'gettext_id' => 'Family name',
-			      'internal' => 1,
- 			      'group' => 'description'
- 			      },
-	    'footer_type' => {'format' => ['mime','append'],
-			      'default' => 'mime',
-			      'gettext_id' => "Attachment type",
-			      'group' => 'sending'
-			      },
-	    'forced_reply_to' => {'format' => '\S+',
-				  'gettext_id' => "Forced reply address",
-				  'obsolete' => 1
-			 },
-	    'host' => {'format' => &tools::get_regexp('host'),
-		       'length' => 20,
-		       'default' => {'conf' => 'host'},
-		       'gettext_id' => "Internet domain",
-		       'group' => 'description'
-		   },
-	    'include_file' => {'format' => '\S+',
-			       'length' => 20,
-			       'occurrence' => '0-n',
-			       'gettext_id' => "File inclusion",
-			       'group' => 'data_source'
-			       },
-	    'include_remote_file' => {'format' => {'url' => {'format' => '.+',
-							     'gettext_id' => "data location URL",
-							     'occurrence' => '1',
-							     'length' => 50,
-							     'order' => 2
-							     },					       
-						   'user' => {'format' => '.+',
-							      'gettext_id' => "remote user",
-							      'order' => 3,
-							      'occurrence' => '0-1'
-							      },
-						   'passwd' => {'format' => '.+',
-								'length' => 10,
-								'field_type' => 'password',
-								'gettext_id' => "remote password",
-								'order' => 4,
-								'occurrence' => '0-1'
-								},							      
-						    'name' => {'format' => '.+',
-							       'gettext_id' => "short name for this source",
-							       'length' => 15,
-							       'order' => 1
-							       }
-						     },
-				      'gettext_id' => "Remote file inclusion",
-				      'occurrence' => '0-n',
-				      'group' => 'data_source'
-				      },				  
-	    'include_ldap_query' => {'format' => {'host' => {'format' => &tools::get_regexp('multiple_host_with_port'),
-							     'occurrence' => '1',
-							     'gettext_id' => "remote host",
-							     'order' => 2
-							     },
-						  'port' => {'format' => '\d+',
-							     'length' => 4,
-							     'gettext_id' => "remote port",
-							     'obsolete' => 1,
-							     'order' => 2
-							     },
-						  'user' => {'format' => '.+',
-							     'gettext_id' => "remote user",
-							     'order' => 3
-							     },
-						  'passwd' => {'format' => '.+',
-							       'length' => 10,
-							       'field_type' => 'password',
-							       'gettext_id' => "remote password",
-							       'order' => 3
-							       },
-						  'suffix' => {'format' => '.+',
-							       'gettext_id' => "suffix",
-							       'order' => 4
-							       },
-						  'filter' => {'format' => '.+',
-							       'length' => 50,
-							       'occurrence' => '1',
-							       'gettext_id' => "filter",
-							       'order' => 7
-							       },
-						  'attrs' => {'format' => '\w+',
-							      'length' => 15,
-							      'default' => 'mail',
-							      'gettext_id' => "extracted attribute",
-							      'order' => 8
-							      },
-						  'select' => {'format' => ['all','first'],
-							       'default' => 'first',
-							       'gettext_id' => "selection (if multiple)",
-							       'order' => 9
-							       },
-					          'scope' => {'format' => ['base','one','sub'],
-							      'default' => 'sub',
-							      'gettext_id' => "search scope",
-							      'order' => 5
-							      },
-						  'timeout' => {'format' => '\w+',
-								'default' => 30,
-								'gettext_unit' => 'seconds',
-								'gettext_id' => "connection timeout",
-								'order' => 6
-								},
-						   'name' => {'format' => '.+',
-							      'gettext_id' => "short name for this source",
-							      'length' => 15,
-							      'order' => 1
-							      },
-							      'use_ssl' => {'format' => ['yes','no'],
-									    'default' => 'no',
-									    'gettext_id' => 'use SSL (LDAPS)',
-									    'order' => 2.5,
-									},
-							      'ssl_version' => {'format' => ['sslv2','sslv3','tls'],
-										'default' => 'sslv3',
-										'gettext_id' => 'SSL version',
-										'order' => 2.5,
-									    },
-							      'ssl_ciphers' => {'format' => '.+',
-										'default' => 'ALL',
-										'gettext_id' => 'SSL ciphers used',
-										'order' => 2.5,
-									   },
-							      
-							      
-									    
-					      },
-				     'occurrence' => '0-n',
-				     'gettext_id' => "LDAP query inclusion",
-				     'group' => 'data_source'
-				     },
-	    'include_ldap_2level_query' => {'format' => {'host' => {'format' => &tools::get_regexp('multiple_host_with_port'),
-							     'occurrence' => '1',
-							     'gettext_id' => "remote host",
-							     'order' => 1
-							     },
-						  'port' => {'format' => '\d+',
-							     'length' => 4,
-							     'gettext_id' => "remote port",
-							     'obsolete' => 1,
-							     'order' => 2
-							     },
-						  'user' => {'format' => '.+',
-							     'gettext_id' => "remote user",
-							     'order' => 3
-							     },
-						  'passwd' => {'format' => '.+',
-							       'length' => 10,
-							       'field_type' => 'password',
-							       'gettext_id' => "remote password",
-							       'order' => 3
-							       },
-						  'suffix1' => {'format' => '.+',
-							       'gettext_id' => "first-level suffix",
-							       'order' => 4
-							       },
-						  'filter1' => {'format' => '.+',
-							       'length' => 50,
-							       'occurrence' => '1',
-							       'gettext_id' => "first-level filter",
-							       'order' => 7
-							       },
-						  'attrs1' => {'format' => '\w+',
-							      'length' => 15,
-							      'gettext_id' => "first-level extracted attribute",
-							      'order' => 8
-							      },
-						  'select1' => {'format' => ['all','first','regex'],
-							       'default' => 'first',
-							       'gettext_id' => "first-level selection",
-							       'order' => 9
-							       },
-					          'scope1' => {'format' => ['base','one','sub'],
-							      'default' => 'sub',
-							      'gettext_id' => "first-level search scope",
-							      'order' => 5
-							      },
-						  'timeout1' => {'format' => '\w+',
-								'default' => 30,
-								'gettext_unit' => 'seconds',
-								'gettext_id' => "first-level connection timeout",
-								'order' => 6
-								},
-						  'regex1' => {'format' => '.+',
-								'length' => 50,
-								'default' => '',
-								'gettext_id' => "first-level regular expression",
-								'order' => 10
-								},
-						  'suffix2' => {'format' => '.+',
-							       'gettext_id' => "second-level suffix template",
-							       'order' => 11
-							       },
-						  'filter2' => {'format' => '.+',
-							       'length' => 50,
-							       'occurrence' => '1',
-							       'gettext_id' => "second-level filter template",
-							       'order' => 14
-							       },
-						  'attrs2' => {'format' => '\w+',
-							      'length' => 15,
-							      'default' => 'mail',
-							      'gettext_id' => "second-level extracted attribute",
-							      'order' => 15
-							      },
-						  'select2' => {'format' => ['all','first','regex'],
-							       'default' => 'first',
-							       'gettext_id' => "second-level selection",
-							       'order' => 16
-							       },
-					          'scope2' => {'format' => ['base','one','sub'],
-							      'default' => 'sub',
-							      'gettext_id' => "second-level search scope",
-							      'order' => 12
-							      },
-						  'timeout2' => {'format' => '\w+',
-								'default' => 30,
-								'gettext_unit' => 'seconds',
-								'gettext_id' => "second-level connection timeout",
-								'order' => 13
-								},
-						  'regex2' => {'format' => '.+',
-								'length' => 50,
-								'default' => '',
-								'gettext_id' => "second-level regular expression",
-								'order' => 17
-								},
-						   'name' => {'format' => '.+',
-							      'gettext_id' => "short name for this source",
-							      'length' => 15,
-							      'order' => 1
-							      },
-							      'use_ssl' => {'format' => ['yes','no'],
-									    'default' => 'no',
-									    'gettext_id' => 'use SSL (LDAPS)',
-									    'order' => 2.5,
-									},
-							      'ssl_version' => {'format' => ['sslv2','sslv3','tls'],
-										'default' => '',
-										'gettext_id' => 'SSL version',
-										'order' => 2.5,
-									    },
-							      'ssl_ciphers' => {'format' => '.+',
-										'default' => 'ALL',
-										'gettext_id' => 'SSL ciphers used',
-										'order' => 2.5,
-									    },
-
-					      },
-				     'occurrence' => '0-n',
-				     'gettext_id' => "LDAP 2-level query inclusion",
-				     'group' => 'data_source'
-				     },
-	    'include_list' => {'format' => &tools::get_regexp('listname').'(\@'.&tools::get_regexp('host').')?',
-			       'occurrence' => '0-n',
-			       'gettext_id' => "List inclusion",
-			       'group' => 'data_source'
-			       },
-	    'include_remote_sympa_list' => {'format' => {'host' => {'format' => &tools::get_regexp('host'),
-							    'occurrence' => '1',
-							    'gettext_id' => "remote host",
-							    'order' => 1
-							    },
-							 'port' => {'format' => '\d+',
-							     'default' => 443,
-							     'length' => 4,
-							     'gettext_id' => "remote port",
-							     'order' => 2
-							     },
-							 'path' => {'format' => '\S+',
-			                                     'length' => 20,
-			                                     'occurrence' => '1',
-			                                     'gettext_id' => "remote path of sympa list dump",
-							     'order' => 3 
-
-			                                     },
-                                                         'cert' => {'format' => ['robot','list'],
-							           'gettext_id' => "certificate for authentication by remote Sympa",
-								   'default' => 'list',
-								    'order' => 4
-								    },
-							   'name' => {'format' => '.+',
-								      'gettext_id' => "short name for this source",
-								      'length' => 15,
-								      'order' => 1
-								      }
-					},
-
-			       'occurrence' => '0-n',
-			       'gettext_id' => "remote list inclusion",
-			       'group' => 'data_source'
-			       },
-	    'include_sql_query' => {'format' => {'db_type' => {'format' => '\S+',
-							       'occurrence' => '1',
-							       'gettext_id' => "database type",
-							       'order' => 1
-							       },
-						 'host' => {'format' => &tools::get_regexp('host'),
-							    'occurrence' => '1',
-							    'gettext_id' => "remote host",
-							    'order' => 2
-							    },
-						 'db_port' => {'format' => '\d+',
-							       'gettext_id' => "database port",
-							       'order' => 3 
-							       },
-					         'db_name' => {'format' => '\S+',
-							       'occurrence' => '1',
-							       'gettext_id' => "database name",
-							       'order' => 4 
-							       },
-						 'connect_options' => {'format' => '.+',
-								       'gettext_id' => "connection options",
-								       'order' => 4
-								       },
-						 'db_env' => {'format' => '\w+\=\S+(;\w+\=\S+)*',
-							      'order' => 5,
-							      'gettext_id' => "environment variables for database connection"
-							      },
-						 'user' => {'format' => '\S+',
-							    'occurrence' => '1',
-							    'gettext_id' => "remote user",
-							    'order' => 6
-							    },
-						 'passwd' => {'format' => '.+',
-							      'field_type' => 'password',
-							      'gettext_id' => "remote password",
-							      'order' => 7
-							      },
-						 'sql_query' => {'format' => &tools::get_regexp('sql_query'),
-								 'length' => 50,
-								 'occurrence' => '1',
-								 'gettext_id' => "SQL query",
-								 'order' => 8
-								 },
-						  'f_dir' => {'format' => '.+',
-							     'gettext_id' => "Directory where the database is stored (used for DBD::CSV only)",
-							     'order' => 9
-							     },
-						  'name' => {'format' => '.+',
-							     'gettext_id' => "short name for this source",
-							     'length' => 15,
-							     'order' => 1
-							     }
-						 
-					     },
-				    'occurrence' => '0-n',
-				    'gettext_id' => "SQL query inclusion",
-				    'group' => 'data_source'
-				    },
-		'include_voot_group' => {
-			'format' => {
-				'name' => {
-					'format' => '.+',
-					'gettext_id' => "short name for this source",
-					'length' => 15,
-					'order' => 1
+				'length' => 8
+			}
+		}
+	},
+	
+	### Archives page ###
+	
+	'web_archive'  => {
+		'group' => 'archives',
+		'gettext_id' => "Web archives",
+		'format' => {
+			'access' => {
+				'order' => 1,
+				'gettext_id' => "access right",
+				'scenario' => 'access_web_archive'
+			},
+			'quota' => {
+				'order' => 2,
+				'gettext_id' => "quota",
+				'gettext_unit' => 'Kbytes',
+				'format' => '\d+',
+				'default' => {
+					'conf' => 'default_archive_quota'
 				},
-				'user' => {
-					'format' => '\S+',
-					'occurrence' => '1',
-					'gettext_id' => "user",
-					'order' => 2
-				},
-				'provider' => {
-					'format' => '\S+',
-					'occurrence' => '1',
-					'gettext_id' => "provider",
-					'order' => 3
-				},
-				'group' => {
-					'format' => '\S+',
-					'occurrence' => '1',
-					'gettext_id' => "group",
-					'order' => 4 
+				'length' => 8
+			},
+			'max_month' => {
+				'order' => 3,
+				'gettext_id' => "Maximum number of month archived",
+				'format' => '\d+',
+				'length' => 3
+			}
+		}
+	},
+	
+	'archive' => {
+		'group' => 'archives',
+		'gettext_id' => "Text archives",
+		'format' => {
+			'period' => {
+				'order' => 1,
+				'gettext_id' => "frequency",
+				'format' => ['day', 'week', 'month', 'quarter', 'year'],
+				'synonym' => {
+					'weekly' => 'week'
 				}
 			},
-			'occurrence' => '0-n',
-			'gettext_id' => "VOOT group inclusion",
-			'group' => 'data_source'
-		},
-	    'inclusion_notification_feature' => {'format' => ['on','off'],
-						 'occurence' => '0-1',
-						 'default' => 'off',
-						 'gettext_id' => "Notify subscribers when they are included from a data source?",
-						 'group' => 'data_source',
-					     },
-	    'info' => {'scenario' => 'info',
-		       'gettext_id' => "Who can view list information",
-		       'group' => 'command'
-		       },
-	    'invite' => {'scenario' => 'invite',
-			 'gettext_id' => "Who can invite people",
-			 'group' => 'command'
-			 },
-	    'lang' => {'format' => [], ## &Language::GetSupportedLanguages() called later
-		       'file_format' => '\w+',
-		       'default' => {'conf' => 'lang'},
-		       'gettext_id' => "Language of the list",
-		       'group' => 'description'
-		   },
- 	    'latest_instantiation' => {'format' => {'date_epoch' => {'format' => '\d+',
- 								     'occurrence' => '1',
- 								     'gettext_id' => 'epoch date',
- 								     'order' => 3
- 								     },
- 						    'date' => {'format' => '.+',
- 							       'gettext_id' => 'date',
- 							       'order' => 2
- 							       },
- 						    'email' => {'format' => 'listmaster|'.&tools::get_regexp('email'),
- 								'occurrence' => '0-1',
- 								'gettext_id' => 'who ran the instantiation',
- 								'order' => 1
- 								}
- 						},
- 				       'gettext_id' => 'Latest family instantiation',
-				       'internal' => 1,
-				       'group' => 'other'
- 				       },
-	    'loop_prevention_regex' => {'format' => '\S*',
-					'length' => 70,
-					'default' => {'conf' => 'loop_prevention_regex'},
-					'gettext_id' => "Regular expression applied to prevent loops with robots",
-					'group' => 'other'
-					},
-	    'max_list_members' => {'format' => '\d+',
-			   'length' => 8,
-			   'gettext_unit' => 'list members',
-			   'default' => {'conf' => 'default_max_list_members'},
-			   'gettext_id' => "Maximum number of list members",
-			   'group' => 'description'
-		       },
-	    'max_size' => {'format' => '\d+',
-			   'length' => 8,
-			   'gettext_unit' => 'bytes',
-			   'default' => {'conf' => 'max_size'},
-			   'gettext_id' => "Maximum message size",
-			   'group' => 'sending'
-		       },
-	    'msg_topic' => {'format' => {'name' => {'format' => '[\-\w]+',
-						    'length' => 15,
-						    'occurrence' => '1',
-						    'gettext_id' => "Message topic name",
-						    'order' => 1		
-						    }, 
-  					 'keywords' => {'format' => '[^,\n]+(,[^,\n]+)*',
-							'occurrence' => '0-1',
-							'gettext_id' => "Message topic keywords",
-							'order' => 2		
-							},
-				         'title' => {'format' => '.+',
-						     'length' => 35,
-						     'occurrence' => '1',
-						     'gettext_id' => "Message topic title",
-						     'order' => 3		
-						     }
-				         },
-			    'occurrence' => '0-n',
-			    'gettext_id' => "Topics for message categorization",
-			    'group' => 'sending'
-			    },
-	    'msg_topic_keywords_apply_on' => { 'format' => ['subject','body','subject_and_body'],
-					       'occurrence' => '0-1',
-					       'default' => 'subject',
-					       'gettext_id' => "Defines to which part of messages topic keywords are applied",
-					       'group' => 'sending'
-					     },    
-
-	    'msg_topic_tagging' => { 'format' => ['required_sender','required_moderator','optional'],
-				      'occurrence' => '0-1',
-				      'default' => 'optional',
-				      'gettext_id' => "Message tagging",
-				      'group' => 'sending'
-				      },    	       				   
-	    'owner' => {'format' => {'email' => {'format' => &tools::get_regexp('email'),
-						 'length' =>30,
-						 'occurrence' => '1',
-						 'gettext_id' => "email address",
-						 'order' => 1
-						 },
-				     'reception' => {'format' => ['mail','nomail'],
-						     'default' => 'mail',
-						     'gettext_id' => "reception mode",
-						     'order' =>5
-						     },
-				     'visibility' => {'format' => ['conceal','noconceal'],
-						      'default' => 'noconceal',
-						      'gettext_id' => "visibility",
-						      'order' => 6
-				                     },
-				     'gecos' => {'format' => '.+',
-						 'length' => 30,
-						 'gettext_id' => "name",
-						 'order' => 2
-						 },
-				     'info' => {'format' => '.+',
-						'length' => 30,
-						'gettext_id' => "private information",
-						'order' => 3
-						},
-				     'profile' => {'format' => ['privileged','normal'],
-						   'default' => 'normal',
-						   'gettext_id' => "profile",
-						   'order' => 4
-						   }
-				 },
-			'occurrence' => '1-n',
-			'gettext_id' => "Owner",
-			'group' => 'description'
+			'access' => {
+				'order' => 2,
+				'gettext_id' => "access right",
+				'format' => ['open', 'private', 'public', 'owner', 'closed'],
+				'synonym' => {
+					'open' => 'public'
+				}
+			}
+		}
+	},
+	
+	'archive_crypted_msg' => {
+		'group' => 'archives',
+		'gettext_id' => "Archive encrypted mails as cleartext",
+		'format' => ['original', 'decrypted'],
+		'default' => 'original'
+	},
+	
+	'web_archive_spam_protection' => {
+		'group' => 'archives',
+		'gettext_id' => "email address protection method",
+		'format' => ['cookie', 'javascript', 'at', 'none'],
+		'default' => {
+			'conf' => 'web_archive_spam_protection'
+		}
+	},
+	
+	### Bounces page ###
+	
+	'bounce' => {
+		'group' => 'bounces',
+		'gettext_id' => "Bounces management",
+		'format' => {
+			'warn_rate' => {
+				'order' => 1,
+				'gettext_id' => "warn rate",
+				'gettext_unit' => '%',
+				'format' => '\d+',
+				'length' => 3,
+				'default' => {
+					'conf' => 'bounce_warn_rate'
+				}
 			},
-	    'owner_include' => {'format' => {'source' => {'datasource' => 1,
-							  'occurrence' => '1',
-							  'gettext_id' => 'the datasource',
-							  'order' => 1
-							  },
-					     'source_parameters' => {'format' => '.*',
-								     'occurrence' => '0-1',
-								     'gettext_id' => 'datasource parameters',
-								     'order' => 2
-						      },
-					     'reception' => {'format' => ['mail','nomail'],
-							     'default' => 'mail',
-							     'gettext_id' => 'reception mode',
-							     'order' => 4
-							 },
-				             'visibility' => {'format' => ['conceal','noconceal'],
-							      'default' => 'noconceal',
-							      'gettext_id' => "visibility",
-							      'order' => 5
-				                             },
-					     'profile' => {'format' => ['privileged','normal'],
-							   'default' => 'normal',
-							   'gettext_id' => 'profile',
-							    'order' => 3
-						       }
-					 },
-				'occurrence' => '0-n',
-				'gettext_id' => 'Owners defined in an external data source',
-				'group' => 'description',
-			    },
-	    'priority' => {'format' => [0..9,'z'],
-			   'length' => 1,
-			   'default' => {'conf' => 'default_list_priority'},
-			   'gettext_id' => "Priority",
-			   'group' => 'description'
-		       },
-	    'reject_mail_from_automates_feature' => {'format' => ['on','off'],
-						     'occurence' => '0-1',
-						     'default' => {'conf' => 'reject_mail_from_automates_feature'},
-			       'gettext_id' => "Reject mail from automates (crontab, etc)?",
-			       'group' => 'sending'
-			       },	
-	    'remind' => {'scenario' => 'remind',
-			 'gettext_id' => "Who can start a remind process",
-			 'group' => 'command'
-			  },
-	    'remind_return_path' => {'format' => ['unique','owner'],
-				     'default' => {'conf' => 'remind_return_path'},
-				     'gettext_id' => "Return-path of the REMIND command",
-				     'group' => 'bounces'
-				 },
-	    'remind_task' => {'task' => 'remind',
-			      'gettext_id' => 'Periodical subscription reminder task',
-			      'default' => {'conf' => 'default_remind_task'},
-			      'group' => 'other'
-			      },
-	    'remove_headers' => {'format' => '\S+',
-				 'gettext_id' => 'Incoming SMTP header fields to be removed',
-				 'default' => {'conf' => 'remove_headers'},
-				 'group' => 'sending',
-				 'occurrence' => '0-n',
-				 'split_char' => ',',
-				 },
-	    'remove_outgoing_headers' => {'format' => '\S+',
-					  'gettext_id' => 'Outgoing SMTP header fields to be removed',
-					  'default' => {'conf' => 'remove_outgoing_headers'},
-					  'group' => 'sending',
-					  'occurrence' => '0-n',
-					  'split_char' => ',',
-					  },
-	    'reply_to' => {'format' => '\S+',
-			   'default' => 'sender',
-			   'gettext_id' => "Reply address",
-			   'group' => 'sending',
-			   'obsolete' => 1
-			   },
-	    'reply_to_header' => {'format' => {'value' => {'format' => ['sender','list','all','other_email'],
-							   'default' => 'sender',
-							   'gettext_id' => "value",
-							   'occurrence' => '1',
-							   'order' => 1
-							   },
-					       'other_email' => {'format' => &tools::get_regexp('email'),
-								 'gettext_id' => "other email address",
-								 'order' => 2
-								 },
-					       'apply' => {'format' => ['forced','respect'],
-							   'default' => 'respect',
-							   'gettext_id' => "respect of existing header field",
-							   'order' => 3
-							   }
-					   },
-				  'gettext_id' => "Reply address",
-				  'group' => 'sending'
-				  },		
-	    'review' => {'scenario' => 'review',
-			 'synonym' => {'open' => 'public'},
-			 'gettext_id' => "Who can review subscribers",
-			 'group' => 'command'
-			 },
-	    'rfc2369_header_fields' => {'format' => ['help','subscribe','unsubscribe','post','owner','archive'],
-					'default' => {'conf' => 'rfc2369_header_fields'},
-					'occurrence' => '0-n',
-					'split_char' => ',',
-					'gettext_id' => "RFC 2369 Header fields",
-					'group' => 'sending'
-					},
-	    'send' => {'scenario' => 'send',
-		       'gettext_id' => "Who can send messages",
-		       'group' => 'sending'
-		       },
-	    'serial' => {'format' => '\d+',
-			 'default' => 0,
-			 'length' => 3,
-			 'default' => 0,
-			 'gettext_id' => "Serial number of the config",
-			 'internal' => 1,
-			 'group' => 'other'
-			 },
-	    'shared_doc' => {'format' => {'d_read' => {'scenario' => 'd_read',
-						       'gettext_id' => "Who can view",
-						       'order' => 1
-						       },
-					  'd_edit' => {'scenario' => 'd_edit',
-						       'gettext_id' => "Who can edit",
-						       'order' => 2
-						       },
-					  'quota' => {'format' => '\d+',
-						      'default' => {'conf' => 'default_shared_quota'},
-						      'length' => 8,
-						      'gettext_unit' => 'Kbytes',
-						      'gettext_id' => "quota",
-						      'order' => 3
-						      }
-				      },
-			     'gettext_id' => "Shared documents",
-			     'group' => 'command'
-			 },
-	    'spam_protection' => {'format' => ['at','javascript','none'],
-			 'default' => 'javascript',
-			 'gettext_id' => "email address protection method",
-			 'group' => 'other'
-			  },
-	    'web_archive_spam_protection' => {'format' => ['cookie','javascript','at','none'],
-			 'default' => {'conf' => 'web_archive_spam_protection'},
-			 'gettext_id' => "email address protection method",
-			 'group' => 'archives'
-			  },
-
-	    'status' => {'format' => ['open','closed','pending','error_config','family_closed'],
-			 'default' => 'open',
-			 'gettext_id' => "Status of the list",
-			 'internal' => 1,
-			 'group' => 'other'
-			 },
-	    'sql_fetch_timeout' => {'format' => '\d+',
-		      'length' => 6,
-		      'gettext_unit' => 'seconds',
-		      'default' => {'conf' => 'default_sql_fetch_timeout'},
-		      'gettext_id' => "Timeout for fetch of include_sql_query",
-		      'group' => 'data_source'
-		      },
-	    'subject' => {'format' => '.+',
-			  'length' => 50,
-			  'occurrence' => '1',
-			  'gettext_id' => "Subject of the list",
-			  'group' => 'description'
-			   },
-	    'subscribe' => {'scenario' => 'subscribe',
-			    'gettext_id' => "Who can subscribe to the list",
-			    'group' => 'command'
-			    },
-	    'topics' => {'format' => '[\-\w]+(\/[\-\w]+)?',
-			 'split_char' => ',',
-			 'occurrence' => '0-n',
-			 'gettext_id' => "Topics for the list",
-			 'group' => 'description'
-			 },
-	    'ttl' => {'format' => '\d+',
-		      'length' => 6,
-		      'gettext_unit' => 'seconds',
-		      'default' => 3600,
-		      'gettext_id' => "Inclusions timeout",
-		      'group' => 'data_source'
-		      },
-	    'unsubscribe' => {'scenario' => 'unsubscribe',
-			      'gettext_id' => "Who can unsubscribe",
-			      'group' => 'command'
-			      },
-	    'update' => {'format' => {'date_epoch' => {'format' => '\d+',
-						       'length' => 8,
-						       'occurrence' => '1',
-						       'gettext_id' => 'epoch date',
-						       'order' => 3
-						       },
-				      'date' => {'format' => '.+',
-						 'length' => 30,
-						 'gettext_id' => 'date',
-						 'order' => 2
-						 },
-				      'email' => {'format' => '(listmaster|automatic|'.&tools::get_regexp('email').')',
-						  'length' => 30,
-						  'occurrence' => '0-1',
-						  'gettext_id' => 'who updated the config',
-						  'order' => 1
-						  }
-				  },
-			 'gettext_id' => "Last update of config",
-			 'internal' => 1,
-			 'group' => 'other'
-		     },
-	    'user_data_source' => {'format' => ['database','file','include','include2'],
-				   'default' => 'include2',
-				   'obsolete_values'=> ['database','file','include'],
-				   'gettext_id' => "User data source",
-				   'group' => 'data_source'
-				   },
-	    'pictures_feature' => {'format' => ['on','off'],
-			       'occurence' => '0-1',
-			       'default' => {'conf' => 'pictures_feature'},
-			       'gettext_id' => "Allow picture display? (must be enabled for the current robot)",
-			       'group' => 'other'
-			       },	
-	    'merge_feature' => {'format' => ['on','off'],
-			       'occurence' => '0-1',
-			       'default' => {'conf' => 'merge_feature'},
-			       'gettext_id' => "Allow message personnalization",
-			       'group' => 'sending'
-			       },
-	    'visibility' => {'scenario' => 'visibility',
-			     'synonym' => {'public' => 'noconceal',
-					   'private' => 'conceal'},
-			     'gettext_id' => "Visibility of the list",
-			     'group' => 'description'
-			     },
-	    'web_archive'  => {'format' => {'access' => {'scenario' => 'access_web_archive',
-							 'gettext_id' => "access right",
-							 'order' => 1
-							 },
-					    'quota' => {'format' => '\d+',
-							'default' => {'conf' => 'default_archive_quota'},
-							'length' => 8,
-							'gettext_unit' => 'Kbytes',
-							'gettext_id' => "quota",
-							'order' => 2
-							},
- 					    'max_month' => {'format' => '\d+',
-							    'length' => 3,
-							    'gettext_id' => "Maximum number of month archived",
-							    'order' => 3 
-  							     }
-					},
-			       
-			       'gettext_id' => "Web archives",
-			       'group' => 'archives'
-
-			   },
-	    'welcome_return_path' => {'format' => ['unique','owner'],
-				      'default' => {'conf' => 'welcome_return_path'},
-				      'gettext_id' => "Welcome return-path",
-				      'group' => 'bounces'
-				  },
-	    'verp_rate' => {'format' => ['100%','50%','33%','25%','20%','10%','5%','2%','0%'],
-			     'default' =>  {'conf' => 'verp_rate'},
-			     'gettext_id' => "percentage of list members in VERP mode",
-			     'group' => 'bounces'
-			     },
-
-	    );
+			'halt_rate' => {
+				'order' => 2,
+				'gettext_id' => "halt rate",
+				'gettext_unit' => '%',
+				'format' => '\d+',
+				'length' => 3,
+				'default' => {
+					'conf' => 'bounce_halt_rate'
+				}
+			}
+		}
+	},
+	
+	'bouncers_level1' => {
+		'group' => 'bounces',
+		'gettext_id' => "Management of bouncers, 1st level",
+		'format' => {
+			'rate' => {
+				'order' => 1,
+				'gettext_id' => "threshold",
+				'gettext_unit' => 'points',
+				'format' => '\d+',
+				'length' => 2,
+				'default' => {
+					'conf' => 'default_bounce_level1_rate'
+				}
+			},
+			'action' => {
+				'order' => 2,
+				'gettext_id' => "action for this population",
+				'format' => ['remove_bouncers', 'notify_bouncers', 'none'],
+				'default' => 'notify_bouncers'
+			},
+			'notification' => {
+				'order' => 3,
+				'gettext_id' => "notification",
+				'format' => ['none', 'owner', 'listmaster'],
+				'default' => 'owner'
+			}
+		}
+	},
+	
+	'bouncers_level2' => {
+		'group' => 'bounces',
+		'gettext_id' => "Management of bouncers, 2nd level",
+		'format' => {
+			'rate' => {
+				'order' => 1,
+				'gettext_id' => "threshold",
+				'gettext_unit' => 'points',
+				'format' => '\d+',
+				'length' => 2,
+				'default' => {
+					'conf' => 'default_bounce_level2_rate'
+				},
+			},
+			'action' => {
+				'order' => 2,
+				'gettext_id' => "action for this population",
+				'format' => ['remove_bouncers', 'notify_bouncers', 'none'],
+				'default' => 'remove_bouncers'
+			},
+			'notification' => {
+				'order' => 3,
+				'gettext_id' => "notification",
+				'format' => ['none', 'owner', 'listmaster'],
+				'default' => 'owner'
+			}
+		}
+	},
+	
+	'verp_rate' => {
+		'group' => 'bounces',
+		'gettext_id' => "percentage of list members in VERP mode",
+		'format' => ['100%', '50%', '33%', '25%', '20%', '10%', '5%', '2%', '0%'],
+		'default' =>  {
+			'conf' => 'verp_rate'
+		}
+	},
+	
+	'tracking' => {
+		'group' => 'bounces',
+		'gettext_id' => "Message tracking feature",
+		'format' => {
+			'delivery_status_notification' => {
+				'order' => 1,
+				'gettext_id' => "tracking message by delivery status notification",
+				'format' => ['on', 'off'],
+				'default' =>  {
+					'conf' => 'tracking_delivery_status_notification'
+				}
+			},
+			'message_delivery_notification' => {
+				'order' => 2,
+				'gettext_id' => "tracking message by message delivery notification",
+				'format' => ['on', 'on_demand', 'off'],
+				'default' =>  {
+					'conf' => 'tracking_message_delivery_notification'
+				}
+			},
+			'tracking' => {
+				'order' => 3 ,
+				'gettext_id' => "who can view message tracking",
+				'scenario' => 'tracking'
+			},
+			'retention_period' => {
+				'order' => 4 ,
+				'gettext_id' => "Tracking datas are removed after this number of days",
+				'gettext_unit' => 'days',
+				'format' => '\d+',
+				'default' =>  {
+					'conf' => 'tracking_default_retention_period'
+				},
+				'length' => 5
+			}
+		}
+	},
+	
+	'welcome_return_path' => {
+		'group' => 'bounces',
+		'gettext_id' => "Welcome return-path",
+		'format' => ['unique', 'owner'],
+		'default' => {
+			'conf' => 'welcome_return_path'
+		}
+	},
+	
+	'remind_return_path' => {
+		'group' => 'bounces',
+		'gettext_id' => "Return-path of the REMIND command",
+		'format' => ['unique', 'owner'],
+		'default' => {
+			'conf' => 'remind_return_path'
+		}
+	},
+	
+	### Datasources page ###
+	
+	'inclusion_notification_feature' => {
+		'group' => 'data_source',
+		'gettext_id' => "Notify subscribers when they are included from a data source?",
+		'format' => ['on', 'off'],
+		'occurence' => '0-1',
+		'default' => 'off',
+	},
+	
+	'sql_fetch_timeout' => {
+		'group' => 'data_source',
+		'gettext_id' => "Timeout for fetch of include_sql_query",
+		'gettext_unit' => 'seconds',
+		'format' => '\d+',
+		'length' => 6,
+		'default' => {
+			'conf' => 'default_sql_fetch_timeout'
+		},
+	},
+	
+	'user_data_source' => {
+		'group' => 'data_source',
+		'gettext_id' => "User data source",
+		'format' => '\S+',
+		'default' => 'include2',
+		'obsolete' => 1,
+	},
+	
+	'include_file' => {
+		'group' => 'data_source',
+		'gettext_id' => "File inclusion",
+		'format' => '\S+',
+		'occurrence' => '0-n',
+		'length' => 20,
+	},
+	
+	'include_remote_file' => {
+		'group' => 'data_source',
+		'gettext_id' => "Remote file inclusion",
+		'format' => {
+			'name' => {
+				'order' => 1,
+				'gettext_id' => "short name for this source",
+				'format' => '.+',
+				'length' => 15
+			},
+			'url' => {
+				'order' => 2,
+				'gettext_id' => "data location URL",
+				'format' => '.+',
+				'occurrence' => '1',
+				'length' => 50
+			},					       
+			'user' => {
+				'order' => 3,
+				'gettext_id' => "remote user",
+				'format' => '.+',
+				'occurrence' => '0-1'
+			},
+			'passwd' => {
+				'order' => 4,
+				'gettext_id' => "remote password",
+				'format' => '.+',
+				'field_type' => 'password',
+				'occurrence' => '0-1',
+				'length' => 10
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'include_list' => {
+		'group' => 'data_source',
+		'gettext_id' => "List inclusion",
+		'format' => &tools::get_regexp('listname').'(\@'.&tools::get_regexp('host').')?',
+		'occurrence' => '0-n'
+	},
+	
+	'include_remote_sympa_list' => {
+		'group' => 'data_source',
+		'gettext_id' => "remote list inclusion",
+		'format' => {
+			'name' => {
+				'order' => 1,
+				'gettext_id' => "short name for this source",
+				'format' => '.+',
+				'length' => 15
+			},
+			'host' => {
+				'order' => 1.5,
+				'gettext_id' => "remote host",
+				'format' => &tools::get_regexp('host'),
+				'occurrence' => '1'
+			},
+			'port' => {
+				'order' => 2,
+				'gettext_id' => "remote port",
+				'format' => '\d+',
+				'default' => 443,
+				'length' => 4
+			},
+			'path' => {
+				'order' => 3,
+				'gettext_id' => "remote path of sympa list dump",
+				'format' => '\S+',
+				'occurrence' => '1',
+				'length' => 20
+			},
+			'cert' => {
+				'order' => 4,
+				'gettext_id' => "certificate for authentication by remote Sympa",
+				'format' => ['robot', 'list'],
+				'default' => 'list'
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'include_ldap_query' => {
+		'group' => 'data_source',
+		'gettext_id' => "LDAP query inclusion",
+		'format' => {
+			'name' => {
+				'order' => 1,
+				'gettext_id' => "short name for this source",
+				'format' => '.+',
+				'length' => 15
+			},
+			'host' => {
+				'order' => 2,
+				'gettext_id' => "remote host",
+				'format' => &tools::get_regexp('multiple_host_with_port'),
+				'occurrence' => '1'
+			},
+			'port' => {
+				'order' => 2,
+				'gettext_id' => "remote port",
+				'format' => '\d+',
+				'obsolete' => 1,
+				'length' => 4
+			},
+			'use_ssl' => {
+				'order' => 2.5,
+				'gettext_id' => 'use SSL (LDAPS)',
+				'format' => ['yes', 'no'],
+				'default' => 'no'
+			},
+			'ssl_version' => {
+				'order' => 2.6,
+				'gettext_id' => 'SSL version',
+				'format' => ['sslv2', 'sslv3', 'tls'],
+				'default' => 'sslv3'
+			},
+			'ssl_ciphers' => {
+				'order' => 2.7,
+				'gettext_id' => 'SSL ciphers used',
+				'format' => '.+',
+				'default' => 'ALL',
+			},
+			'user' => {
+				'order' => 3,
+				'gettext_id' => "remote user",
+				'format' => '.+'
+			},
+			'passwd' => {
+				'order' => 3.5,
+				'gettext_id' => "remote password",
+				'format' => '.+',
+				'field_type' => 'password',
+				'length' => 10
+			},
+			'suffix' => {
+				'order' => 4,
+				'gettext_id' => "suffix",
+				'format' => '.+'
+			},
+			'scope' => {
+				'order' => 5,
+				'gettext_id' => "search scope",
+				'format' => ['base', 'one', 'sub'],
+				'default' => 'sub'
+			},
+			'timeout' => {
+				'order' => 6,
+				'gettext_id' => "connection timeout",
+				'gettext_unit' => 'seconds',
+				'format' => '\w+',
+				'default' => 30
+			},
+			'filter' => {
+				'order' => 7,
+				'gettext_id' => "filter",
+				'format' => '.+',
+				'occurrence' => '1',
+				'length' => 50
+			},
+			'attrs' => {
+				'order' => 8,
+				'gettext_id' => "extracted attribute",
+				'format' => '\w+',
+				'default' => 'mail',
+				'length' => 15
+			},
+			'select' => {
+				'order' => 9,
+				'gettext_id' => "selection (if multiple)",
+				'format' => ['all', 'first'],
+				'default' => 'first'
+			},
+			'nosync_time_ranges' => {
+				'order' => 10,
+				'gettext_id' => "Time ranges when inclusion is not allowed",
+				'format' => &tools::get_regexp('time_ranges'),
+				'occurrence' => '0-1'
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'include_ldap_2level_query' => {
+		'group' => 'data_source',
+		'gettext_id' => "LDAP 2-level query inclusion",
+		'format' => {
+			'name' => {
+				'order' => 1,
+				'gettext_id' => "short name for this source",
+				'format' => '.+',
+				'length' => 15
+			},
+			'host' => {
+				'order' => 2,
+				'gettext_id' => "remote host",
+				'format' => &tools::get_regexp('multiple_host_with_port'),
+				'occurrence' => '1'
+			},
+			'port' => {
+				'order' => 2,
+				'gettext_id' => "remote port",
+				'format' => '\d+',
+				'obsolete' => 1,
+				'length' => 4
+			},
+			'use_ssl' => {
+				'order' => 2.5,
+				'gettext_id' => 'use SSL (LDAPS)',
+				'format' => ['yes', 'no'],
+				'default' => 'no'
+			},
+			'ssl_version' => {
+				'order' => 2.6,
+				'gettext_id' => 'SSL version',
+				'format' => ['sslv2', 'sslv3', 'tls'],
+				'default' => ''
+			},
+			'ssl_ciphers' => {
+				'order' => 2.7,
+				'gettext_id' => 'SSL ciphers used',
+				'format' => '.+',
+				'default' => 'ALL'
+			},
+			'user' => {
+				'order' => 3,
+				'gettext_id' => "remote user",
+				'format' => '.+'
+			},
+			'passwd' => {
+				'order' => 3.5,
+				'gettext_id' => "remote password",
+				'format' => '.+',
+				'field_type' => 'password',
+				'length' => 10
+			},
+			'suffix1' => {
+				'order' => 4,
+				'gettext_id' => "first-level suffix",
+				'format' => '.+'
+			},
+			'scope1' => {
+				'order' => 5,
+				'gettext_id' => "first-level search scope",
+				'format' => ['base', 'one', 'sub'],
+				'default' => 'sub'
+			},
+			'timeout1' => {
+				'order' => 6,
+				'gettext_id' => "first-level connection timeout",
+				'gettext_unit' => 'seconds',
+				'format' => '\w+',
+				'default' => 30
+			},
+			'filter1' => {
+				'order' => 7,
+				'gettext_id' => "first-level filter",
+				'format' => '.+',
+				'occurrence' => '1',
+				'length' => 50
+			},
+			'attrs1' => {
+				'order' => 8,
+				'gettext_id' => "first-level extracted attribute",
+				'format' => '\w+',
+				'length' => 15
+			},
+			'select1' => {
+				'order' => 9,
+				'gettext_id' => "first-level selection",
+				'format' => ['all', 'first', 'regex'],
+				'default' => 'first'
+			},
+			'regex1' => {
+				'order' => 10,
+				'gettext_id' => "first-level regular expression",
+				'format' => '.+',
+				'default' => '',
+				'length' => 50
+			},
+			'suffix2' => {
+				'order' => 11,
+				'gettext_id' => "second-level suffix template",
+				'format' => '.+'
+			},
+			'scope2' => {
+				'order' => 12,
+				'gettext_id' => "second-level search scope",
+				'format' => ['base', 'one', 'sub'],
+				'default' => 'sub'
+			},
+			'timeout2' => {
+				'order' => 13,
+				'gettext_id' => "second-level connection timeout",
+				'gettext_unit' => 'seconds',
+				'format' => '\w+',
+				'default' => 30
+			},
+			'filter2' => {
+				'order' => 14,
+				'gettext_id' => "second-level filter template",
+				'format' => '.+',
+				'occurrence' => '1',
+				'length' => 50
+			},
+			'attrs2' => {
+				'order' => 15,
+				'gettext_id' => "second-level extracted attribute",
+				'format' => '\w+',
+				'default' => 'mail',
+				'length' => 15
+			},
+			'select2' => {
+				'order' => 16,
+				'gettext_id' => "second-level selection",
+				'format' => ['all', 'first', 'regex'],
+				'default' => 'first'
+			},
+			'regex2' => {
+				'order' => 17,
+				'gettext_id' => "second-level regular expression",
+				'format' => '.+',
+				'default' => '',
+				'length' => 50
+			},
+			'nosync_time_ranges' => {
+				'order' => 18,
+				'gettext_id' => "Time ranges when inclusion is not allowed",
+				'format' => &tools::get_regexp('time_ranges'),
+				'occurrence' => '0-1'
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'include_sql_query' => {
+		'group' => 'data_source',
+		'gettext_id' => "SQL query inclusion",
+		'format' => {
+			'name' => {
+				'order' => 1,
+				'gettext_id' => "short name for this source",
+				'format' => '.+',
+				'length' => 15
+			},
+			'db_type' => {
+				'order' => 1.5,
+				'gettext_id' => "database type",
+				'format' => '\S+',
+				'occurrence' => '1'
+			},
+			'host' => {
+				'order' => 2,
+				'gettext_id' => "remote host",
+				'format' => &tools::get_regexp('host'),
+				'occurrence' => '1'
+			},
+			'db_port' => {
+				'order' => 3,
+				'gettext_id' => "database port",
+				'format' => '\d+'
+			},
+			'db_name' => {
+				'order' => 4,
+				'gettext_id' => "database name",
+				'format' => '\S+',
+				'occurrence' => '1'
+			},
+			'connect_options' => {
+				'order' => 4,
+				'gettext_id' => "connection options",
+				'format' => '.+'
+			},
+			'db_env' => {
+				'order' => 5,
+				'gettext_id' => "environment variables for database connection",
+				'format' => '\w+\=\S+(;\w+\=\S+)*'
+			},
+			'user' => {
+				'order' => 6,
+				'gettext_id' => "remote user",
+				'format' => '\S+',
+				'occurrence' => '1'
+			},
+			'passwd' => {
+				'order' => 7,
+				'gettext_id' => "remote password",
+				'format' => '.+',
+				'field_type' => 'password'
+			},
+			'sql_query' => {
+				'order' => 8,
+				'gettext_id' => "SQL query",
+				'format' => &tools::get_regexp('sql_query'),
+				'occurrence' => '1',
+				'length' => 50
+			},
+			'f_dir' => {
+				'order' => 9,
+				'gettext_id' => "Directory where the database is stored (used for DBD::CSV only)",
+				'format' => '.+'
+			},
+			'nosync_time_ranges' => {
+				'order' => 10,
+				'gettext_id' => "Time ranges when inclusion is not allowed",
+				'format' => &tools::get_regexp('time_ranges'),
+				'occurrence' => '0-1'
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'include_voot_group' => {
+		'group' => 'data_source',
+		'gettext_id' => "VOOT group inclusion",
+		'format' => {
+			'name' => {
+				'order' => 1,
+				'gettext_id' => "short name for this source",
+				'format' => '.+',
+				'length' => 15
+			},
+			'user' => {
+				'order' => 2,
+				'gettext_id' => "user",
+				'format' => '\S+',
+				'occurrence' => '1'
+			},
+			'provider' => {
+				'order' => 3,
+				'gettext_id' => "provider",
+				'format' => '\S+',
+				'occurrence' => '1'
+			},
+			'group' => {
+				'order' => 4 ,
+				'gettext_id' => "group",
+				'format' => '\S+',
+				'occurrence' => '1'
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'ttl' => {
+		'group' => 'data_source',
+		'gettext_id' => "Inclusions timeout",
+		'gettext_unit' => 'seconds',
+		'format' => '\d+',
+		'default' => 3600,
+		'length' => 6
+	},
+	
+	'distribution_ttl' => {
+		'group' => 'data_source',
+		'gettext_id' => "Inclusions timeout for message distribution",
+		'gettext_unit' => 'seconds',
+		'format' => '\d+',
+		'length' => 6
+	},
+	
+	'include_ldap_ca' => {
+		'group' => 'data_source',
+		'gettext_id' => "LDAP query custom attribute",
+		'format' => {
+			'name' => {
+				'order' => 1,
+				'gettext_id' => "short name for this source",
+				'format' => '.+',
+				'length' => 15
+			},
+			'host' => {
+				'order' => 2,
+				'gettext_id' => "remote host",
+				'format' => &tools::get_regexp('multiple_host_with_port'),
+				'occurrence' => '1'
+			},
+			'port' => {
+				'order' => 2,
+				'gettext_id' => "remote port",
+				'format' => '\d+',
+				'obsolete' => 1,
+				'length' => 4
+			},
+			'use_ssl' => {
+				'order' => 2.5,
+				'gettext_id' => 'use SSL (LDAPS)',
+				'format' => ['yes', 'no'],
+				'default' => 'no'
+			},
+			'ssl_version' => {
+				'order' => 2.6,
+				'gettext_id' => 'SSL version',
+				'format' => ['sslv2', 'sslv3', 'tls'],
+				'default' => 'sslv3'
+			},
+			'ssl_ciphers' => {
+				'order' => 2.7,
+				'gettext_id' => 'SSL ciphers used',
+				'format' => '.+',
+				'default' => 'ALL'
+			},
+			'user' => {
+				'order' => 3,
+				'gettext_id' => "remote user",
+				'format' => '.+'
+			},
+			'passwd' => {
+				'order' => 3.5,
+				'gettext_id' => "remote password",
+				'format' => '.+',
+				'field_type' => 'password',
+				'length' => 10
+			},
+			'suffix' => {
+				'order' => 4,
+				'gettext_id' => "suffix",
+				'format' => '.+'
+			},
+			'scope' => {
+				'order' => 5,
+				'gettext_id' => "search scope",
+				'format' => ['base', 'one', 'sub'],
+				'default' => 'sub'
+			},
+			'timeout' => {
+				'order' => 6,
+				'gettext_id' => "connection timeout",
+				'gettext_unit' => 'seconds',
+				'format' => '\w+',
+				'default' => 30
+			},
+			'filter' => {
+				'order' => 7,
+				'gettext_id' => "filter",
+				'format' => '.+',
+				'occurrence' => '1',
+				'length' => 50
+			},
+			'attrs' => {
+				'order' => 8,
+				'gettext_id' => "extracted attribute",
+				'format' => '\w+',
+				'default' => 'mail',
+				'length' => 15
+			},
+			'email_entry' => {
+				'order' => 9,
+				'gettext_id' => "Name of email entry",
+				'format' => '\S+',
+				'occurence' => '1'
+			},
+			'select' => {
+				'order' => 10,
+				'gettext_id' => "selection (if multiple)",
+				'format' => ['all', 'first'],
+				'default' => 'first'
+			},
+			'nosync_time_ranges' => {
+				'order' => 11,
+				'gettext_id' => "Time ranges when inclusion is not allowed",
+				'format' => &tools::get_regexp('time_ranges'),
+				'occurrence' => '0-1'
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'include_ldap_2level_ca' => {
+		'group' => 'data_source',
+		'gettext_id' => "LDAP 2-level query custom attribute",
+		'format' => {
+			'name' => {
+				'format' => '.+',
+				'gettext_id' => "short name for this source",
+				'length' => 15,
+				'order' => 1,
+			},
+			'host' => {
+				'order' => 1,
+				'gettext_id' => "remote host",
+				'format' => &tools::get_regexp('multiple_host_with_port'),
+				'occurrence' => '1'
+			},
+			'port' => {
+				'order' => 2,
+				'gettext_id' => "remote port",
+				'format' => '\d+',
+				'obsolete' => 1,
+				'length' => 4
+			},
+			'use_ssl' => {
+				'order' => 2.5,
+				'gettext_id' => 'use SSL (LDAPS)',
+				'format' => ['yes', 'no'],
+				'default' => 'no'
+			},
+			'ssl_version' => {
+				'order' => 2.6,
+				'gettext_id' => 'SSL version',
+				'format' => ['sslv2', 'sslv3', 'tls'],
+				'default' => ''
+			},
+			'ssl_ciphers' => {
+				'order' => 2.7,
+				'gettext_id' => 'SSL ciphers used',
+				'format' => '.+',
+				'default' => 'ALL'
+			},
+			'user' => {
+				'order' => 3,
+				'gettext_id' => "remote user",
+				'format' => '.+',
+			},
+			'passwd' => {
+				'order' => 3.5,
+				'gettext_id' => "remote password",
+				'format' => '.+',
+				'field_type' => 'password',
+				'length' => 10
+			},
+			'suffix1' => {
+				'order' => 4,
+				'gettext_id' => "first-level suffix",
+				'format' => '.+'
+			},
+			'scope1' => {
+				'order' => 5,
+				'gettext_id' => "first-level search scope",
+				'format' => ['base', 'one', 'sub'],
+				'default' => 'sub'
+			},
+			'timeout1' => {
+				'order' => 6,
+				'gettext_id' => "first-level connection timeout",
+				'gettext_unit' => 'seconds',
+				'format' => '\w+',
+				'default' => 30
+			},
+			'filter1' => {
+				'order' => 7,
+				'gettext_id' => "first-level filter",
+				'format' => '.+',
+				'occurrence' => '1',
+				'length' => 50
+			},
+			'attrs1' => {
+				'order' => 8,
+				'gettext_id' => "first-level extracted attribute",
+				'format' => '\w+',
+				'length' => 15
+			},
+			'select1' => {
+				'order' => 9,
+				'gettext_id' => "first-level selection",
+				'format' => ['all', 'first', 'regex'],
+				'default' => 'first'
+			},
+			'regex1' => {
+				'order' => 10,
+				'gettext_id' => "first-level regular expression",
+				'format' => '.+',
+				'default' => '',
+				'length' => 50
+			},
+			'suffix2' => {
+				'order' => 11,
+				'gettext_id' => "second-level suffix template",
+				'format' => '.+'
+			},
+			'scope2' => {
+				'order' => 12,
+				'gettext_id' => "second-level search scope",
+				'format' => ['base', 'one', 'sub'],
+				'default' => 'sub'
+			},
+			'timeout2' => {
+				'order' => 13,
+				'gettext_id' => "second-level connection timeout",
+				'gettext_unit' => 'seconds',
+				'format' => '\w+',
+				'default' => 30
+			},
+			'filter2' => {
+				'order' => 14,
+				'gettext_id' => "second-level filter template",
+				'format' => '.+',
+				'occurrence' => '1',
+				'length' => 50
+			},
+			'attrs2' => {
+				'order' => 15,
+				'gettext_id' => "second-level extracted attribute",
+				'format' => '\w+',
+				'default' => 'mail',
+				'length' => 15
+			},
+			'select2' => {
+				'order' => 16,
+				'gettext_id' => "second-level selection",
+				'format' => ['all', 'first', 'regex'],
+				'default' => 'first'
+			},
+			'regex2' => {
+				'order' => 17,
+				'gettext_id' => "second-level regular expression",
+				'format' => '.+',
+				'default' => '',
+				'length' => 50
+			},
+			'email_entry' => {
+				'order' => 18,
+				'gettext_id' => "Name of email entry",
+				'format' => '\S+',
+				'occurence' => '1'
+			},
+			'nosync_time_ranges' => {
+				'order' => 19,
+				'gettext_id' => "Time ranges when inclusion is not allowed",
+				'format' => &tools::get_regexp('time_ranges'),
+				'occurrence' => '0-1'
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'include_sql_ca' => {
+		'group' => 'data_source',
+		'gettext_id' => "SQL query custom attribute",
+		'format' => {
+			'name' => {
+				'order' => 1,
+				'gettext_id' => "short name for this source",
+				'format' => '.+',
+				'length' => 15
+			},
+			'db_type' => {
+				'order' => 1.5,
+				'gettext_id' => "database type",
+				'format' => '\S+',
+				'occurrence' => '1'
+			},
+			'host' => {
+				'order' => 2,
+				'gettext_id' => "remote host",
+				'format' => &tools::get_regexp('host'),
+				'occurrence' => '1'
+			},
+			'db_port' => {
+				'order' => 3 ,
+				'gettext_id' => "database port",
+				'format' => '\d+'
+			},
+			'db_name' => {
+				'order' => 4 ,
+				'gettext_id' => "database name",
+				'format' => '\S+',
+				'occurrence' => '1'
+			},
+			'connect_options' => {
+				'order' => 4.5,
+				'gettext_id' => "connection options",
+				'format' => '.+'
+			},
+			'db_env' => {
+				'order' => 5,
+				'gettext_id' => "environment variables for database connection",
+				'format' => '\w+\=\S+(;\w+\=\S+)*'
+			},
+			'user' => {
+				'order' => 6,
+				'gettext_id' => "remote user",
+				'format' => '\S+',
+				'occurrence' => '1'
+			},
+			'passwd' => {
+				'order' => 7,
+				'gettext_id' => "remote password",
+				'format' => '.+',
+				'field_type' => 'password'
+			},
+			'sql_query' => {
+				'order' => 8,
+				'gettext_id' => "SQL query",
+				'format' => &tools::get_regexp('sql_query'),
+				'occurrence' => '1',
+				'length' => 50
+			},
+			'f_dir' => {
+				'order' => 9,
+				'gettext_id' => "Directory where the database is stored (used for DBD::CSV only)",
+				'format' => '.+'
+			},
+			'email_entry' => {
+				'order' => 10,
+				'gettext_id' => "Name of email entry",
+				'format' => '\S+',
+				'occurence' => '1'
+			},
+			'nosync_time_ranges' => {
+				'order' => 11,
+				'gettext_id' => "Time ranges when inclusion is not allowed",
+				'format' => &tools::get_regexp('time_ranges'),
+				'occurrence' => '0-1'
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	### DKIM page ###
+	
+	'dkim_feature' => {
+		'group' => 'dkim',
+		'gettext_id' => "Insert DKIM signature to messages sent to the list",
+		'comment' =>  "Enable/Disable DKIM. This feature require Mail::DKIM to installed and may be some custom scenario to be updated",
+		'format' => ['on', 'off'],
+		'occurence' => '0-1',
+		'default' => {
+			'conf' => 'dkim_feature'
+		}
+	},
+	
+	'dkim_parameters' => {
+		'group' => 'dkim',
+		'gettext_id' => "DKIM configuration",
+		'comment' => 'A set of parameters in order to define outgoing DKIM signature', 
+		'format' => {
+			'private_key_path' => {
+				'order' => 1,
+				'gettext_id' => "File path for list DKIM private key",
+				'comment' => "The file must contain a RSA pem encoded private key", 
+				'format' => '\S+',
+				'occurence' => '0-1',
+				'default' => {
+					'conf' => 'dkim_private_key_path'
+				}
+			},
+			'selector' => {
+				'order' => 2,
+				'gettext_id' => "Selector for DNS lookup of DKIM public key",
+				'comment' => "The selector is used in order to build the DNS query for public key. It is up to you to choose the value you want but verify that you can query the public DKIM key for <selector>._domainkey.your_domain",
+				'format' => '\S+',
+				'occurence' => '0-1',
+				'default' => {
+					'conf' => 'dkim_selector'
+				}
+			},
+			'header_list' => {
+				'order' => 4,
+				'gettext_id' => 'List of headers to be included ito the message for signature',
+				'comment' => 'You should probably use teh default value which is the value recommended by RFC4871',
+				'format' => '\S+',
+				'occurence' => '0-1',
+				'default' => {
+					'conf' => 'dkim_header_list'
+				}
+			},
+			'signer_domain' => {
+				'order' => 5,
+				'gettext_id' => 'DKIM "d=" tag, you should probably use the default value',
+				'comment' => ' The DKIM "d=" tag, is the domain of the signing entity. the list domain MUST must be included in the "d=" domain',
+				'format' => '\S+',
+				'occurence' => '0-1',
+				'default' => {
+					'conf' => 'dkim_signer_domain'
+				}
+			},
+			'signer_identity' => {
+				'order' => 6,
+				'gettext_id' => 'DKIM "i=" tag, you should probably leave this parameter empty',
+				'comment' => 'DKIM "i=" tag, you should probably not use this parameter, as recommended by RFC 4871, default for list brodcasted messages is i=<listname>-request@<domain>',
+				'format' => '\S+',
+				'occurence' => '0-1'
+			},
+		},
+		'occurrence' => '0-1'
+	},
+	
+	'dkim_signature_apply_on' => {
+		'group' => 'dkim',
+		'gettext_id' => "The categories of messages sent to the list that will be signed using DKIM.",
+		'comment' => "This parameter controls in which case messages must be signed using DKIM, you may sign every message choosing 'any' or a subset. The parameter value is a comma separated list of keywords",
+		'format' => ['md5_authenticated_messages', 'smime_authenticated_messages', 'dkim_authenticated_messages', 'editor_validated_messages', 'none', 'any'],
+		'occurrence' => '0-n',
+		'split_char' => ', ',
+		'default' => {
+			'conf' => 'dkim_signature_apply_on'
+		}
+	},
+	
+	### Others page ###
+	
+	'account' => {
+		'group' => 'other',
+		'gettext_id' => "Account",
+		'format' => '\S+',
+		'length' => 10
+	},
+	
+	'clean_delay_queuemod' => {
+		'group' => 'other',
+		'gettext_id' => "Expiration of unmoderated messages",
+		'gettext_unit' => 'days',
+		'format' => '\d+',
+		'length' => 3,
+		'default' => {
+			'conf' => 'clean_delay_queuemod'
+		}
+	},
+	
+	'cookie' => {
+		'group' => 'other',
+		'gettext_id' => "Secret string for generating unique keys",
+		'format' => '\S+',
+		'length' => 15,
+		'default' => {
+			'conf' => 'cookie'
+		}
+	},
+	
+	'custom_vars' => {
+		'group' => 'other',
+		'gettext_id' => "custom parameters",
+		'format' => {
+			'name' => {
+				'order' => 1,
+				'gettext_id' => 'var name',
+				'format' => '\S+',
+				'occurrence' => '1'
+			},
+			'value' => {
+				'order' => 2,
+				'gettext_id' => 'var value',
+				'format' => '\S+',
+				'occurrence' => '1',
+			}
+		},
+		'occurrence' => '0-n'
+	},
+	
+	'expire_task' => {
+		'group' => 'other',
+		'gettext_id' => "Periodical subscription expiration task",
+		'task' => 'expire'
+	},
+	
+	'latest_instantiation' => {
+		'group' => 'other',
+		'gettext_id' => 'Latest family instantiation',
+		'format' => {
+			'email' => {
+				'order' => 1,
+				'gettext_id' => 'who ran the instantiation',
+				'format' => 'listmaster|'.&tools::get_regexp('email'),
+				'occurrence' => '0-1'
+			},
+			'date' => {
+				'order' => 2,
+				'gettext_id' => 'date',
+				'format' => '.+'
+			},
+			'date_epoch' => {
+				'order' => 3,
+				'gettext_id' => 'epoch date',
+				'format' => '\d+',
+				'occurrence' => '1'
+			}
+		},
+		'internal' => 1
+	},
+	
+	'loop_prevention_regex' => {
+		'group' => 'other',
+		'gettext_id' => "Regular expression applied to prevent loops with robots",
+		'format' => '\S*',
+		'length' => 70,
+		'default' => {
+			'conf' => 'loop_prevention_regex'
+		}
+	},
+	
+	'pictures_feature' => {
+		'group' => 'other',
+		'gettext_id' => "Allow picture display? (must be enabled for the current robot)",
+		'format' => ['on', 'off'],
+		'occurence' => '0-1',
+		'default' => {
+			'conf' => 'pictures_feature'
+		}
+	},
+	
+	'remind_task' => {
+		'group' => 'other',
+		'gettext_id' => 'Periodical subscription reminder task',
+		'task' => 'remind',
+		'default' => {
+			'conf' => 'default_remind_task'
+		}
+	},
+	
+	'spam_protection' => {
+		'group' => 'other',
+		'gettext_id' => "email address protection method",
+		'format' => ['at', 'javascript', 'none'],
+		'default' => 'javascript'
+	},
+	
+	'creation' => {
+		'group' => 'other',
+		'gettext_id' => "Creation of the list",
+		'format' => {
+			'date_epoch' => {
+				'order' => 3,
+				'gettext_id' => "epoch date",
+				'format' => '\d+',
+				'occurrence' => '1'
+			},
+			'date' => {
+				'order' => 2,
+				'gettext_id' => "human readable",
+				'format' => '.+'
+			},
+			'email' => {
+				'order' => 1,
+				'gettext_id' => "who created the list",
+				'format' => 'listmaster|'.&tools::get_regexp('email'),
+				'occurrence' => '1'
+			}
+		},
+		'occurrence' => '0-1',
+		'internal' => 1
+	},
+	
+	'update' => {
+		'group' => 'other',
+		'gettext_id' => "Last update of config",
+		'format' => {
+			'email' => {
+				'order' => 1,
+				'gettext_id' => 'who updated the config',
+				'format' => '(listmaster|automatic|'.&tools::get_regexp('email').')',
+				'occurrence' => '0-1',
+				'length' => 30
+			},
+			'date' => {
+				'order' => 2,
+				'gettext_id' => 'date',
+				'format' => '.+',
+				'length' => 30
+			},
+			'date_epoch' => {
+				'order' => 3,
+				'gettext_id' => 'epoch date',
+				'format' => '\d+',
+				'occurrence' => '1',
+				'length' => 8
+			}
+		},
+		'internal' => 1,
+	},
+	
+	'status' => {
+		'group' => 'other',
+		'gettext_id' => "Status of the list",
+		'format' => ['open', 'closed', 'pending', 'error_config', 'family_closed'],
+		'default' => 'open',
+		'internal' => 1
+	},
+	
+	'serial' => {
+		'group' => 'other',
+		'gettext_id' => "Serial number of the config",
+		'format' => '\d+',
+		'default' => 0,
+		'internal' => 1,
+		'length' => 3
+	},
+	
+	'custom_attribute' => {
+		'group' => 'other',
+		'gettext_id' => "Custom user attributes",
+		'format' => {
+			'id' => {
+				'order' =>1,
+				'gettext_id' => "internal identifier",
+				'format' => '\w+',
+				'occurrence' => '1',
+				'length' => 20
+			},
+			'name' => {
+				'order' => 2,
+				'gettext_id' => "label",
+				'format' => '.+',
+				'occurrence' => '1',
+				'length' =>30
+			},
+			'comment' => {
+				'order' => 3,
+				'gettext_id' => "additional comment",
+				'format' => '.+',
+				'length' => 100
+			},
+			'type' => {
+				'order' => 4,
+				'gettext_id' => "type",
+				'format' => ['string', 'text', 'integer', 'enum'],
+				'default' => 'string',
+				'occurence' => 1
+			},
+			'enum_values' => {
+				'order' => 5,
+				'gettext_id' => "possible attribute values (if enum is used)",
+				'format' => '.+',
+				'length' => 100
+			},
+			'optional' => {
+				'order' => 6,
+				'gettext_id' => "is the attribute optional?",
+				'format' => ['required', 'optional']
+			}
+		},
+		'occurrence' => '0-n'
+	}
+);
 
 ## This is the generic hash which keeps all lists in memory.
 my %list_of_lists = ();
@@ -1936,6 +2694,12 @@ sub save_config {
 	return undef;
     }
 
+    if ($List::use_db) {
+        unless (&_update_list_db) {
+            &Log::do_log('err', "Unable to update list_table");
+        }
+    }
+
     return 1;
 }
 
@@ -2086,8 +2850,8 @@ sub load {
      } 
 
     $self->{'as_x509_cert'} = 1  if ((-r "$self->{'dir'}/cert.pem") || (-r "$self->{'dir'}/cert.pem.enc"));
-       
-    ## Load stats file if first new() or stats file changed
+
+   ## Load stats file if first new() or stats file changed
     my ($stats, $total);
     if (! $self->{'mtime'}[2] || ($time_stats > $self->{'mtime'}[2])) {
 	($stats, $total, $self->{'last_sync'}, $self->{'last_sync_admin_user'}) = _load_stats_file("$self->{'dir'}/stats");
@@ -4956,7 +5720,6 @@ sub insert_delete_exclusion {
     
     my $r = 1;
     
-	my $r = 1;
     if($action eq 'insert'){
 	## INSERT only if $user->{'included'} eq '1'
 
@@ -4969,15 +5732,15 @@ sub insert_delete_exclusion {
 
 	if ($user->{'included'} eq '1') {
 	    ## Insert : list, user and date
-	    unless (&SDM::do_query("INSERT INTO exclusion_table (list_exclusion, user_exclusion, date_exclusion) VALUES (%s, %s, %s)", &SDM::quote($list), &SDM::quote($email), &SDM::quote($date))) {
-		&Log::do_log('err','Unable to exclude user %s fomr liste %s@%s', $email, $list, $robot);
+	    unless (&SDM::do_query("INSERT INTO exclusion_table (list_exclusion, robot_exclusion, user_exclusion, date_exclusion) VALUES (%s, %s, %s, %s)", &SDM::quote($list), &SDM::quote($robot), &SDM::quote($email), &SDM::quote($date))) {
+		&Log::do_log('err','Unable to exclude user %s from liste %s@%s', $email, $list, $robot);
 		return undef;
 	    }
 	}
 	
     }elsif($action eq 'delete') {
 	## If $email is in exclusion_table, delete it.
-	my $data_excluded = &get_exclusion($list);
+	my $data_excluded = &get_exclusion($list,$robot);
 	my @users_excluded;
 
 	my $key =0;
@@ -4991,8 +5754,8 @@ sub insert_delete_exclusion {
 	foreach my $users (@users_excluded) {
 	    if($email eq $users){
 		## Delete : list, user and date
-		unless ($sth = &SDM::do_query("DELETE FROM exclusion_table WHERE (list_exclusion = %s AND user_exclusion = %s)", &SDM::quote($list), &SDM::quote($email))) {
-		    &Log::do_log('err','Unable to remove entry %s for liste %s for table exclusion_table', $email, $list);
+		unless ($sth = &SDM::do_query("DELETE FROM exclusion_table WHERE (list_exclusion = %s AND robot_exclusion = %s AND user_exclusion = %s)", &SDM::quote($list), &SDM::quote($robot), &SDM::quote($email))) {
+		    &Log::do_log('err','Unable to remove entry %s for liste %s@%s for table exclusion_table', $email, $list, $robot);
 		    return undef;
 		}
 		$r = $sth->rows;
@@ -5000,7 +5763,7 @@ sub insert_delete_exclusion {
 	}
 
     }else{
-	&Log::do_log('err','You must choose an action');
+	&Log::do_log('err','Unknown action %s',$action);
 	return undef;
     }
    
@@ -5018,13 +5781,14 @@ sub insert_delete_exclusion {
 sub get_exclusion {
     
     my  $name= shift;
-    &Log::do_log('debug2', 'List::get_exclusion(%s)', $name);
-   
+    my  $robot= shift;
+    &Log::do_log('debug2', 'List::get_exclusion(%s@%s)', $name,$robot);
+
     push @sth_stack, $sth;
 
-    unless ($sth = &SDM::do_query("SELECT user_exclusion AS email, date_exclusion AS date FROM exclusion_table WHERE list_exclusion = %s", 
-    &SDM::quote($name))) {
-	&Log::do_log('err','Unable to retrieve excluded users for list %s',$name);
+    unless ($sth = &SDM::do_query("SELECT user_exclusion AS email, date_exclusion AS date FROM exclusion_table WHERE list_exclusion = %s AND robot_exclusion=%s", 
+    &SDM::quote($name), &SDM::quote($robot))) {
+	&Log::do_log('err','Unable to retrieve excluded users for list %s@%s',$name, $robot);
 	return undef;
     }
 
@@ -5044,7 +5808,7 @@ sub get_exclusion {
     $sth = pop @sth_stack;
    
     unless($data_exclu){
-	&Log::do_log('err','Unable to retrieve information from database for list %s', $name);
+	&Log::do_log('err','Unable to retrieve information from database for list %s@%s', $name,$robot);
 	return undef;
     }
     return $data_exclu;
@@ -5083,8 +5847,6 @@ sub get_list_member {
     }
     $user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
     unless ($self->is_available_reception_mode($user->{'reception'}));
-    ## In case it was not set in the database
-    $user->{'subscribed'} = 1 if ($self->{'admin'}{'user_data_source'} eq 'database');	
 
     ## Set session cache
     $list_cache{'get_list_member'}{$self->{'domain'}}{$self->{'name'}}{$email} = $user;
@@ -5372,9 +6134,6 @@ sub get_list_admin {
     if (defined $admin_user) {
 	$admin_user->{'reception'} ||= 'mail';
 	$admin_user->{'update_date'} ||= $admin_user->{'date'};
-	
-	## In case it was not set in the database
-	$admin_user->{'subscribed'} = 1 if ($self->{'admin'}{'user_data_source'} eq 'database');
     }
     
     $sth->finish();
@@ -5466,6 +6225,7 @@ sub get_first_list_member {
     }elsif ($sortby eq 'name') {
 	$statement .= ' ORDER BY gecos';
     } 
+    push @sth_stack, $sth;
     
     ## LIMIT clause
     if (defined($rows) and defined($offset)) {
@@ -5479,45 +6239,35 @@ sub get_first_list_member {
     
     my $user = $sth->fetchrow_hashref('NAME_lc');
     if (defined $user) {
-	&Log::do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) 
-	    if (! $user->{'email'});
-	$user->{'reception'} ||= 'mail';
-	$user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
-	unless ($self->is_available_reception_mode($user->{'reception'}));
-	$user->{'update_date'} ||= $user->{'date'};
-	
-	## In case it was not set in the database
-	$user->{'subscribed'} = 1 if (defined($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
+		&Log::do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) if (! $user->{'email'});
+		$user->{'reception'} ||= 'mail';
+		$user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
+		unless ($self->is_available_reception_mode($user->{'reception'}));
+		$user->{'update_date'} ||= $user->{'date'};
 
-	############################################################################	    
-	if (defined $user->{custom_attribute}) {
-	    &Log::do_log('debug2', 'custom_attribute  = (%s)', $user->{custom_attribute});
-	    my %custom_attr = &parseCustomAttribute($user->{'custom_attribute'});
-	    $user->{'custom_attribute'} = \%custom_attr ;
-	}
-
-
+		############################################################################	    
+		if (defined $user->{custom_attribute}) {
+			my %custom_attr = &parseCustomAttribute($user->{'custom_attribute'});
+			$user->{'custom_attribute'} = \%custom_attr ;
+		}
     }
     else {
-	$sth->finish;
-	$sth = pop @sth_stack;
+		$sth->finish;
+		$sth = pop @sth_stack;
 	
-	if ($self->{'admin'}{'user_data_source'} eq 'include2') {
-	    
-	    ## Release the Shared lock
-	    unless ($lock->unlock()) {
-		return undef;
-	    }
-	}
+		## Release the Shared lock
+		unless ($lock->unlock()) {
+			return undef;
+		}
     }
     
     ## If no offset (for LIMIT) was used, update total of subscribers
     unless ($offset) {
-	my $total = $self->_load_total_db('nocache');
-	if ($total != $self->{'total'}) {
-	    $self->{'total'} = $total;
-	    $self->savestats();
-	}
+		my $total = $self->_load_total_db('nocache');
+		if ($total != $self->{'total'}) {
+			$self->{'total'} = $total;
+			$self->savestats();
+		}
     }
     
     return $user;
@@ -5658,10 +6408,6 @@ sub get_first_list_admin {
 	    if (! $admin_user->{'email'});
 	$admin_user->{'reception'} ||= 'mail';
 	$admin_user->{'update_date'} ||= $admin_user->{'date'};
-
-	## In case it was not set in the database
-	$admin_user->{'subscribed'} = 1 if (defined($admin_user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
-
     }else {
 	$sth->finish;
         $sth = pop @sth_stack;
@@ -5694,50 +6440,36 @@ sub get_next_list_member {
     my $user = $sth->fetchrow_hashref('NAME_lc');
     
     if (defined $user) {
-	&Log::do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) 
-	    if (! $user->{'email'});
-	$user->{'reception'} ||= 'mail';
-	unless ($self->is_available_reception_mode($user->{'reception'})){
-	    $user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
-	}
-	$user->{'update_date'} ||= $user->{'date'};
-	
-	## In case it was not set in the database
-	$user->{'subscribed'} = 1 if (defined($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
+		&Log::do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) if (! $user->{'email'});
+		$user->{'reception'} ||= 'mail';
+		unless ($self->is_available_reception_mode($user->{'reception'})){
+			$user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
+		}
+		$user->{'update_date'} ||= $user->{'date'};
 
-	&Log::do_log('debug2', '(email = %s)', $user->{'email'});
-	if (defined $user->{custom_attribute}) {
-	    &Log::do_log('debug2', '1. custom_attribute  = (%s)', $user->{custom_attribute});
-	    my %custom_attr = &parseCustomAttribute($user->{'custom_attribute'});
-	    unless (%custom_attr) {
-		    &Log::do_log('err',"Failed to parse custom attributes for user %s, list %s", $user->{'email'}, $self->get_list_id());
-	    }
-	    $user->{'custom_attribute'} = \%custom_attr ;
-	    &Log::do_log('debug2', '2. custom_attribute  = (%s)', %custom_attr);
-	    &Log::do_log('debug2', '3. custom_attribute  = (%s)', $user->{custom_attribute});
-	    my @k = sort keys %custom_attr ;
-	    &Log::do_log('debug2', "keys custom_attribute  = @k");
-	}
-    }
-    else {
-	$sth->finish;
-	$sth = pop @sth_stack;
+		&Log::do_log('debug2', '(email = %s)', $user->{'email'});
+		if (defined $user->{custom_attribute}) {
+			my %custom_attr = &parseCustomAttribute($user->{'custom_attribute'});
+			unless (%custom_attr) {
+				&Log::do_log('err',"Failed to parse custom attributes for user %s, list %s", $user->{'email'}, $self->get_list_id());
+			}
+			$user->{'custom_attribute'} = \%custom_attr ;
+			my @k = sort keys %custom_attr ;
+		}
+    }else {
+		$sth->finish;
+		$sth = pop @sth_stack;
 	
-	if ($self->{'admin'}{'user_data_source'} eq 'include2') {
-	    
-	    ## Release lock
-	    my $lock = new Lock ($self->{'dir'}.'/include');
-	    unless (defined $lock) {
-		&Log::do_log('err','Could not create new lock');
-		return undef;
-	    }
-	    unless ($lock->unlock()) {
-		return undef;
-	    }
-	}
+		## Release lock
+		my $lock = new Lock ($self->{'dir'}.'/include');
+		unless (defined $lock) {
+			&Log::do_log('err','Could not create new lock');
+			return undef;
+		}
+		unless ($lock->unlock()) {
+			return undef;
+		}
     }
-    
-#	$self->{'total'}++;
     
     return $user;
 }
@@ -5748,35 +6480,30 @@ sub get_next_list_admin {
     &Log::do_log('debug2', ''); 
 
     unless (defined $sth) {
-	&Log::do_log('err','Statement handle not defined in get_next_list_admin for list %s', $self->{'name'});
-	return undef;
+		&Log::do_log('err','Statement handle not defined in get_next_list_admin for list %s', $self->{'name'});
+		return undef;
     }
     
     my $admin_user = $sth->fetchrow_hashref('NAME_lc');
 
     if (defined $admin_user) {
-	&Log::do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) 
-	    if (! $admin_user->{'email'});
-	$admin_user->{'reception'} ||= 'mail';
-	$admin_user->{'update_date'} ||= $admin_user->{'date'};
+		&Log::do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) if (! $admin_user->{'email'});
+		$admin_user->{'reception'} ||= 'mail';
+		$admin_user->{'update_date'} ||= $admin_user->{'date'};
+    }else {
+		$sth->finish;
+		$sth = pop @sth_stack;
 	
-	## In case it was not set in the database
-	$admin_user->{'subscribed'} = 1 if (defined($admin_user) && ($self->{'admin'}{'user_data_source'} eq 'database'));
-    }
-    else {
-	$sth->finish;
-	$sth = pop @sth_stack;
+		## Release the Shared lock
+		my $lock = new Lock($self->{'dir'}.'/include_admin_user');
+		unless (defined $lock) {
+			&Log::do_log('err','Could not create new lock');
+			return undef;
+		}
 	
-	## Release the Shared lock
-	my $lock = new Lock($self->{'dir'}.'/include_admin_user');
-	unless (defined $lock) {
-	    &Log::do_log('err','Could not create new lock');
-	    return undef;
-	}
-	
-	unless ($lock->unlock()) {
-	    return undef;
-	}
+		unless ($lock->unlock()) {
+			return undef;
+		}
     }
     return $admin_user;
 }
@@ -5824,20 +6551,15 @@ sub get_first_bouncing_list_member {
     my $user = $sth->fetchrow_hashref('NAME_lc');
 	    
     if (defined $user) {
-	&Log::do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) 
-	    if (! $user->{'email'});
-	
-	## In case it was not set in the database
-	$user->{'subscribed'} = 1 if (defined ($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));    
-
+		&Log::do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) if (! $user->{'email'});
     }else {
-	$sth->finish;
-	$sth = pop @sth_stack;
+		$sth->finish;
+		$sth = pop @sth_stack;
 	
-	## Release the Shared lock
-	unless ($lock->unlock()) {
-	    return undef;
-	}
+		## Release the Shared lock
+		unless ($lock->unlock()) {
+			return undef;
+		}
     }
     return $user;
 }
@@ -5848,36 +6570,33 @@ sub get_next_bouncing_list_member {
     &Log::do_log('debug2', '');
 
     unless (defined $sth) {
-	&Log::do_log('err', 'No handle defined, get_first_bouncing_list_member(%s) was not run', $self->{'name'});
-	return undef;
+		&Log::do_log('err', 'No handle defined, get_first_bouncing_list_member(%s) was not run', $self->{'name'});
+		return undef;
     }
     
     my $user = $sth->fetchrow_hashref('NAME_lc');
     
     if (defined $user) {
-	&Log::do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) 
-	    if (! $user->{'email'});
+		&Log::do_log('err','Warning: entry with empty email address in list %s', $self->{'name'}) if (! $user->{'email'});
 	
-	## In case it was not set in the database
-	$user->{'subscribed'} = 1 if (defined ($user) && ($self->{'admin'}{'user_data_source'} eq 'database'));    
-	if (defined $user->{custom_attribute}) {
+		if (defined $user->{custom_attribute}) {
 	    	my %custom_attr = &parseCustomAttribute($user->{'custom_attribute'});
 	    	$user->{'custom_attribute'} = \%custom_attr ;
 	    }
 
     }else {
-	$sth->finish;
-	$sth = pop @sth_stack;
+		$sth->finish;
+		$sth = pop @sth_stack;
 	
-	## Release the Shared lock
-	my $lock = new Lock ($self->{'dir'}.'/include');
-	unless (defined $lock) {
-	    &Log::do_log('err','Could not create new lock');
-	    return undef;
-	}
-	unless ($lock->unlock()) {
-	    return undef;
-	}
+		## Release the Shared lock
+		my $lock = new Lock ($self->{'dir'}.'/include');
+		unless (defined $lock) {
+			&Log::do_log('err','Could not create new lock');
+			return undef;
+		}
+		unless ($lock->unlock()) {
+			return undef;
+		}
     }
 
     return $user;
@@ -6414,7 +7133,7 @@ sub add_list_member {
 
 	$new_user->{'date'} ||= time;
 	$new_user->{'update_date'} ||= $new_user->{'date'};
-	
+
 	my %custom_attr = %{ $subscriptions->{$who}{'custom_attribute'} } if (defined $subscriptions->{$who}{'custom_attribute'} );
 	$new_user->{'custom_attribute'} ||= &createXMLCustomAttribute(\%custom_attr) ;
 	&Log::do_log('debug2', 'custom_attribute = %s', $new_user->{'custom_attribute'});
@@ -6565,6 +7284,7 @@ sub rename_list_db {
 
     my $statement_subscriber;
     my $statement_admin;
+    my $statement_list_cache;
     
     unless(&SDM::do_query("UPDATE subscriber_table SET list_subscriber=%s, robot_subscriber=%s WHERE (list_subscriber=%s AND robot_subscriber=%s)", 
     &SDM::quote($new_listname), 
@@ -6588,6 +7308,17 @@ sub rename_list_db {
     }
     &Log::do_log('debug', 'List::rename_list_db statement : %s',  $statement_admin );
     
+    if ($List::use_db) {
+	unless (&SDM::do_query("UPDATE list_table SET name_list=%s, robot_list=%s WHERE (name_list=%s AND robot_list=%s)",
+	    &SDM::quote($new_listname),
+	    &SDM::quote($new_robot),
+	    &SDM::quote($self->{'name'}),
+	    &SDM::quote($self->{'domain'}))) {
+		&Log::do_log('err',"Unable to rename list in database");
+		return undef;
+	    }	
+    }
+
     return 1;
 }
 
@@ -7671,17 +8402,15 @@ sub _include_users_voot_group {
 
 ## Returns a list of subscribers extracted from a remote LDAP Directory
 sub _include_users_ldap {
-    my ($users, $param, $default_user_options, $tied) = @_;
+    my ($users, $id, $source, $default_user_options, $tied) = @_;
     &Log::do_log('debug2', 'List::_include_users_ldap');
     
-    my $id = Datasource::_get_datasource_id($param);
-
-    my $user = $param->{'user'};
-    my $passwd = $param->{'passwd'};
-    my $ldap_suffix = $param->{'suffix'};
-    my $ldap_filter = $param->{'filter'};
-    my $ldap_attrs = $param->{'attrs'};
-    my $ldap_select = $param->{'select'};
+    my $user = $source->{'user'};
+    my $passwd = $source->{'passwd'};
+    my $ldap_suffix = $source->{'suffix'};
+    my $ldap_filter = $source->{'filter'};
+    my $ldap_attrs = $source->{'attrs'};
+    my $ldap_select = $source->{'select'};
     
     ## LDAP and query handler
     my ($ldaph, $fetch);
@@ -7689,21 +8418,18 @@ sub _include_users_ldap {
     ## Connection timeout (default is 120)
     #my $timeout = 30; 
     
-    my $param2 = &tools::dup_var($param);
-    my $ds = new LDAPSource($param2);
-
-    unless (defined $ds && $ds->connect()) {
-	&Log::do_log('err',"Unable to connect to the LDAP server '%s'", $param2->{'host'});
+    unless (defined $source && $source->connect()) {
+	&Log::do_log('err',"Unable to connect to the LDAP server '%s'", $source->{'host'});
 	    return undef;
 	}
-    &Log::do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $param->{'host'}, $ldap_suffix, $ldap_filter, $ldap_attrs);
-    $fetch = $ds->{'ldap_handler'}->search ( base => "$ldap_suffix",
+    &Log::do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $source->{'host'}, $ldap_suffix, $ldap_filter, $ldap_attrs);
+    $fetch = $source->{'ldap_handler'}->search ( base => "$ldap_suffix",
 			      filter => "$ldap_filter",
 			      attrs => [ "$ldap_attrs" ],
-			      scope => "$param->{'scope'}");
+			      scope => "$source->{'scope'}");
     if ($fetch->code()) {
 	&Log::do_log('err','Ldap search (single level) failed : %s (searching on server %s ; suffix %s ; filter %s ; attrs: %s)', 
-	       $fetch->error(), $param->{'host'}, $ldap_suffix, $ldap_filter, $ldap_attrs);
+	       $fetch->error(), $source->{'host'}, $ldap_suffix, $ldap_filter, $ldap_attrs);
         return undef;
     }
     
@@ -7746,8 +8472,8 @@ sub _include_users_ldap {
 	}
     }
     
-    unless ($ds->disconnect()) {
-	&Log::do_log('notice','Can\'t unbind from  LDAP server %s', $param->{'host'});
+    unless ($source->disconnect()) {
+	&Log::do_log('notice','Can\'t unbind from  LDAP server %s', $source->{'host'});
 	return undef;
     }
     
@@ -7785,7 +8511,7 @@ sub _include_users_ldap {
 	}
     }
 
-    &Log::do_log('debug2',"unbinded from LDAP server %s ", $param->{'host'});
+    &Log::do_log('debug2',"unbinded from LDAP server %s ", $source->{'host'});
     &Log::do_log('info','%d new users included from LDAP query',$total);
 
     return $total;
@@ -7794,52 +8520,41 @@ sub _include_users_ldap {
 ## Returns a list of subscribers extracted indirectly from a remote LDAP
 ## Directory using a two-level query
 sub _include_users_ldap_2level {
-    my ($users, $param, $default_user_options,$tied) = @_;
+    my ($users, $id, $source, $default_user_options,$tied) = @_;
     &Log::do_log('debug2', 'List::_include_users_ldap_2level');
     
-    unless (eval "require Net::LDAP") {
-	&Log::do_log('err',"Unable to use LDAP library, install perl-ldap (CPAN) first");
-	return undef;
-    }
-    require Net::LDAP;
-
-    my $id = Datasource::_get_datasource_id($param);
-
-    my $user = $param->{'user'};
-    my $passwd = $param->{'passwd'};
-    my $ldap_suffix1 = $param->{'suffix1'};
-    my $ldap_filter1 = $param->{'filter1'};
-    my $ldap_attrs1 = $param->{'attrs1'};
-    my $ldap_select1 = $param->{'select1'};
-    my $ldap_scope1 = $param->{'scope1'};
-    my $ldap_regex1 = $param->{'regex1'};
-    my $ldap_suffix2 = $param->{'suffix2'};
-    my $ldap_filter2 = $param->{'filter2'};
-    my $ldap_attrs2 = $param->{'attrs2'};
-    my $ldap_select2 = $param->{'select2'};
-    my $ldap_scope2 = $param->{'scope2'};
-    my $ldap_regex2 = $param->{'regex2'};
+    my $user = $source->{'user'};
+    my $passwd = $source->{'passwd'};
+    my $ldap_suffix1 = $source->{'suffix1'};
+    my $ldap_filter1 = $source->{'filter1'};
+    my $ldap_attrs1 = $source->{'attrs1'};
+    my $ldap_select1 = $source->{'select1'};
+    my $ldap_scope1 = $source->{'scope1'};
+    my $ldap_regex1 = $source->{'regex1'};
+    my $ldap_suffix2 = $source->{'suffix2'};
+    my $ldap_filter2 = $source->{'filter2'};
+    my $ldap_attrs2 = $source->{'attrs2'};
+    my $ldap_select2 = $source->{'select2'};
+    my $ldap_scope2 = $source->{'scope2'};
+    my $ldap_regex2 = $source->{'regex2'};
     my @sync_errors = ();
     
     ## LDAP and query handler
     my ($ldaph, $fetch);
 
-    my $param2 = &tools::dup_var($param);
-    my $ds = new LDAPSource($param2);
-    
-    unless (defined $ds && ($ldaph = $ds->connect())) {
-	&Log::do_log('err',"Unable to connect to the LDAP server '%s'", $param2->{'host'});
+    unless (defined $source && ($ldaph = $source->connect())) {
+	&Log::do_log('err',"Unable to connect to the LDAP server '%s'", $source->{'host'});
 	    return undef;
 	}
     
-    &Log::do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $param->{'host'}, $ldap_suffix1, $ldap_filter1, $ldap_attrs1) ;
+    &Log::do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $source->{'host'}, $ldap_suffix1, $ldap_filter1, $ldap_attrs1) ;
     $fetch = $ldaph->search ( base => "$ldap_suffix1",
 			      filter => "$ldap_filter1",
 			      attrs => [ "$ldap_attrs1" ],
 			      scope => "$ldap_scope1");
     if ($fetch->code()) {
 	&Log::do_log('err','LDAP search (1st level) failed : %s (searching on server %s ; suffix %s ; filter %s ; attrs: %s)', 
-	       $fetch->error(), $param2->{'host'}, $ldap_suffix1, $ldap_filter1, $ldap_attrs1);
+	       $fetch->error(), $source->{'host'}, $ldap_suffix1, $ldap_filter1, $ldap_attrs1);
         return undef;
     }
     
@@ -7874,15 +8589,15 @@ sub _include_users_ldap_2level {
 	($suffix2 = $ldap_suffix2) =~ s/\[attrs1\]/$attr/g;
 	($filter2 = $ldap_filter2) =~ s/\[attrs1\]/$attr/g;
 
-	&Log::do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $param->{'host'}, $suffix2, $filter2, $ldap_attrs2);
+	&Log::do_log('debug2', 'Searching on server %s ; suffix %s ; filter %s ; attrs: %s', $source->{'host'}, $suffix2, $filter2, $ldap_attrs2);
 	$fetch = $ldaph->search ( base => "$suffix2",
 				  filter => "$filter2",
 				  attrs => [ "$ldap_attrs2" ],
 				  scope => "$ldap_scope2");
 	if ($fetch->code()) {
 	    &Log::do_log('err','LDAP search (2nd level) failed : %s. Node: %s (searching on server %s ; suffix %s ; filter %s ; attrs: %s)', 
-		   $fetch->error(), $attr, $param->{'host'}, $suffix2, $filter2, $ldap_attrs2);
-	    push @sync_errors, {'error',$fetch->error(), 'host', $param->{'host'}, 'suffix2', $suffix2, 'fliter2', $filter2,'ldap_attrs2', $ldap_attrs2};
+		   $fetch->error(), $attr, $source->{'host'}, $suffix2, $filter2, $ldap_attrs2);
+	    push @sync_errors, {'error',$fetch->error(), 'host', $source->{'host'}, 'suffix2', $suffix2, 'fliter2', $filter2,'ldap_attrs2', $ldap_attrs2};
 	}
 
 	## returns a reference to a HASH where the keys are the DNs
@@ -7923,8 +8638,8 @@ sub _include_users_ldap_2level {
 	}
     }
     
-    unless ($ds->disconnect()) {
-	&Log::do_log('err','Can\'t unbind from  LDAP server %s', $param->{'host'});
+    unless ($source->disconnect()) {
+	&Log::do_log('err','Can\'t unbind from  LDAP server %s', $source->{'host'});
 	return undef;
     }
     
@@ -7962,8 +8677,8 @@ sub _include_users_ldap_2level {
 	}
     }
 
-    &Log::do_log('debug2',"unbinded from LDAP server %s ", $param->{'host'}) ;
-    &Log::do_log('info','%d new users included from LDAP query',$total);
+    &Log::do_log('debug2',"unbinded from LDAP server %s ", $source->{'host'}) ;
+    &Log::do_log('info','%d new users included from LDAP query 2level',$total);
 
     my $result;
     $result->{'total'} = $total;
@@ -7971,27 +8686,112 @@ sub _include_users_ldap_2level {
     return $result;
 }
 
+sub _include_sql_ca {
+	my $source = shift;
+	
+	return {} unless($source->connect());
+	
+	&Log::do_log('debug', '%s, email_entry = %s', $source->{'sql_query'}, $source->{'email_entry'});
+    
+	my $sth = $source->do_query($source->{'sql_query'});
+	my $mailkey = $source->{'email_entry'};
+	my $ca = $sth->fetchall_hashref($mailkey);
+	my $result;
+	foreach my $email (keys %{$ca}) {
+		foreach my $custom_attribute (keys %{$ca->{$email}}) {
+			$result->{$email}{$custom_attribute}{'value'} = $ca->{$email}{$custom_attribute} unless($custom_attribute eq $mailkey);
+		}
+	}
+	return $result;
+}
+
+sub _include_ldap_ca {
+	my $source = shift;
+	
+	return {} unless($source->connect());
+	
+	&Log::do_log('debug', 'server %s ; suffix %s ; filter %s ; attrs: %s', $source->{'host'}, $source->{'suffix'}, $source->{'filter'}, $source->{'attrs'});
+	
+	my @attrs = split(/\s*,\s*/, $source->{'attrs'});
+	
+	my $results = $source->{'ldap_handler'}->search(
+		base => $source->{'suffix'},
+		filter => $source->{'filter'},
+		attrs => @attrs,
+		scope => $source->{'scope'}
+	);
+	if($results->code()) {
+		&Log::do_log('err', 'Ldap search (single level) failed : %s (searching on server %s ; suffix %s ; filter %s ; attrs: %s)', $results->error(), $source->{'host'}, $source->{'suffix'}, $source->{'filter'}, $source->{'attrs'});
+		return {};
+	}
+    
+	my $attributes;
+	while(my $entry = $results->shift_entry) {
+		my $email = $entry->get_value($source->{'email_entry'});
+		next unless($email);
+		foreach my $attr (@attrs) {
+			next if($attr eq $source->{'email_entry'});
+			$attributes->{$email}{$attr}{'value'} = $entry->get_value($attr);
+		}
+	}
+    
+	return $attributes;
+}
+
+sub _include_ldap_level2_ca {
+	my $source = shift;
+	
+	return {} unless($source->connect());
+	
+	return {};
+	
+	&Log::do_log('debug', 'server %s ; suffix %s ; filter %s ; attrs: %s', $source->{'host'}, $source->{'suffix'}, $source->{'filter'}, $source->{'attrs'});
+	
+	my @attrs = split(/\s*,\s*/, $source->{'attrs'});
+	
+	my $results = $source->{'ldap_handler'}->search(
+		base => $source->{'suffix'},
+		filter => $source->{'filter'},
+		attrs => @attrs,
+		scope => $source->{'scope'}
+	);
+	if($results->code()) {
+		&Log::do_log('err', 'Ldap search (single level) failed : %s (searching on server %s ; suffix %s ; filter %s ; attrs: %s)', $results->error(), $source->{'host'}, $source->{'suffix'}, $source->{'filter'}, $source->{'attrs'});
+		return {};
+	}
+    
+	my $attributes;
+	while(my $entry = $results->shift_entry) {
+		my $email = $entry->get_value($source->{'email_entry'});
+		next unless($email);
+		foreach my $attr (@attrs) {
+			next if($attr eq $source->{'email_entry'});
+			$attributes->{$email}{$attr}{'value'} = $entry->get_value($attr);
+		}
+	}
+    
+	return $attributes;
+}
+
+
 ## Returns a list of subscribers extracted from an remote Database
 sub _include_users_sql {
-    my ($users, $param, $default_user_options, $tied, $fetch_timeout) = @_;
+    my ($users, $id, $source, $default_user_options, $tied, $fetch_timeout) = @_;
 
     &Log::do_log('debug','List::_include_users_sql()');
-    my $id = Datasource::_get_datasource_id($param);
-    my $ds = new SQLSource($param);
-
-    unless (defined $ds && $ds->connect && ($ds->do_query($param->{'sql_query'}))) {
-	&Log::do_log('err','Unable to connect to SQL datasource with parameters host: %s, database: %s',$param->{'host'},$param->{'db_name'});
+    unless ($source->connect && ($source->do_query($source->{'sql_query'}))) {
+	&Log::do_log('err','Unable to connect to SQL datasource with parameters host: %s, database: %s',$source->{'host'},$source->{'db_name'});
         return undef;
     }
     ## Counters.
     my $total = 0;
     
     ## Process the SQL results
-    $ds->set_fetch_timeout($fetch_timeout);
-    my $array_of_users = $ds->fetch;
+    $source->set_fetch_timeout($fetch_timeout);
+    my $array_of_users = $source->fetch;
 	
     unless (defined $array_of_users && ref($array_of_users) eq 'ARRAY') {
-	&Log::do_log('err', 'Failed to include users from %s',$param->{'name'});
+	&Log::do_log('err', 'Failed to include users from %s',$source->{'name'});
 	return undef;
     }
 
@@ -8037,8 +8837,7 @@ sub _include_users_sql {
 	    $users->{$email} = \%u;
 	}
     }
-    $ds->disconnect();
-    
+    $source->disconnect();
     &Log::do_log('info','%d included users from SQL query', $total);
     return $total;
 }
@@ -8046,6 +8845,7 @@ sub _include_users_sql {
 ## Loads the list of subscribers from an external include source
 sub _load_list_members_from_include {
     my $self = shift;
+    my $old_subs = shift;
     my $name = $self->{'name'}; 
     my $admin = $self->{'admin'};
     my $dir = $self->{'dir'};
@@ -8054,38 +8854,83 @@ sub _load_list_members_from_include {
     my $total = 0;
     my @errors;
     my $result;
-
+    my @ex_sources;
+    
+    
     foreach my $type ('include_list','include_remote_sympa_list','include_file','include_ldap_query','include_ldap_2level_query','include_sql_query','include_remote_file', 'include_voot_group') {
 	last unless (defined $total);
 	    
 	foreach my $tmp_incl (@{$admin->{$type}}) {
 	    my $included;
-	    ## Work with a copy of admin hash branch to avoid including temporary variables into the actual admin hash.[bug #3182]
+	    my $source_is_new = 1;
+        ## Work with a copy of admin hash branch to avoid including temporary variables into the actual admin hash.[bug #3182]
 	    my $incl = &tools::dup_var($tmp_incl);
-
-	    ## get the list of users
+		my $source_id = Datasource::_get_datasource_id($tmp_incl);
+		if (defined $old_subs->{$source_id}) {
+			$source_is_new = 0;
+		}
+	    ## Get the list of users.
+	    ## Verify if we can syncronize sources. If it's allowed OR there are new sources, we update the list, and can add subscribers.
+		## Else if we can't syncronize sources. We make an array with excluded sources.
 	    if ($type eq 'include_sql_query') {
-		$included = _include_users_sql(\%users, $incl, $admin->{'default_user_options'}, 'untied', $admin->{'sql_fetch_timeout'});
-		unless (defined $included){
-		    push @errors, {'type' => $type, 'name' => $incl->{'name'}};
-		}
+			my $source = new SQLSource($incl);
+			if ($source->is_allowed_to_sync() || $source_is_new) {
+				&Log::do_log('debug', 'is_new %d, syncing', $source_is_new);
+				$included = _include_users_sql(\%users, $source_id, $source, $admin->{'default_user_options'}, 'untied', $admin->{'sql_fetch_timeout'});
+				unless (defined $included){
+					push @errors, {'type' => $type, 'name' => $incl->{'name'}};
+				}
+			}else{
+				my $exclusion_data = {	'id' => $source_id,
+										'name' => $incl->{'name'},
+										'starthour' => $source->{'starthour'},
+										'startminute' => $source->{'startminute'} ,
+										'endhour' => $source->{'endhour'},
+										'endminute' => $source->{'endminute'}};
+				push @ex_sources, $exclusion_data;
+				$included = 0;
+			}
 	    }elsif ($type eq 'include_ldap_query') {
-		$included = _include_users_ldap(\%users, $incl, $admin->{'default_user_options'});
-		unless (defined $included){
-		    push @errors, {'type' => $type, 'name' => $incl->{'name'}};
-		}
-	    }elsif ($type eq 'include_ldap_2level_query') {
-		my $result = _include_users_ldap_2level(\%users, $incl, $admin->{'default_user_options'});
-		if (defined $result) {
-		    $included = $result->{'total'};
-		    if (defined $result->{'errors'}){
-			&Log::do_log('err', 'Errors occurred during the second LDAP passe');
-			push @errors, {'type' => $type, 'name' => $incl->{'name'}};
-		    }
-		}else{
-		    $included = undef;
-		    push @errors, {'type' => $type, 'name' => $incl->{'name'}};
-		}
+			my $source = new LDAPSource($incl);
+			if ($source->is_allowed_to_sync() || $source_is_new) {
+				$included = _include_users_ldap(\%users, $source_id, $source, $admin->{'default_user_options'});
+				unless (defined $included){
+					push @errors, {'type' => $type, 'name' => $incl->{'name'}};
+				}
+			}else{
+				my $exclusion_data = {	'id' => $source_id,
+										'name' => $incl->{'name'},
+										'starthour' => $source->{'starthour'},
+										'startminute' => $source->{'startminute'} ,
+										'endhour' => $source->{'endhour'},
+										'endminute' => $source->{'endminute'}};
+				push @ex_sources, $exclusion_data;
+				$included = 0;
+			}
+		}elsif ($type eq 'include_ldap_2level_query') {
+			my $source = new LDAPSource($incl);
+			if ($source->is_allowed_to_sync() || $source_is_new) {
+				my $result = _include_users_ldap_2level(\%users,$source_id, $source, $admin->{'default_user_options'});
+				if (defined $result) {
+					$included = $result->{'total'};
+					if (defined $result->{'errors'}){
+						&Log::do_log('err', 'Errors occurred during the second LDAP passe');
+						push @errors, {'type' => $type, 'name' => $incl->{'name'}};
+					}
+				}else{
+					$included = undef;
+					push @errors, {'type' => $type, 'name' => $incl->{'name'}};
+				}
+			}else{	
+				my $exclusion_data = {	'id' => $source_id,
+										'name' => $incl->{'name'},
+										'starthour' => $source->{'starthour'},
+										'startminute' => $source->{'startminute'} ,
+										'endhour' => $source->{'endhour'},
+										'endminute' => $source->{'endminute'}};
+				push @ex_sources, $exclusion_data;
+				$included = 0;
+			}
 	    }elsif ($type eq 'include_remote_sympa_list') {
 		$included = $self->_include_users_remote_sympa_list(\%users, $incl, $dir,$admin->{'domain'},$admin->{'default_user_options'});
 		unless (defined $included){
@@ -8118,6 +8963,7 @@ sub _load_list_members_from_include {
 		    push @errors, {'type' => $type, 'name' => $incl->{'name'}};
 		}
 	    }
+
 	    unless (defined $included) {
 		&Log::do_log('err', 'Inclusion %s failed in list %s', $type, $name);
 		next;
@@ -8129,6 +8975,7 @@ sub _load_list_members_from_include {
     ## If an error occured, return an undef value
     $result->{'users'} = \%users;
     $result->{'errors'} = \@errors;
+    $result->{'exclusions'} = \@ex_sources;
     return $result;
 }
 
@@ -8372,7 +9219,8 @@ sub _load_include_admin_user_file {
 		}
 		
 		unless ($paragraph[$i] =~ /^\s*$key\s+($::pinfo{$pname}{'file_format'}{$key}{'file_format'})\s*$/i) {
-		    &Log::do_log('info', 'Bad entry "%s" in paragraph "%s" in %s', $paragraph[$i], $key, $pname, $file);
+		    chomp($paragraph[$i]);
+		    &Log::do_log('info', 'Bad entry "%s" for key "%s", paragraph "%s" in %s', $paragraph[$i], $key, $pname, $file);
 		    next;
 		}
 	       
@@ -8413,6 +9261,7 @@ sub _load_include_admin_user_file {
 	    }
 
 	    unless ($paragraph[0] =~ /^\s*$pname\s+($::pinfo{$pname}{'file_format'})\s*$/i) {
+		chomp($paragraph[0]);
 		&Log::do_log('info', 'Bad entry "%s" in %s', $paragraph[0], $file);
 		next;
 	    }
@@ -8431,12 +9280,124 @@ sub _load_include_admin_user_file {
     return \%include;
 }
 
+## Returns a ref to an array containing the ids (as computed by Datasource::_get_datasource_id) of the list of memebers given as argument.
+sub get_list_of_sources_id {
+	my $self = shift;
+	my $list_of_subscribers = shift;
+	
+	my %old_subs_id;
+	foreach my $old_sub (keys %{$list_of_subscribers}) {
+		my @tmp_old_tab = split(/,/,$list_of_subscribers->{$old_sub}{'id'});
+		foreach my $raw (@tmp_old_tab) {
+			$old_subs_id{$raw} = 1;
+		}
+	}
+	my $ids = join(',',keys %old_subs_id);
+	return \%old_subs_id;
+}
+
+
+sub sync_include_ca {
+	my $self = shift;
+	my $admin = $self->{'admin'};
+	my $purge = shift;
+	my %users;
+	my %changed;
+	
+	$self->purge_ca() if($purge);
+	
+	&Log::do_log('debug', 'syncing CA');
+	
+	for (my $user=$self->get_first_list_member(); $user; $user=$self->get_next_list_member()) {
+		$users{$user->{'email'}} = $user->{'custom_attribute'};
+	}
+	
+	foreach my $type ('include_sql_ca') {
+		foreach my $tmp_incl (@{$admin->{$type}}) {
+			## Work with a copy of admin hash branch to avoid including temporary variables into the actual admin hash.[bug #3182]
+			my $incl = &tools::dup_var($tmp_incl);
+			my $source = undef;
+			my $srcca = undef;
+			if ($type eq 'include_sql_ca') {
+				$source = new SQLSource($incl);
+			}elsif(($type eq 'include_ldap_ca') or ($type eq 'include_ldap_2level_ca')) {
+				$source = new LDAPSource($incl);
+			}
+			next unless(defined($source));
+			if($source->is_allowed_to_sync()) {
+				my $getter = '_'.$type;
+				{ # Magic inside
+					no strict "refs";
+					$srcca = &$getter($source);
+				}
+				if(defined($srcca)) {
+					foreach my $email (keys %$srcca) {
+						$users{$email} = {} unless(defined $users{$email});
+						foreach my $key (keys %{$srcca->{$email}}) {
+							next if($users{$email}{$key}{'value'} eq $srcca->{$email}{$key}{'value'});
+							$users{$email}{$key} = $srcca->{$email}{$key};
+							$changed{$email} = 1;
+						}
+					}
+				}
+			}
+			unless($source->disconnect()) {
+				&Log::do_log('notice','Can\'t unbind from source %s', $type);
+				return undef;
+			}
+		}
+	}
+	
+	foreach my $email (keys %changed) {
+		if($self->update_list_member($email, {'custom_attribute' => &createXMLCustomAttribute($users{$email})})) {
+			&Log::do_log('debug', 'Updated user %s', $email);
+		}else{
+			&Log::do_log('error', 'could not update user %s', $email);
+		}
+	}
+	
+	return 1;
+}
+
+### Purge synced custom attributes from user records, only keep user writable ones
+sub purge_ca {
+	my $self = shift;
+	my $admin = $self->{'admin'};
+	my %userattributes;
+	my %users;
+	
+	&Log::do_log('debug', 'purge CA');
+	
+	foreach my $attr (@{$admin->{'custom_attribute'}}) {
+		$userattributes{$attr->{'id'}} = 1;
+	}
+	
+	for (my $user=$self->get_first_list_member(); $user; $user=$self->get_next_list_member()) {
+		next unless(keys %{$user->{'custom_attribute'}});
+		my $attributes;
+		foreach my $id (keys %{$user->{'custom_attribute'}}) {
+			next unless(defined $userattributes{$id});
+			$attributes->{$id} = $user->{'custom_attribute'}{$id};
+		}
+		$users{$user->{'email'}} = $attributes;
+	}
+	
+	foreach my $email (keys %users) {
+		if($self->update_list_member($email, {'custom_attribute' => &createXMLCustomAttribute($users{$email})})) {
+			&Log::do_log('debug', 'Updated user %s', $email);
+		}else{
+			&Log::do_log('error', 'could not update user %s', $email);
+		}
+	}
+	
+	return 1;
+}
+
 sub sync_include {
     my ($self) = shift;
     my $option = shift;
     my $name=$self->{'name'};
     &Log::do_log('debug', 'List:sync_include(%s)', $name);
-    
     my %old_subscribers;
     my $total=0;
     my $errors_occurred=0;
@@ -8450,8 +9411,8 @@ sub sync_include {
 	    &Log::do_log('notice','Update user %s neither included nor subscribed', $user->{'email'});
 	    unless( $self->update_list_member(lc($user->{'email'}),  {'update_date' => time,
 							       'subscribed' => 1 }) ) {
-		&Log::do_log('err', 'List:sync_include(%s): Failed to update %s', $name, lc($user->{'email'}));
-		next;
+			&Log::do_log('err', 'List:sync_include(%s): Failed to update %s', $name, lc($user->{'email'}));
+			next;
 	    }			    
 	    $old_subscribers{lc($user->{'email'})}{'subscribed'} = 1;
 	}
@@ -8462,65 +9423,90 @@ sub sync_include {
     ## Load a hash with the new subscriber list
     my $new_subscribers;
     unless ($option eq 'purge') {
-	my $result = $self->_load_list_members_from_include();
-	$new_subscribers = $result->{'users'};
-	my $tmp_errors = $result->{'errors'};
-	my @errors = @$tmp_errors;
-	## If include sources were not available, do not update subscribers
-	## Use DB cache instead and warn the listmaster.
-	if($#errors > -1) {
-	    &Log::do_log('err', 'Errors occurred while synchronizing datasources for list %s', $name);
-	    $errors_occurred = 1;
-	    unless (&List::send_notify_to_listmaster('sync_include_failed', $self->{'domain'}, {'errors' => \@errors, 'listname' => $self->{'name'}})) {
-		&Log::do_log('notice',"Unable to send notify 'sync_include_failed' to listmaster");
-	    }
-	    foreach my $e (@errors) {
-			next unless($e->{'type'} eq 'include_voot_group');
-			my $cfg = undef;
-			foreach my $p (@{$self->{'admin'}{'include_voot_group'}}) {
-				$cfg = $p if($p->{'name'} eq $e->{'name'});
+		my $result = $self->_load_list_members_from_include($self->get_list_of_sources_id(\%old_subscribers));
+		$new_subscribers = $result->{'users'};
+		my @errors = @{$result->{'errors'}};
+		my @exclusions = @{$result->{'exclusions'}};
+		
+		## If include sources were not available, do not update subscribers
+		## Use DB cache instead and warn the listmaster.
+		if($#errors > -1) {
+			&Log::do_log('err', 'Errors occurred while synchronizing datasources for list %s', $name);
+			$errors_occurred = 1;
+			unless (&List::send_notify_to_listmaster('sync_include_failed', $self->{'domain'}, {'errors' => \@errors, 'listname' => $self->{'name'}})) {
+			&Log::do_log('notice',"Unable to send notify 'sync_include_failed' to listmaster");
 			}
-			next unless(defined $cfg);
-			&report::reject_report_web(
-				'user',
-				'sync_include_voot_failed',
-				{
-					'oauth_provider' => 'voot:'.$cfg->{'provider'}
-				},
-				'sync_include',
-				$self->{'domain'},
-				$cfg->{'user'},
-				$self->{'name'}
-			);
-			&report::reject_report_msg(
-				'oauth',
-				'sync_include_voot_failed',
-				$cfg->{'user'},
-				{
-					'consumer_name' => 'VOOT',
-					'oauth_provider' => 'voot:'.$cfg->{'provider'}
-				},
-				$self->{'domain'},
-				'',
-				$self->{'name'}
-			);
+			foreach my $e (@errors) {
+				next unless($e->{'type'} eq 'include_voot_group');
+				my $cfg = undef;
+				foreach my $p (@{$self->{'admin'}{'include_voot_group'}}) {
+					$cfg = $p if($p->{'name'} eq $e->{'name'});
+				}
+				next unless(defined $cfg);
+				&report::reject_report_web(
+					'user',
+					'sync_include_voot_failed',
+					{
+						'oauth_provider' => 'voot:'.$cfg->{'provider'}
+					},
+					'sync_include',
+					$self->{'domain'},
+					$cfg->{'user'},
+					$self->{'name'}
+				);
+				&report::reject_report_msg(
+					'oauth',
+					'sync_include_voot_failed',
+					$cfg->{'user'},
+					{
+						'consumer_name' => 'VOOT',
+						'oauth_provider' => 'voot:'.$cfg->{'provider'}
+					},
+					$self->{'domain'},
+					'',
+					$self->{'name'}
+				);
+			}
+			return undef;
 		}
-	    return undef;
+		
+		# Feed the new_subscribers hash with users previously subscribed
+		# with data sources not used because we were not in the period of
+		# time during which synchronization is allowed. This will prevent
+		# these users from being unsubscribed.
+		if($#exclusions > -1) {
+			foreach my $ex_sources (@exclusions) {
+				my $id = $ex_sources->{'id'};
+				foreach my $email (keys %old_subscribers) {
+					if($old_subscribers{$email}{'id'} =~ /$id/g) {
+						$new_subscribers->{$email}{'date'} = $old_subscribers{$email}{'date'};
+						$new_subscribers->{$email}{'update_date'} = $old_subscribers{$email}{'update_date'};
+						$new_subscribers->{$email}{'visibility'} = $self->{'default_user_options'}{'visibility'} if (defined $self->{'default_user_options'}{'visibility'});
+						$new_subscribers->{$email}{'reception'} = $self->{'default_user_options'}{'reception'} if (defined $self->{'default_user_options'}{'reception'});
+						$new_subscribers->{$email}{'profile'} = $self->{'default_user_options'}{'profile'} if (defined $self->{'default_user_options'}{'profile'});
+						$new_subscribers->{$email}{'info'} = $self->{'default_user_options'}{'info'} if (defined $self->{'default_user_options'}{'info'});
+						if(defined $new_subscribers->{$email}{'id'} && $new_subscribers->{$email}{'id'} ne '') {
+							$new_subscribers->{$email}{'id'} = join (',', split(',', $new_subscribers->{$email}{'id'}), $id);
+						}else{
+							$new_subscribers->{$email}{'id'} = $old_subscribers{$email}{'id'};
+						}
+					}
+				}
+			}
+		}
 	}
-    }
 
-    my $data_exclu;
-    my @subscriber_exclusion;
+	my $data_exclu;
+	my @subscriber_exclusion;
 
-    ## Récupérer un array d'emails pour une liste donnée in 'exclusion_table'
-    $data_exclu = &get_exclusion($name);
+	## Gathering a list of emails for a the list in 'exclusion_table'
+	$data_exclu = &get_exclusion($name,$self->{'domain'});
 
-    my $key =0;
-    while ($data_exclu->{'emails'}->[$key]){
-	push @subscriber_exclusion, $data_exclu->{'emails'}->[$key];
-	$key = $key + 1;
-    }
-    
+	my $key =0;
+	while ($data_exclu->{'emails'}->[$key]){
+		push @subscriber_exclusion, $data_exclu->{'emails'}->[$key];
+		$key = $key + 1;
+	}
 
     my $users_added = 0;
     my $users_updated = 0;
@@ -8536,116 +9522,122 @@ sub sync_include {
 	return undef;
     }
 
-    ## Go though previous list of users
+    ## Go through previous list of users
     my $users_removed = 0;
     my $user_removed;
     my @deltab;
     foreach my $email (keys %old_subscribers) {
-	unless( defined($new_subscribers->{$email}) ) {
-	    ## User is also subscribed, update DB entry
-	    if ($old_subscribers{$email}{'subscribed'}) {
-		&Log::do_log('debug', 'List:sync_include: updating %s to list %s', $email, $name);
-		unless( $self->update_list_member($email,  {'update_date' => time,
-						     'included' => 0,
-						     'id' => ''}) ) {
-		    &Log::do_log('err', 'List:sync_include(%s): Failed to update %s',  $name, $email);
-		    next;
-		}
-		
-		$users_updated++;
-
-		## Tag user for deletion
-	    }else {
-		&Log::do_log('debug3', 'List:sync_include: removing %s from list %s', $email, $name);
-		@deltab = ($email);
-		unless($user_removed = $self->delete_list_member('users' => \@deltab)) {
-		    &Log::do_log('err', 'List:sync_include(%s): Failed to delete %s', $name, $user_removed);
-		    return undef;
-		}
-		if ($user_removed) {
-		    $users_removed++;
-		    ## Send notification if the list config authorizes it only.
-		    if ($self->{'admin'}{'inclusion_notification_feature'} eq 'on') {
-			unless ($self->send_file('removed', $email, $self->{'domain'},{})) {
-			    &Log::do_log('err',"Unable to send template 'removed' to $email");
+		unless( defined($new_subscribers->{$email}) ) {
+			## User is also subscribed, update DB entry
+			if ($old_subscribers{$email}{'subscribed'}) {
+				&Log::do_log('debug', 'List:sync_include: updating %s to list %s', $email, $name);
+				unless( $self->update_list_member($email,  {'update_date' => time,
+								'included' => 0,
+								'id' => ''}) ) {
+					&Log::do_log('err', 'List:sync_include(%s): Failed to update %s',  $name, $email);
+					next;
+				}
+			
+				$users_updated++;
+	
+				## Tag user for deletion
+			}else {
+				&Log::do_log('debug3', 'List:sync_include: removing %s from list %s', $email, $name);
+				@deltab = ($email);
+				unless($user_removed = $self->delete_list_member('users' => \@deltab)) {
+					&Log::do_log('err', 'List:sync_include(%s): Failed to delete %s', $name, $user_removed);
+					return undef;
+				}
+				if ($user_removed) {
+					$users_removed++;
+					## Send notification if the list config authorizes it only.
+					if ($self->{'admin'}{'inclusion_notification_feature'} eq 'on') {
+						unless ($self->send_file('removed', $email, $self->{'domain'},{})) {
+							&Log::do_log('err',"Unable to send template 'removed' to $email");
+						}
+					}
+				}
 			}
-		    }
 		}
-	    }
-	}
     }
     if ($users_removed > 0) {
-	&Log::do_log('notice', 'List:sync_include(%s): %d users removed', $name, $users_removed);
+		&Log::do_log('notice', 'List:sync_include(%s): %d users removed', $name, $users_removed);
     }
 
     ## Go through new users
     my @add_tab;
     $users_added = 0;
     foreach my $email (keys %{$new_subscribers}) {
-	if (defined($old_subscribers{$email}) ) {
-
-	    if ($old_subscribers{$email}{'included'}) {
-
-	      ## If one user attribute has changed, then we should update the user entry
-	      foreach my $attribute ('id','gecos') {
-		if ($old_subscribers{$email}{$attribute} ne $new_subscribers->{$email}{$attribute}) {
-		  &Log::do_log('debug', 'List:sync_include: updating %s to list %s', $email, $name);
-		  unless( $self->update_list_member($email,  {'update_date' => time,
-						       $attribute => $new_subscribers->{$email}{$attribute} }) ) {
-		    &Log::do_log('err', 'List:sync_include(%s): Failed to update %s', $name, $email);
-		    next;
-		  }
-		  $users_updated++;
-		}
-	      }
-		## User was already subscribed, update include_sources_subscriber in DB
-	    }else {
-		&Log::do_log('debug', 'List:sync_include: updating %s to list %s', $email, $name);
-		unless( $self->update_list_member($email,  {'update_date' => time,
+		if (defined($old_subscribers{$email}) ) {
+			if ($old_subscribers{$email}{'included'}) {
+				## If one user attribute has changed, then we should update the user entry
+				my $succesful_update = 0;
+				foreach my $attribute ('id','gecos') {
+					if ($old_subscribers{$email}{$attribute} ne $new_subscribers->{$email}{$attribute}) {
+						&Log::do_log('debug', 'List:sync_include: updating %s to list %s', $email, $name);
+						my $update_time = $new_subscribers->{$email}{'update_date'} || time;
+						unless( $self->update_list_member(
+															$email,
+															{'update_date' => $update_time,
+															$attribute => $new_subscribers->{$email}{$attribute}}
+														)){
+															
+							&Log::do_log('err', 'List:sync_include(%s): Failed to update %s', $name, $email);
+							next;
+						}else {
+							$succesful_update = 1;
+						}
+					}
+				}
+				$users_updated++ if($succesful_update);
+				## User was already subscribed, update include_sources_subscriber in DB
+			}else {
+				&Log::do_log('debug', 'List:sync_include: updating %s to list %s', $email, $name);
+				unless( $self->update_list_member($email,  {'update_date' => time,
 						     'included' => 1,
 						     'id' => $new_subscribers->{$email}{'id'} }) ) {
-		    &Log::do_log('err', 'List:sync_include(%s): Failed to update %s',
-			    $name, $email);
-		    next;
-		}
-		$users_updated++;
-	    }
+					&Log::do_log('err', 'List:sync_include(%s): Failed to update %s',
+					$name, $email);
+					next;
+				}
+				$users_updated++;
+			}
 
 	    ## Add new included user
-	}else {
-	    my $compare = 0;
-	    foreach my $sub_exclu (@subscriber_exclusion){
-		unless ($compare eq '1'){
-		    if ($email eq $sub_exclu){
-			$compare = 1;
-		    }else{
-			next;
-		    }
+		}else {
+			my $compare = 0;
+			foreach my $sub_exclu (@subscriber_exclusion){
+				unless ($compare eq '1'){
+					if ($email eq $sub_exclu){
+						$compare = 1;
+					}else{
+						next;
+					}
+				}
+			}
+			if($compare eq '1'){
+				next;
+			}
+			&Log::do_log('debug3', 'List:sync_include: adding %s to list %s', $email, $name);
+			my $u = $new_subscribers->{$email};
+			$u->{'included'} = 1;
+			$u->{'date'} = time;
+			@add_tab = ($u);
+			my $user_added = 0;
+			unless( $user_added = $self->add_list_member( @add_tab ) ) {
+				&Log::do_log('err', 'List:sync_include(%s): Failed to add new users', $name);
+				return undef;
+			}
+			if ($user_added) {
+				$users_added++;
+				## Send notification if the list config authorizes it only.
+				if ($self->{'admin'}{'inclusion_notification_feature'} eq 'on') {
+					unless ($self->send_file('welcome', $u->{'email'}, $self->{'domain'},{})) {
+						&Log::do_log('err',"Unable to send template 'welcome' to $u->{'email'}");
+					}
+				}
+			}
 		}
-	    }
-	    if($compare eq '1'){
-		next;
-	    }
-	    &Log::do_log('debug3', 'List:sync_include: adding %s to list %s', $email, $name);
-	    my $u = $new_subscribers->{$email};
-	    $u->{'included'} = 1;
-	    $u->{'date'} = time;
-	    $self->add_list_member( $u );
-	    if (defined $self->{'add_outcome'}{'errors'}) {
-		&Log::do_log('err', 'List:sync_include(%s): Failed to add new users: %s', $name, $self->{'add_outcome'}{'errors'}{'error_message'});
-		unless (&List::send_notify_to_listmaster('subscribers_limit_exceeded', $self->{'domain'}, {'max_number_of_subscribers' => $self->{'admin'}{'max_list_members'}, 'listname' => $self->{'name'}})) {
-		    &Log::do_log('notice',"Unable to send notify 'sync_include_admmin_failed' to listmaster");
-		}
-		last;
-	    }
-	    $users_added++;
-	    ## Send notification if the list config authorizes it only.
-	    if ($self->{'admin'}{'inclusion_notification_feature'} eq 'on') {
-		unless ($self->send_file('welcome', $u->{'email'}, $self->{'domain'},{})) {
-		    &Log::do_log('err',"Unable to send template 'welcome' to $u->{'email'}");
-		}
-	    }
-	}
     }
 
     if ($users_added) {
@@ -8663,6 +9655,8 @@ sub sync_include {
     $self->{'total'} = $self->_load_total_db('nocache');
     $self->{'last_sync'} = time;
     $self->savestats();
+    $self->sync_include_ca($option eq 'purge');
+		
 
     return 1;
 }
@@ -8680,12 +9674,13 @@ sub on_the_fly_sync_include {
     &Log::do_log('debug2','List::on_the_fly_sync_include(%s)',$pertinent_ttl);
     if ( $options{'use_ttl'} != 1 || $self->{'last_sync'} < time - $pertinent_ttl) { 
 	&Log::do_log('notice', "Synchronizing list members...");
-	if ($self->sync_include()) {
+	my $return_value = $self->sync_include();
+	if ($return_value == 1) {
 	    $self->remove_task('sync_include');
 	    return 1;
 	}
 	else {
-	    return undef;
+	    return $return_value;
 	}
     }
     return 1;
@@ -9127,11 +10122,73 @@ sub store_digest {
 ## Returns a ref to an array of List objects
 sub get_lists {
     my $robot_context = shift || '*';
-    my $options = shift;
+    my $options = shift || {};
     my $requested_lists = shift; ## Optional parameter to load only a subset of all lists
+    my $use_files;
+    my $cond_perl;
+    my $cond_sql;
 
     my(@lists, $l,@robots);
     &Log::do_log('debug2', 'List::get_lists(%s)',$robot_context);
+
+    # Determin if files are used instead of list_table DB cache.
+    if ($Conf::Conf{'db_list_cache'} ne 'on' or defined $requested_lists) {
+	$use_files = 1;
+    } else {
+	$use_files = $options->{'use_files'};
+    }
+
+    # Build query: Perl expression for files and SQL expression for list_table.
+    my @query = (@{$options->{'filter_query'} || []});
+    my @clause_perl = ();
+    my @clause_sql = ();
+    while (1 < scalar @query) {
+        my @expr_perl = ();
+        my @expr_sql = ();
+        my @keys = split /[|]/, shift @query;
+        my @vals = split /[|]/, shift @query;
+
+        foreach my $k (@keys) {
+            next unless $k =~ /\S/;
+            $k =~ s/^\s+//;
+            $k =~ s/\s+$//;
+
+            foreach my $v (@vals) {
+                if ($k eq 'web_archive') {
+                    push @expr_perl, sprintf '&is_web_archived($list) == %d',
+                                             ($v+0 ? 1 : 0);
+                } elsif ($k =~ /^(name|robot)$/) {
+                    push @expr_perl, sprintf '$list->{"%s"} eq "%s"',
+                                             quotemeta $k, quotemeta $v;
+                } elsif ($k =~ /^(status|subject)$/) {
+                    push @expr_perl, sprintf '$list->{"admin"}{"%s"} eq "%s"',
+                                             quotemeta $k, quotemeta $v;
+                } else {
+                    &Log::do_log('err', "bug in logic. Ask developer");
+                    return undef;
+                }
+                if ($k eq 'web_archive') {
+                    push @expr_sql, sprintf 'web_archive_list = %d',
+                                            ($v+0 ? 1 : 0);
+                } else {
+                    push @expr_sql, sprintf '%s_list = %s',
+                                            $k, &SDM::quote($v);
+                }
+            }
+        }
+        if (scalar @expr_perl) {
+            push @clause_perl, join ' || ', @expr_perl;
+            push @clause_sql, join ' OR ', @expr_sql;
+        }
+    }
+    if (scalar @clause_perl) {
+        $cond_perl = join ' && ', map { "($_)" } @clause_perl;
+        $cond_sql = join ' AND ', map { "($_)" } @clause_sql;
+        &Log::do_log('debug2', 'query %s; %s', $cond_perl, $cond_sql);
+    } else {
+        $cond_perl = undef;
+        $cond_sql = undef;
+    }
 
     if ($robot_context eq '*') {
 	@robots = &get_robots ;
@@ -9140,11 +10197,17 @@ sub get_lists {
     }
     
     foreach my $robot (@robots) {
-    
 	## Check cache first
 	if (defined $list_cache{'get_lists'}{$robot}) {
-	    push @lists, @{$list_cache{'get_lists'}{$robot}};
-	}else {
+	    if (defined $cond_perl) {
+		foreach my $list (@{$list_cache{'get_lists'}{$robot}}) {
+		    next unless eval $cond_perl;
+		    push @lists, $list;
+		}
+	    } else {
+		push @lists, @{$list_cache{'get_lists'}{$robot}};
+	    }
+	} else {
 	    my $robot_dir =  $Conf::Conf{'home'}.'/'.$robot ;
 	    $robot_dir = $Conf::Conf{'home'}  unless ((-d $robot_dir) || ($robot ne $Conf::Conf{'domain'}));
 	    
@@ -9153,18 +10216,26 @@ sub get_lists {
 		return undef ;
 	    }
 	    
-	    unless (opendir(DIR, $robot_dir)) {
-		&Log::do_log('err',"Unable to open $robot_dir");
-		return undef;
-	    }
-
 	    ## Load only requested lists if $requested_list is set
 	    ## otherwise load all lists
 	    my @files;
-	    if ( defined($requested_lists)){
-	      @files = sort @{$requested_lists};
-	    }else {
-	      @files = sort readdir(DIR);
+	    if (defined($requested_lists)){
+		@files = sort @{$requested_lists};
+	    } elsif ($use_files) {
+		unless (opendir(DIR, $robot_dir)) {
+		    &Log::do_log('err',"Unable to open $robot_dir");
+		    return undef;
+		}
+		@files = sort readdir(DIR);
+		closedir DIR;
+	    } else {
+		# get list names from list cache table
+		my $where = sprintf 'robot_list = %s', &SDM::quote($robot);  
+		if (defined $cond_sql) {
+		    $where .= " AND $cond_sql";
+		}
+		my $files = &get_lists_db($where);
+		@files = @{$files};
 	    }
 
 	    foreach my $l (@files) {
@@ -9173,17 +10244,20 @@ sub get_lists {
 		my $list = new List ($l, $robot, $options);
 		
 		next unless (defined $list);
+
+		if ($use_files and defined $cond_perl) {
+		    next unless eval $cond_perl;
+		}
 		
 		push @lists, $list;
 		
 		## Also feed the cache
 		## Unless we only loaded a subset of all lists ($requested_lists parameter used)
-		unless (defined $requested_lists) {
-		  push @{$list_cache{'get_lists'}{$robot}}, $list;
+		unless (defined $requested_lists or defined $cond_perl) {
+		    push @{$list_cache{'get_lists'}{$robot}}, $list;
 		}
 		
 	    }
-	    closedir DIR;
 	}
     }
     return \@lists;
@@ -9798,14 +10872,6 @@ sub _apply_defaults {
 	}
     }
 
-    ## Default for user_data_source is 'file'
-    ## if not using a RDBMS
-    if ($SDM::use_db) {
-	$::pinfo{'user_data_source'}{'default'} = 'include2';
-    }else {
-	$::pinfo{'user_data_source'}{'default'} = 'file';
-    }
-    
     return \%::pinfo;
 }
 
@@ -9894,12 +10960,6 @@ sub _load_list_param {
     ## Synonyms
     if (defined $p->{'synonym'}{$value}) {
 	$value = $p->{'synonym'}{$value};
-    }
-
-    ## Include mode should not be used anymore
-    ## Change value to include2 to shift to new behavior
-    if ($key eq 'user_data_source' && $value eq 'include') {
-	$value = 'include2';
     }
 
     ## Scenario
@@ -10118,7 +11178,8 @@ sub _load_list_config_file {
 		}
 		
 		unless ($paragraph[$i] =~ /^\s*$key\s+($::pinfo{$pname}{'file_format'}{$key}{'file_format'})\s*$/i) {
-		    &Log::do_log('err', 'Bad entry "%s" in paragraph "%s" in %s', $paragraph[$i], $key, $pname, $config_file);
+		    chomp($paragraph[$i]);
+		    &Log::do_log('err', 'Bad entry "%s" for key "%s", paragraph "%s" in file "%s"', $paragraph[$i], $key, $pname, $config_file);
 		    next;
 		}
 
@@ -10162,6 +11223,7 @@ sub _load_list_config_file {
 	    }
 
 	    unless ($paragraph[0] =~ /^\s*$pname\s+($::pinfo{$pname}{'file_format'})\s*$/i) {
+		chomp($paragraph[0]);
 		&Log::do_log('info', 'Bad entry "%s" in %s', $paragraph[0], $config_file);
 		next;
 	    }
@@ -10275,27 +11337,14 @@ sub _load_list_config_file {
     }
 
     ############################################
-    ## Bellow are constraints between parameters
+    ## Below are constraints between parameters
     ############################################
 
-    ## Subscription and unsubscribe add and del are closed 
-    ## if subscribers are extracted via external include method
-    ## (current version external method are SQL or LDAP query
-    if ($admin{'user_data_source'} eq 'include') {
-	foreach my $p ('subscribe','add','invite','unsubscribe','del') {
-	    $admin{$p} = &_load_list_param($robot,$p, 'closed', $::pinfo{$p}, 'closed', $directory);
-	}
-
-    }
-
     ## Do we have a database config/access
-    if (($admin{'user_data_source'} eq 'database') ||
-	($admin{'user_data_source'} eq 'include2')){
-	unless ($SDM::use_db) {
-	    &Log::do_log('info', 'Sympa not setup to use DBI or no database access');
-	    ## We should notify the listmaster here...
-	    #return undef;
-	}
+    unless ($SDM::use_db) {
+		&Log::do_log('info', 'Sympa not setup to use DBI or no database access');
+		## We should notify the listmaster here...
+		#return undef;
     }
 
     ## This default setting MUST BE THE LAST ONE PERFORMED
@@ -11497,22 +12546,124 @@ sub get_list_id {
 
     return $self->{'name'}.'@'.$self->{'domain'};
 }
-
+ 
 ##connect to stat_counter_table and extract data.
 sub get_data {
     my ($data, $robotname, $listname) = @_;
 
     unless ( $sth = &SDM::do_query( "SELECT * FROM stat_counter_table WHERE data_counter = '%s' AND robot_counter = '%s' AND list_counter = '%s'", $data,$robotname, $listname)) {
-	&Log::do_log('err','Unable to get stat data %s for liste %s@%s',$data,$listname,$robotname);
-	return undef;
+		&Log::do_log('err','Unable to get stat data %s for liste %s@%s',$data,$listname,$robotname);
+		return undef;
     }
     my $res = $sth->fetchall_hashref('beginning_date_counter');
     return $res;
 }
 
-    
+## Support for list config caching in database
+sub get_lists_db {
+    my $where = shift || '';
+    &Log::do_log('debug2', 'List::get_lists_db(%s)', $where);
 
+    unless ($List::use_db) {
+       &Log::do_log('info', 'Sympa not setup to use DBI');
+       return undef;
+    }
+
+    my $statement = 'SELECT name_list FROM list_table';
+    $statement .= " WHERE $where" if $where;
+
+    my ($l, @lists);
+
+    unless ($sth = &SDM::do_query()) {
+	&Log::do_log('err',"Unable to gather the list of lists from lists table");
+	return undef;
+    }	
+    push @sth_stack, $sth;
+    while ($l = $sth->fetchrow_hashref) {
+       my $name = $l->{'name_list'};
+       push @lists, $name;
+    }  
+    $sth = pop @sth_stack;
+
+    return \@lists;
+}
+
+sub _update_list_db
+{
+    my ($self) = shift;
+    my @admins;
+    my $i;
+    my $adm_txt;
+    my $ed_txt;
+
+    my $name = $self->{'name'};
+    my $subject = $self->{'admin'}{'subject'} || '';
+    my $status = $self->{'admin'}{'status'};
+    my $robot = $self->{'admin'}{'host'};
+    my $web_archive  = &is_web_archived($self) || 0; 
+    my $topics = '';
+    if ($self->{'admin'}{'topics'}) {
+       $topics = join(',',@{$self->{'admin'}{'topics'}});
+    }
     
+    foreach $i (@{$self->{'admin'}{'owner'}}) {
+       if (ref($i->{'email'})) {
+           push(@admins, @{$i->{'email'}});
+       } elsif ($i->{'email'}) {
+           push(@admins, $i->{'email'});
+       }
+    }
+    $adm_txt = join(',',@admins) || '';
+
+    undef @admins;
+    foreach $i (@{$self->{'admin'}{'editor'}}) {
+       if (ref($i->{'email'})) {
+           push(@admins, @{$i->{'email'}});
+       } elsif ($i->{'email'}) {
+           push(@admins, $i->{'email'});
+       }
+    }
+    $ed_txt = join(',',@admins) || '';
+
+    unless ($sth = &SDM::do_query('INSERT INTO list_table (status_list, name_list, robot_list, subject_list, web_archive_list, topics_list, owners_list, editors_list) VALUES (%s, %s, %s, %s, %d, %s, %s, %s)',
+			 &SDM::quote($status), &SDM::quote($name),
+			 &SDM::quote($robot), &SDM::quote($subject),
+			 ($web_archive ? 1 : 0), &SDM::quote($topics),
+			 &SDM::quote($adm_txt), &SDM::quote($ed_txt))) {
+
+	unless ($sth = &SDM::do_query('UPDATE list_table SET status_list = %s, name_list = %s, robot_list = %s, subject_list = %s, web_archive_list = %d, topics_list = %s, owners_list = %s, editors_list = %s WHERE robot_list = %s AND name_list = %s',
+			     &SDM::quote($status), &SDM::quote($name),
+			     &SDM::quote($robot), &SDM::quote($subject),
+			     ($web_archive ? 1 : 0), &SDM::quote($topics),
+			     &SDM::quote($adm_txt),&SDM::quote($ed_txt),
+			     &SDM::quote($robot), &SDM::quote($name))) {
+	    &Log::do_log('err','Unable to update or insert list %s@%s in database', $name,$robot);
+	    return undef;
+	}	
+    }
+    return 1;
+}
+
+sub _flush_list_db
+{
+    my ($listname) = shift;
+    my $statement;
+    unless ($listname) {
+	if ($Conf::Conf{'db_type'} eq 'SQLite') {
+	    # SQLite does not have TRUNCATE TABLE.
+	    $statement = "DELETE FROM list_table";
+	} else {
+	    $statement =  "TRUNCATE TABLE list_table";
+	}
+    } else {
+        $statement = "DELETE FROM list_table WHERE name_list = %s";
+    } 
+
+    unless ($sth = &SDM::do_query($statement, &SDM::quote($listname))) {
+	&Log::do_log('err','Unable to flush lists table');
+	return undef;
+    }	
+}
 
 ###### END of the List package ######
 
