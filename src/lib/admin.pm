@@ -41,6 +41,7 @@ use Language;
 use Log;
 use tools;
 use Sympa::Constants;
+use File::Copy;
 
 =pod 
 
@@ -346,7 +347,9 @@ sub create_list_old{
     if ($list->has_include_data_sources()) {
 	&Log::do_log('notice', "Synchronizing list members...");
 	$list->sync_include();
-    }   
+    }
+    
+    $list->save_config;
    return $return;
 }
 
@@ -446,7 +449,7 @@ sub create_list{
                 $param->{'listname'}, $family->{'name'},$robot);
       return undef;
     }
-
+    
      ## Create the list directory
      my $list_dir;
 
@@ -505,7 +508,25 @@ sub create_list{
 	print INFO $param->{'description'};
     }
     close INFO;
-    
+
+    ## Create associated files if a template was given.
+    for my $file ('message.footer','message.header','message.footer.mime','message.header.mime','info') {
+	my $template_file = &tools::get_filename('etc',{},$file.".tt2", $robot,$family);
+	if (defined $template_file) {
+	    my $file_content;
+	    my $tt_result = &tt2::parse_tt2($param, $file.".tt2", \$file_content, [$family->{'dir'}]);
+	    unless (defined $tt_result) {
+		&Log::do_log('err', 'admin::create_list : tt2 error. List %s from family %s@%s, file %s',
+			$param->{'listname'}, $family->{'name'},$robot,$file);
+	    }
+	    unless (open FILE, '>:utf8', "$list_dir/$file") {
+		&Log::do_log('err','Impossible to create %s/%s : %s',$list_dir,$file,$!);
+	    }
+	    print FILE $file_content;
+	    close FILE;
+	}
+    }
+
     ## Create list object
     my $list;
     unless ($list = new List ($param->{'listname'}, $robot)) {
@@ -776,16 +797,16 @@ sub rename_list{
      
     ## This code should be in List::rename()
     unless ($param{'mode'} eq 'copy') {     
-	 unless (rename ($list->{'dir'}, $new_dir )){
+	 unless (move ($list->{'dir'}, $new_dir )){
 	     &Log::do_log('err',"Unable to rename $list->{'dir'} to $new_dir : $!");
 	     return 'internal';
 	 }
      
 	 ## Rename archive
 	 my $arc_dir = &Conf::get_robot_conf($robot, 'arc_path').'/'.$list->get_list_id();
-	 my $new_arc_dir = &Conf::get_robot_conf($robot, 'arc_path').'/'.$param{'new_listname'}.'@'.$param{'new_robot'};
-	 if (-d $arc_dir) {
-	     unless (rename ($arc_dir,$new_arc_dir)) {
+	 my $new_arc_dir = &Conf::get_robot_conf($param{'new_robot'}, 'arc_path').'/'.$param{'new_listname'}.'@'.$param{'new_robot'};
+	 if (-d $arc_dir && $arc_dir ne $new_arc_dir) {
+	     unless (move ($arc_dir,$new_arc_dir)) {
 		 &Log::do_log('err',"Unable to rename archive $arc_dir");
 		 # continue even if there is some troubles with archives
 		 # return undef;
@@ -795,19 +816,36 @@ sub rename_list{
 	 ## Rename bounces
 	 my $bounce_dir = $list->get_bounce_dir();
 	 my $new_bounce_dir = &Conf::get_robot_conf($param{'new_robot'}, 'bounce_path').'/'.$param{'new_listname'}.'@'.$param{'new_robot'};
-	 if (-d $bounce_dir &&
-	     ($list->{'name'} ne $param{'new_listname'})
-	     ) {
-	     unless (rename ($bounce_dir,$new_bounce_dir)) {
+	 if (-d $bounce_dir && $bounce_dir ne $new_bounce_dir) {
+	     unless (move ($bounce_dir,$new_bounce_dir)) {
 		 &Log::do_log('err',"Unable to rename bounces from $bounce_dir to $new_bounce_dir");
 	     }
 	 }
 	 
 	 # if subscribtion are stored in database rewrite the database
-	 if ($list->{'admin'}{'user_data_source'} =~ /^(database|include2)$/) {
-	     &List::rename_list_db ($list,$param{'new_listname'},$param{'new_robot'});
-	 }
+	 &List::rename_list_db($list, $param{'new_listname'},
+			       $param{'new_robot'});
      }
+     ## Move stats
+    unless (&SDM::do_query("UPDATE stat_table SET list_stat=%s, robot_stat=%s WHERE (list_stat = %s AND robot_stat = %s )", 
+    &SDM::quote($param{'new_listname'}), 
+    &SDM::quote($param{'new_robot'}), 
+    &SDM::quote($list->{'name'}), 
+    &SDM::quote($robot)
+    )) {
+	&Log::do_log('err','Unable to transfer stats from list %s@%s to list %s@%s',$param{'new_listname'}, $param{'new_robot'}, $list->{'name'}, $robot);
+    }
+
+     ## Move stat counters
+    unless (&SDM::do_query("UPDATE stat_counter_table SET list_counter=%s, robot_counter=%s WHERE (list_counter = %s AND robot_counter = %s )", 
+    &SDM::quote($param{'new_listname'}), 
+    &SDM::quote($param{'new_robot'}), 
+    &SDM::quote($list->{'name'}), 
+    &SDM::quote($robot)
+    )) {
+	&Log::do_log('err','Unable to transfer stat counter from list %s@%s to list %s@%s',$param{'new_listname'}, $param{'new_robot'}, $list->{'name'}, $robot);
+    }
+
      ## Install new aliases
      $param{'listname'} = $param{'new_listname'};
      
@@ -815,7 +853,7 @@ sub rename_list{
 	 &Log::do_log('err',"Unable to load $param{'new_listname'} while renaming");
 	 return 'internal';
      }
-
+     
      ## Check custom_subject
      if (defined $list->{'admin'}{'custom_subject'} &&
 	 $list->{'admin'}{'custom_subject'} =~ /$old_listname/) {
@@ -838,10 +876,11 @@ sub rename_list{
 		 &Log::do_log('err', "Unable to open '%s' spool : %s", $Conf::Conf{$spool}, $!);
 	     }
 	     
-	     foreach my $file (sort grep (!/^\.+$/,readdir(DIR))) {
+	     foreach my $file (sort readdir(DIR)) {
 		 next unless ($file =~ /^$old_listname\_/ ||
 			      $file =~ /^$old_listname\./ ||
 			      $file =~ /^$old_listname\@$robot\./ ||
+			      $file =~ /^\.$old_listname\@$robot\_/ ||
 			      $file =~ /^$old_listname\@$robot\_/ ||
 			      $file =~ /\.$old_listname$/);
 		 
@@ -854,12 +893,14 @@ sub rename_list{
 		     $newfile =~ s/^$old_listname\@$robot\./$param{'new_listname'}\@$param{'new_robot'}\./;
 		 }elsif ($file =~ /^$old_listname\@$robot\_/) {
 		     $newfile =~ s/^$old_listname\@$robot\_/$param{'new_listname'}\@$param{'new_robot'}\_/;
+		 }elsif ($file =~ /^\.$old_listname\@$robot\_/) {
+		     $newfile =~ s/^\.$old_listname\@$robot\_/\.$param{'new_listname'}\@$param{'new_robot'}\_/;
 		 }elsif ($file =~ /\.$old_listname$/) {
 		     $newfile =~ s/\.$old_listname$/\.$param{'new_listname'}/;
 		 }
 		 
 		 ## Rename file
-		 unless (rename "$Conf::Conf{$spool}/$file", "$Conf::Conf{$spool}/$newfile") {
+		 unless (move "$Conf::Conf{$spool}/$file", "$Conf::Conf{$spool}/$newfile") {
 		     &Log::do_log('err', "Unable to rename %s to %s : %s", "$Conf::Conf{$spool}/$newfile", "$Conf::Conf{$spool}/$newfile", $!);
 		     next;
 		 }
@@ -872,12 +913,12 @@ sub rename_list{
 	 } 
 	 ## Digest spool
 	 if (-f "$Conf::Conf{'queuedigest'}/$old_listname") {
-	     unless (rename "$Conf::Conf{'queuedigest'}/$old_listname", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}") {
+	     unless (move "$Conf::Conf{'queuedigest'}/$old_listname", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}") {
 		 &Log::do_log('err', "Unable to rename %s to %s : %s", "$Conf::Conf{'queuedigest'}/$old_listname", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}", $!);
 		 next;
 	     }
 	 }elsif (-f "$Conf::Conf{'queuedigest'}/$old_listname\@$robot") {
-	     unless (rename "$Conf::Conf{'queuedigest'}/$old_listname\@$robot", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}\@$param{'new_robot'}") {
+	     unless (move "$Conf::Conf{'queuedigest'}/$old_listname\@$robot", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}\@$param{'new_robot'}") {
 		 &Log::do_log('err', "Unable to rename %s to %s : %s", "$Conf::Conf{'queuedigest'}/$old_listname\@$robot", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}\@$param{'new_robot'}", $!);
 		 next;
 	     }
