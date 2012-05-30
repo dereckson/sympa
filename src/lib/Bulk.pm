@@ -137,7 +137,7 @@ sub next {
 sub remove {
     my $messagekey = shift;
     my $packetid= shift;
-    #
+
     &Log::do_log('debug', "Bulk::remove(%s,%s)",$messagekey,$packetid);
 
     unless ($sth = &SDM::do_query( "DELETE FROM bulkmailer_table WHERE packetid_bulkmailer = %s AND messagekey_bulkmailer = %s",&SDM::quote($packetid),&SDM::quote($messagekey))) {
@@ -536,7 +536,7 @@ sub remove_bulkspool_message {
     my $table = $spool.'_table';
     my $key = 'messagekey_'.$spool ;
 
-    unless (&SDM::do_query( "DELETE FROM %s WHERE %s = '%s'",$table,$key,$messagekey)) {
+    unless (&SDM::do_query( "DELETE FROM %s WHERE %s = %s",$table,$key,&SDM::quote($messagekey))) {
 	&Log::do_log('err','Unable to delete %s %s from %s',$table,$key,$messagekey);
 	return undef;
     }
