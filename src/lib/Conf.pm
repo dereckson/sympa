@@ -37,6 +37,7 @@ use wwslib;
 use confdef;
 use tools;
 use Sympa::Constants;
+use Data::Dumper;
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw(%params %Conf DAEMON_MESSAGE DAEMON_COMMAND DAEMON_CREATION DAEMON_ALL);
@@ -71,6 +72,7 @@ my %old_params = (
     msgcat                 => 'localedir',
     queueexpire            => '',
     clean_delay_queueother => '',
+    dkim_header_list => '',
     web_recode_to          => 'filesystem_encoding',
 );
 
@@ -144,7 +146,6 @@ sub load {
             printf STDERR  "Conf::load(): Unable to load %s. Aborting\n", $config_file;
             return undef;
         }
-        
         # Returning the config file content if this is what has been asked.
         return (\%line_numbered_config) if ($return_result);
 
@@ -163,7 +164,7 @@ sub load {
         &_set_listmasters_entry({'config_hash' => \%Conf, 'main_config' => 1});
     
         ## Some parameters must have a value specifically defined in the config. If not, it is an error.
-        $config_err += &_detect_missing_mandatory_parameters({'config_hash' => \%Conf,});
+        $config_err += &_detect_missing_mandatory_parameters({'config_hash' => \%Conf,'file_to_check' => $config_file});
 
         # Some parameters need special treatments to get their final values.
         &_infer_server_specific_parameter_values({'config_hash' => \%Conf,});
@@ -187,7 +188,6 @@ sub load {
     ## Load robot.conf files
     &load_robots({'config_hash' => \%Conf, 'no_db' => $no_db, 'force_reload' => $force_reload}) ;
     &_create_robot_like_config_for_main_robot();
-    
     return 1;
 }
 
@@ -997,6 +997,78 @@ sub load_sql_filter {
     return (&load_generic_conf_file($file,\%sql_named_filter_params, 'abort'));
 }
 
+## load automatic_list_description.conf configuration file
+sub load_automatic_lists_description {
+    my $robot = shift;
+    my $family = shift;
+    &Log::do_log('debug2','Starting: robot %s family %s',$robot,$family);
+    
+    my %automatic_lists_params = (
+	'class' => {
+	    'occurrence' => '1-n',
+	    'format' => { 
+		'name' => {'format' => '.*', 'occurrence' => '1', },
+		'stamp' => {'format' => '.*', 'occurrence' => '1', },
+		'description' => {'format' => '.*', 'occurrence' => '1', },
+		'order' => {'format' => '\d+', 'occurrence' => '1',  },
+		'instances' => {'occurrence' => '1','format' => '.*',},
+		    #'format' => {
+			#'instance' => {
+			    #'occurrence' => '1-n',
+			    #'format' => {
+				#'value' => {'format' => '.*', 'occurrence' => '1', },
+				#'tag' => {'format' => '.*', 'occurrence' => '1', },
+				#'order' => {'format' => '\d+', 'occurrence' => '1',  },
+				#},
+			    #},
+			#},
+		},
+	    },
+	);
+    # find appropriate automatic_lists_description.tt2 file
+    my $config ;
+    if (defined $robot) {
+	$config = $Conf{'etc'}.'/'.$robot.'/families/'.$family.'/automatic_lists_description.conf';
+    }else{
+	$config = $Conf{'etc'}.'/families/'.$family.'/automatic_lists_description.conf';
+    }
+    return undef unless  (-r $config);
+    my $description = &load_generic_conf_file($config,\%automatic_lists_params);
+
+    ## Now doing some structuration work because Conf::load_automatic_lists_description() can't handle
+    ## data structured beyond one level of hash. This needs to be changed.
+    my @structured_data;
+    foreach my $class (@{$description->{'class'}}){
+	my @structured_instances;
+	my @instances = split '%%%',$class->{'instances'};
+	my $default_found = 0;
+	foreach my $instance (@instances) {
+	    my $structured_instance;
+	    my @instance_params = split '---',$instance;
+	    foreach my $instance_param (@instance_params) {
+		$instance_param =~ /^\s*(\S+)\s+(.*)\s*$/;
+		my $key = $1;
+		my $value = $2;
+		$key =~ s/^\s*//;
+		$key =~ s/\s*$//;
+		$value =~ s/^\s*//;
+		$value =~ s/\s*$//;
+		$structured_instance->{$key} = $value;
+	    }
+	    $structured_instances[$structured_instance->{'order'}] = $structured_instance;
+	    if (defined $structured_instance->{'default'}) {
+		$default_found = 1;
+	    }
+	}
+	unless($default_found) {$structured_instances[0]->{'default'} = 1;}
+	$class->{'instances'} = \@structured_instances;
+	$structured_data[$class->{'order'}] = $class;
+    }
+    $description->{'class'} = \@structured_data;
+    return $description;
+}
+
+
 ## load trusted_application.conf configuration file
 sub load_trusted_application {
     my $robot = shift;
@@ -1243,7 +1315,7 @@ sub _load_a_param {
     $value = $p->{'default'};
     }
     ## lower case if usefull
-    $value = lc($value) if ($p->{'case'} eq 'insensitive'); 
+    $value = lc($value) if (defined $p->{'case'} && $p->{'case'} eq 'insensitive'); 
     
     ## Do we need to split param if it is not already an array
     if (($p->{'occurrence'} =~ /n$/)
@@ -1295,7 +1367,7 @@ sub _load_config_file_to_hash {
                 $value = qx/$1/;
                 chomp($value);
             }
-            if($params{$keyword}{'multiple'} == 1){
+            if(defined $params{$keyword}{'multiple'} && $params{$keyword}{'multiple'} == 1){
                 if(defined $result->{'config'}{$keyword}) {
                     push @{$result->{'config'}{$keyword}}, $value;
                     push @{$result->{'numbered_config'}{$keyword}}, [$value, $line_num];
@@ -1453,6 +1525,26 @@ sub _infer_robot_parameter_values {
     $param->{'config_hash'}{'static_content_url'} ||= $Conf{'static_content_url'};
     $param->{'config_hash'}{'static_content_path'} ||= $Conf{'static_content_path'};
 
+    # Hack because multi valued parameters are not available for Sympa 6.1.
+    if (defined $param->{'config_hash'}{'automatic_list_families'}) {
+	my @families = split ';',$param->{'config_hash'}{'automatic_list_families'};
+	my %families_description;
+	foreach my $family_description (@families) {
+	    my %family;
+	    my @family_parameters = split ':',$family_description;
+	    foreach my $family_parameter (@family_parameters) {
+		my @parameter = split '=', $family_parameter;
+		$family{$parameter[0]} = $parameter[1];
+	    }
+	    $family{'escaped_prefix_separator'} = $family{'prefix_separator'};
+	    $family{'escaped_prefix_separator'} =~ s/([+*?.])/\\$1/g;
+	    $family{'escaped_classes_separator'} = $family{'classes_separator'};
+	    $family{'escaped_classes_separator'} =~ s/([+*?.])/\\$1/g;
+	    $families_description{$family{'name'}} = \%family;
+	    $families_description{$family{'name'}}{'description'} = &load_automatic_lists_description(undef,$family{'name'});
+	}
+	$param->{'config_hash'}{'automatic_list_families'} = \%families_description;
+    }
     ## CSS
     my $final_separator = '';
     $final_separator = '/' if ($param->{'config_hash'}{'robot_name'});
@@ -1505,7 +1597,10 @@ sub _set_hardcoded_parameter_values{
 sub _detect_missing_mandatory_parameters {
     my $param = shift;
     my $number_of_errors = 0;
+    $param->{'file_to_check'} =~ /^(\/.*\/)?([^\/]+)$/;
+    my $config_file_name = $2;
     foreach my $parameter (keys %params) {
+        next if (defined $params{$parameter}->{'file'} && $params{$parameter}->{'file'} ne $config_file_name);
         unless (defined $param->{'config_hash'}{$parameter} or defined $params{$parameter}->{'default'} or defined $params{$parameter}->{'optional'}) {
             printf STDERR "Conf::_detect_missing_mandatory_parameters(): Required field not found in sympa.conf: %s\n", $parameter;
             $number_of_errors++;
