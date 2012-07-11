@@ -229,6 +229,13 @@ sub new {
 
     $self->{'robot'} = $robot;
 
+    ## Adding configuration related to automatic lists.
+    my $all_families_config = &Conf::get_robot_conf($robot,'automatic_list_families');
+    my $family_config = $all_families_config->{$name};
+    foreach my $key (keys %{$family_config}) {
+	$self->{$key} = $family_config->{$key};
+    }
+
     ## family directory
     $self->{'dir'} = $self->_get_directory();
     unless (defined $self->{'dir'}) {
@@ -2490,26 +2497,24 @@ sub _set_status_changes {
 	$result->{'aliases'} = &admin::remove_aliases($list,$self->{'robot'});
     }
     
-    ## subscribers
-    if (($old_status ne 'pending') && ($old_status ne 'open')) {
-	
-	if ($list->{'admin'}{'user_data_source'} eq 'file') {
-	    $list->{'users'} = &List::_load_list_members_file("$list->{'dir'}/subscribers.closed.dump");
-	}elsif ($list->{'admin'}{'user_data_source'} eq 'database') {
-	    unless (-f "$list->{'dir'}/subscribers.closed.dump") {
-		&Log::do_log('notice', 'No subscribers to restore');
-	    }
-	    my @users = &List::_load_list_members_file("$list->{'dir'}/subscribers.closed.dump");
-	    
-	    ## Insert users in database
-	    $list->add_list_member(@users);
-	    my $total = $list->{'add_outcome'}{'added_members'};
-	    if (defined $list->{'add_outcome'}{'errors'}) {
-		&Log::do_log('err', 'Failed to add users: %s',$list->{'add_outcome'}{'errors'}{'error_message'});
-	    }
-	}
-    }
-	
+##    ## subscribers
+##    if (($old_status ne 'pending') && ($old_status ne 'open')) {
+##	
+##	if ($list->{'admin'}{'user_data_source'} eq 'file') {
+##	    $list->{'users'} = &List::_load_users_file("$list->{'dir'}/subscribers.closed.dump");
+##	}elsif ($list->{'admin'}{'user_data_source'} eq 'database') {
+##	    unless (-f "$list->{'dir'}/subscribers.closed.dump") {
+##		&Log::do_log('notice', 'No subscribers to restore');
+##	    }
+##	    my @users = &List::_load_users_file("$list->{'dir'}/subscribers.closed.dump");
+##	    
+##	    ## Insert users in database
+##	    foreach my $user (@users) {
+##		$list->add_user($user);
+##	    }
+##	}
+##    }
+
     return $result;
 }
 
@@ -2809,8 +2814,69 @@ sub _load_param_constraint_conf {
     return $constraint;
 }
 
+sub create_automatic_list {
+    my $self = shift;
+    my %param = @_;
+    my $auth_level = $param{'auth_level'};
+    my $sender = $param{'sender'};
+    my $message = $param{'message'};
+    my $listname = $param{'listname'};
 
+    unless ($self->is_allowed_to_create_automatic_lists(%param)){
+	&Log::do_log('err', 'Unconsistent scenario evaluation result for automatic list creation of list %s@%s by user %s.', $listname,$self->{'robot'},$sender);
+	return undef;
+    }
+    my $result = $self->add_list({listname=>$listname}, 1);
+    
+    unless (defined $result->{'ok'}) {
+	my $details = $result->{'string_error'} || $result->{'string_info'} || [];
+	&Log::do_log('err', "Failed to add a dynamic list to the family %s : %s", $self->{'name'}, join(';', @{$details}));
+	return undef;
+    }
+    my $list = new List ($listname, $self->{'robot'});
+    unless (defined $list) {
+	&Log::do_log('err', 'sympa::DoFile() : dynamic list %s could not be created',$listname);
+	return undef;
+    }
+    return $list;
+}
 
+# Returns 1 if the user is allowed to create lists based on the family.
+sub is_allowed_to_create_automatic_lists {
+    my $self = shift;
+    my %param = @_;
+    
+    my $auth_level = $param{'auth_level'};
+    my $sender = $param{'sender'};
+    my $message = $param{'message'};
+    my $listname = $param{'listname'};
+    
+    # check authorization
+    my $result = &Scenario::request_action('automatic_list_creation',$auth_level,$self->{'robot'},
+					   {'sender' => $sender, 
+					    'message' => $message, 
+					    'family'=>$self, 
+					    'automatic_listname'=>$listname });
+    my $r_action;
+    unless (defined $result) {
+	&Log::do_log('err', 'Unable to evaluate scenario "automatic_list_creation" for family %s', $self->{'name'});
+	return undef;
+    }
+    
+    if (ref($result) eq 'HASH') {
+	$r_action = $result->{'action'};
+    }else {
+	&Log::do_log('err', 'Unconsistent scenario evaluation result for automatic list creation in family %s', $self->{'name'});
+	return undef;
+    }
+
+    unless ($r_action =~ /do_it/) {
+	&Log::do_log('debug2', 'Automatic list creation refused to user %s for family %s', $sender, $self->{'name'});
+	return undef;
+    }
+    
+    return 1;
+}
 =pod 
 
 =head1 AUTHORS 
