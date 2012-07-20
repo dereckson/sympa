@@ -72,6 +72,7 @@ nobase_default_DATA = list_task_models/expire.yearly.task \
 		      scenari/add.owner_notify \
 		      scenari/automatic_list_creation.listmaster \
 		      scenari/automatic_list_creation.public \
+		      scenari/automatic_list_creation.family_owner \
 		      scenari/create_list.intranet \
 		      scenari/create_list.listmaster \
 		      scenari/create_list.public_listmaster \
@@ -140,8 +141,6 @@ nobase_default_DATA = list_task_models/expire.yearly.task \
 		      scenari/topics_visibility.conceal \
 		      scenari/topics_visibility.identified \
 		      scenari/topics_visibility.noconceal \
-		      scenari/tracking.owner \
-		      scenari/tracking.private \
 		      scenari/unsubscribe.auth \
 		      scenari/unsubscribe.auth_notify \
 		      scenari/unsubscribe.closed \
@@ -168,7 +167,6 @@ DEFAULT_SCENARIOS = add.owner \
 		    send.private \
 		    subscribe.open \
 		    topics_visibility.noconceal \
-		    tracking.owner \
 		    unsubscribe.open \
 		    visibility.conceal
 
