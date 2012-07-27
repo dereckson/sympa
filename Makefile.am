@@ -33,7 +33,7 @@ installdir:
 	@for dir in $(expldir) $(spooldir) $(spooldir)/msg $(spooldir)/digest \
 		$(spooldir)/moderation $(spooldir)/expire $(spooldir)/auth \
 		$(spooldir)/outgoing $(spooldir)/tmp $(spooldir)/task \
-		$(bouncedir) $(arcdir) $(piddir) $(staticdir) $(staticdir)/js $(sysconfdir); do \
+		$(bouncedir) $(arcdir) $(piddir) $(staticdir) $(sysconfdir); do \
 		if [ ! -d $(DESTDIR)$$dir ] ; then \
 			echo "Creating $(DESTDIR)$$dir"; \
 			install -d -m 755 $(DESTDIR)$$dir; \
@@ -50,14 +50,21 @@ installconfig: installdir
 		if [ ! -d $(DESTDIR)$(confdir) ]; then \
 			$(INSTALL) -d -m 755 $(DESTDIR)$(confdir); \
 		fi; \
-		$(DESTDIR)$(sbindir)/sympa_wizard.pl \
+		$(AM_V_GEN)$(SED) \
+			-e 's|--PERL--|$(PERL)|' \
+			-e 's|--modulesdir--|$(top_srcdir)/src/lib|' \
+			< $(top_srcdir)/src/sympa_wizard.pl.in > \
+			$(top_srcdir)/src/sympa_wizard.pl.install; \
+		chmod +x $(top_srcdir)/src/sympa_wizard.pl.install; \
+		$(top_srcdir)/src/sympa_wizard.pl.install \
 			--create sympa.conf \
 			--target $(DESTDIR)$(confdir)/sympa.conf \
 			|| /bin/true; \
-		$(DESTDIR)$(sbindir)/sympa_wizard.pl \
+		$(top_srcdir)/src/sympa_wizard.pl.install \
 			--create wwsympa.conf \
 			--target $(DESTDIR)$(confdir)/wwsympa.conf \
 			|| /bin/true; \
+		rm -f $(top_srcdir)/src/sympa_wizard.pl.install; \
 	fi; \
 	if [ ! -f $(DESTDIR)$(sysconfdir)/data_structure.version ]; then \
 		cd $(DESTDIR)$(sysconfdir); \
