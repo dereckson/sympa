@@ -150,6 +150,7 @@ Creates a list. Used by the create_list() sub in sympa.pl and the do_create_list
 #       - $template : the create list template 
 #       - $robot : the list's robot       
 #       - $origin : the source of the command : web, soap or command_line  
+#              no longer used
 # OUT : - hash with keys :
 #          -list :$list
 #          -aliases : undef if not applicable; 1 (if ok) or
@@ -202,19 +203,23 @@ sub create_list_old{
 	}
     }    
 
+    if ($param->{'listname'} eq &Conf::get_robot_conf($robot,'email')) {
+	&do_log('err','admin::create_list : incorrect listname %s matches one of service aliases', $param->{'listname'});
+	return undef;
+    }
+
     ## Check listname on SMTP server
-    my $res = &list_check_smtp($param->{'listname'});
+    my $res = &list_check_smtp($param->{'listname'}, $robot);
     unless (defined $res) {
-	&Log::do_log('err', "admin::create_list_old : can't check list %.128s on %.128s",
-		$param->{'listname'},
-		$Conf::Conf{'list_check_smtp'});
+	&Log::do_log('err', "admin::create_list_old : can't check list %.128s on %s",
+		$param->{'listname'}, $robot);
 	return undef;
     }
     
     ## Check this listname doesn't exist already.
     if( $res || new List ($param->{'listname'}, $robot, {'just_try' => 1})) {
-	&Log::do_log('err', 'admin::create_list_old : could not create already existing list %s for ', 
-		$param->{'listname'});
+	&Log::do_log('err', 'admin::create_list_old : could not create already existing list %s on %s for ', 
+		$param->{'listname'}, $robot);
 	foreach my $o (@{$param->{'owner'}}){
 	    &Log::do_log('err',$o->{'email'});
 	}
@@ -277,11 +282,10 @@ sub create_list_old{
     unless ($lock->lock('write')) {
 	return undef;
     }
-    if($origin eq "command_line") {
-	open CONFIG, '>:utf8', "$list_dir/config";
-    }
-    else {
-	open CONFIG, '>:bytes', "$list_dir/config";
+    unless (open CONFIG, '>', "$list_dir/config") {
+	&do_log('err','Impossible to create %s/config : %s', $list_dir, $!);
+	$lock->unlock();
+	return undef;
     }
     ## Use an intermediate handler to encode to filesystem_encoding
     my $config = '';
@@ -297,18 +301,11 @@ sub create_list_old{
 
     ## Creation of the info file 
     # remove DOS linefeeds (^M) that cause problems with Outlook 98, AOL, and EIMS:
-    $param->{'description'} =~ s/\015//g;
+    $param->{'description'} =~ s/\r\n|\r/\n/g;
 
-    ## info file creation. Use UTF-8 for command line orgigin only.
-    if($origin eq "command_line") {
-	unless (open INFO, '>:utf8', "$list_dir/info") {
-	    &Log::do_log('err','Impossible to create %s/info : %s',$list_dir,$!);
-	}
-    }
-    else {
-	unless (open INFO, '>:bytes', "$list_dir/info") {
-	    &Log::do_log('err','Impossible to create %s/info : %s',$list_dir,$!);
-	}
+    ## info file creation.
+    unless (open INFO, '>', "$list_dir/info") {
+	&Log::do_log('err','Impossible to create %s/info : %s',$list_dir,$!);
     }
     if (defined $param->{'description'}) {
 	Encode::from_to($param->{'description'}, 'utf8', $Conf::Conf{'filesystem_encoding'});
@@ -417,18 +414,21 @@ sub create_list{
 	    return undef;
 	}
     }    
+    if ($param->{'listname'} eq &Conf::get_robot_conf($robot,'email')) {
+	&do_log('err','admin::create_list : incorrect listname %s matches one of service aliases', $param->{'listname'});
+	return undef;
+    }
 
     ## Check listname on SMTP server
-    my $res = &list_check_smtp($param->{'listname'});
+    my $res = &list_check_smtp($param->{'listname'}, $robot);
     unless (defined $res) {
-	&Log::do_log('err', "admin::create_list : can't check list %.128s on %.128s",
-		$param->{'listname'},
-		$Conf::Conf{'list_check_smtp'});
+	&Log::do_log('err', "admin::create_list : can't check list %.128s on %s",
+		$param->{'listname'}, $robot);
 	return undef;
     }
 
     if ($res) {
-	&Log::do_log('err', 'admin::create_list : could not create already existing list %s for ',$param->{'listname'});
+	&Log::do_log('err', 'admin::create_list : could not create already existing list %s on %s for ', $param->{'listname'}, $robot);
 	foreach my $o (@{$param->{'owner'}}){
 	    &Log::do_log('err',$o->{'email'});
 	}
@@ -491,7 +491,11 @@ sub create_list{
     }
 
     ## Creation of the config file
-    open CONFIG, '>:utf8', "$list_dir/config";
+    unless (open CONFIG, '>', "$list_dir/config") {
+	&do_log('err','Impossible to create %s/config : %s', $list_dir, $!);
+	$lock->unlock();
+	return undef;
+    }
     #&tt2::parse_tt2($param, 'config.tt2', \*CONFIG, [$family->{'dir'}]);
     print CONFIG $conf;
     close CONFIG;
@@ -501,10 +505,10 @@ sub create_list{
 
     ## Creation of the info file 
     # remove DOS linefeeds (^M) that cause problems with Outlook 98, AOL, and EIMS:
-    $param->{'description'} =~ s/\015//g;
-    
-    unless (open INFO, '>:utf8', "$list_dir/info") {
-	&Log::do_log('err','Impossible to create %s/info : %s',$list_dir,$!);
+    $param->{'description'} =~ s/\r\n|\r/\n/g;
+
+    unless (open INFO, '>', "$list_dir/info") {
+	&Log::do_log('err','Impossible to create %s/info : %s', $list_dir, $!);
     }
     if (defined $param->{'description'}) {
 	print INFO $param->{'description'};
@@ -521,26 +525,8 @@ sub create_list{
 		&Log::do_log('err', 'admin::create_list : tt2 error. List %s from family %s@%s, file %s',
 			$param->{'listname'}, $family->{'name'},$robot,$file);
 	    }
-	    unless (open FILE, '>:utf8', "$list_dir/$file") {
+	    unless (open FILE, '>', "$list_dir/$file") {
 		&Log::do_log('err','Impossible to create %s/%s : %s',$list_dir,$file,$!);
-	    }
-	    print FILE $file_content;
-	    close FILE;
-	}
-    }
-
-    ## Create associated files if a template was given.
-    for my $file ('message.footer','message.header','message.footer.mime','message.header.mime','info') {
-	my $template_file = &tools::get_filename('etc',{},$file.".tt2", $robot,$family);
-	if (defined $template_file) {
-	    my $file_content;
-	    my $tt_result = &tt2::parse_tt2($param, $file.".tt2", \$file_content, [$family->{'dir'}]);
-	    unless (defined $tt_result) {
-		&do_log('err', 'admin::create_list : tt2 error. List %s from family %s@%s, file %s',
-			$param->{'listname'}, $family->{'name'},$robot,$file);
-	    }
-	    unless (open FILE, '>:utf8', "$list_dir/$file") {
-		&do_log('err','Impossible to create %s/%s : %s',$list_dir,$file,$!);
 	    }
 	    print FILE $file_content;
 	    close FILE;
@@ -650,7 +636,11 @@ sub update_list{
     }
 
     ## Creation of the config file
-    open CONFIG, '>:utf8', "$list->{'dir'}/config";
+    unless (open CONFIG, '>', "$list->{'dir'}/config") {
+	&do_log('err','Impossible to create %s/config : %s', $list->{'dir'}, $!);
+	$lock->unlock();
+	return undef;
+    }
     &tt2::parse_tt2($param, 'config.tt2', \*CONFIG, [$family->{'dir'}]);
     close CONFIG;
 
@@ -751,14 +741,15 @@ sub rename_list{
     ## Check listname on SMTP server
     my $res = list_check_smtp($param{'new_listname'}, $param{'new_robot'});
     unless ( defined($res) ) {
-      &Log::do_log('err', "can't check list %.128s on %.128s", $param{'new_listname'}, &Conf::get_robot_conf($param{'new_robot'}, 'list_check_smtp'));
+      &Log::do_log('err', "can't check list %.128s on %.128s",
+	      $param{'new_listname'}, $param{'new_robot'});
       return 'internal';
     }
 
     if( $res || 
 	($list->{'name'} ne $param{'new_listname'}) && ## Do not test if listname did not change
 	(new List ($param{'new_listname'}, $param{'new_robot'}, {'just_try' => 1}))) {
-      &Log::do_log('err', 'Could not rename list %s : new list %s already existing list', $list->{'name'}, $param{'new_listname'});
+      &Log::do_log('err', 'Could not rename list %s on %s: new list %s on %s already existing list', $list->{'name'}, $robot, $param{'new_listname'}, 	$param{'new_robot'});
       return 'list_already_exists';
     }
     
@@ -1152,8 +1143,8 @@ sub check_owner_defined {
      return 0 
 	 unless ($smtp_relay && $suffixes);
      my $domain = &Conf::get_robot_conf($robot, 'host');
-     &Log::do_log('debug2', 'list_check_smtp(%s)',$list);
-     @suf = split(/[,\s]+/,$suffixes);
+     &Log::do_log('debug2', 'list_check_smtp(%s,%s)', $list, $robot);
+     @suf = split(/,/,$suffixes);
      return 0 if ! @suf;
      for(@suf) {
 	 push @addresses, $list."-$_\@".$domain;
