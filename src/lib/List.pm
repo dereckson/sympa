@@ -2406,7 +2406,7 @@ sub set_status_error_config {
     unless ($self->{'admin'}{'status'} eq 'error_config'){
 	$self->{'admin'}{'status'} = 'error_config';
 
-	my $host = &Conf::get_robot_conf($self->{'robot'}, 'host');
+	#my $host = &Conf::get_robot_conf($self->{'domain'}, 'host');
 	## No more save config in error...
 	#$self->save_config("listmaster\@$host");
 	#$self->savestats();
@@ -2424,7 +2424,7 @@ sub set_status_family_closed {
     
     unless ($self->{'admin'}{'status'} eq 'family_closed'){
 	
-	my $host = &Conf::get_robot_conf($self->{'robot'}, 'host');	
+	my $host = &Conf::get_robot_conf($self->{'domain'}, 'host');	
 	
 	unless ($self->close_list("listmaster\@$host",'family_closed')) {
 	    &Log::do_log('err','Impossible to set the list %s in status family_closed');
@@ -2682,7 +2682,7 @@ sub save_config {
     }
     
     ## Also update the binary version of the data structure
-    if (&Conf::get_robot_conf($self->{'robot'}, 'cache_list_config') eq 'binary_file') {
+    if (&Conf::get_robot_conf($self->{'domain'}, 'cache_list_config') eq 'binary_file') {
 	eval {&Storable::store($self->{'admin'},"$self->{'dir'}/config.bin")};
 	if ($@) {
 	    &Log::do_log('err', 'Failed to save the binary config %s. error: %s', "$self->{'dir'}/config.bin",$@);
@@ -4035,16 +4035,16 @@ sub send_msg {
 	my $options;
 	$options->{'email'} = $user->{'email'};
 	$options->{'name'} = $name;
-	$options->{'domain'} = $host;
+	$options->{'domain'} = $robot;
 	my $user_data = &get_list_member_no_object($options);
 	## test to know if the rcpt suspended her subscription for this list
 	## if yes, don't send the message
-	if ($user_data->{'suspend'} eq '1'){
+	if (defined $user_data && $user_data->{'suspend'} eq '1'){
 	    if(($user_data->{'startdate'} <= time) && ((time <= $user_data->{'enddate'}) || (!$user_data->{'enddate'}))){
 		push @tabrcpt_nomail_verp, $user->{'email'}; next;
 	    }elsif(($user_data->{'enddate'} < time) && ($user_data->{'enddate'})){
 		## If end date is < time, update the BDD by deleting the suspending's data
-		&restore_suspended_subscription($user->{'email'},$name,$host);
+		&restore_suspended_subscription($user->{'email'}, $name, $robot);
 	    }
 	}
 	if ($user->{'reception'} eq 'digestplain') { # digest digestplain, nomail and summary reception option are initialized for tracking feature only
@@ -4496,7 +4496,7 @@ sub send_to_editor {
        unless ($param->{'one_time_ticket'} = &Auth::create_one_time_ticket($recipient,$robot,'modindex/'.$name,'mail')){
 	   &Log::do_log('notice',"Unable to create one_time_ticket for $recipient, service modindex/$name");
        }else{
-	   &Log::do_log('notice',"ticket : $param->{'one_time_ticket'}");
+	   &Log::do_log('debug',"ticket $param->{'one_time_ticket'} created");
        }
        &tt2::allow_absolute_path();
        $param->{'auto_submitted'} = 'auto-forwarded';
@@ -4839,14 +4839,14 @@ sub archive_send_last {
 #       
 ###################################################### 
 sub send_notify_to_listmaster {
-	my ($operation, $robot, $data, $checkstack) = @_;
+	my ($operation, $robot, $data, $checkstack, $purge) = @_;
 	
-	if($checkstack) {
+	if($checkstack or $purge) {
 		foreach my $robot (keys %List::listmaster_messages_stack) {
 			foreach my $operation (keys %{$List::listmaster_messages_stack{$robot}}) {
 				my $first_age = time - $List::listmaster_messages_stack{$robot}{$operation}{'first'};
 				my $last_age = time - $List::listmaster_messages_stack{$robot}{$operation}{'last'};
-				next unless(($last_age > 30) or ($first_age > 60)); # not old enough to send and first not too old
+				next unless($purge or ($last_age > 30) or ($first_age > 60)); # not old enough to send and first not too old
 				next unless($List::listmaster_messages_stack{$robot}{$operation}{'messages'});
 				
 				my %messages = %{$List::listmaster_messages_stack{$robot}{$operation}{'messages'}};
@@ -4872,9 +4872,10 @@ sub send_notify_to_listmaster {
 						return undef;
 					}
 				}
+				
+				&Log::do_log('info', 'cleaning stacked notifications');
+				delete $List::listmaster_messages_stack{$robot}{$operation};
 			}
-			
-			delete $List::listmaster_messages_stack{$robot};
 		}
 		return 1;
 	}
@@ -4887,15 +4888,13 @@ sub send_notify_to_listmaster {
 		$stack = 1;
 	}
 	
-	unless($operation eq 'logs_failed') {
-		&Log::do_log('debug2', 'List::send_notify_to_listmaster(%s,%s )', $operation, $robot );
+	unless(defined $operation) {
+		&Log::do_log('err','List::send_notify_to_listmaster(%s) : missing incoming parameter "$operation"');
+		return undef;
 	}
 	
 	unless($operation eq 'logs_failed') {
-		unless(defined $operation) {
-			&Log::do_log('err','List::send_notify_to_listmaster(%s) : missing incoming parameter "$operation"');
-			return undef;
-		}
+		&Log::do_log('debug2', 'List::send_notify_to_listmaster(%s,%s )', $operation, $robot );
 		unless (defined $robot) {
 			&Log::do_log('err','List::send_notify_to_listmaster(%s) : missing incoming parameter "$robot"');
 			return undef;
@@ -4965,10 +4964,10 @@ sub send_notify_to_listmaster {
 	
 	if(($operation eq 'request_list_creation') or ($operation eq 'request_list_renaming')) {
 		foreach my $email (split (/\,/, $listmaster)) {
-			my $cdata = &dup_var($data);
+			my $cdata = &tools::dup_var($data);
 			$cdata->{'one_time_ticket'} = &Auth::create_one_time_ticket($email,$robot,'get_pending_lists',$cdata->{'ip'});
 			push @tosend, {
-				email => $listmaster,
+				email => $email,
 				data => $cdata
 			};
 		}
@@ -5376,18 +5375,23 @@ sub add_parts {
 	
 	if ($header and -s $header) {
 	    if ($header =~ /\.mime$/) {
-		
-		my $header_part = $parser->parse_in($header);    
-		$msg->make_multipart unless $msg->is_multipart;
-		$msg->add_part($header_part, 0); ## Add AS FIRST PART (0)
-		
-		## text/plain header
+		my $header_part;
+		eval { $header_part = $parser->parse_in($header); };
+		if ($@) {
+		    &Log::do_log('err', 'Failed to parse MIME data %s: %s',
+				 $header, $parser->last_error);
+		} else {
+		    $msg->make_multipart unless $msg->is_multipart;
+		    $msg->add_part($header_part, 0); ## Add AS FIRST PART (0)
+		}
+	    ## text/plain header
 	    }else {
 		
 		$msg->make_multipart unless $msg->is_multipart;
 		my $header_part = build MIME::Entity Path        => $header,
 		Type        => "text/plain",
-		Filename    => "message-header.txt",
+		Filename    => undef,
+		'X-Mailer'  => undef,
 		Encoding    => "8bit",
 		Charset     => "UTF-8";
 		$msg->add_part($header_part, 0);
@@ -5395,18 +5399,23 @@ sub add_parts {
 	}
 	if ($footer and -s $footer) {
 	    if ($footer =~ /\.mime$/) {
-		
-		my $footer_part = $parser->parse_in($footer);    
-		$msg->make_multipart unless $msg->is_multipart;
-		$msg->add_part($footer_part);
-		
-		## text/plain footer
+		my $footer_part;
+		eval { $footer_part = $parser->parse_in($footer); };
+		if ($@) {
+		    &Log::do_log('err', 'Failed to parse MIME data %s: %s',
+				 $footer, $parser->last_error);
+		} else {
+		    $msg->make_multipart unless $msg->is_multipart;
+		    $msg->add_part($footer_part);
+		}
+	    ## text/plain footer
 	    }else {
 		
 		$msg->make_multipart unless $msg->is_multipart;
 		$msg->attach(Path        => $footer,
 			     Type        => "text/plain",
-			     Filename    => "message-footer.txt",
+			     Filename    => undef,
+			     'X-Mailer'  => undef,
 			     Encoding    => "8bit",
 			     Charset     => "UTF-8"
 			     );
@@ -5964,7 +5973,7 @@ sub get_list_member {
 	return undef;
     }else {
 	unless ($user) {
-	    &Log::do_log('info','User %s was not found in the subscribers of list %s@%s.',$email,$self->{'name'},$self->{'domain'});
+	    &Log::do_log('debug','User %s was not found in the subscribers of list %s@%s.',$email,$self->{'name'},$self->{'domain'});
 	    return undef;
 	}else{
 		$user->{'reception'} = $self->{'admin'}{'default_user_options'}{'reception'}
@@ -6212,7 +6221,7 @@ sub get_list_member_no_object {
 	    &Log::do_log('err',"An error occured while fetching the data from the database.");
 	    return undef;
 	}else{
-	    &Log::do_log('info',"No user with the email %s is subscribed to list %s@%s",$email,$name,$options->{'domain'});
+	    &Log::do_log('debug2',"No user with the email %s is subscribed to list %s@%s",$email,$name,$options->{'domain'});
 	    return 0;
 	}
     }
@@ -6399,7 +6408,7 @@ sub get_first_list_member {
 # OUT : HASH data storing custome attributes.
 sub parseCustomAttribute {
 	my $xmldoc = shift ;
-	return undef if ($xmldoc eq '') ;
+	return undef if ! defined $xmldoc or $xmldoc eq '';
 
 	my $parser = XML::LibXML->new();
 	my $tree;
@@ -6412,7 +6421,7 @@ sub parseCustomAttribute {
 	}
 
 	unless (defined $tree) {
-	    &Log::do_log('err', "Failed to parse XML data");
+	    &Log::do_log('err', "Failed to parse XML data: %s", $@);
 	    return undef;
 	}
 
@@ -9074,7 +9083,7 @@ sub _load_list_members_from_include {
 				$included = 0;
 			}
 	    }elsif ($type eq 'include_remote_sympa_list') {
-		$included = $self->_include_users_remote_sympa_list(\%users, $incl, $dir,$admin->{'domain'},$admin->{'default_user_options'});
+		$included = $self->_include_users_remote_sympa_list(\%users, $incl, $dir,$self->{'domain'},$admin->{'default_user_options'});
 		unless (defined $included){
 		    push @errors, {'type' => $type, 'name' => $incl->{'name'}};
 		}
@@ -9203,7 +9212,7 @@ sub _load_list_admin_from_include {
 			$included = undef;
 		    }
 		}elsif ($type eq 'include_remote_sympa_list') {
-		    $included = $self->_include_users_remote_sympa_list(\%admin_users, $incl, $dir,$list_admin->{'domain'},\%option);
+		    $included = $self->_include_users_remote_sympa_list(\%admin_users, $incl, $dir,$self->{'domain'},\%option);
 		}elsif ($type eq 'include_list') {
 		    $depend_on->{$name} = 1 ;
 		    if (&_inclusion_loop ($name,$incl,$depend_on)) {
@@ -11792,7 +11801,7 @@ sub compute_topic {
 	    my $charset = $part->head->mime_attr("Content-Type.Charset");
 	    $charset = MIME::Charset->new($charset);
 	    if (defined $part->bodyhandle) {
-		my $body = $msg->bodyhandle->as_string();
+		my $body = $part->bodyhandle->as_string();
 		my $converted;
 		eval {
 		    $converted = $charset->decode($body);
@@ -12177,7 +12186,7 @@ sub store_subscription_request {
     my @req_files = sort grep (!/^\.+$/,readdir(SUBSPOOL));
     closedir SUBSPOOL;
 
-    my $listaddr = $self->{'name'}.'@'.$self->{'domain'};
+    my $listaddr = $self->get_list_id();
 
     foreach my $file (@req_files) {
 	next unless ($file =~ /$listaddr\..*/) ;
@@ -12327,7 +12336,7 @@ sub delete_subscription_request {
     closedir SPOOL;
     
     unless ($removed_file > 0) {
-	&Log::do_log('err', 'No pending subscription was found for users %s', join(',',@list_of_email));
+	&Log::do_log('debug2', 'No pending subscription was found for users %s', join(',',@list_of_email));
 	return undef;
     }
 
@@ -12581,8 +12590,8 @@ sub remove_aliases {
 	return undef;
     }
     
-    system ("$alias_manager del $self->{'name'} $self->{'admin'}{'host'}");
-    my $status = $? / 256;
+    system (sprintf '%s del %s %s', $alias_manager, $self->{'name'}, $self->{'admin'}{'host'});
+    my $status = $? >> 8;
     unless ($status == 0) {
 	&Log::do_log('err','Failed to remove aliases ; status %d : %s', $status, $!);
 	return undef;
@@ -12767,7 +12776,7 @@ sub _update_list_db
     my $name = $self->{'name'};
     my $subject = $self->{'admin'}{'subject'} || '';
     my $status = $self->{'admin'}{'status'};
-    my $robot = $self->{'admin'}{'host'};
+    my $robot = $self->{'domain'};
     my $web_archive  = &is_web_archived($self) || 0; 
     my $topics = '';
     if ($self->{'admin'}{'topics'}) {
