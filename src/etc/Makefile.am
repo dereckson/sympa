@@ -141,8 +141,6 @@ nobase_default_DATA = list_task_models/expire.yearly.task \
 		      scenari/topics_visibility.conceal \
 		      scenari/topics_visibility.identified \
 		      scenari/topics_visibility.noconceal \
-		      scenari/tracking.owner \
-		      scenari/tracking.private \
 		      scenari/unsubscribe.auth \
 		      scenari/unsubscribe.auth_notify \
 		      scenari/unsubscribe.closed \
@@ -169,7 +167,6 @@ DEFAULT_SCENARIOS = add.owner \
 		    send.private \
 		    subscribe.open \
 		    topics_visibility.noconceal \
-		    tracking.owner \
 		    unsubscribe.open \
 		    visibility.conceal
 
