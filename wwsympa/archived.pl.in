@@ -264,7 +264,7 @@ while (!$end) {
 
 		   unless ($sender eq $messagesender) {
 		       &Log::do_log('err', 'remove command by unauthorized sender');
-		       return undef;
+		       next;
 		   }
 	       }
 	       # this point : requested command is from a authorized personn (message sender or list admin or listmaster
@@ -365,6 +365,9 @@ while (!$end) {
        }
    }
 }
+
+&List::send_notify_to_listmaster(undef, undef, undef, undef, 1); # Purge grouped notifications
+
 &Log::do_log('notice', 'archived exited normally due to signal');
 &tools::remove_pid($wwsconf->{'archived_pidfile'}, $$);
 
