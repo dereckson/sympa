@@ -92,6 +92,11 @@ our @params = (
         'file'     => 'sympa.conf',
         'edit'     => '1',
     },
+    { 
+        name    => 'pidfile_spooler',
+        default => Sympa::Constants::PIDDIR . '/spooler.pid',
+	file    => 'sympa.conf',
+    },
     {
         'name'     => 'soap_url',
         'optional' => '1',
@@ -430,19 +435,43 @@ our @params = (
         'advice'   => gettext('Sympa also locks this file to ensure that it is not running more than once. Caution: user sympa need to write access without special privilege.'),
     },
     {
-        'name'     => 'pidfile_creation',
-        'default'  => Sympa::Constants::PIDDIR . '/sympa-creation.pid',
-        'file'     => 'sympa.conf',
-    },
-    {
         'name'     => 'umask',
         'default'  => '027',
         'query'    => gettext('Umask used for file creation by Sympa'),
         'file'     => 'sympa.conf',
     },
-
+    { title => 'Internationalization' },
+    {
+        name    => 'lang',
+        default => 'en',
+        query   => 'Default lang (ca | cs | de | el | es | et_EE | en | fr | fi | hu | it | ja_JP | ko | nl | nb_NO | oc | pl | pt_BR | ru | sv | tr | vi | zh_CN | zh_TW)',
+        vhost   => '1',
+        file    => 'sympa.conf',
+        edit    => '1',
+        advice  => gettext('This is the default language used by Sympa'),
+    },
+    {
+        name    => 'supported_lang',
+        default => 'ca,cs,de,el,es,et_EE,en,fr,fi,hu,it,ja_JP,ko,nl,nb_NO,oc,pl,pt_BR,ru,sv,tr,vi,zh_CN,zh_TW',
+        query   => 'Supported languages',
+        vhost   => '1',
+        file    => 'sympa.conf',
+        edit    => '1',
+        advice  => gettext("This is the set of language that will be proposed to your users for the Sympa GUI. Don't select a language if you don't have the proper locale packages installed."),
+    },
     { 'title' => gettext('Sending related') },
-
+    {
+        'name'     => 'sendmail',
+        'default'  => '/usr/sbin/sendmail',
+        'query'    => gettext('Path to the MTA (sendmail, postfix, exim or qmail)'),
+        'file'     => 'sympa.conf',
+        'edit'     => '1',
+        'advice'   => gettext('should point to a sendmail-compatible binary (eg: a binary named "sendmail" is distributed with Postfix)'),
+    },
+    {
+        'name'     => 'sendmail_args',
+        'default'  => '-oi -odi -oem',
+    },
     {
         'name'     => 'distribution_mode',
         'default'  => 'single',
@@ -544,19 +573,6 @@ our @params = (
         name    => 'db_list_cache',
         default => 'off',
         advice  => gettext('Whether or not to cache lists in the database'),
-    },
-    { title => 'Internationalization' },
-    {
-        'name'     => 'sendmail',
-        'default'  => '/usr/sbin/sendmail',
-        'query'    => gettext('Path to the MTA (sendmail, postfix, exim or qmail)'),
-        'file'     => 'sympa.conf',
-        'edit'     => '1',
-        'advice'   => gettext('should point to a sendmail-compatible binary (eg: a binary named "sendmail" is distributed with Postfix)'),
-    },
-    {
-        'name'     => 'sendmail_args',
-        'default'  => '-oi -odi -oem',
     },
     {
         'name'     => 'sendmail_aliases',
@@ -698,6 +714,8 @@ our @params = (
         'name'     => 'queuedistribute',
         'default'  => Sympa::Constants::SPOOLDIR . '/distribute',
         'file'     => 'sympa.conf',
+	'version_validity' => '6.3', # valid before version 6.3
+	'upgrade'          => 1,     # used by upgrade process after validy
     },
     ##{
 	##name => 'dkim_header_list',
@@ -712,36 +730,60 @@ our @params = (
         'default'  => Sympa::Constants::SPOOLDIR . '/moderation',
         'query'    => gettext('Directory for moderation spool'),
         'file'     => 'sympa.conf',
+	'version_validity' => '6.3', # valid before version 6.3
+	'upgrade'          => 1,      # used by upgrade process after validy
     },
     {
         'name'     => 'queuedigest',
         'default'  => Sympa::Constants::SPOOLDIR . '/digest',
         'query'    => gettext('Directory for digest spool'),
         'file'     => 'sympa.conf',
+	'version_validity' => '6.3', # valid before version 6.3
+	'upgrade'          => 1,      # used by upgrade process after validy
     },
     {
         'name'     => 'queueauth',
         'default'  => Sympa::Constants::SPOOLDIR . '/auth',
         'query'    => gettext('Directory for authentication spool'),
         'file'     => 'sympa.conf',
+	'version_validity' => '6.3', # valid before version 6.3
+	'upgrade'          => 1,      # used by upgrade process after validy
     },
     {
         'name'     => 'queueoutgoing',
         'default'  => Sympa::Constants::SPOOLDIR . '/outgoing',
         'query'    => gettext('Directory for outgoing spool'),
         'file'     => 'sympa.conf',
+	'version_validity' => '6.3', # valid before version 6.3
+	'upgrade'          => 1,      # used by upgrade process after validy
     },
     {
         'name'     => 'queuetopic',
         'default'  => Sympa::Constants::SPOOLDIR . '/topic',
         'query'    => gettext('Directory for topic spool'),
         'file'     => 'sympa.conf',
+	'version_validity' => '6.3', # valid before version 6.3
+	'upgrade'          => 1,      # used by upgrade process after validy
     },
     {
         'name'     => 'queuebounce',
         'default'  => Sympa::Constants::SPOOLDIR . '/bounce',
         'query'    => gettext('Directory for bounce incoming spool'),
         'file'     => 'sympa.conf',
+    },
+    {
+        name    => 'viewmail_dir',
+        default => Sympa::Constants::EXPLDIR . '/viewmail',
+        query   => 'Directory containing html file generated by mhonarc while diplay messages others than archives',
+        file    => 'sympa.conf',
+    },
+    {
+        name   => 'key_passwd',
+        sample => 'your_password',
+        query  => 'Password used to crypt lists private keys',
+        file   => 'sympa.conf',
+        edit   => '1',
+        optional   => '1',
     },
     {
         'name'     => 'queuetask',
@@ -754,11 +796,13 @@ our @params = (
         'default'  => Sympa::Constants::SPOOLDIR . '/automatic',
         'query'    => gettext('Directory for automatic list creation spool'),
         'file'     => 'sympa.conf',
+	'version_validity' => '6.3', # valid before version 6.3
+	'upgrade'          => 1,      # used by upgrade process after validy
     },
     {
         'name'     => 'tmpdir',
         'default'  => Sympa::Constants::SPOOLDIR . '/tmp',
-        'query'    => gettext('Temporary directory used by OpenSSL and antivirus plugins'),
+        'query'    => gettext('Temporary directory used by OpenSSL, antivirus plugins, mhonarc etc'),
     },
     {
         'name'     => 'sleep',
@@ -1498,13 +1542,11 @@ our @params = (
         'name'     => 'log_condition',
         'optional' => '1',
         'vhost'    => '1',
-        'file'     => 'wwsympa.conf',
     },
     {
         'name'     => 'log_module',
         'optional' => '1',
         'vhost'    => '1',
-        'file'     => 'wwsympa.conf',
     },
     {
         'name'     => 'merge_feature',
@@ -1513,11 +1555,6 @@ our @params = (
     {
         'name'     => 'one_time_ticket_table_ttl',
         'default'  => '10d',
-    },
-    {
-        'name'     => 'pidfile_distribute',
-        'default'  => Sympa::Constants::PIDDIR . '/sympa-distribute.pid',
-        'file'     => 'sympa.conf',
     },
     {
         'name'     => 'purge_one_time_ticket_table_task',

@@ -118,9 +118,9 @@ sub new {
 
 sub connect {
     my $self = shift;
-    &Log::do_log('debug',"Checking connection to database %s",$self->{'db_name'});
+    &Log::do_log('debug3',"Checking connection to database %s",$self->{'db_name'});
     if ($self->{'dbh'} && $self->{'dbh'}->ping) {
-	&Log::do_log('debug','Connection to database %s already available',$self->{'db_name'});
+	&Log::do_log('debug3','Connection to database %s already available',$self->{'db_name'});
 	return 1;
     }
     unless($self->establish_connection()) {
@@ -203,7 +203,7 @@ sub establish_connection {
 	}
       }
       
-      $self->{'dbh'} = eval {DBI->connect($self->{'connect_string'}, $self->{'db_user'}, $self->{'db_passwd'})} ;
+      $self->{'dbh'} = eval {DBI->connect($self->{'connect_string'}, $self->{'db_user'}, $self->{'db_passwd'}, { PrintError => 0 })} ;
       unless (defined $self->{'dbh'}) {
 	    ## Notify listmaster if warn option was set
 	    ## Unless the 'failed' status was set earlier
@@ -228,7 +228,7 @@ sub establish_connection {
 	    my $sleep_delay = 60;
 	    while (1) {
 		sleep $sleep_delay;
-		eval {$self->{'dbh'} = DBI->connect($self->{'connect_string'}, $self->{'db_user'}, $self->{'db_passwd'})};
+		eval {$self->{'dbh'} = DBI->connect($self->{'connect_string'}, $self->{'db_user'}, $self->{'db_passwd'}, { PrintError => 0 })};
 		last if ($self->{'dbh'} && $self->{'dbh'}->ping());
 		$sleep_delay += 10;
 	    }
@@ -426,7 +426,7 @@ sub fetch {
 sub disconnect {
     my $self = shift;
     $self->{'sth'}->finish if $self->{'sth'};
-    $self->{'dbh'}->disconnect;
+    if ($self->{'dbh'}) {$self->{'dbh'}->disconnect;}
     delete $db_connections{$self->{'connect_string'}};
 }
 
