@@ -46,8 +46,6 @@ use Config_XML;
 use File::Copy;
 use Sympa::Constants;
 
-use Term::ProgressBar;
-
 my %list_of_families;
 my @uncompellable_param = ('msg_topic.keywords','owner_include.source_parameters', 'editor_include.source_parameters');
 
@@ -115,7 +113,7 @@ sub get_available_families {
 	next unless (-d $dir);
 
 	unless (opendir FAMILIES, $dir) {
-	    &Log::do_log ('err', "error : can't open dir %s: %s", $dir, $!);
+	    &do_log ('err', "error : can't open dir %s: %s", $dir, $!);
 	    next;
 	}
 
@@ -197,7 +195,7 @@ sub new {
     my $class = shift;
     my $name = shift;
     my $robot = shift;
-    &Log::do_log('debug2','Family::new(%s,%s)',$name,$robot);
+    &do_log('debug2','Family::new(%s,%s)',$name,$robot);
     
     my $self = {};
 
@@ -221,7 +219,7 @@ sub new {
 
     ## family name
     unless ($name && ($name =~ /^$family_name_regexp$/io) ) {
-	&Log::do_log('err', 'Incorrect family name "%s"',  $name);
+	&do_log('err', 'Incorrect family name "%s"',  $name);
 	return undef;
     }
 
@@ -241,13 +239,13 @@ sub new {
     ## family directory
     $self->{'dir'} = $self->_get_directory();
     unless (defined $self->{'dir'}) {
-	&Log::do_log('err','Family::new(%s,%s) : the family directory does not exist',$name,$robot);
+	&do_log('err','Family::new(%s,%s) : the family directory does not exist',$name,$robot);
 	return undef;
     }
 
     ## family files
     if (my $file_names = $self->_check_mandatory_files()) {
-	&Log::do_log('err','Family::new(%s,%s) : Definition family files are missing : %s',$name,$robot,$file_names);
+	&do_log('err','Family::new(%s,%s) : Definition family files are missing : %s',$name,$robot,$file_names);
 	return undef;
     }
 
@@ -330,7 +328,7 @@ Adds a list to the family. List description can be passed either through a hash 
 sub add_list {
     my ($self, $data, $abort_on_error) = @_;
 
-    &Log::do_log('info','Family::add_list(%s)',$self->{'name'});
+    &do_log('info','Family::add_list(%s)',$self->{'name'});
 
     $self->{'state'} = 'no_check';
     my $return;
@@ -344,8 +342,8 @@ sub add_list {
         $hash_list = {config=>$data};
     } else {
 	#copy the xml file in another file
-	unless (open (FIC, '>:utf8', "$self->{'dir'}/_new_list.xml")) {
-	    &Log::do_log('err','Family::add_list(%s) : impossible to create the temp file %s/_new_list.xml : %s',$self->{'name'},$self->{'dir'},$!);
+	unless (open (FIC, '>', "$self->{'dir'}/_new_list.xml")) {
+	    &do_log('err','Family::add_list(%s) : impossible to create the temp file %s/_new_list.xml : %s',$self->{'name'},$self->{'dir'},$!);
 	}
 	while (<$data>) {
 	    print FIC ($_);
@@ -384,7 +382,7 @@ sub add_list {
     }
 	    
     # config_changes
-    unless (open FILE, '>:utf8', "$list->{'dir'}/config_changes") {
+    unless (open FILE, '>', "$list->{'dir'}/config_changes") {
 	$list->set_status_error_config('error_copy_file',$list->{'name'},$self->{'name'});
 	push @{$return->{'string_info'}}, "Impossible to create file $list->{'dir'}/config_changes : $!, the list is set in status error_config";
     }
@@ -425,7 +423,7 @@ sub add_list {
 
     ## Synchronize list members if required
     if ($list->has_include_data_sources()) {
-	&Log::do_log('notice', "Synchronizing list members...");
+	&do_log('notice', "Synchronizing list members...");
 	$list->sync_include();
     }
 
@@ -517,7 +515,7 @@ Adds a list to the family.
 sub modify_list {
     my $self = shift;
     my $fh = shift;
-    &Log::do_log('info','Family::modify_list(%s)',$self->{'name'});
+    &do_log('info','Family::modify_list(%s)',$self->{'name'});
 
     $self->{'state'} = 'no_check';
     my $return;
@@ -526,8 +524,8 @@ sub modify_list {
     $return->{'string_error'} = undef; ## fatal errors
 
     #copy the xml file in another file
-    unless (open (FIC, '>:utf8', "$self->{'dir'}/_mod_list.xml")) {
-	&Log::do_log('err','Family::modify_list(%s) : impossible to create the temp file %s/_mod_list.xml : %s',$self->{'name'},$self->{'dir'},$!);
+    unless (open (FIC, '>', "$self->{'dir'}/_mod_list.xml")) {
+	&do_log('err','Family::modify_list(%s) : impossible to create the temp file %s/_mod_list.xml : %s',$self->{'name'},$self->{'dir'},$!);
     }
     while (<$fh>) {
 	print FIC ($_);
@@ -566,7 +564,7 @@ sub modify_list {
     ## get allowed and forbidden list customizing
     my $custom = $self->_get_customizing($list);
     unless (defined $custom) {
-	&Log::do_log('err','impossible to get list %s customizing',$list->{'name'});
+	&do_log('err','impossible to get list %s customizing',$list->{'name'});
 	push @{$return->{'string_error'}}, "Error during updating list $list->{'name'}, the list is set in status error_config."; 
 	$list->set_status_error_config('modify_list_family',$list->{'name'},$self->{'name'});
 	return $return;
@@ -577,7 +575,7 @@ sub modify_list {
     ## list config family updating
     my $result = &admin::update_list($list,$hash_list->{'config'},$self,$self->{'robot'});
     unless (defined $result) {
-	&Log::do_log('err','No object list resulting from updating list %s',$list->{'name'});
+	&do_log('err','No object list resulting from updating list %s',$list->{'name'});
 	push @{$return->{'string_error'}}, "Error during updating list $list->{'name'}, the list is set in status error_config."; 
 	$list->set_status_error_config('modify_list_family',$list->{'name'},$self->{'name'});
 	return $return;
@@ -588,14 +586,14 @@ sub modify_list {
     foreach my $p (keys %{$custom->{'allowed'}}) {
 	$list->{'admin'}{$p} = $custom->{'allowed'}{$p};
 	delete $list->{'admin'}{'defaults'}{$p};
-	&Log::do_log('info',"Customizing : keeping values for parameter $p");
+	&do_log('info',"Customizing : keeping values for parameter $p");
     }
 
     ## info file
     unless ($config_changes->{'file'}{'info'}) {
-	$hash_list->{'config'}{'description'} =~ s/\015//g;
+	$hash_list->{'config'}{'description'} =~ s/\r\n|\r/\n/g;
 	
-	unless (open INFO, '>:utf8', "$list->{'dir'}/info") {
+	unless (open INFO, '>', "$list->{'dir'}/info") {
 	    push @{$return->{'string_info'}}, "Impossible to create new $list->{'dir'}/info file : $!";
 	}
 	print INFO $hash_list->{'config'}{'description'};
@@ -603,7 +601,7 @@ sub modify_list {
     }
 
     foreach my $f (keys %{$config_changes->{'file'}}) {
-	&Log::do_log('info',"Customizing : this file has been changed : $f");
+	&do_log('info',"Customizing : this file has been changed : $f");
     }
     
     ## rename forbidden files
@@ -612,8 +610,8 @@ sub modify_list {
 	    ################
 #	}
 #	if ($f eq 'info') {
-#	    $hash_list->{'config'}{'description'} =~ s/\015//g;
-#	    unless (open INFO, '>:utf8', "$list_dir/info") {
+#	    $hash_list->{'config'}{'description'} =~ s/\r\n|\r/\n/g;
+#	    unless (open INFO, '>', "$list_dir/info") {
 		################
 #	    }
 #	    print INFO $hash_list->{'config'}{'description'};
@@ -626,10 +624,10 @@ sub modify_list {
 	(scalar @{$custom->{'forbidden'}{'param'}})) {
 #	my $forbidden_files = join(',',@{$custom->{'forbidden'}{'file'}});
 	my $forbidden_param = join(',',@{$custom->{'forbidden'}{'param'}});
-	&Log::do_log('notice',"These parameters aren't allowed in the new family definition, they are erased by a new instantiation family : \n $forbidden_param");
+	&do_log('notice',"These parameters aren't allowed in the new family definition, they are erased by a new instantiation family : \n $forbidden_param");
 
 	unless ($list->send_notify_to_owner('erase_customizing',[$self->{'name'},$forbidden_param])) {
-	    &Log::do_log('notice','the owner isn\'t informed from erased customizing of the list %s',$list->{'name'});
+	    &do_log('notice','the owner isn\'t informed from erased customizing of the list %s',$list->{'name'});
 	}
     }
 
@@ -656,7 +654,7 @@ sub modify_list {
 
     }
 
-    unless (open FILE, '>:utf8', "$list->{'dir'}/config_changes") {
+    unless (open FILE, '>', "$list->{'dir'}/config_changes") {
 	$list->set_status_error_config('error_copy_file',$list->{'name'},$self->{'name'});
 	push @{$return->{'string_info'}}, "Impossible to create file $list->{'dir'}/config_changes : $!, the list is set in status error_config.";
     }
@@ -701,7 +699,7 @@ sub modify_list {
 
     ## Synchronize list members if required
     if ($list->has_include_data_sources()) {
-	&Log::do_log('notice', "Synchronizing list members...");
+	&do_log('notice', "Synchronizing list members...");
 	$list->sync_include();
     }
 
@@ -714,7 +712,7 @@ sub modify_list {
 
 =pod 
 
-=head2 sub close_family()
+=head2 sub close()
 
 Closes every list family.
 
@@ -749,7 +747,7 @@ Closes every list family.
 =cut
 
 #########################################
-# close_family                                 
+# close                                 
 #########################################
 # closure family action :
 #  - close every list family
@@ -757,9 +755,9 @@ Closes every list family.
 # IN : -$self
 # OUT : -$string
 #########################################
-sub close_family {
+sub close {
     my $self = shift;
-    &Log::do_log('info','(%s)',$self->{'name'});
+    &do_log('info','Family::close(%s)',$self->{'name'});
 
     my $family_lists = $self->get_family_lists();
     my @impossible_close;
@@ -769,7 +767,7 @@ sub close_family {
 	my $listname = $list->{'name'};
 	
 	unless (defined $list){
-	    &Log::do_log('err','The %s list belongs to %s family but the list does not exist',$listname,$self->{'name'});
+	    &do_log('err','The %s list belongs to %s family but the list does not exist',$listname,$self->{'name'});
 	    next;
 	}
 	
@@ -876,7 +874,7 @@ sub instantiate {
     my $self = shift;
     my $xml_file = shift;
     my $close_unknown = shift;
-    &Log::do_log('debug2','Family::instantiate(%s)',$self->{'name'});
+    &do_log('debug2','Family::instantiate(%s)',$self->{'name'});
 
     ## all the description variables are emptied.
     $self->_initialize_instantiation();
@@ -890,23 +888,10 @@ sub instantiate {
     ## Splits the family description XML file into a set of list description xml files
     ## and collects lists to be created in $self->{'list_to_generate'}.
     unless ($self->_split_xml_file($xml_file)) {
-	&Log::do_log('err','Errors during the parsing of family xml file');
+	&do_log('err','Errors during the parsing of family xml file');
 	return undef;
     }
 
-	my $created = 0;
-	my $total = $#{@{$self->{'list_to_generate'}}} + 1;
-	my $progress = Term::ProgressBar->new({
-		name  => 'Creating lists',
-		count => $total,
-		ETA   => 'linear'
-	});
-	$progress->max_update_rate(1);
-	my $next_update = 0;
-    my $aliasmanager_output_file = $Conf::Conf{'tmpdir'}.'/aliasmanager.stdout.'.$$;
-    my $output_file = $Conf::Conf{'tmpdir'}.'/instantiate_family.stdout.'.$$;
-	my $output = '';
-                                         
     ## EACH FAMILY LIST
     foreach my $listname (@{$self->{'list_to_generate'}}) {
 
@@ -937,12 +922,12 @@ sub instantiate {
 	    if (defined $list->{'admin'}{'family_name'}) {
 		unless ($list->{'admin'}{'family_name'} eq $self->{'name'}) {
 		    push (@{$self->{'errors'}{'listname_already_used'}},$list->{'name'});
-		    &Log::do_log('err','The list %s already belongs to family %s',$list->{'name'},$list->{'admin'}{'family_name'});
+		    &do_log('err','The list %s already belongs to family %s',$list->{'name'},$list->{'admin'}{'family_name'});
 		    next;
 		} 
 	    } else {
 		push (@{$self->{'errors'}{'listname_already_used'}},$list->{'name'});
-		&Log::do_log('err','The orphan list %s already exists',$list->{'name'});
+		&do_log('err','The orphan list %s already exists',$list->{'name'});
 		next;
 	    }
 
@@ -979,8 +964,8 @@ sub instantiate {
 	    }
 	    
 	    # config_changes
-	    unless (open FILE, '>:utf8', "$list->{'dir'}/config_changes") {
-		&Log::do_log('err','Family::instantiate : impossible to create file %s/config_changes : %s',$list->{'dir'},$!);
+	    unless (open FILE, '>', "$list->{'dir'}/config_changes") {
+		&do_log('err','Family::instantiate : impossible to create file %s/config_changes : %s',$list->{'dir'},$!);
 		push (@{$self->{'generated_lists'}{'file_error'}},$list->{'name'});
 		$list->set_status_error_config('error_copy_file',$list->{'name'},$self->{'name'});
 	    }
@@ -989,40 +974,11 @@ sub instantiate {
 	
 	## ENDING : existing and new lists
 	unless ($self->_end_update_list($list,1)) {
-	    &Log::do_log('err','Instantiation stopped on list %s',$list->{'name'});
+	    &do_log('err','Instantiation stopped on list %s',$list->{'name'});
 	    return undef;
 	}
-		$created++;
-		$progress->message(sprintf("List \"%s\" (%i/%i) created/updated", $list->{'name'}, $created, $total));
-		$next_update = $progress->update($created) if($created > $next_update);
-		
-		if(-f $aliasmanager_output_file) {
-			open OUT, $aliasmanager_output_file;
-			while(<OUT>) {
-				$output .= $_;
-			}
-			close OUT;
-			unlink $aliasmanager_output_file; # remove file to catch next call
-		}
+
     }
-    
-	$progress->update($total);
-	
-	if($output && !$main::options{'quiet'}) {
-		print STDOUT "There is unread output from the instantiation proccess (aliasmanager messages ...), do you want to see it ? (y or n)";
-	    my $answer = <STDIN>;
-	    chomp($answer);
-	    $answer ||= 'n';
-	    print $output if($answer eq 'y');
-	    
-		if(open OUT, '>'.$output_file) {
-			print OUT $output;
-			close OUT;
-			print STDOUT "\nOutput saved in $output_file\n";
-		}else{
-			print STDERR "\nUnable to save output in $output_file\n";
-		}
-	}
 
     ## PREVIOUS LIST LEFT
     foreach my $l (keys %{$previous_family_lists}) {
@@ -1071,7 +1027,7 @@ sub instantiate {
 	    $list = $result;
 
 	    unless ($self->_end_update_list($list,0)) {
-		&Log::do_log('err','Instantiation stopped on list %s',$list->{'name'});
+		&do_log('err','Instantiation stopped on list %s',$list->{'name'});
 		return undef;
 	    }
 	}
@@ -1123,7 +1079,7 @@ Returns a string with informations summarizing the instantiation results.
 #########################################
 sub get_instantiation_results {
     my ($self, $result) = @_;
-    &Log::do_log('debug3','Family::get_instantiation_results(%s)',$self->{'name'});
+    &do_log('debug3','Family::get_instantiation_results(%s)',$self->{'name'});
  
     $result->{'errors'} = ();
     $result->{'warn'} = ();
@@ -1162,7 +1118,7 @@ sub get_instantiation_results {
 	    foreach my $l (keys %{$without_aliases}) {
 		$string .= " $without_aliases->{$l}";
 	    }
-            push(@{$result->{'warn'}}, $string."\n");
+            push(@{$result->{'warn'}}, $string);
 	}
     }
     
@@ -1177,7 +1133,7 @@ sub get_instantiation_results {
 	    foreach my $l (keys %{$aliases_to_install}) {
 		$string .= " $aliases_to_install->{$l}";
 	    }
-            push(@{$result->{'warn'}}, $string."\n");
+            push(@{$result->{'warn'}}, $string);
 	}
     }
     
@@ -1188,7 +1144,7 @@ sub get_instantiation_results {
 	    foreach my $l (keys %{$aliases_to_remove}) {
 		$string .= " $aliases_to_remove->{$l}";
 	    }
-            push(@{$result->{'warn'}}, $string."\n");
+            push(@{$result->{'warn'}}, $string);
 	}
     }
 	    
@@ -1294,7 +1250,7 @@ Checks the parameter constraints taken from param_constraint.conf file for the L
 sub check_param_constraint {
     my $self = shift;
     my $list = shift;
-    &Log::do_log('debug2','Family::check_param_constraint(%s,%s)',$self->{'name'},$list->{'name'});
+    &do_log('debug2','Family::check_param_constraint(%s,%s)',$self->{'name'},$list->{'name'});
 
     if ($self->{'state'} eq 'no_check') {
 	return 1;
@@ -1308,7 +1264,7 @@ sub check_param_constraint {
     ## checking
     my $constraint = $self->get_constraints();
     unless (defined $constraint) {
-	&Log::do_log('err','Family::check_param_constraint(%s,%s) : unable to get family constraints',$self->{'name'},$list->{'name'});
+	&do_log('err','Family::check_param_constraint(%s,%s) : unable to get family constraints',$self->{'name'},$list->{'name'});
 	return undef;
     }
     foreach my $param (keys %{$constraint}) {
@@ -1317,7 +1273,7 @@ sub check_param_constraint {
 	my $value_error;
 
 	unless (defined $constraint_value) {
-	    &Log::do_log('err','No value constraint on parameter %s in param_constraint.conf',$param);
+	    &do_log('err','No value constraint on parameter %s in param_constraint.conf',$param);
 	    next;
 	}
 
@@ -1337,7 +1293,7 @@ sub check_param_constraint {
 	if (ref($value_error)) {
 	    foreach my $v (@{$value_error}) {
 		push (@error,$param);
-		&Log::do_log('err','Error constraint on parameter %s, value : %s',$param,$v);
+		&do_log('err','Error constraint on parameter %s, value : %s',$param,$v);
 	    }
 	}
     }
@@ -1394,14 +1350,14 @@ Returns a hash containing the values found in the param_constraint.conf file.
 #########################################
 sub get_constraints {
     my $self = shift;
-    &Log::do_log('debug3','Family::get_constraints(%s)',$self->{'name'});
+    &do_log('debug3','Family::get_constraints(%s)',$self->{'name'});
 
     ## load param_constraint.conf
     my $time_file = (stat("$self->{'dir'}/param_constraint.conf"))[9];
     unless ((defined $self->{'param_constraint_conf'}) && ($self->{'mtime'}{'param_constraint_conf'} >= $time_file)) {
 	$self->{'param_constraint_conf'} = $self->_load_param_constraint_conf();
 	unless (defined $self->{'param_constraint_conf'}) {
-	    &Log::do_log('err','Cannot load file param_constraint.conf ');
+	    &do_log('err','Cannot load file param_constraint.conf ');
 	    return undef;
 	}
 	$self->{'mtime'}{'param_constraint_conf'} = $time_file;
@@ -1460,7 +1416,7 @@ Returns 0 if all the value(s) found in $param_value appear also in $constraint_v
 #########################################
 sub check_values {
     my ($self,$param_value,$constraint_value) = @_;
-    &Log::do_log('debug3','Family::check_values()');
+    &do_log('debug3','Family::check_values()');
     
     my @param_values;
     my @error;
@@ -1577,7 +1533,7 @@ Gets the constraints on parameter $param from the 'param_constraint.conf' file.
 sub get_param_constraint {
     my $self = shift;
     my $param  = shift;
-    &Log::do_log('debug3','Family::get_param_constraint(%s,%s)',$self->{'name'},$param);
+    &do_log('debug3','Family::get_param_constraint(%s,%s)',$self->{'name'},$param);
  
     unless(defined $self->get_constraints()) {
 	return undef;
@@ -1636,7 +1592,7 @@ Returns a ref to an array whose values are the family lists' names.
 sub get_family_lists {
     my $self = shift;
     my @list_of_lists;
-    &Log::do_log('debug2','Family::get_family_lists(%s)',$self->{'name'});
+    &do_log('debug2','Family::get_family_lists(%s)',$self->{'name'});
 
     my $all_lists = &List::get_lists($self->{'robot'});
     foreach my $list ( @$all_lists ) {
@@ -1691,7 +1647,7 @@ Returns a ref to a hash whose keys are this family's lists' names. They are asso
 sub get_hash_family_lists {
     my $self = shift;
     my %list_of_lists;
-    &Log::do_log('debug2','Family::get_hash_family_lists(%s)',$self->{'name'});
+    &do_log('debug2','Family::get_hash_family_lists(%s)',$self->{'name'});
 
     my $all_lists = &List::get_lists($self->{'robot'});
     foreach my $list ( @$all_lists ) {
@@ -1746,7 +1702,7 @@ Returns a reference to hash whose keys are the uncompellable parameters.
 #########################################    
 sub get_uncompellable_param {
     my %list_of_param;
-    &Log::do_log('debug3','Family::get_uncompellable_param()');
+    &do_log('debug3','Family::get_uncompellable_param()');
 
     foreach my $param (@uncompellable_param) {
 	if ($param =~ /^([\w-]+)\.([\w-]+)$/) {
@@ -1815,7 +1771,7 @@ sub _get_directory {
     my $self = shift;
     my $robot = $self->{'robot'};
     my $name = $self->{'name'};
-    &Log::do_log('debug3','Family::_get_directory(%s)',$name);
+    &do_log('debug3','Family::_get_directory(%s)',$name);
 
     my @try = (
         $Conf::Conf{'etc'}           . "/$robot/families",
@@ -1882,7 +1838,7 @@ sub _check_mandatory_files {
     my $self = shift;
     my $dir = $self->{'dir'};
     my $string = "";
-    &Log::do_log('debug3','Family::_check_mandatory_files(%s)',$self->{'name'});
+    &do_log('debug3','Family::_check_mandatory_files(%s)',$self->{'name'});
 
     foreach my $f ('config.tt2') {
 	unless (-f "$dir/$f") {
@@ -1942,7 +1898,7 @@ Initializes all the values used for instantiation and results description to emp
 #####################################################
 sub _initialize_instantiation() {
     my $self = shift;
-    &Log::do_log('debug3','Family::_initialize_instantiation(%s)',$self->{'name'});
+    &do_log('debug3','Family::_initialize_instantiation(%s)',$self->{'name'});
 
     ### info vars for instantiate  ###
     ### returned by                ###
@@ -2074,7 +2030,7 @@ sub _split_xml_file {
     my $self = shift;
     my $xml_file = shift;
     my $root;
-    &Log::do_log('debug2','Family::_split_xml_file(%s)',$self->{'name'});
+    &do_log('debug2','Family::_split_xml_file(%s)',$self->{'name'});
 
     ## parse file
     my $parser = XML::LibXML->new();
@@ -2082,14 +2038,14 @@ sub _split_xml_file {
     my $doc;
 
     unless ($doc = $parser->parse_file($xml_file)) {
-	&Log::do_log('err',"Family::_split_xml_file() : failed to parse XML file");
+	&do_log('err',"Family::_split_xml_file() : failed to parse XML file");
 	return undef;
     }
     
     ## the family document
     $root = $doc->documentElement();
     unless ($root->nodeName eq 'family') {
-	&Log::do_log('err',"Family::_split_xml_file() : the root element must be called \"family\" ");
+	&do_log('err',"Family::_split_xml_file() : the root element must be called \"family\" ");
 	return undef;
     }
 
@@ -2098,7 +2054,7 @@ sub _split_xml_file {
 
 	if ($list_elt->nodeType == 1) {# ELEMENT_NODE
 	    unless ($list_elt->nodeName eq 'list') {
-		&Log::do_log('err','Family::_split_xml_file() : elements contained in the root element must be called "list", line %s',$list_elt->line_number());
+		&do_log('err','Family::_split_xml_file() : elements contained in the root element must be called "list", line %s',$list_elt->line_number());
 		return undef;
 	    }
 	}else {
@@ -2109,7 +2065,7 @@ sub _split_xml_file {
 	my @children = $list_elt->getChildrenByTagName('listname');
 
 	if ($#children <0) {
-	    &Log::do_log('err','Family::_split_xml_file() : "listname" element is required in "list" element, line : %s',$list_elt->line_number());
+	    &do_log('err','Family::_split_xml_file() : "listname" element is required in "list" element, line : %s',$list_elt->line_number());
 	    return undef;
 	}
 	if ($#children > 0) {
@@ -2117,7 +2073,7 @@ sub _split_xml_file {
 	    foreach my $i (@children) {
 		push (@error,$i->line_number());    
 	    }
-	    &Log::do_log('err','Family::_split_xml_file() : Only one "listname" element is allowed for "list" element, lines : %s',join(", ",@error));
+	    &do_log('err','Family::_split_xml_file() : Only one "listname" element is allowed for "list" element, lines : %s',join(", ",@error));
 	    return undef;
 	    my $minor_param = $2;
 	}
@@ -2134,7 +2090,7 @@ sub _split_xml_file {
 
 	## creating the list xml file
 	unless ($list_doc->toFile("$self->{'dir'}/$filename",0)) {
-	    &Log::do_log('err','Family::_split_xml_file() : cannot create list file %s',
+	    &do_log('err','Family::_split_xml_file() : cannot create list file %s',
 		    $self->{'dir'}.'/'.$filename,$list_elt->line_number());
 	    return undef;
 	}
@@ -2193,12 +2149,12 @@ Updates an already existing list in the new family context
 #####################################################
 sub _update_existing_list {
     my ($self,$list,$hash_list) = @_;
-    &Log::do_log('debug3','Family::_update_existing_list(%s,%s)',$self->{'name'},$list->{'name'});
+    &do_log('debug3','Family::_update_existing_list(%s,%s)',$self->{'name'},$list->{'name'});
 
     ## get allowed and forbidden list customizing
     my $custom = $self->_get_customizing($list);
     unless (defined $custom) {
-	&Log::do_log('err','impossible to get list %s customizing',$list->{'name'});
+	&do_log('err','impossible to get list %s customizing',$list->{'name'});
 	return undef;
     }
     my $config_changes = $custom->{'config_changes'}; 
@@ -2209,7 +2165,7 @@ sub _update_existing_list {
     ## list config family updating
     my $result = &admin::update_list($list,$hash_list->{'config'},$self,$self->{'robot'});
     unless (defined $result) {
-	&Log::do_log('err','No object list resulting from updating list %s',$list->{'name'});
+	&do_log('err','No object list resulting from updating list %s',$list->{'name'});
 	return undef;
     }
     $list = $result;
@@ -2219,22 +2175,22 @@ sub _update_existing_list {
     foreach my $p (keys %{$custom->{'allowed'}}) {
 	$list->{'admin'}{$p} = $custom->{'allowed'}{$p};
 	delete $list->{'admin'}{'defaults'}{$p};
-	&Log::do_log('info','Customizing : keeping values for parameter %s',$p);
+	&do_log('info','Customizing : keeping values for parameter %s',$p);
     }
 
     ## info file
     unless ($config_changes->{'file'}{'info'}) {
-	$hash_list->{'config'}{'description'} =~ s/\015//g;
+	$hash_list->{'config'}{'description'} =~ s/\r\n|\r/\n/g;
 	
-	unless (open INFO, '>:utf8', "$list->{'dir'}/info") {
-	    &Log::do_log('err','Impossible to open %s/info : %s',$list->{'dir'},$!);
+	unless (open INFO, '>', "$list->{'dir'}/info") {
+	    &do_log('err','Impossible to open %s/info : %s',$list->{'dir'},$!);
 	}
 	print INFO $hash_list->{'config'}{'description'};
 	close INFO; 
     }
     
     foreach my $f (keys %{$config_changes->{'file'}}) {
-	&Log::do_log('info','Customizing : this file has been changed : %s',$f);
+	&do_log('info','Customizing : this file has been changed : %s',$f);
     }
     
     ## rename forbidden files
@@ -2243,8 +2199,8 @@ sub _update_existing_list {
 	    ################
 #	}
 #	if ($f eq 'info') {
-#	    $hash_list->{'config'}{'description'} =~ s/\015//g;
-#	    unless (open INFO, '>:utf8', "$list_dir/info") {
+#	    $hash_list->{'config'}{'description'} =~ s/\r\n|\r/\n/g;
+#	    unless (open INFO, '>', "$list_dir/info") {
 		################
 #	    }
 #	    print INFO $hash_list->{'config'}{'description'};
@@ -2258,10 +2214,10 @@ sub _update_existing_list {
 	(scalar @{$custom->{'forbidden'}{'param'}})) {
 #	my $forbidden_files = join(',',@{$custom->{'forbidden'}{'file'}});
 	my $forbidden_param = join(',',@{$custom->{'forbidden'}{'param'}});
-	&Log::do_log('notice',"These parameters aren't allowed in the new family definition, they are erased by a new instantiation family : \n $forbidden_param");
+	&do_log('notice',"These parameters aren't allowed in the new family definition, they are erased by a new instantiation family : \n $forbidden_param");
 
 	unless ($list->send_notify_to_owner('erase_customizing',[$self->{'name'},$forbidden_param])) {
-	    &Log::do_log('notice','the owner isn\'t informed from erased customizing of the list %s',$list->{'name'});
+	    &do_log('notice','the owner isn\'t informed from erased customizing of the list %s',$list->{'name'});
 	}
     }
 
@@ -2288,8 +2244,8 @@ sub _update_existing_list {
 
     }
 
-    unless (open FILE, '>:utf8', "$list->{'dir'}/config_changes") {
-	&Log::do_log('err','impossible to open file %s/config_changes : %s',$list->{'dir'},$!);
+    unless (open FILE, '>', "$list->{'dir'}/config_changes") {
+	&do_log('err','impossible to open file %s/config_changes : %s',$list->{'dir'},$!);
 	push (@{$self->{'generated_lists'}{'file_error'}},$list->{'name'});
 	$list->set_status_error_config('error_copy_file',$list->{'name'},$self->{'name'});
     }
@@ -2374,13 +2330,13 @@ Gets list customizations from the config_changes file and keeps on changes allow
 #####################################################
 sub _get_customizing {
     my ($self,$list) = @_;
-    &Log::do_log('debug3','Family::_get_customizing(%s,%s)',$self->{'name'},$list->{'name'});
+    &do_log('debug3','Family::_get_customizing(%s,%s)',$self->{'name'},$list->{'name'});
 
     my $result;
     my $config_changes = $list->get_config_changes;
     
     unless (defined $config_changes) {
-	&Log::do_log('err','impossible to get config_changes');
+	&do_log('err','impossible to get config_changes');
 	return undef;
     }
 
@@ -2406,7 +2362,7 @@ sub _get_customizing {
     # check these values
     my $constraint = $self->get_constraints();
     unless (defined $constraint) {
-	&Log::do_log('err','unable to get family constraints',$self->{'name'},$list->{'name'});
+	&do_log('err','unable to get family constraints',$self->{'name'},$list->{'name'});
 	return undef;
     }
 
@@ -2416,7 +2372,7 @@ sub _get_customizing {
 	my $value_error;
 
 	unless (defined $constraint_value) {
-	    &Log::do_log('err','No value constraint on parameter %s in param_constraint.conf',$param);
+	    &do_log('err','No value constraint on parameter %s in param_constraint.conf',$param);
 	    next;
 	}
 
@@ -2426,7 +2382,7 @@ sub _get_customizing {
 
 	foreach my $v (@{$value_error}) {
 	    push @{$result->{'forbidden'}{'param'}},$param;
-	    &Log::do_log('err','Error constraint on parameter %s, value : %s',$param,$v);
+	    &do_log('err','Error constraint on parameter %s, value : %s',$param,$v);
 	}
 	
     }
@@ -2490,9 +2446,9 @@ Sets changes (loads the users, installs or removes the aliases); deals with the 
 
 =item * admin::remove_aliases
 
-=item * List::add_list_member
+=item * List::add_user
 
-=item * List::_load_list_members_file
+=item * List::_load_users_file
 
 =item * Log::do_log
 
@@ -2517,7 +2473,7 @@ Sets changes (loads the users, installs or removes the aliases); deals with the 
 #####################################################
 sub _set_status_changes {
     my ($self,$list,$old_status) = @_;
-    &Log::do_log('debug3','Family::_set_status_changes(%s,%s,%s)',$self->{'name'},$list);
+    &do_log('debug3','Family::_set_status_changes(%s,%s,%s)',$self->{'name'},$list);
 
     my $result;
 
@@ -2548,7 +2504,7 @@ sub _set_status_changes {
 ##	    $list->{'users'} = &List::_load_users_file("$list->{'dir'}/subscribers.closed.dump");
 ##	}elsif ($list->{'admin'}{'user_data_source'} eq 'database') {
 ##	    unless (-f "$list->{'dir'}/subscribers.closed.dump") {
-##		&Log::do_log('notice', 'No subscribers to restore');
+##		&do_log('notice', 'No subscribers to restore');
 ##	    }
 ##	    my @users = &List::_load_users_file("$list->{'dir'}/subscribers.closed.dump");
 ##	    
@@ -2558,7 +2514,7 @@ sub _set_status_changes {
 ##	    }
 ##	}
 ##    }
-
+	
     return $result;
 }
 
@@ -2635,7 +2591,7 @@ Finishes to generate a list in a family context (for a new or an already existin
 #####################################################
 sub _end_update_list {
     my ($self,$list,$xml_file) = @_;
-    &Log::do_log('debug3','Family::_end_update_list(%s,%s)',$self->{'name'},$list->{'name'});
+    &do_log('debug3','Family::_end_update_list(%s,%s)',$self->{'name'},$list->{'name'});
     
     my $host = &Conf::get_robot_conf($self->{'robot'}, 'host');
     $list->{'admin'}{'latest_instantiation'}{'email'} = "listmaster\@$host";
@@ -2650,7 +2606,7 @@ sub _end_update_list {
     $self->{'state'} = 'no_check';
 
     unless (defined $error) {
-	&Log::do_log('err', 'Impossible to check parameters constraint, it happens on list %s. It is set in status error_config',$list->{'name'});
+	&do_log('err', 'Impossible to check parameters constraint, it happens on list %s. It is set in status error_config',$list->{'name'});
 	$list->set_status_error_config('no_check_rules_family',$list->{'name'},$self->{'name'});
 	return undef;
     }
@@ -2726,12 +2682,12 @@ sub _copy_files {
     my $list_dir = shift;
     my $file = shift;
     my $dir = $self->{'dir'};
-    &Log::do_log('debug3','Family::_copy_files(%s,%s)',$self->{'name'},$list_dir);
+    &do_log('debug3','Family::_copy_files(%s,%s)',$self->{'name'},$list_dir);
 
     # instance.xml
     if (defined $file) {
 	unless (&File::Copy::copy ("$dir/$file", "$list_dir/instance.xml")) {
-	    &Log::do_log('err','Family::_copy_files(%s) : impossible to copy %s/%s into %s/instance.xml : %s',$self->{'name'},$dir,$file,$list_dir,$!);
+	    &do_log('err','Family::_copy_files(%s) : impossible to copy %s/%s into %s/instance.xml : %s',$self->{'name'},$dir,$file,$list_dir,$!);
 	    return undef;
 	}
     }
@@ -2788,19 +2744,19 @@ Loads the param_constraint.conf file into a hash
 #########################################
 sub _load_param_constraint_conf {
     my $self = shift;
-    &Log::do_log('debug2','Family::_load_param_constraint_conf(%s)',$self->{'name'});
+    &do_log('debug2','Family::_load_param_constraint_conf(%s)',$self->{'name'});
 
     my $file = "$self->{'dir'}/param_constraint.conf";
     
     my $constraint = {};
 
     unless (-e $file) {
-	&Log::do_log('err','No file %s. Assuming no constraints to apply.', $file);
+	&do_log('err','No file %s. Assuming no constraints to apply.', $file);
 	return $constraint;
     }
 
     unless (open (FILE, $file)) {
-	&Log::do_log('err','File %s exists, but unable to open it: %s', $file,$_);
+	&do_log('err','File %s exists, but unable to open it: %s', $file,$_);
 	return undef;
     }
 
@@ -2818,7 +2774,7 @@ sub _load_param_constraint_conf {
 	    my @values = split /,/, $value;
 	    
 	    unless(($param =~ /^([\w-]+)\.([\w-]+)$/) || ($param =~ /^([\w-]+)$/)) {
-		&Log::do_log ('err', 'Family::_load_param_constraint_conf(%s) : unknown parameter "%s" in %s',$self->{'name'},$_,$file);
+		&do_log ('err', 'Family::_load_param_constraint_conf(%s) : unknown parameter "%s" in %s',$self->{'name'},$_,$file);
 		$error = 1;
 		next;
 	    }
@@ -2831,14 +2787,14 @@ sub _load_param_constraint_conf {
 		}
 	    }
 	} else {
-	    &Log::do_log ('err', 'Family::_load_param_constraint_conf(%s) : bad line : %s in %s',$self->{'name'},$_,$file);
+	    &do_log ('err', 'Family::_load_param_constraint_conf(%s) : bad line : %s in %s',$self->{'name'},$_,$file);
 	    $error = 1;
 	    next;
 	}
     }
     if ($error) {
 	unless (&List::send_notify_to_listmaster('param_constraint_conf_error', $self->{'robot'}, [$file])) {
-	    &Log::do_log('notice','the owner isn\'t informed from param constraint config errors on the %s family',$self->{'name'});
+	    &do_log('notice','the owner isn\'t informed from param constraint config errors on the %s family',$self->{'name'});
 	}
     }
     close FILE;
