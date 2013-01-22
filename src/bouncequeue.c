@@ -49,11 +49,11 @@ readconf(char *file)
    if ((f = fopen(file, "r")) != NULL) {
       while (fgets(buf, sizeof buf, f) != NULL) {
 	/* Search for the configword "queuebounce" and a whitespace after it */
-	if (strncmp(buf, "queuebounce", 11) == 0 && isspace(buf[11])) {
+	if (strncmp(buf, "queue", 5) == 0 && isspace(buf[5])) {
             /* Strip the ending \n */
             if ((p = strrchr((char *)buf, '\n')) != NULL)
                *p = '\0';
-            p = buf + 11;
+            p = buf + 5;
             while (*p && isspace(*p)) p++;
             if (*p != '\0')
                r = p;
@@ -73,7 +73,7 @@ readconf(char *file)
          strcpy(s, r);
    }
    else
-      s = SPOOLDIR "/bounce";
+      s = SPOOLDIR "/msg";
    return s;
 }
 
@@ -104,7 +104,7 @@ main(int argn, char **argv)
       exit(EX_NOPERM);
    }
    umask(027);
-   snprintf(qfile, sizeof(qfile), "T.%s.%ld.%d", listname, time(NULL), getpid());
+   snprintf(qfile, sizeof(qfile), "T.Sympa_Bounce.%s.%ld.%d", listname, time(NULL), getpid());
    fd = open(qfile, O_CREAT|O_WRONLY, 0600);
    if (fd == -1)
       exit(EX_TEMPFAIL);

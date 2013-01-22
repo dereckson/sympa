@@ -24,7 +24,7 @@ package Language;
 use strict;
 
 use Exporter;
-use Carp;
+#use Carp; #currently not used
 use POSIX qw(setlocale strftime);
 use Locale::Messages qw (:locale_h :libintl_h !gettext);
 
@@ -64,6 +64,7 @@ my %lang2locale = ('ar' => 'ar_SY',
 		   'cs' => 'cs_CZ',
 		   'de' => 'de_DE',
 		   'us' => 'en_US',
+		   'en' => 'en_US',
 		   'el' => 'el_GR',
 		   'es' => 'es_ES',
 		   'et' => 'et_EE',
@@ -107,20 +108,13 @@ my %template2textdomain = ('help_admin.tt2' => 'web_help',
 			   'help_user.tt2' => 'web_help',
 			   );			   
 
-sub GetSupportedLanguages {
-    my $robot = shift;
-    my @lang_list;
-    
-    foreach my $l (split /,/,&Conf::get_robot_conf($robot, 'supported_lang')) {
-	push @lang_list, $lang2locale{$l}||$l;
-    }
-    return \@lang_list;
-}
+##sub GetSupportedLanguages {
+##DEPRECATED: use Site->supported_languages or $robot->supported_languages.
 
 ## Keep the previous lang ; can be restored with PopLang
 sub PushLang {
+    &Log::do_log('debug2', '(%s)', @_);
     my $locale = shift;
-    &Log::do_log('debug', 'Language::PushLang(%s)', $locale);
 
     push @previous_locale, $current_locale;
     &SetLang($locale);
@@ -129,7 +123,7 @@ sub PushLang {
 }
 
 sub PopLang {
-    &Log::do_log('debug', '');
+    &Log::do_log('debug2', '()');
 
     my $locale = pop @previous_locale;
     &SetLang($locale);
@@ -139,8 +133,8 @@ sub PopLang {
 
 sub SetLang {
 ###########
+    &Log::do_log('debug2', '(%s)', @_);
     my $locale = shift;
-    &Log::do_log('debug2', 'Language::SetLang(%s)', $locale);
 
     my $lang = $locale || $default_lang;## Use default_lang if an empty parameter
 
@@ -194,8 +188,10 @@ sub SetLang {
 
     $current_lang = $lang;
     $current_locale = $locale;
-    my $locale2charset = &Conf::get_robot_conf('', 'locale2charset');
-    $current_charset = $locale2charset->{$locale} || 'utf-8';
+
+    $current_charset = Site->locale2charset->{$locale}
+	if $Site::is_initialized;
+    $current_charset ||= 'utf-8';
 
     return $locale;
 }#SetLang

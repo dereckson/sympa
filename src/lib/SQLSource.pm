@@ -26,10 +26,10 @@ use strict;
 
 use Carp;
 use Log;
-use Conf;
-use List;
-use tools;
-use tt2;
+#use Conf; # not used
+#use List; # not used
+#use tools; # not used
+#use tt2; # not used
 use Exporter;
 use Data::Dumper;
 use Datasource;
@@ -118,9 +118,9 @@ sub new {
 
 sub connect {
     my $self = shift;
-    &Log::do_log('debug',"Checking connection to database %s",$self->{'db_name'});
+    &Log::do_log('debug3',"Checking connection to database %s",$self->{'db_name'});
     if ($self->{'dbh'} && $self->{'dbh'}->ping) {
-	&Log::do_log('debug','Connection to database %s already available',$self->{'db_name'});
+	&Log::do_log('debug3','Connection to database %s already available',$self->{'db_name'});
 	return 1;
     }
     unless($self->establish_connection()) {
@@ -166,7 +166,7 @@ sub establish_connection {
     ## Check if DBD is installed
     unless (eval "require DBD::$self->{'db_type'}") {
 	&Log::do_log('err',"No Database Driver installed for $self->{'db_type'} ; you should download and install DBD::$self->{'db_type'} from CPAN");
-	&List::send_notify_to_listmaster('missing_dbd', $Conf::Conf{'domain'},{'db_type' => $self->{'db_type'}});
+	Site->send_notify_to_listmaster('missing_dbd', {'db_type' => $self->{'db_type'}});
 	return undef;
     }
 
@@ -203,7 +203,7 @@ sub establish_connection {
 	}
       }
       
-      $self->{'dbh'} = eval {DBI->connect($self->{'connect_string'}, $self->{'db_user'}, $self->{'db_passwd'})} ;
+      $self->{'dbh'} = eval {DBI->connect($self->{'connect_string'}, $self->{'db_user'}, $self->{'db_passwd'}, { PrintError => 0 })} ;
       unless (defined $self->{'dbh'}) {
 	    ## Notify listmaster if warn option was set
 	    ## Unless the 'failed' status was set earlier
@@ -211,7 +211,7 @@ sub establish_connection {
 		unless (defined $db_connections{$self->{'connect_string'}} &&
 		    $db_connections{$self->{'connect_string'}}{'status'} eq 'failed') { 
     
-		    unless (&List::send_notify_to_listmaster('no_db', $Conf::Conf{'domain'},{})) {
+		    unless (Site->send_notify_to_listmaster('no_db', {})) {
 			&Log::do_log('err',"Unable to send notify 'no_db' to listmaster");
 		    }
 		}
@@ -228,14 +228,14 @@ sub establish_connection {
 	    my $sleep_delay = 60;
 	    while (1) {
 		sleep $sleep_delay;
-		eval {$self->{'dbh'} = DBI->connect($self->{'connect_string'}, $self->{'db_user'}, $self->{'db_passwd'})};
+		eval {$self->{'dbh'} = DBI->connect($self->{'connect_string'}, $self->{'db_user'}, $self->{'db_passwd'}, { PrintError => 0 })};
 		last if ($self->{'dbh'} && $self->{'dbh'}->ping());
 		$sleep_delay += 10;
 	    }
 	    
 	    if ($self->{'reconnect_options'}{'warn'}) {
 	    &Log::do_log('notice','Connection to Database %s restored.', $self->{'connect_string'});
-		unless (&List::send_notify_to_listmaster('db_restored', $Conf::Conf{'domain'},{})) {
+		unless (Site->send_notify_to_listmaster('db_restored', {})) {
 		    &Log::do_log('notice',"Unable to send notify 'db_restored' to listmaster");
 		}
 	    }
@@ -284,9 +284,14 @@ sub do_query {
     my $query = shift;
     my @params = @_;
 
+    $query =~ s/^\s+//;
+    $query =~ s/\s+$//;
     my $statement = sprintf $query, @params;
 
-    &Log::do_log('debug', "Will perform query '%s'",$statement);
+    my $s = $statement;
+    $s =~ s/\n\s*/ /g;
+    &Log::do_log('debug2', "Will perform query '%s'", $s);
+
     unless ($self->{'sth'} = $self->{'dbh'}->prepare($statement)) {
 	# Check connection to database in case it would be the cause of the problem.
 	unless($self->connect()) {
@@ -333,11 +338,37 @@ sub do_query {
 sub do_prepared_query {
     my $self = shift;
     my $query = shift;
-    my @params = @_;
+    my @params = ();
+    my %types = ();
+
+    ## get binding types and parameters
+    my $i = 0;
+    while (scalar @_) {
+	my $p = shift;
+	if (ref $p eq 'HASH') {
+	    # a hashref { sql_type => SQL_type } etc.
+	    $types{$i} = $p;
+	    push @params, shift;
+	} elsif (ref $p) {
+	    &Log::do_log('err', 'unexpected %s object.  Ask developer',
+			 ref $p);
+	    return undef;
+	} else {
+	    push @params, $p;
+	}
+	$i++;
+    }
 
     my $sth;
 
-    unless ($self->{'cached_prepared_statements'}{$query}) {
+    $query =~ s/^\s+//;
+    $query =~ s/\s+$//;
+    $query =~ s/\n\s*/ /g;
+    &Log::do_log('debug3', "Will perform query '%s'", $query);
+
+    if ($self->{'cached_prepared_statements'}{$query}) {
+	$sth = $self->{'cached_prepared_statements'}{$query};
+    } else {
 	&Log::do_log('debug3','Did not find prepared statement for %s. Doing it.',$query);
 	unless ($sth = $self->{'dbh'}->prepare($query)) {
 	    unless($self->connect()) {
@@ -350,11 +381,16 @@ sub do_prepared_query {
 		}
 	    }
 	}
+
+	## bind parameters with special types
+	## this may be done only once when handle is prepared.
+	foreach my $i (sort keys %types) {
+	    $sth->bind_param($i + 1, $params[$i], $types{$i});
+	}
+
 	$self->{'cached_prepared_statements'}{$query} = $sth;
-    }else {
-	&Log::do_log('debug3','Reusing prepared statement for %s',$query);
     }	
-    unless ($self->{'cached_prepared_statements'}{$query}->execute(@params)) {
+    unless ($sth->execute(@params)) {
 	# Check database connection in case it would be the cause of the problem.
 	unless($self->connect()) {
 	    &Log::do_log('err', 'Unable to get a handle to %s database',$self->{'db_name'});
@@ -371,15 +407,22 @@ sub do_prepared_query {
 		    }
 		}
 	    }
+
+	    ## bind parameters with special types
+	    ## this may be done only once when handle is prepared.
+	    foreach my $i (sort keys %types) {
+		$sth->bind_param($i + 1, $params[$i], $types{$i});
+	    }
+
 	    $self->{'cached_prepared_statements'}{$query} = $sth;
-	    unless ($self->{'cached_prepared_statements'}{$query}->execute(@params)) {
+	    unless ($sth->execute(@params)) {
 		&Log::do_log('err','Unable to execute SQL statement "%s" : %s', $query, $self->{'dbh'}->errstr);
 		return undef;
 	    }
 	}
     }
 
-    return $self->{'cached_prepared_statements'}{$query};
+    return $sth;
 }
 
 sub prepare_query_log_values {
@@ -426,12 +469,12 @@ sub fetch {
 sub disconnect {
     my $self = shift;
     $self->{'sth'}->finish if $self->{'sth'};
-    $self->{'dbh'}->disconnect;
+    if ($self->{'dbh'}) {$self->{'dbh'}->disconnect;}
     delete $db_connections{$self->{'connect_string'}};
 }
 
 sub create_db {
-    &Log::do_log('debug3', 'List::create_db()');    
+    &Log::do_log('debug3', '()');    
     return 1;
 }
 

@@ -32,17 +32,25 @@ $ENV{'PATH'} = '';
 ## Load Sympa.conf
 use strict;
 use lib '--modulesdir--';
-use Conf;
 use POSIX;
-use tools;
-use tt2;
-use Sympa::Constants;
 
-my $sympa_conf_file = Sympa::Constants::CONFIG;
-unless (Conf::load($sympa_conf_file)) {
-   &Log::fatal_err("Unable to load sympa configuration, file $sympa_conf_file or one of the vhost robot.conf files contain errors. Exiting.");
+#use Conf; # load in Site - Robot
+#use tools; # load in Conf - Robot
+use tt2;
+#use Sympa::Constants; # load in confdef - Conf
+use Robot;
+
+unless (defined Site->load) {
+    Log::fatal_err(
+	'Unable to load sympa configuration, file %s or one of the virtual host robot.conf files contain errors. Exiting.',
+	Conf::get_sympa_conf()
+    );
 }
-my $tmp_alias_file = $Conf{'tmpdir'}.'/sympa_aliases.'.time;
+
+Log::set_log_level(Site->log_level);
+Log::do_openlog(Site->syslog, Site->log_socket_type, 'alias_manager');
+
+my $tmp_alias_file = Site->tmpdir . '/sympa_aliases.' . time;
 
 
 my $default_domain;
@@ -53,16 +61,22 @@ my $path_to_bouncequeue = Sympa::Constants::LIBEXECDIR .'/bouncequeue';
 
 my ($operation, $listname, $domain, $file) = @ARGV;
 
+my $robot;
 
 if (($operation !~ /^(add|del)$/) || ($#ARGV < 2)) {
     printf STDERR "Usage: $0 <add|del> <listname> <robot> [<file>]\n";
     exit(2);
 }
 
-$default_domain = $Conf{'domain'};
+unless ($robot = Robot->new($domain)) {
+    printf STDERR "Unknown robot $domain";
+    exit(16);
+}
+
+$default_domain = Site->domain;
 
 my $alias_file;
-$alias_file = $Conf{'sendmail_aliases'} || Sympa::Constants::SENDMAIL_ALIASES;
+$alias_file = Site->sendmail_aliases || Sympa::Constants::SENDMAIL_ALIASES;
 $alias_file = $file if ($file);
 
 unless (-w "$alias_file") {
@@ -72,18 +86,15 @@ unless (-w "$alias_file") {
     
 my %data;
 $data{'date'} =  &POSIX::strftime("%d %b %Y", localtime(time));
-
-
 $data{'list'}{'domain'} = $data{'robot'} = $domain;
 $data{'list'}{'name'} = $listname;
 $data{'default_domain'} = $default_domain;
 $data{'is_default_domain'} = 1 if ($domain eq $default_domain);
-$data{'return_path_suffix'} = &Conf::get_robot_conf($domain, 'return_path_suffix');
+$data{'return_path_suffix'} = $robot->return_path_suffix;
 
+my @aliases;
 
-my @aliases ;
-
-my $tt2_include_path = &tools::make_tt2_include_path($domain,'',,);
+my $tt2_include_path = $robot->get_etc_include_path();
 
 my $aliases_dump;
 &tt2::parse_tt2 (\%data, 'list_aliases.tt2',\$aliases_dump, $tt2_include_path);
@@ -91,8 +102,8 @@ my $aliases_dump;
 @aliases = split /\n/, $aliases_dump;
 
 unless (@aliases) {
-    	print STDERR "No aliases defined\n";
-	exit(15);
+    print STDERR "No aliases defined\n";
+    exit(15);
 }
 
 if ($operation eq 'add') {
@@ -105,7 +116,7 @@ if ($operation eq 'add') {
 
     ## Check existing aliases
     if (&already_defined(@aliases)) {
-	printf STDERR "some alias already exist\n";
+	print STDERR "some alias already exist\n";
 	exit(13);
     }
 
@@ -114,8 +125,8 @@ if ($operation eq 'add') {
 	exit(5);
     }
 
-    foreach (@aliases) {
-	print ALIAS "$_\n";
+    foreach my $alias (@aliases) {
+	print ALIAS "$alias\n";
     }
     close ALIAS;
 
@@ -141,7 +152,7 @@ if ($operation eq 'add') {
 	print STDERR "Could not read $alias_file\n";
 	exit(7);
     }
-    
+
     unless (open NEWALIAS, ">$tmp_alias_file") {
 	printf STDERR "Could not create $tmp_alias_file\n";
 	exit (8);
