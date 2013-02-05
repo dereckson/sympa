@@ -41,7 +41,6 @@ use Language;
 use Log;
 use tools;
 use Sympa::Constants;
-use File::Copy;
 use Data::Dumper;
 
 =pod 
@@ -150,6 +149,7 @@ Creates a list. Used by the create_list() sub in sympa.pl and the do_create_list
 #       - $template : the create list template 
 #       - $robot : the list's robot       
 #       - $origin : the source of the command : web, soap or command_line  
+#              no longer used
 # OUT : - hash with keys :
 #          -list :$list
 #          -aliases : undef if not applicable; 1 (if ok) or
@@ -157,31 +157,31 @@ Creates a list. Used by the create_list() sub in sympa.pl and the do_create_list
 #           are not installed or 1(in status open)
 #######################################################
 sub create_list_old{
-    my ($param,$template,$robot,$origin, $user_mail) = @_;
-    &Log::do_log('debug', 'admin::create_list_old(%s,%s)',$param->{'listname'},$robot,$origin);
+    my ($param,$template,$robot,$origin) = @_;
+    &do_log('debug', 'admin::create_list_old(%s,%s)',$param->{'listname'},$robot,$origin);
 
      ## obligatory list parameters 
     foreach my $arg ('listname','subject') {
 	unless ($param->{$arg}) {
-	    &Log::do_log('err','admin::create_list_old : missing list param %s', $arg);
+	    &do_log('err','admin::create_list_old : missing list param %s', $arg);
 	    return undef;
 	}
     }
     # owner.email || owner_include.source
     unless (&check_owner_defined($param->{'owner'},$param->{'owner_include'})) {
-	&Log::do_log('err','admin::create_list_old : problem in owner definition in this list creation');
+	&do_log('err','admin::create_list_old : problem in owner definition in this list creation');
 	return undef;
     }
 
 
     # template
     unless ($template) {
-	&Log::do_log('err','admin::create_list_old : missing param "template"', $template);
+	&do_log('err','admin::create_list_old : missing param "template"', $template);
 	return undef;
     }
     # robot
     unless ($robot) {
-	&Log::do_log('err','admin::create_list_old : missing param "robot"', $robot);
+	&do_log('err','admin::create_list_old : missing param "robot"', $robot);
 	return undef;
     }
    
@@ -190,33 +190,37 @@ sub create_list_old{
     my $listname_regexp = &tools::get_regexp('listname');
 
     unless ($param->{'listname'} =~ /^$listname_regexp$/i) {
-	&Log::do_log('err','admin::create_list_old : incorrect listname %s', $param->{'listname'});
+	&do_log('err','admin::create_list_old : incorrect listname %s', $param->{'listname'});
 	return undef;
     }
 
     my $regx = &Conf::get_robot_conf($robot,'list_check_regexp');
     if( $regx ) {
 	if ($param->{'listname'} =~ /^(\S+)-($regx)$/) {
-	    &Log::do_log('err','admin::create_list_old : incorrect listname %s matches one of service aliases', $param->{'listname'});
+	    &do_log('err','admin::create_list_old : incorrect listname %s matches one of service aliases', $param->{'listname'});
 	    return undef;
 	}
     }    
 
+    if ($param->{'listname'} eq &Conf::get_robot_conf($robot,'email')) {
+	&do_log('err','admin::create_list : incorrect listname %s matches one of service aliases', $param->{'listname'});
+	return undef;
+    }
+
     ## Check listname on SMTP server
-    my $res = &list_check_smtp($param->{'listname'});
+    my $res = &list_check_smtp($param->{'listname'}, $robot);
     unless (defined $res) {
-	&Log::do_log('err', "admin::create_list_old : can't check list %.128s on %.128s",
-		$param->{'listname'},
-		$Conf::Conf{'list_check_smtp'});
+	&do_log('err', "admin::create_list_old : can't check list %.128s on %s",
+		$param->{'listname'}, $robot);
 	return undef;
     }
     
     ## Check this listname doesn't exist already.
     if( $res || new List ($param->{'listname'}, $robot, {'just_try' => 1})) {
-	&Log::do_log('err', 'admin::create_list_old : could not create already existing list %s for ', 
-		$param->{'listname'});
+	&do_log('err', 'admin::create_list_old : could not create already existing list %s on %s for ', 
+		$param->{'listname'}, $robot);
 	foreach my $o (@{$param->{'owner'}}){
-	    &Log::do_log('err',$o->{'email'});
+	    &do_log('err',$o->{'email'});
 	}
 	return undef;
     }
@@ -225,7 +229,7 @@ sub create_list_old{
     ## Check the template supposed to be used exist.
     my $template_file = &tools::get_filename('etc',{},'create_list_templates/'.$template.'/config.tt2', $robot);
     unless (defined $template_file) {
-	&Log::do_log('err', 'no template %s found',$template);
+	&do_log('err', 'no template %s found',$template);
 	return undef;
     }
 
@@ -236,7 +240,7 @@ sub create_list_old{
      if (-d "$Conf::Conf{'home'}/$robot") {
 	 unless (-d $Conf::Conf{'home'}.'/'.$robot) {
 	     unless (mkdir ($Conf::Conf{'home'}.'/'.$robot,0777)) {
-		 &Log::do_log('err', 'admin::create_list_old : unable to create %s/%s : %s',$Conf::Conf{'home'},$robot,$?);
+		 &do_log('err', 'admin::create_list_old : unable to create %s/%s : %s',$Conf::Conf{'home'},$robot,$?);
 		 return undef;
 	     }    
 	 }
@@ -247,14 +251,14 @@ sub create_list_old{
 
     ## Check the privileges on the list directory
      unless (mkdir ($list_dir,0777)) {
-	 &Log::do_log('err', 'admin::create_list_old : unable to create %s : %s',$list_dir,$?);
+	 &do_log('err', 'admin::create_list_old : unable to create %s : %s',$list_dir,$?);
 	 return undef;
      }    
     
     ## Check topics
     if ($param->{'topics'}){
 	unless (&check_topics($param->{'topics'},$robot)){
-	    &Log::do_log('err', 'admin::create_list_old : topics param %s not defined in topics.conf',$param->{'topics'});
+	    &do_log('err', 'admin::create_list_old : topics param %s not defined in topics.conf',$param->{'topics'});
 	}
     }
       
@@ -270,18 +274,17 @@ sub create_list_old{
     ## Lock config before openning the config file
     my $lock = new Lock ($list_dir.'/config');
     unless (defined $lock) {
-	&Log::do_log('err','Lock could not be created');
+	&do_log('err','Lock could not be created');
 	return undef;
     }
     $lock->set_timeout(5); 
     unless ($lock->lock('write')) {
 	return undef;
     }
-    if($origin eq "command_line") {
-	open CONFIG, '>:utf8', "$list_dir/config";
-    }
-    else {
-	open CONFIG, '>:bytes', "$list_dir/config";
+    unless (open CONFIG, '>', "$list_dir/config") {
+	&do_log('err','Impossible to create %s/config : %s', $list_dir, $!);
+	$lock->unlock();
+	return undef;
     }
     ## Use an intermediate handler to encode to filesystem_encoding
     my $config = '';
@@ -297,18 +300,11 @@ sub create_list_old{
 
     ## Creation of the info file 
     # remove DOS linefeeds (^M) that cause problems with Outlook 98, AOL, and EIMS:
-    $param->{'description'} =~ s/\015//g;
+    $param->{'description'} =~ s/\r\n|\r/\n/g;
 
-    ## info file creation. Use UTF-8 for command line orgigin only.
-    if($origin eq "command_line") {
-	unless (open INFO, '>:utf8', "$list_dir/info") {
-	    &Log::do_log('err','Impossible to create %s/info : %s',$list_dir,$!);
-	}
-    }
-    else {
-	unless (open INFO, '>:bytes', "$list_dir/info") {
-	    &Log::do_log('err','Impossible to create %s/info : %s',$list_dir,$!);
-	}
+    ## info file creation.
+    unless (open INFO, '>', "$list_dir/info") {
+	&do_log('err','Impossible to create %s/info : %s', $list_dir, $!);
     }
     if (defined $param->{'description'}) {
 	Encode::from_to($param->{'description'}, 'utf8', $Conf::Conf{'filesystem_encoding'});
@@ -319,19 +315,13 @@ sub create_list_old{
     ## Create list object
     my $list;
     unless ($list = new List ($param->{'listname'}, $robot)) {
-	&Log::do_log('err','admin::create_list_old : unable to create list %s', $param->{'listname'});
+	&do_log('err','admin::create_list_old : unable to create list %s', $param->{'listname'});
 	return undef;
     }
 
     ## Create shared if required
     if (defined $list->{'admin'}{'shared_doc'}) {
 	$list->create_shared();
-    }
-
-    #log in stat_table to make statistics
-
-    if($origin eq "web"){
-	&Log::db_stat_log({'robot' => $robot, 'list' => $param->{'listname'}, 'operation' => 'create list', 'parameter' => '', 'mail' => $user_mail, 'client' => '', 'daemon' => 'wwsympa.fcgi'});
     }
 
     my $return = {};
@@ -345,12 +335,13 @@ sub create_list_old{
 
     ## Synchronize list members if required
     if ($list->has_include_data_sources()) {
-	&Log::do_log('notice', "Synchronizing list members...");
+	&do_log('notice', "Synchronizing list members...");
 	$list->sync_include();
     }
     
     $list->save_config;
-   return $return;
+
+    return $return;
 }
 
 ########################################################
@@ -380,24 +371,24 @@ sub create_list_old{
 #######################################################
 sub create_list{
     my ($param,$family,$robot, $abort_on_error) = @_;
-    &Log::do_log('info', 'admin::create_list(%s,%s,%s)',$param->{'listname'},$family->{'name'},$param->{'subject'});
+    &do_log('info', 'admin::create_list(%s,%s,%s)',$param->{'listname'},$family->{'name'},$param->{'subject'});
 
     ## mandatory list parameters 
     foreach my $arg ('listname') {
 	unless ($param->{$arg}) {
-	    &Log::do_log('err','admin::create_list : missing list param %s', $arg);
+	    &do_log('err','admin::create_list : missing list param %s', $arg);
 	    return undef;
 	}
     }
 
     unless ($family) {
-	&Log::do_log('err','admin::create_list : missing param "family"');
+	&do_log('err','admin::create_list : missing param "family"');
 	return undef;
     }
 
     #robot
     unless ($robot) {
-	&Log::do_log('err','admin::create_list : missing param "robot"', $robot);
+	&do_log('err','admin::create_list : missing param "robot"', $robot);
 	return undef;
     }
    
@@ -406,31 +397,34 @@ sub create_list{
     my $listname_regexp = &tools::get_regexp('listname');
 
     unless ($param->{'listname'} =~ /^$listname_regexp$/i) {
-	&Log::do_log('err','admin::create_list : incorrect listname %s', $param->{'listname'});
+	&do_log('err','admin::create_list : incorrect listname %s', $param->{'listname'});
 	return undef;
     }
 
     my $regx = &Conf::get_robot_conf($robot,'list_check_regexp');
     if( $regx ) {
 	if ($param->{'listname'} =~ /^(\S+)-($regx)$/) {
-	    &Log::do_log('err','admin::create_list : incorrect listname %s matches one of service aliases', $param->{'listname'});
+	    &do_log('err','admin::create_list : incorrect listname %s matches one of service aliases', $param->{'listname'});
 	    return undef;
 	}
     }    
+    if ($param->{'listname'} eq &Conf::get_robot_conf($robot,'email')) {
+	&do_log('err','admin::create_list : incorrect listname %s matches one of service aliases', $param->{'listname'});
+	return undef;
+    }
 
     ## Check listname on SMTP server
-    my $res = &list_check_smtp($param->{'listname'});
+    my $res = &list_check_smtp($param->{'listname'}, $robot);
     unless (defined $res) {
-	&Log::do_log('err', "admin::create_list : can't check list %.128s on %.128s",
-		$param->{'listname'},
-		$Conf::Conf{'list_check_smtp'});
+	&do_log('err', "admin::create_list : can't check list %.128s on %s",
+		$param->{'listname'}, $robot);
 	return undef;
     }
 
     if ($res) {
-	&Log::do_log('err', 'admin::create_list : could not create already existing list %s for ',$param->{'listname'});
+	&do_log('err', 'admin::create_list : could not create already existing list %s on %s for ', $param->{'listname'}, $robot);
 	foreach my $o (@{$param->{'owner'}}){
-	    &Log::do_log('err',$o->{'email'});
+	    &do_log('err',$o->{'email'});
 	}
 	return undef;
     }
@@ -438,7 +432,7 @@ sub create_list{
     ## template file
     my $template_file = &tools::get_filename('etc',{},'config.tt2', $robot,$family);
     unless (defined $template_file) {
-	&Log::do_log('err', 'admin::create_list : no config template from family %s@%s',$family->{'name'},$robot);
+	&do_log('err', 'admin::create_list : no config template from family %s@%s',$family->{'name'},$robot);
 	return undef;
     }
 
@@ -447,7 +441,7 @@ sub create_list{
     my $conf;
     my $tt_result = &tt2::parse_tt2($param, 'config.tt2', \$conf, [$family->{'dir'}]);
     unless (defined $tt_result || !$abort_on_error) {
-      &Log::do_log('err', 'admin::create_list : abort on tt2 error. List %s from family %s@%s',
+      &do_log('err', 'admin::create_list : abort on tt2 error. List %s from family %s@%s',
                 $param->{'listname'}, $family->{'name'},$robot);
       return undef;
     }
@@ -458,7 +452,7 @@ sub create_list{
     if (-d "$Conf::Conf{'home'}/$robot") {
 	unless (-d $Conf::Conf{'home'}.'/'.$robot) {
 	    unless (mkdir ($Conf::Conf{'home'}.'/'.$robot,0777)) {
-		&Log::do_log('err', 'admin::create_list : unable to create %s/%s : %s',$Conf::Conf{'home'},$robot,$?);
+		&do_log('err', 'admin::create_list : unable to create %s/%s : %s',$Conf::Conf{'home'},$robot,$?);
 		return undef;
 	    }    
 	}
@@ -468,21 +462,21 @@ sub create_list{
     }
 
      unless (-r $list_dir || mkdir ($list_dir,0777)) {
-	 &Log::do_log('err', 'admin::create_list : unable to create %s : %s',$list_dir,$?);
+	 &do_log('err', 'admin::create_list : unable to create %s : %s',$list_dir,$?);
 	 return undef;
      }    
     
     ## Check topics
     if (defined $param->{'topics'}){
 	unless (&check_topics($param->{'topics'},$robot)){
-	    &Log::do_log('err', 'admin::create_list : topics param %s not defined in topics.conf',$param->{'topics'});
+	    &do_log('err', 'admin::create_list : topics param %s not defined in topics.conf',$param->{'topics'});
 	}
     }
       
     ## Lock config before openning the config file
     my $lock = new Lock ($list_dir.'/config');
     unless (defined $lock) {
-	&Log::do_log('err','Lock could not be created');
+	&do_log('err','Lock could not be created');
 	return undef;
     }
     $lock->set_timeout(5); 
@@ -491,7 +485,11 @@ sub create_list{
     }
 
     ## Creation of the config file
-    open CONFIG, '>:utf8', "$list_dir/config";
+    unless (open CONFIG, '>', "$list_dir/config") {
+	&do_log('err','Impossible to create %s/config : %s', $list_dir, $!);
+	$lock->unlock();
+	return undef;
+    }
     #&tt2::parse_tt2($param, 'config.tt2', \*CONFIG, [$family->{'dir'}]);
     print CONFIG $conf;
     close CONFIG;
@@ -501,10 +499,10 @@ sub create_list{
 
     ## Creation of the info file 
     # remove DOS linefeeds (^M) that cause problems with Outlook 98, AOL, and EIMS:
-    $param->{'description'} =~ s/\015//g;
+    $param->{'description'} =~ s/\r\n|\r/\n/g;
     
-    unless (open INFO, '>:utf8', "$list_dir/info") {
-	&Log::do_log('err','Impossible to create %s/info : %s',$list_dir,$!);
+    unless (open INFO, '>', "$list_dir/info") {
+	&do_log('err','Impossible to create %s/info : %s', $list_dir, $!);
     }
     if (defined $param->{'description'}) {
 	print INFO $param->{'description'};
@@ -518,28 +516,10 @@ sub create_list{
 	    my $file_content;
 	    my $tt_result = &tt2::parse_tt2($param, $file.".tt2", \$file_content, [$family->{'dir'}]);
 	    unless (defined $tt_result) {
-		&Log::do_log('err', 'admin::create_list : tt2 error. List %s from family %s@%s, file %s',
-			$param->{'listname'}, $family->{'name'},$robot,$file);
-	    }
-	    unless (open FILE, '>:utf8', "$list_dir/$file") {
-		&Log::do_log('err','Impossible to create %s/%s : %s',$list_dir,$file,$!);
-	    }
-	    print FILE $file_content;
-	    close FILE;
-	}
-    }
-
-    ## Create associated files if a template was given.
-    for my $file ('message.footer','message.header','message.footer.mime','message.header.mime','info') {
-	my $template_file = &tools::get_filename('etc',{},$file.".tt2", $robot,$family);
-	if (defined $template_file) {
-	    my $file_content;
-	    my $tt_result = &tt2::parse_tt2($param, $file.".tt2", \$file_content, [$family->{'dir'}]);
-	    unless (defined $tt_result) {
 		&do_log('err', 'admin::create_list : tt2 error. List %s from family %s@%s, file %s',
 			$param->{'listname'}, $family->{'name'},$robot,$file);
 	    }
-	    unless (open FILE, '>:utf8', "$list_dir/$file") {
+	    unless (open FILE, '>', "$list_dir/$file") {
 		&do_log('err','Impossible to create %s/%s : %s',$list_dir,$file,$!);
 	    }
 	    print FILE $file_content;
@@ -550,7 +530,7 @@ sub create_list{
     ## Create list object
     my $list;
     unless ($list = new List ($param->{'listname'}, $robot)) {
-	&Log::do_log('err','admin::create_list : unable to create list %s', $param->{'listname'});
+	&do_log('err','admin::create_list : unable to create list %s', $param->{'listname'});
 	return undef;
     }
 
@@ -585,7 +565,7 @@ sub create_list{
 
     ## Synchronize list members if required
     if ($list->has_include_data_sources()) {
-	&Log::do_log('notice', "Synchronizing list members...");
+	&do_log('notice', "Synchronizing list members...");
 	$list->sync_include();
     }
 
@@ -614,12 +594,12 @@ sub create_list{
 #######################################################
 sub update_list{
     my ($list,$param,$family,$robot) = @_;
-    &Log::do_log('info', 'admin::update_list(%s,%s,%s)',$param->{'listname'},$family->{'name'},$param->{'subject'});
+    &do_log('info', 'admin::update_list(%s,%s,%s)',$param->{'listname'},$family->{'name'},$param->{'subject'});
 
     ## mandatory list parameters
     foreach my $arg ('listname') {
 	unless ($param->{$arg}) {
-	    &Log::do_log('err','admin::update_list : missing list param %s', $arg);
+	    &do_log('err','admin::update_list : missing list param %s', $arg);
 	    return undef;
 	}
     }
@@ -627,21 +607,21 @@ sub update_list{
     ## template file
     my $template_file = &tools::get_filename('etc',{}, 'config.tt2', $robot,$family);
     unless (defined $template_file) {
-	&Log::do_log('err', 'admin::update_list : no config template from family %s@%s',$family->{'name'},$robot);
+	&do_log('err', 'admin::update_list : no config template from family %s@%s',$family->{'name'},$robot);
 	return undef;
     }
 
     ## Check topics
     if (defined $param->{'topics'}){
 	unless (&check_topics($param->{'topics'},$robot)){
-	    &Log::do_log('err', 'admin::update_list : topics param %s not defined in topics.conf',$param->{'topics'});
+	    &do_log('err', 'admin::update_list : topics param %s not defined in topics.conf',$param->{'topics'});
 	}
     }
 
     ## Lock config before openning the config file
     my $lock = new Lock ($list->{'dir'}.'/config');
     unless (defined $lock) {
-	&Log::do_log('err','Lock could not be created');
+	&do_log('err','Lock could not be created');
 	return undef;
     }
     $lock->set_timeout(5); 
@@ -650,7 +630,11 @@ sub update_list{
     }
 
     ## Creation of the config file
-    open CONFIG, '>:utf8', "$list->{'dir'}/config";
+    unless (open CONFIG, '>', "$list->{'dir'}/config") {
+	&do_log('err','Impossible to create %s/config : %s', $list->{'dir'}, $!);
+	$lock->unlock();
+	return undef;
+    }
     &tt2::parse_tt2($param, 'config.tt2', \*CONFIG, [$family->{'dir'}]);
     close CONFIG;
 
@@ -659,7 +643,7 @@ sub update_list{
 
     ## Create list object
     unless ($list = new List ($param->{'listname'}, $robot)) {
-	&Log::do_log('err','admin::create_list : unable to create list %s', $param->{'listname'});
+	&do_log('err','admin::create_list : unable to create list %s', $param->{'listname'});
 	return undef;
     }
 ############## ? update
@@ -681,7 +665,7 @@ sub update_list{
 
     ## Synchronize list members if required
     if ($list->has_include_data_sources()) {
-	&Log::do_log('notice', "Synchronizing list members...");
+	&do_log('notice', "Synchronizing list members...");
 	$list->sync_include();
     }
 
@@ -689,7 +673,7 @@ sub update_list{
 }
 
 ########################################################
-# rename_list                                      
+# create_list                                      
 ########################################################  
 # Rename a list or move a list to another virtual host
 # 
@@ -714,7 +698,7 @@ sub update_list{
 #######################################################
 sub rename_list{
     my (%param) = @_;
-    &Log::do_log('info', '',);
+    &do_log('info', '',);
 
     my $list = $param{'list'};
     my $robot = $list->{'domain'};
@@ -725,7 +709,7 @@ sub rename_list{
     my $listname_regexp = &tools::get_regexp('listname');
     
     unless ($new_listname =~ /^$listname_regexp$/i) {
-      &Log::do_log('err','incorrect listname %s', $new_listname);
+      &do_log('err','incorrect listname %s', $new_listname);
       return 'incorrect_listname';
     }
     
@@ -737,13 +721,15 @@ sub rename_list{
 					    'remote_host' => $param{'remote_host'},
 					    'remote_addr' => $param{'remote_addr'}});
       
+      $r_action;
+      $reason;
       if (ref($result) eq 'HASH') {
 	$r_action = $result->{'action'};
 	$reason = $result->{'reason'};
       }
       
       unless ($r_action =~ /do_it|listmaster/) {
-	&Log::do_log('err','authorization error');
+	&do_log('err','authorization error');
 	return 'authorization';
       }
     }
@@ -751,21 +737,22 @@ sub rename_list{
     ## Check listname on SMTP server
     my $res = list_check_smtp($param{'new_listname'}, $param{'new_robot'});
     unless ( defined($res) ) {
-      &Log::do_log('err', "can't check list %.128s on %.128s", $param{'new_listname'}, &Conf::get_robot_conf($param{'new_robot'}, 'list_check_smtp'));
+      &do_log('err', "can't check list %.128s on %.128s",
+	      $param{'new_listname'}, $param{'new_robot'});
       return 'internal';
     }
 
     if( $res || 
 	($list->{'name'} ne $param{'new_listname'}) && ## Do not test if listname did not change
 	(new List ($param{'new_listname'}, $param{'new_robot'}, {'just_try' => 1}))) {
-      &Log::do_log('err', 'Could not rename list %s : new list %s already existing list', $list->{'name'}, $param{'new_listname'});
+      &do_log('err', 'Could not rename list %s on %s: new list %s on %s already existing list', $list->{'name'}, $robot, $param{'new_listname'}, $param{'new_robot'});
       return 'list_already_exists';
     }
     
     my $regx = &Conf::get_robot_conf($param{'new_robot'},'list_check_regexp');
     if( $regx ) {
       if ($param{'new_listname'} =~ /^(\S+)-($regx)$/) {
-	&Log::do_log('err','Incorrect listname %s matches one of service aliases', $param{'new_listname'});
+	&do_log('err','Incorrect listname %s matches one of service aliases', $param{'new_listname'});
 	return 'incorrect_listname';
       }
     }
@@ -774,7 +761,7 @@ sub rename_list{
          $list->savestats();
 	 
 	 ## Dump subscribers
-	 $list->_save_list_members_file("$list->{'dir'}/subscribers.closed.dump");
+	 $list->_save_users_file("$list->{'dir'}/subscribers.closed.dump");
 	 
 	 $param{'aliases'} = &remove_aliases($list, $list->{'domain'});
      }
@@ -784,17 +771,17 @@ sub rename_list{
      ## Default robot
      if (-d "$Conf::Conf{'home'}/$param{'new_robot'}") {
 	 $new_dir = $Conf::Conf{'home'}.'/'.$param{'new_robot'}.'/'.$param{'new_listname'};
-     }elsif ($param{'new_robot'} eq $Conf::Conf{'domain'}) {
+     }elsif ($param{'new_robot'} eq $Conf::Conf{'host'}) {
 	 $new_dir = $Conf::Conf{'home'}.'/'.$param{'new_listname'};
      }else {
-	 &Log::do_log('err',"Unknown robot $param{'new_robot'}");
+	 &do_log('err',"Unknown robot $param{'new_robot'}");
 	 return 'unknown_robot';
      }
 
     ## If we are in 'copy' mode, create en new list
     if ($param{'mode'} eq 'copy') {	 
 	 unless ( $list = &admin::clone_list_as_empty($list->{'name'},$list->{'domain'},$param{'new_listname'},$param{'new_robot'},$param{'user_email'})){
-	     &Log::do_log('err',"Unable to load $param{'new_listname'} while renaming");
+	     &do_log('err',"Unable to load $param{'new_listname'} while renaming");
 	     return 'internal';
 	 }	 
      }
@@ -816,17 +803,17 @@ sub rename_list{
      
     ## This code should be in List::rename()
     unless ($param{'mode'} eq 'copy') {     
-	 unless (move ($list->{'dir'}, $new_dir )){
-	     &Log::do_log('err',"Unable to rename $list->{'dir'} to $new_dir : $!");
+	 unless (rename ($list->{'dir'}, $new_dir )){
+	     &do_log('err',"Unable to rename $list->{'dir'} to $new_dir : $!");
 	     return 'internal';
 	 }
      
 	 ## Rename archive
 	 my $arc_dir = &Conf::get_robot_conf($robot, 'arc_path').'/'.$list->get_list_id();
-	 my $new_arc_dir = &Conf::get_robot_conf($param{'new_robot'}, 'arc_path').'/'.$param{'new_listname'}.'@'.$param{'new_robot'};
-	 if (-d $arc_dir && $arc_dir ne $new_arc_dir) {
-	     unless (move ($arc_dir,$new_arc_dir)) {
-		 &Log::do_log('err',"Unable to rename archive $arc_dir");
+	 my $new_arc_dir = &Conf::get_robot_conf($robot, 'arc_path').'/'.$param{'new_listname'}.'@'.$param{'new_robot'};
+	 if (-d $arc_dir) {
+	     unless (rename ($arc_dir,$new_arc_dir)) {
+		 &do_log('err',"Unable to rename archive $arc_dir");
 		 # continue even if there is some troubles with archives
 		 # return undef;
 	     }
@@ -835,9 +822,11 @@ sub rename_list{
 	 ## Rename bounces
 	 my $bounce_dir = $list->get_bounce_dir();
 	 my $new_bounce_dir = &Conf::get_robot_conf($param{'new_robot'}, 'bounce_path').'/'.$param{'new_listname'}.'@'.$param{'new_robot'};
-	 if (-d $bounce_dir && $bounce_dir ne $new_bounce_dir) {
-	     unless (move ($bounce_dir,$new_bounce_dir)) {
-		 &Log::do_log('err',"Unable to rename bounces from $bounce_dir to $new_bounce_dir");
+	 if (-d $bounce_dir &&
+	     ($list->{'name'} ne $param{'new_listname'})
+	     ) {
+	     unless (rename ($bounce_dir,$new_bounce_dir)) {
+		 &do_log('err',"Unable to rename bounces from $bounce_dir to $new_bounce_dir");
 	     }
 	 }
 	 
@@ -845,34 +834,14 @@ sub rename_list{
 	 &List::rename_list_db($list, $param{'new_listname'},
 			       $param{'new_robot'});
      }
-     ## Move stats
-    unless (&SDM::do_query("UPDATE stat_table SET list_stat=%s, robot_stat=%s WHERE (list_stat = %s AND robot_stat = %s )", 
-    &SDM::quote($param{'new_listname'}), 
-    &SDM::quote($param{'new_robot'}), 
-    &SDM::quote($list->{'name'}), 
-    &SDM::quote($robot)
-    )) {
-	&Log::do_log('err','Unable to transfer stats from list %s@%s to list %s@%s',$param{'new_listname'}, $param{'new_robot'}, $list->{'name'}, $robot);
-    }
-
-     ## Move stat counters
-    unless (&SDM::do_query("UPDATE stat_counter_table SET list_counter=%s, robot_counter=%s WHERE (list_counter = %s AND robot_counter = %s )", 
-    &SDM::quote($param{'new_listname'}), 
-    &SDM::quote($param{'new_robot'}), 
-    &SDM::quote($list->{'name'}), 
-    &SDM::quote($robot)
-    )) {
-	&Log::do_log('err','Unable to transfer stat counter from list %s@%s to list %s@%s',$param{'new_listname'}, $param{'new_robot'}, $list->{'name'}, $robot);
-    }
-
      ## Install new aliases
      $param{'listname'} = $param{'new_listname'};
      
      unless ($list = new List ($param{'new_listname'}, $param{'new_robot'},{'reload_config' => 1})) {
-	 &Log::do_log('err',"Unable to load $param{'new_listname'} while renaming");
+	 &do_log('err',"Unable to load $param{'new_listname'} while renaming");
 	 return 'internal';
      }
-     
+
      ## Check custom_subject
      if (defined $list->{'admin'}{'custom_subject'} &&
 	 $list->{'admin'}{'custom_subject'} =~ /$old_listname/) {
@@ -892,7 +861,7 @@ sub rename_list{
 	 foreach my $spool ('queueauth','queuemod','queuetask','queuebounce',
 			'queue','queueoutgoing','queuesubscribe','queueautomatic') {
 	     unless (opendir(DIR, $Conf::Conf{$spool})) {
-		 &Log::do_log('err', "Unable to open '%s' spool : %s", $Conf::Conf{$spool}, $!);
+		 &do_log('err', "Unable to open '%s' spool : %s", $Conf::Conf{$spool}, $!);
 	     }
 	     
 	     foreach my $file (sort readdir(DIR)) {
@@ -919,8 +888,8 @@ sub rename_list{
 		 }
 		 
 		 ## Rename file
-		 unless (move "$Conf::Conf{$spool}/$file", "$Conf::Conf{$spool}/$newfile") {
-		     &Log::do_log('err', "Unable to rename %s to %s : %s", "$Conf::Conf{$spool}/$newfile", "$Conf::Conf{$spool}/$newfile", $!);
+		 unless (rename "$Conf::Conf{$spool}/$file", "$Conf::Conf{$spool}/$newfile") {
+		     &do_log('err', "Unable to rename %s to %s : %s", "$Conf::Conf{$spool}/$newfile", "$Conf::Conf{$spool}/$newfile", $!);
 		     next;
 		 }
 		 
@@ -932,13 +901,13 @@ sub rename_list{
 	 } 
 	 ## Digest spool
 	 if (-f "$Conf::Conf{'queuedigest'}/$old_listname") {
-	     unless (move "$Conf::Conf{'queuedigest'}/$old_listname", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}") {
-		 &Log::do_log('err', "Unable to rename %s to %s : %s", "$Conf::Conf{'queuedigest'}/$old_listname", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}", $!);
+	     unless (rename "$Conf::Conf{'queuedigest'}/$old_listname", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}") {
+		 &do_log('err', "Unable to rename %s to %s : %s", "$Conf::Conf{'queuedigest'}/$old_listname", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}", $!);
 		 next;
 	     }
 	 }elsif (-f "$Conf::Conf{'queuedigest'}/$old_listname\@$robot") {
-	     unless (move "$Conf::Conf{'queuedigest'}/$old_listname\@$robot", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}\@$param{'new_robot'}") {
-		 &Log::do_log('err', "Unable to rename %s to %s : %s", "$Conf::Conf{'queuedigest'}/$old_listname\@$robot", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}\@$param{'new_robot'}", $!);
+	     unless (rename "$Conf::Conf{'queuedigest'}/$old_listname\@$robot", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}\@$param{'new_robot'}") {
+		 &do_log('err', "Unable to rename %s to %s : %s", "$Conf::Conf{'queuedigest'}/$old_listname\@$robot", "$Conf::Conf{'queuedigest'}/$param{'new_listname'}\@$param{'new_robot'}", $!);
 		 next;
 	     }
 	 }     
@@ -971,31 +940,31 @@ sub clone_list_as_empty {
 
     my $list;
     unless ($list = new List ($source_list_name, $source_robot)) {
-	&Log::do_log('err','Admin::clone_list_as_empty : new list failed %s %s',$source_list_name, $source_robot);
+	&do_log('err','Admin::clone_list_as_empty : new list failed %s %s',$source_list_name, $source_robot);
 	return undef;;
     }    
     
-    &Log::do_log('info',"Admin::clone_list_as_empty ($source_list_name, $source_robot,$new_listname,$new_robot,$email)");
+    &do_log('info',"Admin::clone_list_as_empty ($source_list_name, $source_robot,$new_listname,$new_robot,$email)");
     
     my $new_dir;
     if (-d $Conf::Conf{'home'}.'/'.$new_robot) {
 	$new_dir = $Conf::Conf{'home'}.'/'.$new_robot.'/'.$new_listname;
-    }elsif ($new_robot eq $Conf::Conf{'domain'}) {
+    }elsif ($new_robot eq $Conf::Conf{'host'}) {
 	$new_dir = $Conf::Conf{'home'}.'/'.$new_listname;
     }else {
-	&Log::do_log('err',"Admin::clone_list_as_empty : unknown robot $new_robot");
+	&do_log('err',"Admin::clone_list_as_empty : unknown robot $new_robot");
 	return undef;
     }
     
     unless (mkdir $new_dir, 0775) {
-	&Log::do_log('err','Admin::clone_list_as_empty : failed to create directory %s : %s',$new_dir, $!);
+	&do_log('err','Admin::clone_list_as_empty : failed to create directory %s : %s',$new_dir, $!);
 	return undef;;
     }
     chmod 0775, $new_dir;
     foreach my $subdir ('etc','web_tt2','mail_tt2','data_sources' ) {
 	if (-d $new_dir.'/'.$subdir) {
 	    unless (&tools::copy_dir($list->{'dir'}.'/'.$subdir, $new_dir.'/'.$subdir)) {
-		&Log::do_log('err','Admin::clone_list_as_empty :  failed to copy_directory %s : %s',$new_dir.'/'.$subdir, $!);
+		&do_log('err','Admin::clone_list_as_empty :  failed to copy_directory %s : %s',$new_dir.'/'.$subdir, $!);
 		return undef;
 	    }
 	}
@@ -1003,7 +972,7 @@ sub clone_list_as_empty {
     # copy mandatory files
     foreach my $file ('config') {
 	    unless (&File::Copy::copy ($list->{'dir'}.'/'.$file, $new_dir.'/'.$file)) {
-		&Log::do_log('err','Admin::clone_list_as_empty : failed to copy %s : %s',$new_dir.'/'.$file, $!);
+		&do_log('err','Admin::clone_list_as_empty : failed to copy %s : %s',$new_dir.'/'.$file, $!);
 		return undef;
 	    }
     }
@@ -1011,7 +980,7 @@ sub clone_list_as_empty {
     foreach my $file ('message.footer','message.header','info','homepage') {
 	if (-f $list->{'dir'}.'/'.$file) {
 	    unless (&File::Copy::copy ($list->{'dir'}.'/'.$file, $new_dir.'/'.$file)) {
-		&Log::do_log('err','Admin::clone_list_as_empty : failed to copy %s : %s',$new_dir.'/'.$file, $!);
+		&do_log('err','Admin::clone_list_as_empty : failed to copy %s : %s',$new_dir.'/'.$file, $!);
 		return undef;
 	    }
 	}
@@ -1020,7 +989,7 @@ sub clone_list_as_empty {
     my $new_list;
     # now switch List object to new list, update some values
     unless ($new_list = new List ($new_listname, $new_robot,{'reload_config' => 1})) {
-	&Log::do_log('info',"Admin::clone_list_as_empty : unable to load $new_listname while renamming");
+	&do_log('info',"Admin::clone_list_as_empty : unable to load $new_listname while renamming");
 	return undef;
     }
     $new_list->{'admin'}{'serial'} = 0 ;
@@ -1053,29 +1022,29 @@ sub clone_list_as_empty {
 ######################################################### 
 sub check_owner_defined {
     my ($owner,$owner_include) = @_;
-    &Log::do_log('debug2',"admin::check_owner_defined()");
+    &do_log('debug2',"admin::check_owner_defined()");
     
     if (ref($owner) eq "ARRAY") {
 	if (ref($owner_include) eq "ARRAY") {
 	    if (($#{$owner} < 0) && ($#{$owner_include} <0)) {
-		&Log::do_log('err','missing list param owner or owner_include');
+		&do_log('err','missing list param owner or owner_include');
 		return undef;
 	    }
 	} else {
 	    if (($#{$owner} < 0) && !($owner_include)) {
-		&Log::do_log('err','missing list param owner or owner_include');
+		&do_log('err','missing list param owner or owner_include');
 		return undef;
 	    }
 	}
     } else {
 	if (ref($owner_include) eq "ARRAY") {
 	    if (!($owner) && ($#{$owner_include} <0)) {
-		&Log::do_log('err','missing list param owner or owner_include');
+		&do_log('err','missing list param owner or owner_include');
 		return undef;
 	    }
 	}else {
 	    if (!($owner) && !($owner_include)) {
-		&Log::do_log('err','missing list param owner or owner_include');
+		&do_log('err','missing list param owner or owner_include');
 		return undef;
 	    }
 	}
@@ -1084,42 +1053,42 @@ sub check_owner_defined {
     if (ref($owner) eq "ARRAY") {
 	foreach my $o (@{$owner}) {
 	    unless($o){ 
-		&Log::do_log('err','empty param "owner"');
+		&do_log('err','empty param "owner"');
 		return undef;
 	    }
 	    unless ($o->{'email'}) {
-		&Log::do_log('err','missing sub param "email" for param "owner"');
+		&do_log('err','missing sub param "email" for param "owner"');
 		return undef;
 	    }
 	}
     } elsif (ref($owner) eq "HASH"){
 	unless ($owner->{'email'}) {
-	    &Log::do_log('err','missing sub param "email" for param "owner"');
+	    &do_log('err','missing sub param "email" for param "owner"');
 	    return undef;
 	}
     } elsif (defined $owner) {
-	&Log::do_log('err','missing sub param "email" for param "owner"');
+	&do_log('err','missing sub param "email" for param "owner"');
 	return undef;
     }	
     
     if (ref($owner_include) eq "ARRAY") {
 	foreach my $o (@{$owner_include}) {
 	    unless($o){ 
-		&Log::do_log('err','empty param "owner_include"');
+		&do_log('err','empty param "owner_include"');
 		return undef;
 	    }
 	    unless ($o->{'source'}) {
-		&Log::do_log('err','missing sub param "source" for param "owner_include"');
+		&do_log('err','missing sub param "source" for param "owner_include"');
 		return undef;
 	    }
 	} 
     }elsif (ref($owner_include) eq "HASH"){
 	unless ($owner_include->{'source'}) {
-	    &Log::do_log('err','missing sub param "source" for param "owner_include"');
+	    &do_log('err','missing sub param "source" for param "owner_include"');
 	    return undef;
 	}
     } elsif (defined $owner_include) {
-	&Log::do_log('err','missing sub param "source" for param "owner_include"');
+	&do_log('err','missing sub param "source" for param "owner_include"');
 	return undef;
     }	
     return 1;
@@ -1139,7 +1108,7 @@ sub check_owner_defined {
  sub list_check_smtp {
      my $list = shift;
      my $robot = shift;
-     &Log::do_log('debug2', 'admin::list_check_smtp(%s,%s)',$list,$robot);
+     &do_log('debug2', 'admin::list_check_smtp(%s,%s)',$list,$robot);
 
      my $conf = '';
      my $smtp;
@@ -1152,17 +1121,16 @@ sub check_owner_defined {
      return 0 
 	 unless ($smtp_relay && $suffixes);
      my $domain = &Conf::get_robot_conf($robot, 'host');
-     &Log::do_log('debug2', 'list_check_smtp(%s)',$list);
-     @suf = split(/[,\s]+/,$suffixes);
+     &do_log('debug2', 'list_check_smtp(%s,%s)', $list, $robot);
+     @suf = split(/,/,$suffixes);
      return 0 if ! @suf;
      for(@suf) {
 	 push @addresses, $list."-$_\@".$domain;
      }
      push @addresses,"$list\@" . $domain;
 
-     eval { require Net::SMTP; };
-     if ($@) {
-	 &Log::do_log ('err',"admin::list_check_smtp : Unable to use Net library, Net::SMTP required, install it (CPAN) first");
+     unless (require Net::SMTP) {
+	 do_log ('err',"admin::list_check_smtp : Unable to use Net library, Net::SMTP required, install it (CPAN) first");
 	 return undef;
      }
      if( $smtp = Net::SMTP->new($smtp_relay,
@@ -1193,63 +1161,52 @@ sub check_owner_defined {
 sub install_aliases {
     my $list = shift;
     my $robot = shift;
-    &Log::do_log('debug', "admin::install_aliases($list->{'name'},$robot)");
+    &do_log('debug', "admin::install_aliases($list->{'name'},$robot)");
 
     return 1
 	if ($Conf::Conf{'sendmail_aliases'} =~ /^none$/i);
 
+    my $alias_installed = 0;
     my $alias_manager = $Conf::Conf{'alias_manager' };
-    my $output_file = $Conf::Conf{'tmpdir'}.'/aliasmanager.stdout.'.$$;
-    my $error_output_file = $Conf::Conf{'tmpdir'}.'/aliasmanager.stderr.'.$$;
-    &Log::do_log('debug2',"admin::install_aliases : $alias_manager add $list->{'name'} $list->{'admin'}{'host'}");
- 
-    unless (-x $alias_manager) {
-		&Log::do_log('err','admin::install_aliases : Failed to install aliases: %s', $!);
-		return undef;
-	}
-	 system ("$alias_manager add $list->{'name'} $list->{'admin'}{'host'} >$output_file 2>  $error_output_file") ;
+    &do_log('debug2',"admin::install_aliases : $alias_manager add $list->{'name'} $list->{'admin'}{'host'}");
+     if (-x $alias_manager) {
+	 system ("$alias_manager add $list->{'name'} $list->{'admin'}{'host'}") ;
 	 my $status = $? / 256;
 	 if ($status == 0) {
-	     &Log::do_log('info','admin::install_aliases : Aliases installed successfully') ;
-	     return 1;
-     }
-
-	## get error code
-	my $error_output;
-	open ERR, $error_output_file;
-	while (<ERR>) {
-		$error_output .= $_;
-	}
-	close ERR;
-	unlink $error_output_file;
-
-     if ($status == 1) {
-		&Log::do_log('err','Configuration file %s has errors : %s', Sympa::Constants::CONFIG, $error_output);
-     }elsif ($status == 2)  {
-         &Log::do_log('err','admin::install_aliases : Internal error : Incorrect call to alias_manager : %s', $error_output);
-     }elsif ($status == 3)  {
-	     &Log::do_log('err','admin::install_aliases : Could not read sympa config file, report to httpd error_log: %s', $error_output) ;
+	     &do_log('info','admin::install_aliases : Aliases installed successfully') ;
+	     $alias_installed = 1;
+	 }elsif ($status == 1) {
+	     &do_log('err','admin::install_aliases : Configuration file %s has errors', Sympa::Constants::CONFIG);
+	 }elsif ($status == 2)  {
+	     &do_log('err','admin::install_aliases : Internal error : Incorrect call to alias_manager');
+	 }elsif ($status == 3)  {
+	     &do_log('err','admin::install_aliases : Could not read sympa config file, report to httpd error_log') ;
 	 }elsif ($status == 4)  {
-	     &Log::do_log('err','admin::install_aliases : Could not get default domain, report to httpd error_log: %s', $error_output) ;
+	     &do_log('err','admin::install_aliases : Could not get default domain, report to httpd error_log') ;
 	 }elsif ($status == 5)  {
-	     &Log::do_log('err','admin::install_aliases : Unable to append to alias file: %s', $error_output) ;
+	     &do_log('err','admin::install_aliases : Unable to append to alias file') ;
 	 }elsif ($status == 6)  {
-	     &Log::do_log('err','admin::install_aliases : Unable to run newaliases: %s', $error_output) ;
+	     &do_log('err','admin::install_aliases : Unable to run newaliases') ;
 	 }elsif ($status == 7)  {
-	     &Log::do_log('err','admin::install_aliases : Unable to read alias file, report to httpd error_log: %s', $error_output) ;
+	     &do_log('err','admin::install_aliases : Unable to read alias file, report to httpd error_log') ;
 	 }elsif ($status == 8)  {
-	     &Log::do_log('err','admin::install_aliases : Could not create temporay file, report to httpd error_log: %s', $error_output) ;
+	     &do_log('err','admin::install_aliases : Could not create temporay file, report to httpd error_log') ;
 	 }elsif ($status == 13) {
-	     &Log::do_log('info','admin::install_aliases : Some of list aliases already exist: %s', $error_output) ;
+	     &do_log('err','admin::install_aliases : Some of list aliases already exist') ;
 	 }elsif ($status == 14) {
-	     &Log::do_log('err','admin::install_aliases : Can not open lock file, report to httpd error_log: %s', $error_output) ;
+	     &do_log('err','admin::install_aliases : Can not open lock file, report to httpd error_log') ;
 	 }elsif ($status == 15) {
-	     &Log::do_log('err','The parser returned empty aliases: %s', $error_output) ;
+	     &do_log('err','The parser returned empty aliases') ;
 	 }else {
-	     &Log::do_log('err',"admin::install_aliases : Unknown error $status while running alias manager $alias_manager : %s", $error_output);
+	     &do_log('err',"admin::install_aliases : Unknown error $status while running alias manager $alias_manager");
 	 } 
+     }else {
+	 &do_log('err','admin::install_aliases : Failed to install aliases: %s', $!);
+     }
     
-    return undef;
+    return undef unless ($alias_installed);
+
+    return 1;
 }
 
 
@@ -1268,7 +1225,7 @@ sub install_aliases {
  sub remove_aliases {
      my $list = shift;
      my $robot = shift;
-     &Log::do_log('info', "_remove_aliases($list->{'name'},$robot");
+     &do_log('info', "_remove_aliases($list->{'name'},$robot");
 
     return 1
 	if ($Conf::Conf{'sendmail_aliases'} =~ /^none$/i);
@@ -1278,7 +1235,7 @@ sub install_aliases {
      my $aliases;
 
      unless ($status == 1) {
-	 &Log::do_log('err','Failed to remove aliases for list %s', $list->{'name'});
+	 &do_log('err','Failed to remove aliases for list %s', $list->{'name'});
 
 	 ## build a list of required aliases the listmaster should install
      my $libexecdir = Sympa::Constants::LIBEXECDIR;
@@ -1294,7 +1251,7 @@ EOF
 	 return $aliases;
      }
 
-     &Log::do_log('info','Aliases removed successfully');
+     &do_log('info','Aliases removed successfully');
 
      return 1;
  }
@@ -1312,13 +1269,13 @@ EOF
 sub check_topics {
     my $topic = shift;
     my $robot = shift;
-    &Log::do_log('info', "admin::check_topics($topic,$robot)");
+    &do_log('info', "admin::check_topics($topic,$robot)");
 
     my ($top, $subtop) = split /\//, $topic;
 
     my %topics;
     unless (%topics = &List::load_topics($robot)) {
-	&Log::do_log('err','admin::check_topics : unable to load list of topics');
+	&do_log('err','admin::check_topics : unable to load list of topics');
     }
 
     if ($subtop) {
@@ -1328,134 +1285,6 @@ sub check_topics {
     }
 
     return undef;
-}
-
-# change a user email address for both his memberships and ownerships
-# 
-# IN  : - current_email : current user email address
-#       - new_email     : new user email address
-#       - robot         : virtual robot
-#
-# OUT : - status(scalar)          : status of the subroutine
-#       - failed_for(arrayref)    : list of lists for which the change could not be done (because user was
-#                                   included or for authorization reasons)                 
-sub change_user_email {
-    my %in = @_;
-
-    my @failed_for;
-
-    unless ($in{'current_email'} && $in{'new_email'} && $in{'robot'}) {
-	&Log::do_log('err','Missing incoming parameter');
-	return undef;
-    }
-
-    ## Change email as list MEMBER
-    foreach my $list ( &List::get_which($in{'current_email'},$in{'robot'}, 'member') ) {
-	 
-	 my $l = $list->{'name'};
-	 
-	 my $user_entry = $list->get_list_member($in{'current_email'});
-	 
-	 if ($user_entry->{'included'} == 1) {
-	     ## Check the type of data sources
-	     ## If only include_list of local mailing lists, then no problem
-	     ## Otherwise, notify list owner
-	     ## We could also force a sync_include for local lists
-	     my $use_external_data_sources;
-	     foreach my $datasource_id (split(/,/, $user_entry->{'id'})) {
-		 my $datasource = $list->search_datasource($datasource_id);
-		 if (!defined $datasource || $datasource->{'type'} ne 'include_list' || ($datasource->{'def'} =~ /\@(.+)$/ && $1 ne $in{'robot'})) {
-		     $use_external_data_sources = 1;
-		     last;
-		 }
-	     }
-	     if ($use_external_data_sources) {
-		 ## Notify list owner
-		 $list->send_notify_to_owner('failed_to_change_included_member',
-					     {'current_email' => $in{'current_email'}, 
-					      'new_email' => $in{'new_email'},
-					      'datasource' => $list->get_datasource_name($user_entry->{'id'})});
-		 push @failed_for, $list;
-		 &Log::do_log('err', 'could not change member email for list %s because member is included', $l);
-		 next;
-	     }
-	 }
-
-	 ## Check if user is already member of the list with his new address
-	 ## then we just need to remove the old address
-	 if ($list->is_list_member($in{'new_email'})) {
-	     unless ($list->delete_list_member('users' => [$in{'current_email'}]) ) {
-		 push @failed_for, $list;
-		 &Log::do_log('info', 'could not remove email from list %s', $l);		 
-	     }
-	     
-	 }else {
-	     
-	     unless ($list->update_list_member($in{'current_email'}, {'email' => $in{'new_email'}, 'update_date' => time}) ) {
-		 push @failed_for, $list;
-		 &Log::do_log('err', 'could not change email for list %s', $l);
-	     }
-	 }
-     }
-    
-    ## Change email as list OWNER/MODERATOR
-    my %updated_lists;
-    foreach my $role ('owner', 'editor') { 
-	foreach my $list ( &List::get_which($in{'current_email'},$in{'robot'}, $role) ) {
-	    
-	    ## Check if admin is include via an external datasource
-	    my $admin_user = $list->get_list_admin($role, $in{'current_email'});
-	    if ($admin_user->{'included'}) {
-		## Notify listmaster
-		&List::send_notify_to_listmaster('failed_to_change_included_admin',$in{'robot'},{'list' => $list,
-											   'current_email' => $in{'current_email'}, 
-											   'new_email' => $in{'new_email'},
-											   'datasource' => $list->get_datasource_name($admin_user->{'id'})});
-		push @failed_for, $list;
-		&Log::do_log('err', 'could not change %s email for list %s because admin is included', $role, $list->{'name'});
-		next;
-	    }
-	    
-	    ## Go through owners/editors of the list
-	    foreach my $admin (@{$list->{'admin'}{$role}}) {
-		next unless (lc($admin->{'email'}) eq lc($in{'current_email'}));
-		
-		## Update entry with new email address
-		$admin->{'email'} = $in{'new_email'};
-		$updated_lists{$list->{'name'}}++;
-	    }
-	    
-	    ## Update Db cache for the list
-	    $list->sync_include_admin();
-	    $list->save_config();
-	}
-    }
-    ## Notify listmasters that list owners/moderators email have changed
-    if (keys %updated_lists) {
-	&List::send_notify_to_listmaster('listowner_email_changed',$in{'robot'}, 
-					 {'previous_email' => $in{'current_email'},
-					  'new_email' => $in{'new_email'},
-					  'updated_lists' => keys %updated_lists})
-    }
-    
-    ## Update User_table and remove existing entry first (to avoid duplicate entries)
-    &List::delete_global_user($in{'new_email'},);
-    
-    unless ( &List::update_global_user($in{'current_email'},
-				       {'email' => $in{'new_email'},					
-				       })) {
-	&Log::do_log('err','change_email: update failed');
-	return undef;
-    }
-    
-    ## Update netidmap_table
-    unless ( &List::update_email_netidmap_db($in{'robot'}, $in{'current_email'}, $in{'new_email'}) ){
-	&Log::do_log('err','change_email: update failed');
-	return undef;
-    }
-    
-    
-    return (1,\@failed_for);
 }
 
 =pod 

@@ -42,11 +42,7 @@
 <!-- <link rel="alternative stylesheet" href="[% css_url %]/fullPage.css" type="text/css" media="screen" title="View Full Page" />     -->
 <!-- <link rel="alternative stylesheet" href="[% css_url %]/print-preview.css" type="text/css" media="screen" title="Print Preview" /> -->
 
-[% IF conf.favicon_url %]
-<link rel="shortcut icon" href="[% conf.favicon_url %]" />
-[% ELSE %]
 <link rel="shortcut icon" href="[% icons_url %]/favicon_sympa.png" />
-[% END %]
 
 [% PROCESS javascript.tt2 %]
 
@@ -84,7 +80,6 @@
   </div> <!-- end div Header -->
   <!-- <div class="contenant" id="contenu"> --> <!-- To hide Menus -->&nbsp;
   <div id="Menus"><!-- Start Menus -->&nbsp;
-
 	
     [% PROCESS menu_search.tt2 %]
     [% PROCESS list_menu.tt2 IF list %]
