@@ -21,30 +21,26 @@
 
 package mail;
 
+use strict;
 require Exporter;
-use Carp;
-@ISA = qw(Exporter);
-@EXPORT = qw(mail_file mail_message mail_forward set_send_spool);
-
-#use strict;
+use Carp qw(carp);
 use POSIX;
 use Time::Local;
-use MIME::Charset;
+use MIME::EncWords;
 use MIME::Tools;
-use Conf;
-use Log;
-use Language;
-use List;
+# tentative
+use Data::Dumper;
+
+#use Conf; # used in List - Site
+#use Log; # load in Conf
+use Language qw(gettext);
+#use List; # this package is loaded via List
 use Bulk;
-use tools;
-use Sympa::Constants;
+#use tools; # load in Conf
+#use Sympa::Constants; # load in confdef - Conf
 
-use strict;
-
-#use strict;
-
-## RCS identification.
-#my $id = '@(#)$Id$';
+our @ISA = qw(Exporter);
+our @EXPORT = qw(mail_file mail_message mail_forward set_send_spool);
 
 my $opensmtp = 0;
 my $fh = 'fh0000000000';	## File handle for the stream.
@@ -108,19 +104,22 @@ sub set_send_spool {
 #            -i : i=tag (optionnal)
 #            -selector : dkim dns selector
 #            -key : the RSA private key
-#      -$robot(+)
+#      -$self(+) : ref(Robot) | "Site"
 #      -$sign_mode :'smime' | '' | undef
 #         
 # OUT : 1 | undef
 ####################################################
+## NOTE: This might be moved to Site module as mutative method.
 sub mail_file {
-   
-    my ($filename, $rcpt, $data, $robot, $return_message_as_string) = @_;
+    my $filename = shift;
+    my $rcpt = shift;
+    my $data = shift;
+    my $robot = Robot::clean_robot(shift, 1); # May be Site
+    my $return_message_as_string = shift;
     my $header_possible = $data->{'header_possible'};
     my $sign_mode = $data->{'sign_mode'};
 
-    &Log::do_log('debug2', 'mail::mail_file(%s, %s, %s)', $filename, $rcpt, $sign_mode);
-
+    &Log::do_log('debug', 'mail::mail_file(%s, %s, %s)', $filename, $rcpt, $sign_mode);
     my ($to,$message_as_string);
 
     ## boolean
@@ -153,7 +152,7 @@ sub mail_file {
 
     }else { # or not
 	$message_as_string .= $data->{'body'};
-       }
+    }
        
     ## ## Does the message include headers ?
     if ($header_possible) {
@@ -190,7 +189,7 @@ sub mail_file {
 	}
 	$tzoff = sprintf '%s%02d%02d',
 			 $sign, int($tzoff / 3600), int($tzoff / 60) % 60;
-	Language::PushLang('en_US');
+	Language::PushLang('en');
 	$headers .= 'Date: ' .
 		    POSIX::strftime("%a, %d %b %Y %H:%M:%S $tzoff",
 				    localtime $now) .
@@ -213,11 +212,13 @@ sub mail_file {
 	$headers .= "To: $to\n";
     }     
     unless ($header_ok{'from'}) {
-	if ($data->{'from'} eq 'sympa') {
-	    $headers .= "From: ".MIME::EncWords::encode_mimewords(
-		sprintf("SYMPA <%s>",&Conf::get_robot_conf($robot, 'sympa')),
-		'Encoding' => 'A', 'Charset' => "US-ASCII", 'Field' => 'From'
-		)."\n";
+	if (! defined $data->{'from'} or $data->{'from'} eq 'sympa' or
+	    $data->{'from'} eq $data->{'conf'}{'sympa'}) {
+	    $headers .= 'From: ' . &tools::addrencode(
+		$data->{'conf'}{'sympa'},
+		$data->{'conf'}{'email_gecos'},
+		$data->{'charset'}
+	    ) . "\n";
 	} else {
 	    $headers .= "From: ".MIME::EncWords::encode_mimewords(
 		Encode::decode('utf8', $data->{'from'}),
@@ -256,7 +257,7 @@ sub mail_file {
     }
     ## Determine what value the Auto-Submitted header field should take
     ## See http://www.tools.ietf.org/html/draft-palme-autosub-01
-    ## the header filed can have one of the following values : auto-generated, auto-replied, auto-forwarded
+    ## the header field can have one of the following values : auto-generated, auto-replied, auto-forwarded
     ## The header should not be set when wwsympa sends a command/mail to sympa.pl through its spool
     unless ($data->{'not_auto_submitted'} ||  $header_ok{'auto_submitted'}) {
       ## Default value is 'auto-generated'
@@ -285,7 +286,13 @@ sub mail_file {
     }
 
     my $listname = ''; 
-    if (ref($data->{'list'}) eq "HASH") {
+    if (ref($data->{'list'}) eq 'List') {
+	$listname = $data->{'list'}->name;
+    } elsif (ref($data->{'list'}) eq 'HASH') {
+        my $level = $Carp::CarpLevel;
+        $Carp::CarpLevel = 1;
+        carp 'Deprecated: $data->{\'list\'} should be a List object, not a hashref';
+        $Carp::CarpLevel = $level;
 	$listname = $data->{'list'}{'name'};
     } elsif ($data->{'list'}) {
 	$listname = $data->{'list'};
@@ -296,11 +303,11 @@ sub mail_file {
     }
 
     ## Set it in case it was not set
-    $data->{'return_path'} ||= &Conf::get_robot_conf($robot, 'request');
+    $data->{'return_path'} ||= $robot->get_address('owner');
+    $message_as_string = get_sympa_headers({'rcpt' => $rcpt, 'from' => $robot->email.'@'.$robot->domain}).$message_as_string;
     
     return $message_as_string if($return_message_as_string);
-
-    my $message = new Message ({'messageasstring'=>$message_as_string,'noxsympato'=>'noxsympato'});
+    my $message = build_message_object($robot,$listname,$message_as_string);
 
     ## SENDING
     return undef unless (defined &sending('message' => $message,
@@ -308,7 +315,7 @@ sub mail_file {
 					  'from' => $data->{'return_path'},
 					  'robot' => $robot,
 					  'listname' => $listname,
-					  'priority' => &Conf::get_robot_conf($robot,'sympa_priority'),
+					  'priority' => $robot->sympa_priority,
 					  'sign_mode' => $sign_mode,
 					  'use_bulk' => $data->{'use_bulk'},
 					  'dkim' => $data->{'dkim'},
@@ -327,7 +334,6 @@ sub mail_file {
 #      -$robot(+) : robot
 #      -{verp=>[on|off]} : a hash to introduce verp parameters, starting just on or off, later will probably introduce optionnal parameters 
 #      -@rcpt(+) : recepients
-# OUT : -$numsmtp : number of sendmail process | undef
 #       
 ####################################################
 sub mail_message {
@@ -339,55 +345,48 @@ sub mail_message {
     my @rcpt =  @{$params{'rcpt'}};
     my $dkim  =  $params{'dkim_parameters'};
     my $tag_as_last = $params{'tag_as_last'};
-
-    my $host = $list->{'admin'}{'host'};
-    my $robot = $list->{'domain'};
-
+    my $robot = $list->robot;
+    
     unless (defined $message && ref($message) eq 'Message') {
 	&Log::do_log('err', 'Invalid message parameter');
 	return undef;	
     }
 
-
     # normal return_path (ie used if verp is not enabled)
-    my $from = $list->{'name'}.&Conf::get_robot_conf($robot, 'return_path_suffix').'@'.$host;
-
+    my $from = $list->get_address('return_path');
+    
     &Log::do_log('debug', 'mail::mail_message(from: %s, , file:%s, %s, verp->%s, %d rcpt, last: %s)', $from, $message->{'filename'}, $message->{'smime_crypted'}, $verp, $#rcpt+1, $tag_as_last);
     return 0 if ($#rcpt == -1);
-
+    
     my($i, $j, $nrcpt, $size); 
     my $numsmtp = 0;
-
+    
     ## If message contain a footer or header added by Sympa  use the object message else
     ## Extract body from original file to preserve signature
-    my ($msg_body, $msg_header);
-    $msg_header = $message->{'msg'}->head;
-    if (!($message->{'protected'})) {
-	$msg_body = $message->{'msg'}->body_as_string;
-    }elsif ($message->{'smime_crypted'}) {
-	$msg_body = ${$message->{'msg_as_string'}}; # why is object message msg_as_string contain a body _as_string ? wrong name for this mesage property	
-    }else{
-	## Get body from original file
-	unless (open MSG, $message->{'filename'}) {
-	    &Log::do_log ('notice',"mail::mail_message : Unable to open %s:%s",$message->{'filename'},$!);
-	    return undef;
-	}
-	my $in_header = 1 ;
-	while (<MSG>) {
-	    if ( !$in_header)  { 
-		$msg_body .= $_;       
-	    }else {
-		$in_header = 0 if (/^$/); 
-	    }
-	}
-	close (MSG);
-    }
+    my $msg_body; my $msg_header;
+    $msg_header = $message->get_mime_message->head;
+    ##if (!($message->{'protected'})) {
+	##$msg_body = $message->get_mime_message->body_as_string;
+    ##}elsif ($message->{'smime_crypted'}) {
+	##$msg_body = ${$message->{'msg_as_string'}};
+    ##}else{
+	## Get body from original message body
+	my @bodysection =split("\n\n",$message->get_message_as_string);  # convert it as a tab with headers as first element
+	shift @bodysection;                                          # remove headers
+	$msg_body = join ("\n\n",@bodysection);                      # convert it back as string
+    ##}	
     $message->{'body_as_string'} = $msg_body ;
-
+	
     my %rcpt_by_dom ;
 
     my @sendto;
     my @sendtobypacket;
+
+    my $cmd_size = length($robot->sendmail) + 1 +
+		   length($robot->sendmail_args) +
+		   length(' -N success,delay,failure -V ') + 32 +
+		   length(" -f $from ");
+    my $db_type = Site->db_type;
 
     while (defined ($i = shift(@rcpt))) {
 	my @k = reverse(split(/[\.@]/, $i));
@@ -399,30 +398,34 @@ sub mail_message {
 	    chomp $dom;
 	}
 	$rcpt_by_dom{$dom} += 1 ;
-	&Log::do_log('debug2', "domain: $dom ; rcpt by dom: $rcpt_by_dom{$dom} ; limit for this domain: $Conf::Conf{'nrcpt_by_domain'}{$dom}");
+	&Log::do_log('debug3',
+	    'domain: %s ; rcpt by dom: %s ; limit for this domain: %s',
+	    $dom, $rcpt_by_dom{$dom}, Site->nrcpt_by_domain->{$dom});
 
-	if (defined ($Conf::Conf{'nrcpt_by_domain'}{$dom}) && ( $rcpt_by_dom{$dom} >= $Conf::Conf{'nrcpt_by_domain'}{$dom} )){
-	    undef %rcpt_by_dom ;
-	    my @tab =  @sendto ; push @sendtobypacket, \@tab ;# do not replace this line by push @sendtobypacket, \@sendto !!!
-	    $numsmtp++ ; 
+	if (
+	    # number of recipients by each domain
+	    (defined Site->nrcpt_by_domain->{$dom} and
+	     $rcpt_by_dom{$dom} >= Site->nrcpt_by_domain->{$dom}) or
+	    # number of different domains
+	    ($j and $#sendto >= $robot->avg and
+	     lc "$k[0] $k[1]" ne lc "$l[0] $l[1]") or
+	    # number of recipients in general, and ARG_MAX limitation
+	    ($#sendto >= 0 and
+	     ($cmd_size + $size + length($i) + 5 > $max_arg or
+	      $nrcpt >= $robot->nrcpt)) or
+	    # length of recipients field stored into bulkmailer table
+	    # (these limits might be relaxed by future release of Sympa)
+	    ($db_type eq 'mysql' and $size + length($i) + 5 > 65535) or
+	    ($db_type !~ /^(mysql|SQLite)$/ and $size + length($i) + 5 > 500)
+	   ) {
+	    undef %rcpt_by_dom;
+	    # do not replace this line by "push @sendtobypacket, \@sendto" !!!
+	    my @tab =  @sendto; push @sendtobypacket, \@tab;
+	    $numsmtp++;
 	    $nrcpt = $size = 0;
 	    @sendto = ();
 	}
 	
-	if ($j && $#sendto >= &Conf::get_robot_conf($robot, 'avg') && lc("$k[0] $k[1]") ne lc("$l[0] $l[1]")) {
-	    undef %rcpt_by_dom ;
-	    $numsmtp++ ; 
-	    my @tab =  @sendto ; push @sendtobypacket, \@tab ;# do not replace this line by push @sendtobypacket, \@sendto !!!
-	    $nrcpt = $size = 0;
-	    @sendto = ();
-	}
-	if ($#sendto >= 0 && (($size + length($i)) > $max_arg || $nrcpt >= &Conf::get_robot_conf($robot, 'nrcpt'))) {
-	    undef %rcpt_by_dom ;
-	    $numsmtp++  ;
-	    my @tab =  @sendto ; push @sendtobypacket, \@tab ;# do not replace this line by push @sendtobypacket, \@sendto !!!
-	    $nrcpt = $size = 0;
-	    @sendto = ();
-	}
 	$nrcpt++; $size += length($i) + 5;
 	push(@sendto, $i);
 	$j = $i;
@@ -433,162 +436,26 @@ sub mail_message {
 	my @tab =  @sendto ; push @sendtobypacket, \@tab ;# do not replace this line by push @sendtobypacket, \@sendto !!!
     }
 
-    
+
     unless (&sendto('message' => $message,
 		    'from' => $from,
 		    'rcpt' => \@sendtobypacket,
-		    'listname' => $list->{'name'},
-		    'priority' => $list->{'admin'}{'priority'},
+		    'listname' => $list->name,
+		    'priority' => $list->priority,
 		    'delivery_date' => $list->get_next_delivery_date,
 		    'robot' => $robot,
-		    'encrypt' => $message->{'smime_crypted'},
 		    'use_bulk' => 1,
 		    'verp' => $verp,
 		    'dkim' => $dkim,
-		    'merge' => $list->{'admin'}{'merge_feature'},
+		    'merge' => $list->merge_feature,
 		    'tag_as_last' => $tag_as_last
 		    )) {
-	&Log::do_log ('err',"Failed to send message to list %s", $list->{'name'});
+	Log::do_log('err', 'Failed to send message to list %s', $list);
 	return undef;
     }
     
     return $numsmtp;
 }
-
-# ####################################################
-# # public mail_message                              
-# ####################################################
-# # distribute a message to a list, Crypting if needed
-# # 
-# # IN : -$message(+) : ref(Message)
-# #      -$from(+) : message from
-# #      -$robot(+) : robot
-# #      -{verp=>[on|off]} : a hash to introduce verp parameters, starting just on or off, later will probably introduce optionnal parameters 
-# #      -@rcpt(+) : recepients
-# # OUT : -$numsmtp : number of sendmail process | undef
-# #       
-# ####################################################
-# sub mail_message {
-# 
-#     my %params = @_;
-#     my $message =  $params{'message'};
-#     my $list =  $params{'list'};
-#     my $verp = $params{'verp'};
-#     my @rcpt =  @{$params{'rcpt'}};
-#     my $dkim  =  $params{'dkim_parameters'};
-#     my $tag_as_last = $params{'tag_as_last'};
-# 
-# 
-#     my $host = $list->{'admin'}{'host'};
-#     my $robot = $list->{'domain'};
-# 
-#     # normal return_path (ie used if verp is not enabled)
-#     my $from = $list->{'name'}.&Conf::get_robot_conf($robot, 'return_path_suffix').'@'.$host;
-# 
-#     &Log::do_log('debug', 'mail::mail_message(from: %s, , file:%s, %s, verp->%s, %d rcpt, last: %s)', $from, $message->{'filename'}, $message->{'smime_crypted'}, $verp, $#rcpt+1, $tag_as_last);
-#     return 0 if ($#rcpt == -1);
-# 
-#     my($i, $j, $nrcpt, $size); 
-#     my $numsmtp = 0;
-# 
-#     ## If message contain a footer or header added by Sympa  use the object message else
-#     ## Extract body from original file to preserve signature
-#     my ($msg_body, $msg_header);
-#     $msg_header = $message->{'msg'}->head;
-#     #    if ($message->{'altered'}) {
-#     if (!$message->{'protected'}) {
-# 	$msg_body = $message->{'msg'}->body_as_string;
-#     }elsif ($message->{'smime_crypted'}) {
-# 	$msg_body = ${$message->{'msg_as_string'}}; # why is object message msg_as_string contain a body _as_string ? wrong name for this mesage property	
-#     }else{
-# 	## Get body from original file
-# 	unless (open MSG, $message->{'filename'}) {
-# 	    &Log::do_log ('notice',"mail::mail_message : Unable to open %s:%s",$message->{'filename'},$!);
-# 	    return undef;
-# 	}
-# 	my $in_header = 1 ;
-# 	while (<MSG>) {
-# 	    if ( !$in_header)  { 
-# 		$msg_body .= $_;       
-# 	    }else {
-# 		$in_header = 0 if (/^$/); 
-# 	    }
-# 	}
-# 	close (MSG);
-#     }
-#     $message->{'body_as_string'} = $msg_body ;
-# 
-#     my %rcpt_by_dom ;
-# 
-#     my @sendto;
-#     my @sendtobypacket;
-# 
-#     while (defined ($i = shift(@rcpt))) {
-# 	my @k = reverse(split(/[\.@]/, $i));
-# 	my @l = reverse(split(/[\.@]/, $j));
-# 
-# 	my $dom;
-# 	if ($i =~ /\@(.*)$/) {
-# 	    $dom = $1;
-# 	    chomp $dom;
-# 	}
-# 	$rcpt_by_dom{$dom} += 1 ;
-# 	&Log::do_log('debug2', "domain: $dom ; rcpt by dom: $rcpt_by_dom{$dom} ; limit for this domain: $Conf::Conf{'nrcpt_by_domain'}{$dom}");
-# 
-# 	if (defined ($Conf::Conf{'nrcpt_by_domain'}{$dom}) && ( $rcpt_by_dom{$dom} >= $Conf::Conf{'nrcpt_by_domain'}{$dom} )){
-# 	    undef %rcpt_by_dom ;
-# 	    my @tab =  @sendto ; push @sendtobypacket, \@tab ;# do not replace this line by push @sendtobypacket, \@sendto !!!
-# 	    $numsmtp++ ; 
-# 	    $nrcpt = $size = 0;
-# 	    @sendto = ();
-# 	}
-# 	
-# 	if ($j && $#sendto >= &Conf::get_robot_conf($robot, 'avg') && lc("$k[0] $k[1]") ne lc("$l[0] $l[1]")) {
-# 	    undef %rcpt_by_dom ;
-# 	    $numsmtp++ ; 
-# 	    my @tab =  @sendto ; push @sendtobypacket, \@tab ;# do not replace this line by push @sendtobypacket, \@sendto !!!
-# 	    $nrcpt = $size = 0;
-# 	    @sendto = ();
-# 	}
-# 	if ($#sendto >= 0 && (($size + length($i)) > $max_arg || $nrcpt >= &Conf::get_robot_conf($robot, 'nrcpt'))) {
-# 	    undef %rcpt_by_dom ;
-# 	    $numsmtp++  ;
-# 	    my @tab =  @sendto ; push @sendtobypacket, \@tab ;# do not replace this line by push @sendtobypacket, \@sendto !!!
-# 	    $nrcpt = $size = 0;
-# 	    @sendto = ();
-# 	}
-# 	$nrcpt++; $size += length($i) + 5;
-# 	push(@sendto, $i);
-# 	$j = $i;
-#     }
-# 
-#     if ($#sendto >= 0) {
-# 	$numsmtp++ ;
-# 	my @tab =  @sendto ; push @sendtobypacket, \@tab ;# do not replace this line by push @sendtobypacket, \@sendto !!!
-#     }
-# 
-#     
-#     unless (&sendto('message' => $message,
-# 		    'from' => $from,
-# 		    'rcpt' => \@sendtobypacket,
-# 		    'listname' => $list->{'name'},
-# 		    'priority' => $list->{'admin'}{'priority'},
-# 		    'delivery_date' => $list->get_next_delivery_date,
-# 		    'robot' => $robot,
-# 		    'encrypt' => $message->{'smime_crypted'},
-# 		    'use_bulk' => 1,
-# 		    'verp' => $verp,
-# 		    'dkim' => $dkim,
-# 		    'merge' => $list->{'admin'}{'merge_feature'},
-# 		    'tag_as_last' => $tag_as_last
-# 		    )) {
-# 	&Log::do_log ('err',"Failed to send message to list %s", $list->{'name'});
-# 	return undef;
-#     }
-#     
-#     return $numsmtp;
-# }
-
 
 ####################################################
 # public mail_forward                              
@@ -598,26 +465,33 @@ sub mail_message {
 # IN : -$mmessage(+) : ref(Message)
 #      -$from(+) : message from
 #      -$rcpt(+) : ref(SCALAR) | ref(ARRAY)  - recepients
-#      -$robot(+) : robot
+#      -$robot(+) : ref(Robot)
 # OUT : 1 | undef
 #
 ####################################################
 sub mail_forward {
-    my($message,$from,$rcpt,$robot)=@_;
+    my $message = shift;
+    my $from = shift;
+    my $rcpt = shift;
+    my $robot = Robot::clean_robot(shift, 1); #FIXME: may be Site?
     &Log::do_log('debug2', "mail::mail_forward($from,$rcpt)");
     
     unless (ref($message) eq 'Message') {
-	&Log::do_log('err',"Unespected parameter type: %s.",ref($message));
+	&Log::do_log('err',"Unexpected parameter type: %s.",ref($message));
 	return undef;
     }
     ## Add an Auto-Submitted header field according to  http://www.tools.ietf.org/html/draft-palme-autosub-01
-    $message->{'msg'}->head->add('Auto-Submitted', 'auto-forwarded');
-    
+    $message->get_mime_message->head->add('Auto-Submitted', 'auto-forwarded');
+    if (ref $rcpt && ref $rcpt eq 'ARRAY') {
+	$rcpt = join (',',@$rcpt);
+    }
+    $message->get_mime_message->head->replace('X-Sympa-To', $rcpt);
+    $message->set_message_as_string($message->get_mime_message->as_string);
     unless (defined &sending('message' => $message, 
 			     'rcpt' => $rcpt,
 			     'from' => $from,
-			     'robot' => $robot,
-			     'priority'=> &Conf::get_robot_conf($robot, 'request_priority'),
+			     'robot' => $message->{'robot'},
+			     'priority'=> $message->{'robot'}->request_priority,
 			     )) {
 	&Log::do_log('err','mail::mail_forward from %s impossible to send',$from);
 	return undef;
@@ -664,12 +538,11 @@ sub reaper {
 # send messages, S/MIME encryption if needed, 
 # grouped sending (or not if encryption)
 #  
-# IN: $msg_header (+): message header : MIME::Head object 
-#     $msg_body (+): message body
+# IN: $message (+): Message object 
 #     $from (+): message from
 #     $rcpt(+) : ref(SCALAR) | ref(ARRAY) - message recepients
 #     $listname : use only to format return_path if VERP on
-#     $robot(+) : robot 
+#     $robot(+) : ref(Robot)
 #     $encrypt : 'smime_crypted' | undef
 #     $verp : 1| undef  
 #     $use_bulk : if defined,  send message using bulk
@@ -681,28 +554,28 @@ sub sendto {
     my %params = @_;
     
     my $message = $params{'message'};
-    my $msg_header = $message->{'msg'}->head;
+    my $msg_header = $message->get_mime_message->head;
     my $msg_body = $message->{'body_as_string'};
     my $from = $params{'from'};
     my $rcpt = $params{'rcpt'};
     my $listname = $params{'listname'};    
-    my $robot = $params{'robot'};
+    my $robot = Robot::clean_robot($params{'robot'}); # may not be Site
     my $priority =  $params{'priority'}; 
-    my $encrypt = $params{'encrypt'};
     my $verp = $params{'verp'};
     my $merge = $params{'merge'};
     my $dkim = $params{'dkim'};
     my $use_bulk = $params{'use_bulk'};
     my $tag_as_last = $params{'tag_as_last'};
 
-    &Log::do_log('debug', 'mail::sendto(from : %s,listname: %s, encrypt : %s, verp : %s, priority = %s, last: %s, use_bulk: %s', $from, $listname, $encrypt, $verp, $priority, $tag_as_last, $use_bulk);
+    &Log::do_log('debug2', 'mail::sendto(from : %s,listname: %s, encrypt : %s, verp : %s, priority = %s, last: %s, use_bulk: %s', $from, $listname, $message->is_crypted, $verp, $priority, $tag_as_last, $use_bulk);
 
     my $delivery_date =  $params{'delivery_date'};
     $delivery_date = time() unless $delivery_date; # if not specified, delivery tile is right now (used for sympa messages etc)
 
     my $msg;
 
-    if ($encrypt eq 'smime_crypted') {
+    if ($message->is_crypted) {
+	
         # encrypt message for each rcpt and send the message
 	# this MUST be moved to the bulk mailer. This way, merge will be applied after the SMIME encryption is applied ! This is a bug !
 	foreach my $bulk_of_rcpt (@{$rcpt}) {
@@ -712,11 +585,10 @@ sub sendto {
 		    &Log::do_log('err',"incorrect call for encrypt with incorrect number of recipient"); 
 		    return undef;
 		}
-		unless ($message->{'msg_as_string'} = &tools::smime_encrypt ($msg_header, $msg_body, $email)){
-    		    &Log::do_log('err',"Failed to encrypt message"); 
+		unless ($message->smime_encrypt ($email)){
+    		    Log::do_log('err',"Failed to encrypt message"); 
 		    return undef;
-                }	
-
+                }
 		unless (&sending('message' => $message,
 				 'rcpt' => $email,
 				 'from' => $from,
@@ -765,7 +637,7 @@ sub sendto {
 #       (for SMTP : "RCPT To:" field)
 #      -$from(+) : for SMTP "MAIL From:" field , for 
 #        spool sending : "X-Sympa-From" field
-#      -$robot(+) : robot
+#      -$robot(+) : ref(Robot) | "Site"
 #      -$listname : listname | ''
 #      -$sign_mode(+) : 'smime' | 'none' for signing
 #      -$verp 
@@ -780,12 +652,12 @@ sub sending {
     my $message = $params{'message'};
     my $rcpt = $params{'rcpt'};
     my $from = $params{'from'};
-    my $robot = $params{'robot'};
+    my $robot = Robot::clean_robot($params{'robot'}, 1); # May be Site
     my $listname = $params{'listname'};
     my $sign_mode = $params{'sign_mode'};
     my $sympa_email =  $params{'sympa_email'};
     my $priority_message =  $params{'priority'};
-    my $priority_packet = $Conf::Conf{'sympa_packet_priority'};
+    my $priority_packet = $robot->sympa_packet_priority;
     my $delivery_date = $params{'delivery_date'};
     $delivery_date = time() unless ($delivery_date); 
     my $verp  =  $params{'verp'};
@@ -798,15 +670,12 @@ sub sending {
     my $signed_msg; # if signing
 
     if ($sign_mode eq 'smime') {
-	if ($signed_msg = &tools::smime_sign($message->{'msg'},$listname, $robot)) {
-	    $message->{'msg'} = $signed_msg->dup;
-	}else{
-	    &Log::do_log('notice', 'mail::sending : unable to sign message from %s', $listname);
+	Log::do_log('debug2','Will sign message');
+	unless ($message->smime_sign()) {
+	    &Log::do_log('err', 'Unable to sign message from %s', $listname);
 	    return undef;
 	}
     }
-    # my $msg_id = $message->{'msg'}->head->get('Message-ID'); chomp $msg_id;
-
     my $verpfeature = (($verp eq 'on')||($verp eq 'mdn')||($verp eq 'dsn'));
     my $trackingfeature ;
     if (($verp eq 'mdn')||($verp eq 'dsn')) {
@@ -815,13 +684,19 @@ sub sending {
 	$trackingfeature ='';
     }
     my $mergefeature = ($merge eq 'on');
-    
     if ($use_bulk){ # in that case use bulk tables to prepare message distribution 
-
+	##Bulk package determine robots or site by its name.
+	##FIXME: Would '*' be correct?
+	my $robot_id;
+	if (ref $robot and ref $robot eq 'Robot') {
+	    $robot_id = $robot->name;
+	} elsif ($robot eq 'Site') {
+	    $robot_id = '*';
+	}
 	my $bulk_code = &Bulk::store('message' => $message,
 				     'rcpts' => $rcpt,
 				     'from' => $from,
-				     'robot' => $robot,
+				     'robot' => $robot_id,
 				     'listname' => $listname,
 				     'priority_message' => $priority_message,
 				     'priority_packet' => $priority_packet,
@@ -835,44 +710,43 @@ sub sending {
 	
 	unless (defined $bulk_code) {
 	    &Log::do_log('err', 'Failed to store message for list %s', $listname);
-	    &List::send_notify_to_listmaster('bulk_error',  $robot, {'listname' => $listname});
+	    $robot->send_notify_to_listmaster(
+		'bulk_error',  {'listname' => $listname});
 	    return undef;
 	}
-    }elsif(defined $send_spool) { # in context wwsympa.fcgi do not send message to reciepients but copy it to standard spool 
-	&Log::do_log('debug',"NOT USING BULK");
-
-	$sympa_email = &Conf::get_robot_conf($robot, 'sympa');	
-	$sympa_file = "$send_spool/T.$sympa_email.".time.'.'.int(rand(10000));
-	unless (open TMP, ">$sympa_file") {
-	    &Log::do_log('notice', 'mail::sending Cannot create %s : %s', $sympa_file, $!);
-	    return undef;
+    }elsif(defined $send_spool) { # in context wwsympa.fcgi store directly to database.
+	&Log::do_log('debug',"NOT USING SPOOLER: rcpt: %s, from: %s, message: %s",$rcpt, $from, $message);
+	unless($message->get_mime_message->head->get('X-Sympa-To')) {
+	    $message->set_sympa_headers;
 	}
+	my %meta;
+	$meta{'date'} = time;
+	$meta{'robot'} = $message->{'robot_id'} if $message->{'robot_id'};
+	$meta{'list'} = $message->{'list'}{'name'} if $message->{'list'};
+	if ($message->{'priority'}) {
+	    $meta{'priority'} = $message->{'priority'} ;
+	}else{ 
+	    $meta{'priority'} = 1;
+	}
+	$meta{'type'} = $message->{'type'} if $message->{'type'};
 	
-	my $all_rcpt;
-	if (ref($rcpt) eq 'SCALAR') {
-	    $all_rcpt = $$rcpt;
-	}elsif (ref($rcpt) eq 'ARRAY') {
-	    $all_rcpt = join(',', @{$rcpt});
-	}else {
-	    $all_rcpt = $rcpt;
-	}
-	printf TMP "X-Sympa-To: %s\n", $all_rcpt;
-	printf TMP "X-Sympa-From: %s\n", $from;
-	printf TMP "X-Sympa-Checksum: %s\n", &tools::sympa_checksum($all_rcpt);
-
-	print TMP $message->{'msg_as_string'} ;
-	close TMP;
-	my $new_file = $sympa_file;
-	$new_file =~ s/T\.//g;
-	
-	unless (rename $sympa_file, $new_file) {
-	    &Log::do_log('notice', 'Cannot rename %s to %s : %s', $sympa_file, $new_file, $!);
+	my $msgspool = new Sympaspool('msg');
+	my $messagekey = $msgspool->store($message->get_mime_message->as_string,\%meta);
+	unless($messagekey) {
+	    Log::do_log('err',"Could not store message from %s to %s in db spool",$rcpt, $from);
 	    return undef;
 	}
-    }else{ # send it now
+
+   }else{ # send it now
 	&Log::do_log('debug',"NOT USING BULK");
+	my $string_to_send;
+	if ($message->{'protected'}) {
+	    $string_to_send = $message->get_encrypted_message_as_string;
+	}else{
+	    $string_to_send = $message->get_mime_message->as_string;
+	}
 	*SMTP = &smtpto($from, $rcpt, $robot);	
-	print SMTP $message->{'msg'}->as_string ;	
+	print SMTP $string_to_send ;	
 	unless (close SMTP) {
 	    &Log::do_log('err', 'could not close safefork to sendmail');
 	    return undef;
@@ -890,16 +764,19 @@ sub sending {
 # 
 # IN : $from :(+) for SMTP "MAIL From:" field
 #      $rcpt :(+) ref(SCALAR)|ref(ARRAY)- for SMTP "RCPT To:" field
-#      $robot :(+) robot
+#      $robot :(+) ref(Robot) | "Site"
 #      $msgkey : a id of this message submission in notification table
 # OUT : mail::$fh - file handle on opened file for ouput, for SMTP "DATA" field
 #       | undef
 #
 ##################################################################################
 sub smtpto {
-   my($from, $rcpt, $robot, $msgkey, $sign_mode) = @_;
-
-   &Log::do_log('debug2', 'smtpto( from :%s, rcpt:%s, robot:%s,  msgkey:%s, sign_mode: %s  )', $from, $rcpt, $robot, $msgkey, $sign_mode);
+    Log::do_log('debug2', '(%s, %s, %s, %s, %s)', @_);
+    my $from = shift;
+    my $rcpt = shift;
+    my $robot = Robot::clean_robot(shift, 1);
+    my $msgkey = shift;
+    my $sign_mode = shift;
 
    unless ($from) {
        &Log::do_log('err', 'Missing Return-Path in mail::smtpto()');
@@ -929,7 +806,7 @@ sub smtpto {
    ## to terminate and then do our job.
 
    &Log::do_log('debug3',"Open = $opensmtp");
-   while ($opensmtp > &Conf::get_robot_conf($robot, 'maxsmtp')) {
+   while ($opensmtp > $robot->maxsmtp) {
        &Log::do_log('debug3',"mail::smtpto: too many open SMTP ($opensmtp), calling reaper" );
        last if (&reaper(0) == -1); ## Blocking call to the reaper.
        }
@@ -943,8 +820,8 @@ sub smtpto {
    $pid = &tools::safefork();
    $pid{$pid} = 0;
        
-   my $sendmail = &Conf::get_robot_conf($robot, 'sendmail');
-   my $sendmail_args = &Conf::get_robot_conf($robot, 'sendmail_args');
+   my $sendmail = $robot->sendmail;
+   my $sendmail_args = $robot->sendmail_args;
    if ($msgkey) {
        $sendmail_args .= ' -N success,delay,failure -V '.$msgkey;
    }
@@ -952,7 +829,8 @@ sub smtpto {
 
        close(OUT);
        open(STDIN, "<&IN");
-      
+
+	$from = '' if $from eq '<>'; # null sender
        if (! ref($rcpt)) {
 	   exec $sendmail, split(/\s+/,$sendmail_args),'-f', $from, $rcpt;
        }elsif (ref($rcpt) eq 'SCALAR') {
@@ -964,7 +842,7 @@ sub smtpto {
 	exit 1; ## Should never get there.
        }
    if ($main::options{'mail'}) {
-       $str = "safefork: $sendmail $sendmail_args -f $from ";
+       $str = "safefork: $sendmail $sendmail_args -f '$from' ";
        if (! ref($rcpt)) {
 	   $str .= $rcpt;
        }elsif (ref($rcpt) eq 'SCALAR') {
@@ -972,20 +850,33 @@ sub smtpto {
        }else {
 	   $str .= join(' ', @$rcpt);
        }
-       &Log::do_log('notice', $str);
+       &Log::do_log('debug2', '%s', $str);
    }
    unless (close(IN)){
        &Log::do_log('err',"mail::smtpto: could not close safefork" );
        return undef;
    }
    $opensmtp++;
-   select(undef, undef,undef, 0.3) if ($opensmtp < &Conf::get_robot_conf($robot, 'maxsmtp'));
+   select(undef, undef,undef, 0.3) if $opensmtp < $robot->maxsmtp;
    return("mail::$fh"); ## Symbol for the write descriptor.
 }
 
+sub get_sympa_headers {
+    my $data = shift;
 
+    my $all_rcpt;
+    if (ref($data->{'rcpt'}) eq 'ARRAY') {
+	$all_rcpt = join(',', @{$data->{'rcpt'}});
+    }else {
+	$all_rcpt = $data->{'rcpt'};
+    }
 
+    my $sympa_headers = sprintf "X-Sympa-To: %s\n", $all_rcpt;
+    $sympa_headers .= sprintf "X-Sympa-From: %s\n", $data->{'from'};
+    $sympa_headers .= sprintf "X-Sympa-Checksum: %s\n", &tools::sympa_checksum($all_rcpt);
 
+    return $sympa_headers;
+}
 
 ####################################################
 # send_in_spool      : not used but if needed ...
@@ -993,7 +884,7 @@ sub smtpto {
 # send a message by putting it in global $send_spool
 #   
 # IN : $rcpt (+): ref(SCALAR)|ref(ARRAY) - recepients
-#      $robot(+) : robot
+#      $robot(+) : ref(Robot) | "Site"
 #      $sympa_email : for the file name
 #      $XSympaFrom : for "X-Sympa-From" field
 # OUT : $return->
@@ -1006,13 +897,8 @@ sub send_in_spool {
     my ($rcpt,$robot,$sympa_email,$XSympaFrom) = @_;
     &Log::do_log('debug3', 'mail::send_in_spool(%s,%s, %s)',$XSympaFrom,$rcpt);
     
-    unless ($sympa_email) {
-	$sympa_email = &Conf::get_robot_conf($robot, 'sympa');
-   }
-   
-    unless ($XSympaFrom) {
-	$XSympaFrom = &Conf::get_robot_conf($robot, 'sympa'); 
-    }
+    $sympa_email ||= $robot->get_address();
+    $XSympaFrom ||= $robot->get_address();
 
     my $sympa_file = "$send_spool/T.$sympa_email.".time.'.'.int(rand(10000));
     
@@ -1107,7 +993,6 @@ sub reformat_message($;$$) {
 	    return undef;
 	}
     }
-
     $msg->head->delete("X-Mailer");
     $msg = &fix_part($msg, $parser, $attachments, $defcharset);
     $msg->head->add("X-Mailer", sprintf "Sympa %s", Sympa::Constants::VERSION);
@@ -1123,21 +1008,25 @@ sub fix_part($$$$) {
 
     my $enc = $part->head->mime_attr("Content-Transfer-Encoding");
     # Parts with nonstandard encodings aren't modified.
-    return $part
-	if $enc and $enc !~ /^(?:base64|quoted-printable|[78]bit|binary)$/i;
 
+    if ($enc and $enc !~ /^(?:base64|quoted-printable|[78]bit|binary)$/i) {
+	return $part;
+    }
     my $eff_type = $part->effective_type;
-    return $part if $eff_type =~ m{^multipart/(signed|encrypted)$};
-
+    
+    if ($eff_type =~ m{^multipart/(signed|encrypted)$}){
+	return $part;
+    }
+    
     if ($part->head->get('X-Sympa-Attach')) { # Need re-attaching data.
+	
 	my $data = shift @{$attachments};
 	if (ref($data) ne 'MIME::Entity') {
 	    eval {
 		$data = $parser->parse_data($data);
 	    };
 	    if ($@) {
-		&Log::do_log('notice',
-			"mail::reformat_message: Failed to parse MIME data");
+		&Log::do_log('notice',"Failed to parse MIME data");
 		$data = $parser->parse_data('');
 	    }
 	}
@@ -1151,12 +1040,13 @@ sub fix_part($$$$) {
 	$part->parts(\@newparts);
     } elsif ($eff_type =~ m{^(?:multipart|message)(?:/|\Z)}i) {
 	# multipart or message types without subparts.
+	
 	return $part;
     } elsif (MIME::Tools::textual_type($eff_type)) {
 	my $bodyh = $part->bodyhandle;
 	# Encoded body or null body won't be modified.
 	return $part if !$bodyh or $bodyh->is_encoded;
-
+	
 	my $head = $part->head;
 	my $body = $bodyh->as_string;
 	my $wrap = $body;
@@ -1200,6 +1090,23 @@ sub fix_part($$$$) {
 	$part->sync_headers(Length => 'COMPUTE');
     }
     return $part;
+}
+
+sub build_message_object {
+    my ($robot,$listname,$message_as_string) = @_;
+    
+    my $message;
+    if(Conf::valid_robot($robot->host, {'just_try' => 1})) {
+	if(my $list = new List ($listname, $robot, {'just_try' => 1})) {
+	    $message = new Message ({'messageasstring'=>$message_as_string, 'list' => $list});
+	}else{
+	    $message = new Message ({'messageasstring'=>$message_as_string});
+	}
+    }else{
+	$message = new Message ({'messageasstring'=>$message_as_string});
+    }
+
+    return $message;
 }
 
 1;

@@ -312,8 +312,8 @@ sub _list_to_group {
 	my $role = shift;
 	
 	return {
-		id => $list->{'name'},
-		title => $list->{'admin'}{'subject'},
+		id => $list->name,
+		title => $list->subject,
 		description => $list->get_info(),
 		voot_membership_role => $role
 	};
@@ -365,7 +365,8 @@ sub getGroupMembers {
 	
 	my $list = new List($param{'group'}, $self->{'robot'});
 	if(defined $list) {
-		my $r = $list->check_list_authz('review', 'md5', {'sender' => $self->{'user'}});
+		my $r = Scenario::request_action($list, 'review', 'md5',
+			{'sender' => $self->{'user'}});
 		
 		if(ref($r) ne 'HASH' || $r->{'action'} !~ /do_it/i) {
 			$self->{'error'} = '403 Forbiden';

@@ -44,6 +44,8 @@ nobase_default_DATA = list_task_models/expire.yearly.task \
 		      ca-bundle.crt \
 		      mhonarc-ressources.tt2 \
 		      list_aliases.tt2 \
+		      create_list_templates/confidential/comment.tt2 \
+		      create_list_templates/confidential/config.tt2 \
 		      create_list_templates/discussion_list/comment.tt2 \
 		      create_list_templates/discussion_list/config.tt2 \
 		      create_list_templates/hotline/comment.tt2 \
@@ -105,6 +107,7 @@ nobase_default_DATA = list_task_models/expire.yearly.task \
 		      scenari/review.private \
 		      scenari/review.public \
 		      scenari/send.closed \
+		      scenari/send.confidential \
 		      scenari/send.editorkey \
 		      scenari/send.editorkeyonly \
 		      scenari/send.editorkeyonlyauth \
