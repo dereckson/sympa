@@ -1,0 +1,76 @@
+#! --PERL--
+
+# init_comment.pl - This script initializes subscriber comments in DB
+# RCS Identication ; $Revision$ ; $Date$ 
+#
+# Sympa - SYsteme de Multi-Postage Automatique
+# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
+# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use lib '--modulesdir--';
+
+#use wwslib; # not used
+#use Sympa::Constants; # used in List - Robot - Site - Conf - confdef
+use List;
+#use SDM; # used by Conf
+#use Log; # used by Conf
+
+## Load sympa config
+Site->load or die 'config_error';
+
+chdir Site->home;
+
+SDM::check_db_connect('just_try') or die "Can't connect to database";
+
+my $sth = SDM::do_query(
+    q{SELECT user_subscriber, comment_subscriber
+      FROM subscriber_table}
+) or die 'Unable to execute SQL statement';
+
+my $user;
+
+while ($user = $sth->fetchrow_hashref('NAME_lc')) {
+    printf "\nUser: %s", $user->{'user_subscriber'};
+
+    unless ($user->{'comment_subscriber'}) {
+	my $sth2 = SDM::do_prepared_query(
+	    q{SELECT gecos_user
+	      FROM user_table
+	      WHERE email_user = ?},
+	    $user->{'user_subscriber'}
+	) or die "Unable to execute SQL statement";
+
+	my $gecos = $sth2->fetchrow;
+	$sth2->finish();
+	
+	if ($gecos) {
+	    printf " =>%s", $gecos;
+	    my $sth2 = SDM::do_prepared_query(
+		q{UPDATE subscriber_table
+		  SET comment_subscriber = ?
+		  WHERE user_subscriber = ?},
+		$gecos, $user->{'user_subscriber'}
+	    ) or die "Unable to execute SQL statement";
+	    $sth2->finish();
+	}
+    }
+}
+
+$sth->finish();
+
+## Disconnect from Database
+SDM::db_disconnect();
