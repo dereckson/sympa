@@ -17,7 +17,8 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 package SDM;
 
@@ -26,9 +27,9 @@ use strict;
 use Carp;
 use Exporter;
 
-#use Conf; # SDM is used in Conf
+use Conf;
 use Log;
-#use List; # no longer used
+use List;
 use Sympa::Constants;
 use SQLSource;
 use Data::Dumper;
@@ -41,11 +42,11 @@ use Sympa::DatabaseDescription;
 # db structure description has moved in Sympa/Constant.pm 
 my %db_struct = &Sympa::DatabaseDescription::db_struct();
 
-my %not_null = &Sympa::DatabaseDescription::not_null();
+my %not_null = %Sympa::DatabaseDescription::not_null;
 
-my %primary =  &Sympa::DatabaseDescription::primary() ;
+my %primary =  %Sympa::DatabaseDescription::primary ;
 	       
-my %autoincrement = &Sympa::DatabaseDescription::autoincrement() ;
+my %autoincrement = %Sympa::DatabaseDescription::autoincrement ;
 
 ## List the required INDEXES
 ##   1st key is the concerned table
@@ -86,37 +87,30 @@ sub do_prepared_query {
 }
 
 ## Get database handler
-## Note: if database connection is not available, this function returns
-## immediately.
-##
-## NOT RECOMMENDED.  Should not access to database handler.
 sub db_get_handler {
-    Log::do_log('debug3', '()');
+    &Log::do_log('debug3', 'Returning handle to sympa database');
 
-    if (check_db_connect('just_try')) {
+    if(&check_db_connect()) {
 	return $db_source->{'dbh'};
-    } else {
-	Log::do_log('err', 'Unable to get a handle to Sympa database');
+    }else {
+	&Log::do_log('err', 'Unable to get a handle to Sympa database');
 	return undef;
     }
 }
 
 ## Just check if DB connection is ok
-## Possible option is 'just_try', won't try to reconnect if database
-## connection is not available.
 sub check_db_connect {
-    #Log::do_log('debug3', '(%s)', @_);
-    my @options = @_;
-
+    
+    &Log::do_log('debug2', 'Checking connection to the Sympa database');
     ## Is the Database defined
-    unless (Site->db_name) {
-	Log::do_log('err', 'No db_name defined in configuration file');
+    unless (&Conf::get_robot_conf('*','db_name')) {
+	&Log::do_log('err', 'No db_name defined in configuration file');
 	return undef;
     }
     
     unless ($db_source->{'dbh'} && $db_source->{'dbh'}->ping()) {
-	unless (connect_sympa_database(@options)) {
-	    Log::do_log('err', 'Failed to connect to database');
+	unless (&connect_sympa_database('just_try')) {
+	    &Log::do_log('err', 'Failed to connect to database');	   
 	    return undef;
 	}
     }
@@ -126,8 +120,9 @@ sub check_db_connect {
 
 ## Connect to Database
 sub connect_sympa_database {
-    Log::do_log('debug2', '(%s)', @_);
-    my $option = shift || '';
+    my $option = shift;
+
+    &Log::do_log('debug', 'Connecting to Sympa database');
 
     ## We keep trying to connect if this is the first attempt
     ## Unless in a web context, because we can't afford long response time on the web interface
@@ -147,36 +142,37 @@ sub connect_sympa_database {
 	&Log::do_log('err', 'Unable to connect to the Sympa database');
 	return undef;
     }
-    &Log::do_log('debug3', 'Connected to Database %s', Site->db_name);
+    &Log::do_log('debug2','Connected to Database %s',&Conf::get_robot_conf('*','db_name'));
 
     return 1;
 }
 
-## Disconnect from Database.
-## Destroy db handle so that any pending statement handles will be finalized.
+## Disconnect from Database
 sub db_disconnect {
-    Log::do_log('debug2', '()');
+    &Log::do_log('debug', 'Disconnecting from Sympa database');
 
-    my $dbh = $db_source->{'dbh'};
-    $dbh->disconnect if $dbh;
-    delete $db_source->{'dbh'};
+    unless ($db_source->{'dbh'}->disconnect()) {
+	&Log::do_log('err','Can\'t disconnect from Database %s : %s',&Conf::get_robot_conf('*','db_name'), $db_source->{'dbh'}->errstr);
+	return undef;
+    }
+
     return 1;
 }
 
 sub probe_db {
-    Log::do_log('debug3', 'Checking database structure');    
+    &Log::do_log('debug3', 'Checking database structure');    
     my (%checked, $table);
     
-    unless (check_db_connect()) {
-	Log::do_log('err',
-	    'Could not check the database structure.  Make sure that database connection is available'
-	);
-	return undef;
-    }
-
     ## Database structure
     ## Report changes to listmaster
     my @report;
+
+    unless (&check_db_connect) {
+	&Log::do_log('err', 'Unable to get a connection to the Sympa database');
+	return undef;
+    }
+
+    my $dbh = &db_get_handler();
 
     ## Get tables
     my @tables;
@@ -197,23 +193,23 @@ sub probe_db {
 	unless ($found) {
 	    if (my $rep = $db_source->add_table({'table'=>$t1})) {
 		push @report, $rep;
-		&Log::do_log('notice', 'Table %s created in database %s', $t1, Site->db_name);
+		&Log::do_log('notice', 'Table %s created in database %s', $t1, &Conf::get_robot_conf('*','db_name'));
 		push @tables, $t1;
 		$real_struct{$t1} = {};
 	    }
 	}
     }
     ## Get fields
-    foreach my $t (keys %{$db_struct{'mysql'}}) {
+    foreach my $t (@tables) {
 	$real_struct{$t} = $db_source->get_fields({'table'=>$t});
     }
     ## Check tables structure if we could get it
     ## Only performed with mysql , Pg and SQLite
     if (%real_struct) {
 
-	foreach my $t (keys %{$db_struct{'mysql'}}) {
+	foreach my $t (keys %{$db_struct{&Conf::get_robot_conf('*','db_type')}}) {
 	    unless ($real_struct{$t}) {
-		&Log::do_log('err', "Table '%s' not found in database '%s' ; you should create it with create_db.%s script", $t, Site->db_name, Site->db_type);
+		&Log::do_log('err', "Table '%s' not found in database '%s' ; you should create it with create_db.%s script", $t, &Conf::get_robot_conf('*','db_name'), &Conf::get_robot_conf('*','db_type'));
 		return undef;
 	    }
 	    unless (&check_fields({'table' => $t,'report' => \@report,'real_struct' => \%real_struct})) {
@@ -229,45 +225,75 @@ sub probe_db {
 		delete $real_struct{$t}{'temporary'};
 	    }
 
-	    if (Site->db_type eq 'mysql' or Site->db_type eq 'Pg' or
-		Site->db_type eq 'SQLite') {
+	    if ((&Conf::get_robot_conf('*','db_type') eq 'mysql')||(&Conf::get_robot_conf('*','db_type') eq 'Pg')) {
 		## Check that primary key has the right structure.
 		unless (&check_primary_key({'table' => $t,'report' => \@report})) {
-		    &Log::do_log('err', "Unable to check the validity of primary key for table %s. Aborting.", $t);
+		    &Log::do_log('err', "Unable to check the valifity of primary key for table %s. Aborting.", $t);
 		    return undef;
 		}
 		
 		unless (&check_indexes({'table' => $t,'report' => \@report})) {
-		    &Log::do_log('err', "Unable to check the validity of indexes for table %s. Aborting.", $t);
+		    &Log::do_log('err', "Unable to check the valifity of indexes for table %s. Aborting.", $t);
 		    return undef;
 		}
 		
 	    }   
-	}
-	# add autoincrement if needed
-	foreach my $table (keys %autoincrement) {
-	    &Log::do_log('debug',"Checking auto-increment for table $table, field $autoincrement{$table}");
-	    unless ($db_source->is_autoinc({'table'=>$table,'field'=>$autoincrement{$table}})){
-		if ($db_source->set_autoinc({'table'=>$table,'field'=>$autoincrement{$table},
-		'field_type'=>$db_struct{'mysql'}{$table}{'fields'}{$autoincrement{$table}}{'struct'}})){
-		    &Log::do_log('notice',"Setting table $table field $autoincrement{$table} as auto-increment");
-		}else{
-		    &Log::do_log('err',"Could not set table $table field $autoincrement{$table} as auto-increment");
-		    return undef;
+	    elsif (&Conf::get_robot_conf('*','db_type') eq 'SQLite') {
+		## Create required INDEX and PRIMARY KEY
+		my $should_update;
+		foreach my $field (@{$primary{$t}}) {
+		}
+		
+		if ($should_update) {
+		    my $fields = join ',',@{$primary{$t}};
+		    ## drop previous index
+		    my $success;
+		    foreach my $field (@{$primary{$t}}) {
+			unless ($dbh->do("DROP INDEX $field")) {
+			    next;
+			}
+			$success = 1; last;
+		    }
+		    
+		    if ($success) {
+			push @report, sprintf('Table %s, INDEX dropped', $t);
+			&Log::do_log('info', 'Table %s, INDEX dropped', $t);
+		    }else {
+			&Log::do_log('err', 'Could not drop INDEX, table \'%s\'.', $t);
+		    }
+		    
+		    ## Add INDEX
+		    unless ($dbh->do("CREATE INDEX IF NOT EXIST $t\_index ON $t ($fields)")) {
+			&Log::do_log('err', 'Could not set INDEX on field \'%s\', table\'%s\'.', $fields, $t);
+			return undef;
+		    }
+		    push @report, sprintf('Table %s, INDEX set on %s', $t, $fields);
+		    &Log::do_log('info', 'Table %s, INDEX set on %s', $t, $fields);
+		    
 		}
 	    }
 	}
+	# add autoincrement if needed
+	foreach my $table (keys %autoincrement) {
+	    unless ($db_source->is_autoinc({'table'=>$table,'field'=>$autoincrement{$table}})){
+		if ($db_source->set_autoinc({'table'=>$table,'field'=>$autoincrement{$table}})){
+		    &Log::do_log('notice',"Setting table $table field $autoincrement{$table} as autoincrement");
+		}else{
+		    &Log::do_log('err',"Could not set table $table field $autoincrement{$table} as autoincrement");
+		    return undef;
+		}
+	    }
+	}	
     }else{
 	&Log::do_log('err',"Could not check the database structure. consider verify it manually before launching Sympa.");
 	return undef;
     }
     
     ## Used by List subroutines to check that the DB is available
-    $Site::use_db = 1;
+    $List::use_db = 1;
 
     ## Notify listmaster
-    Site->send_notify_to_listmaster('db_struct_updated', {'report' => \@report})
-	if scalar @report;
+    &List::send_notify_to_listmaster('db_struct_updated',  &Conf::get_robot_conf('*','domain'), {'report' => \@report}) if ($#report >= 0);
 
     return 1;
 }
@@ -278,16 +304,16 @@ sub check_fields {
     my %real_struct = %{$param->{'real_struct'}};
     my $report_ref = $param->{'report'};
 
-    foreach my $f (sort keys %{$db_struct{Site->db_type}{$t}}) {
+    foreach my $f (sort keys %{$db_struct{&Conf::get_robot_conf('*','db_type')}{$t}}) {
 	unless ($real_struct{$t}{$f}) {
-	    push @{$report_ref}, sprintf("Field '%s' (table '%s' ; database '%s') was NOT found. Attempting to add it...", $f, $t, Site->db_name);
-	    &Log::do_log('info', "Field '%s' (table '%s' ; database '%s') was NOT found. Attempting to add it...", $f, $t, Site->db_name);
+	    push @{$report_ref}, sprintf("Field '%s' (table '%s' ; database '%s') was NOT found. Attempting to add it...", $f, $t, &Conf::get_robot_conf('*','db_name'));
+	    &Log::do_log('info', "Field '%s' (table '%s' ; database '%s') was NOT found. Attempting to add it...", $f, $t, &Conf::get_robot_conf('*','db_name'));
 
 	    my $rep;
 	    if ($rep = $db_source->add_field({
 		'table' => $t,
 		'field' => $f,
-		'type' => $db_struct{Site->db_type}{$t}{$f},
+		'type' => $db_struct{&Conf::get_robot_conf('*','db_type')}{$t}{$f},
 		'notnull' => $not_null{$f},
 		'autoinc' => ( $autoincrement{$t} eq $f),
 		'primary' => ( $autoincrement{$t} eq $f),
@@ -302,18 +328,18 @@ sub check_fields {
 	}
 	
 	## Change DB types if different and if update_db_types enabled
-	if (Site->update_db_field_types eq 'auto') {
+	if (&Conf::get_robot_conf('*','update_db_field_types') eq 'auto' && &Conf::get_robot_conf('*','db_type') ne 'SQLite') {
 	    unless (&check_db_field_type(effective_format => $real_struct{$t}{$f},
-					 required_format => $db_struct{Site->db_type}{$t}{$f})) {
-		push @{$report_ref}, sprintf("Field '%s'  (table '%s' ; database '%s') does NOT have awaited type (%s). Attempting to change it...",$f, $t, Site->db_name, $db_struct{Site->db_type}{$t}{$f});
+					 required_format => $db_struct{&Conf::get_robot_conf('*','db_type')}{$t}{$f})) {
+		push @{$report_ref}, sprintf("Field '%s'  (table '%s' ; database '%s') does NOT have awaited type (%s). Attempting to change it...",$f, $t, &Conf::get_robot_conf('*','db_name'), $db_struct{&Conf::get_robot_conf('*','db_type')}{$t}{$f});
 		
-		&Log::do_log('notice', "Field '%s'  (table '%s' ; database '%s') does NOT have awaited type (%s) where type in database seems to be (%s). Attempting to change it...",$f, $t, Site->db_name, $db_struct{Site->db_type}{$t}{$f},$real_struct{$t}{$f});
+		&Log::do_log('notice', "Field '%s'  (table '%s' ; database '%s') does NOT have awaited type (%s) where type in database seems to be (%s). Attempting to change it...",$f, $t, &Conf::get_robot_conf('*','db_name'), $db_struct{&Conf::get_robot_conf('*','db_type')}{$t}{$f},$real_struct{$t}{$f});
 		
 		my $rep;
 		if ($rep = $db_source->update_field({
 		    'table' => $t,
 		    'field' => $f,
-		    'type' => $db_struct{Site->db_type}{$t}{$f},
+		    'type' => $db_struct{&Conf::get_robot_conf('*','db_type')}{$t}{$f},
 		    'notnull' => $not_null{$f},
 		    })){
 			push @{$report_ref}, $rep;
@@ -323,8 +349,8 @@ sub check_fields {
 		}
 	    }
 	}else {
-	    unless ($real_struct{$t}{$f} eq $db_struct{Site->db_type}{$t}{$f}) {
-		&Log::do_log('err', 'Field \'%s\'  (table \'%s\' ; database \'%s\') does NOT have awaited type (%s).', $f, $t, Site->db_name, $db_struct{Site->db_type}{$t}{$f});
+	    unless ($real_struct{$t}{$f} eq $db_struct{&Conf::get_robot_conf('*','db_type')}{$t}{$f}) {
+		&Log::do_log('err', 'Field \'%s\'  (table \'%s\' ; database \'%s\') does NOT have awaited type (%s).', $f, $t, &Conf::get_robot_conf('*','db_name'), $db_struct{&Conf::get_robot_conf('*','db_type')}{$t}{$f});
 		&Log::do_log('err', 'Sympa\'s database structure may have change since last update ; please check RELEASE_NOTES');
 		return undef;
 	    }
@@ -338,10 +364,6 @@ sub check_primary_key {
     my $t = $param->{'table'};
     my $report_ref = $param->{'report'};
     &Log::do_log('debug','Checking primary key for table %s',$t);
-
-    my $list_of_keys = join ',',@{$primary{$t}};
-    my $key_as_string = "$t [$list_of_keys]";
-    &Log::do_log('debug','Checking primary keys for table %s expected_keys %s',$t,$key_as_string );
 
     my $should_update = $db_source->check_key({'table'=>$t,'key_name'=>'primary','expected_keys'=>$primary{$t}});
     if ($should_update){
@@ -460,7 +482,7 @@ sub check_indexes {
 ## Check if data structures are uptodate
 ## If not, no operation should be performed before the upgrade process is run
 sub data_structure_uptodate {
-     my $version_file = Site->etc . '/data_structure.version';
+     my $version_file = "&Conf::get_robot_conf('*','etc')/data_structure.version";
      my $data_structure_version;
 
      if (-f $version_file) {
@@ -480,7 +502,7 @@ sub data_structure_uptodate {
 
      if (defined $data_structure_version &&
 	 $data_structure_version ne Sympa::Constants::VERSION) {
-	 &Log::do_log('err', "Data structure (%s) is not up-to-date for current release (%s)", $data_structure_version, Sympa::Constants::VERSION);
+	 &Log::do_log('err', "Data structure (%s) is not uptodate for current release (%s)", $data_structure_version, Sympa::Constants::VERSION);
 	 return 0;
      }
 
@@ -590,16 +612,4 @@ sub get_canonical_read_date {
     }
 }
 
-## bound parameters for do_prepared_query().
-## returns an array ( { sql_type => SQL_type }, value ),
-## single scalar or empty array.
-##
-sub AS_DOUBLE {
-    return $db_source->AS_DOUBLE(@_);
-}
-
-sub AS_BLOB {
-    return $db_source->AS_BLOB(@_);
-}
-
-1;
+return 1;

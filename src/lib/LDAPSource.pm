@@ -17,7 +17,8 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 package LDAPSource;
 
@@ -27,11 +28,11 @@ use Exporter;
 use Datasource;
 use Carp;
 
-#use tools; # not used
-#use tt2; # not used
-#use Conf; # not used
+use tools;
+use tt2;
+use Conf;
 use Log;
-#use List; # not used
+use List;
 use Data::Dumper;
 
 our @ISA = qw(Datasource Exporter);
@@ -144,7 +145,7 @@ sub connect {
 	return undef;
     }
 
-    ## Using start_tls() will convert the existing connection to using Transport Layer Security (TLS), which pro-
+    ## Using startçtls() will convert the existing connection to using Transport Layer Security (TLS), which pro-
     ## vides an encrypted connection. This is only possible if the connection uses LDAPv3, and requires that the
     ## server advertizes support for LDAP_EXTENSION_START_TLS. Use "supported_extension" in Net::LDAP::RootDSE to
     ## check this.
@@ -169,7 +170,7 @@ sub connect {
     }
     
     unless (defined($cnx) && ($cnx->code() == 0)){
-	&Log::do_log ('err',"Failed to bind to LDAP server : '%s', LDAP server error : '%s'", $host_entry, $cnx->error, $cnx->server_error);
+	&Log::do_log ('err',"Failed to bind to LDAP server : '%s', Ldap server error : '%s'", $host_entry, $cnx->error, $cnx->server_error);
 	$self->{'ldap_handler'}->unbind;
 	return undef;
     }

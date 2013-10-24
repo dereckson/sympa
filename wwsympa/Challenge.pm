@@ -15,7 +15,9 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 
 package Challenge;
 
@@ -104,7 +106,7 @@ sub load {
 	return undef;
     }
 
-    return ('expired') if (time - $challenge_datas->{'date'} >= &tools::duration_conv(Site->challenge_table_ttl));
+    return ('expired') if (time - $challenge_datas->{'date'} >= &tools::duration_conv($Conf{'challenge_table_ttl'}));
     return ($challenge_datas);
 }
 
