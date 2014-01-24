@@ -2,8 +2,11 @@
 # RCS Identication ; $Revision$ ; $Date$ 
 #
 # Sympa - SYsteme de Multi-Postage Automatique
-# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
-# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
+#
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,11 +21,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-SUBDIRS = src default doc po www
+SUBDIRS = src wwsympa soap web_tt2 mail_tt2 doc po po-wwsympa
 
 EXTRA_DIST = important_changes.pl \
 	     sympa.spec.in \
-	     sympa.spec
+	     sympa.spec \
+	     README.charset
+CLEANFILES = previous_sympa_version
 
 install-data-hook: installdir installconfig nextstep importantchanges
 
@@ -31,7 +36,7 @@ installdir:
 	@for dir in $(expldir) $(spooldir) $(spooldir)/msg $(spooldir)/digest \
 		$(spooldir)/moderation $(spooldir)/expire $(spooldir)/auth \
 		$(spooldir)/outgoing $(spooldir)/tmp $(spooldir)/task \
-		$(bouncedir) $(arcdir) $(piddir) $(staticdir) $(staticdir)/js $(sysconfdir); do \
+		$(bouncedir) $(arcdir) $(piddir) $(staticdir) $(sysconfdir); do \
 		if [ ! -d $(DESTDIR)$$dir ] ; then \
 			echo "Creating $(DESTDIR)$$dir"; \
 			install -d -m 755 $(DESTDIR)$$dir; \
@@ -57,6 +62,10 @@ installconfig: installdir
 		$(top_srcdir)/src/sympa_wizard.pl.install \
 			--create sympa.conf \
 			--target $(DESTDIR)$(confdir)/sympa.conf \
+			|| /bin/true; \
+		$(top_srcdir)/src/sympa_wizard.pl.install \
+			--create wwsympa.conf \
+			--target $(DESTDIR)$(confdir)/wwsympa.conf \
 			|| /bin/true; \
 		rm -f $(top_srcdir)/src/sympa_wizard.pl.install; \
 	fi; \
@@ -90,14 +99,12 @@ nextstep:
 	@echo "#######################################################"
 
 importantchanges:
-	if [ -f $(DESTDIR)$(modulesdir)/Sympa/Constants.pm ]; then \
-		previous=`perl -Mlib=$(DESTDIR)$(modulesdir) -MSympa::Constants -e 'print Sympa::Constants::VERSION'`; \
-        elif [ -f $(DESTDIR)$(bindir)/Version.pm ]; then \
-                previous=`perl -Mlib=$(DESTDIR)$(bindir) -MVersion -e 'print $$Version::Version'`; \
+	if test -f $(top_srcdir)/previous_sympa_version; then \
+		export PREVIOUS=`$(CAT) $(top_srcdir)/previous_sympa_version`; \
 	fi; \
-	$(PERL) $(top_srcdir)/important_changes.pl \
-		--current=$(VERSION) \
-		--previous=$${previous};
+		$(PERL) $(top_srcdir)/important_changes.pl \
+			--current=$(VERSION) \
+			--previous=$${PREVIOUS};
 
 uninstall-hook:
 	rm -f $(DESTDIR)$(confdir)/sympa.conf

@@ -1,7 +1,11 @@
-# -*- indent-tabs-mode: nil; -*-
-# vim:ft=perl:et:sw=4
-# $Id$
-
+##---------------------------------------------------------------------------##
+##  File:
+##	$Id: time_utils.pl,
+##  Author:
+##      Earl Hood     (package MHonarc)
+##  Description:
+##      Time related routines for mhonarc
+##---------------------------------------------------------------------------##
 ##    Copyright (C) 1996-1999	Earl Hood, mhonarc@mhonarc.org
 ##
 ##    This program is free software; you can redistribute it and/or modify
@@ -304,4 +308,5 @@ sub zone_offset_to_secs {
     $sign * (($off * 3600) + ($min * 60));
 }
 
+##---------------------------------------------------------------------------##
 1;

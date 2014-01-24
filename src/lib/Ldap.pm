@@ -1,12 +1,12 @@
-# -*- indent-tabs-mode: nil; -*-
-# vim:ft=perl:et:sw=4
-# $Id$
-
+# Ldap.pm - This module includes most LDAP-related functions
+# RCS Identication ; $Revision$ ; $Date$ 
+#
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,16 +23,17 @@
 
 package Ldap;
 
-use strict;
+use strict "vars";
+
 use Exporter;
 
-use Log;
+use Conf;
 
-our @ISA    = qw(Exporter);
+our @ISA = qw(Exporter);
 our @EXPORT = qw(%Ldap);
 
-my @valid_options    = qw(host suffix filter scope bind_dn bind_password);
-my @required_options = qw(host suffix filter);
+my @valid_options = qw(host suffix filter scope bind_dn bind_password);
+my  @required_options = qw(host suffix filter);
 
 my %valid_options = ();
 map { $valid_options{$_}++; } @valid_options;
@@ -40,14 +41,14 @@ map { $valid_options{$_}++; } @valid_options;
 my %required_options = ();
 map { $required_options{$_}++; } @required_options;
 
-my %Default_Conf = (
-    'host'          => undef,
-    'suffix'        => undef,
-    'filter'        => undef,
-    'scope'         => 'sub',
-    'bind_dn'       => undef,
-    'bind_password' => undef
-);
+my %Default_Conf =
+    ( 	'host'=> undef,
+    	'suffix' => undef,
+    	'filter' => undef,
+    	'scope' => 'sub',
+	'bind_dn' => undef,
+	'bind_password' => undef
+   );
 
 my %Ldap = ();
 
@@ -55,69 +56,72 @@ my %Ldap = ();
 sub load {
     my $config = shift;
 
-    Sympa::Log::Syslog::do_log('debug3', 'Ldap::load(%s)', $config);
+   &Log::do_log('debug3','Ldap::load(%s)', $config);
 
-    my $line_num   = 0;
+    my $line_num = 0;
     my $config_err = 0;
-    my ($i, %o);
+    my($i, %o);
 
     ## Open the configuration file or return and read the lines.
     unless (open(IN, $config)) {
-        Sympa::Log::Syslog::do_log('err', 'Unable to open %s: %s',
-            $config, $!);
-        return undef;
+	&Log::do_log('err','Unable to open %s: %s', $config, $!);
+	return undef;
     }
 
     my $folded_line;
     while (my $current_line = <IN>) {
-        $line_num++;
-        next if ($current_line =~ /^\s*$/o || $current_line =~ /^[\#\;]/o);
+	$line_num++;
+	next if ($current_line =~ /^\s*$/o || $current_line =~ /^[\#\;]/o);
 
-        ## Cope with folded line (ending with '\')
-        if ($current_line =~ /\\\s*$/) {
-            $current_line =~ s/\\\s*$//;    ## remove trailing \
-            chomp $current_line;
-            $folded_line .= $current_line;
-            next;
-        } elsif (defined $folded_line) {
-            $current_line = $folded_line . $current_line;
-            $folded_line  = undef;
-        }
+	## Cope with folded line (ending with '\')
+	if ($current_line =~ /\\\s*$/) {
+	    $current_line =~ s/\\\s*$//; ## remove trailing \
+	    chomp $current_line;
+	    $folded_line .= $current_line;
+	    next;
+	}elsif (defined $folded_line) {
+	    $current_line = $folded_line.$current_line;
+	    $folded_line = undef;
+	}
 
-        if ($current_line =~ /^(\S+)\s+(.+)$/io) {
-            my ($keyword, $value) = ($1, $2);
-            $value =~ s/\s*$//;
-
-            $o{$keyword} = [$value, $line_num];
-        } else {
-
-            #	    printf STDERR Msg(1, 3, "Malformed line %d: %s"), $config,
-            #	    $_;
-            $config_err++;
-        }
+	if ($current_line =~ /^(\S+)\s+(.+)$/io) {
+	    my($keyword, $value) = ($1, $2);
+	    $value =~ s/\s*$//;
+	
+	    $o{$keyword} = [ $value, $line_num ];
+	}else {
+#	    printf STDERR Msg(1, 3, "Malformed line %d: %s"), $config, $_;
+	    $config_err++;
+	}
     }
     close(IN);
 
+
     ## Check if we have unknown values.
     foreach $i (sort keys %o) {
-        $Ldap{$i} = $o{$i}[0] || $Default_Conf{$i};
-
-        unless ($valid_options{$i}) {
-            Sympa::Log::Syslog::do_log('err', "Line %d, unknown field: %s \n",
-                $o{$i}[1], $i);
-            $config_err++;
-        }
+	$Ldap{$i} = $o{$i}[0] || $Default_Conf{$i};
+	
+	unless ($valid_options{$i}) {
+	    &Log::do_log('err',"Line %d, unknown field: %s \n", $o{$i}[1], $i);
+	    $config_err++;
+	}
     }
     ## Do we have all required values ?
     foreach $i (keys %required_options) {
-        unless (defined $o{$i} or defined $Default_Conf{$i}) {
-            Sympa::Log::Syslog::do_log('err',
-                "Required field not found : %s\n", $i);
-            $config_err++;
-            next;
-        }
+	unless (defined $o{$i} or defined $Default_Conf{$i}) {
+	    &Log::do_log('err',"Required field not found : %s\n", $i);
+	    $config_err++;
+	    next;
+	}
     }
-    return %Ldap;
+ return %Ldap;
 }
 
+## Packages must return true.
 1;
+
+
+
+
+
+

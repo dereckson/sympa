@@ -1,12 +1,11 @@
-# -*- indent-tabs-mode: nil; -*-
-# vim:ft=perl:et:sw=4
 # $Id$
-
+#
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +20,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# TT2 adapter for sympa's template system - Chia-liang Kao <clkao@clkao.org>
+# usage: replace require 'parser.pl' in wwwsympa and other .pl
+
 package Sympa::Template::Compat;
 
 use strict;
@@ -28,11 +30,11 @@ use base 'Template::Provider';
 use Encode;
 
 sub _load {
-    my ($self, $name, $alias) = @_;
-    my ($data, $error) = $self->SUPER::_load($name, $alias);
-    $data->{text} = _translate($data->{text});
+	my ($self, $name, $alias) = @_;
+	my ($data, $error) = $self->SUPER::_load($name, $alias);
+	$data->{text} = _translate($data->{text});
 
-    return ($data, $error);
+	return ($data, $error);
 }
 
 sub _translate {
@@ -50,8 +52,8 @@ sub _translate {
     s/\[\s*PARSE\s*(.*?)\]/[% PROCESS \$$1 IF $1 %]/ig;
 
     # variable access
-    while (s/\[(.*?)([^\]-]+?)->(\d+)(.*)\]/[$1$2.item('$3')$4]/g) { }
-    while (s/\[(.*?)([^\]-]+?)->(\w+)(.*)\]/[$1$2.$3$4]/g)         { }
+    while(s/\[(.*?)([^\]-]+?)->(\d+)(.*)\]/[$1$2.item('$3')$4]/g){};
+    while(s/\[(.*?)([^\]-]+?)->(\w+)(.*)\]/[$1$2.$3$4]/g){};
     s/\[\s*SET\s+(\w+)=(.*?)\s*\]/[% SET $1 = $2 %]/ig;
 
     # foreach
@@ -65,12 +67,12 @@ sub _translate {
 
     ## Be careful to absolute path
     if (/\[%\s*(PROCESS|INSERT)\s*\'(\S+)\'\s*%\]/) {
-        my $file     = $2;
-        my $new_file = $file;
-        $new_file =~ s/\.tpl$/\.tt2/;
-        my @path = split /\//, $new_file;
-        $new_file = $path[$#path];
-        s/\'$file\'/\'$new_file\'/;
+	my $file = $2;
+	my $new_file = $file;
+	$new_file =~ s/\.tpl$/\.tt2/;
+	my @path = split /\//, $new_file;
+	$new_file = $path[$#path];
+	s/\'$file\'/\'$new_file\'/;
     }
 
     # setoption
