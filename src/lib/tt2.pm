@@ -1,12 +1,11 @@
-# -*- indent-tabs-mode: nil; -*-
-# vim:ft=perl:et:sw=4
 # $Id$
-
+#
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,14 +20,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# TT2 adapter for sympa's template system - Chia-liang Kao <clkao@clkao.org>
+# usage: replace require 'parser.pl' in wwwsympa and other .pl
+
 package tt2;
 
 use strict;
-use warnings;
-use CGI::Util;
-use MIME::EncWords;
-use Template;
 
+use CGI::Util;
+use MIME::EncWords; 
+
+use Template;
 use Log;
 use Language;
 use Sympa::Constants;
@@ -39,53 +41,50 @@ my $last_error;
 my @other_include_path;
 my $allow_absolute;
 
+
 sub qencode {
     my $string = shift;
-
     # We are not able to determine the name of header field, so assume
-    # longest (maybe) one.
-    return MIME::EncWords::encode_mimewords(
-        Encode::decode('utf8', $string),
-        Encoding => 'A',
-        Charset  => &Language::GetCharset(),
-        Field    => "message-id"
-    );
+    # longest (maybe) one.    
+    return MIME::EncWords::encode_mimewords(Encode::decode('utf8', $string),
+					    Encoding=>'A',
+					    Charset=>&Language::GetCharset(),
+					    Field=>"message-id");
 }
 
 sub escape_url {
 
     my $string = shift;
-
+    
     $string =~ s/[\s+]/sprintf('%%%02x', ord($&))/eg;
-
-    # Some MUAs aren't able to decode ``%40'' (escaped ``@'') in e-mail
-    # address of mailto: URL, or take ``@'' in query component for a
+    # Some MUAs aren't able to decode ``%40'' (escaped ``@'') in e-mail 
+    # address of mailto: URL, or take ``@'' in query component for a 
     # delimiter to separate URL from the rest.
     my ($body, $query) = split(/\?/, $string, 2);
     if (defined $query) {
-        $query =~ s/\@/sprintf('%%%02x', ord($&))/eg;
-        $string = $body . '?' . $query;
+	$query =~ s/\@/sprintf('%%%02x', ord($&))/eg;
+	$string = $body.'?'.$query;
     }
-
+    
     return $string;
 }
 
 sub escape_xml {
     my $string = shift;
-
-    $string =~ s/&/&amp;/g;
+    
+    $string =~ s/&/&amp;/g; 
     $string =~ s/</&lt;/g;
     $string =~ s/>/&gt;/g;
     $string =~ s/\'/&apos;/g;
     $string =~ s/\"/&quot;/g;
-
+    
     return $string;
 }
 
 sub escape_quote {
     my $string = shift;
 
-    $string =~ s/\'/\\\'/g;
+    $string =~ s/\'/\\\'/g; 
     $string =~ s/\"/\\\"/g;
 
     return $string;
@@ -96,7 +95,7 @@ sub encode_utf8 {
 
     ## Skip if already internally tagged utf8
     if (&Encode::is_utf8($string)) {
-        return &Encode::encode_utf8($string);
+	return &Encode::encode_utf8($string);
     }
 
     return $string;
@@ -108,11 +107,12 @@ sub decode_utf8 {
 
     ## Skip if already internally tagged utf8
     unless (&Encode::is_utf8($string)) {
-        ## Wrapped with eval to prevent Sympa process from dying
-        ## FB_CROAK is used instead of FB_WARN to pass $string intact to
-        ## succeeding processes it operation fails
-        eval { $string = &Encode::decode('utf8', $string, Encode::FB_CROAK); };
-        $@ = '';
+	## Wrapped with eval to prevent Sympa process from dying
+	## FB_CROAK is used instead of FB_WARN to pass $string intact to succeeding processes it operation fails
+	eval {
+	    $string = &Encode::decode('utf8', $string, Encode::FB_CROAK);
+	};
+	$@ = '';
     }
 
     return $string;
@@ -122,23 +122,22 @@ sub decode_utf8 {
 sub maketext {
     my ($context, @arg) = @_;
 
-    my $stash         = $context->stash();
-    my $component     = $stash->get('component');
+    my $stash = $context->stash();
+    my $component = $stash->get('component');
     my $template_name = $component->{'name'};
-    my ($provider) =
-        grep { $_->{HEAD}[2] eq $component } @{$context->{LOAD_TEMPLATES}};
+    my ($provider) = grep { $_->{HEAD}[2] eq $component } @{ $context->{LOAD_TEMPLATES} };
     my $path = $provider->{HEAD}[1] if $provider;
 
     ## Strangely the path is sometimes empty...
     ## TODO : investigate
-    #    Sympa::Log::Syslog::do_log('notice', "PATH: $path ; $template_name");
+#    &do_log('notice', "PATH: $path ; $template_name");
 
     ## Sample code to dump the STASH
-    # my $s = $stash->_dump();
+    # my $s = $stash->_dump();    
 
     return sub {
-        &Language::maketext($template_name, $_[0], @arg);
-        }
+	&Language::maketext($template_name, $_[0],  @arg);
+    }	
 }
 
 # IN:
@@ -149,13 +148,10 @@ sub maketext {
 #    Subref to generate formatted (i18n'ized) date/time.
 sub locdatetime {
     my ($fmt, $arg) = @_;
-    if ($arg !~
-        /^(\d{4})\D(\d\d?)(?:\D(\d\d?)(?:\D(\d\d?)\D(\d\d?)(?:\D(\d\d?))?)?)?/
-        ) {
-        return sub { gettext("(unknown date)"); };
+    if ($arg !~ /^(\d{4})\D(\d\d?)(?:\D(\d\d?)(?:\D(\d\d?)\D(\d\d?)(?:\D(\d\d?))?)?)?/) {
+	return sub { gettext("(unknown date)"); };
     } else {
-        my @arg =
-            ($6 + 0, $5 + 0, $4 + 0, $3 + 0 || 1, $2 - 1, $1 - 1900, 0, 0, 0);
+	my @arg = ($6+0, $5+0, $4+0, $3+0 || 1, $2-1, $1-1900, 0,0,0);
         return sub { gettext_strftime($_[0], @arg); };
     }
 }
@@ -176,8 +172,8 @@ sub wrap {
 
     return sub {
         my $text = shift;
-        my $nl   = $text =~ /\n$/;
-        my $ret  = &tools::wrap_text($text, $init, $subs, $cols);
+        my $nl = $text =~ /\n$/;
+        my $ret = &tools::wrap_text($text, $init, $subs, $cols);
         $ret =~ s/\n$// unless $nl;
         $ret;
     };
@@ -194,12 +190,12 @@ sub wrap {
 sub optdesc {
     my ($context, $type, $withval) = @_;
     return sub {
-        my $x = shift;
-        return undef unless defined $x;
-        return undef unless $x =~ /\S/;
-        $x =~ s/^\s+//;
-        $x =~ s/\s+$//;
-        return List->get_option_title($x, $type, $withval);
+	my $x = shift;
+	return undef unless defined $x;
+	return undef unless $x =~ /\S/;
+	$x =~ s/^\s+//;
+	$x =~ s/\s+$//;
+	return List->get_option_title($x, $type, $withval);
     };
 }
 
@@ -232,9 +228,9 @@ sub get_error {
 }
 
 ## The main parsing sub
-## Parameters are
-## data: a HASH ref containing the data
-## template : a filename or a ARRAY ref that contains the template
+## Parameters are   
+## data: a HASH ref containing the data   
+## template : a filename or a ARRAY ref that contains the template   
 ## output : a Filedescriptor or a SCALAR ref for the output
 
 sub parse_tt2 {
@@ -244,73 +240,68 @@ sub parse_tt2 {
 
     ## Add directories that may have been added
     push @{$include_path}, @other_include_path;
-    clear_include_path();    ## Reset it
+    clear_include_path(); ## Reset it
 
     my $wantarray;
 
     ## An array can be used as a template (instead of a filename)
     if (ref($template) eq 'ARRAY') {
-        $template = \join('', @$template);
+	$template = \join('', @$template);
     }
 
     &Language::SetLang($data->{lang}) if ($data->{'lang'});
 
     my $config = {
-
-        # ABSOLUTE => 1,
-        INCLUDE_PATH => $include_path,
-
-        #	PRE_CHOMP  => 1,
-        UNICODE => 0,    # Prevent BOM auto-detection
-
-        FILTERS => {
-            unescape => \&CGI::Util::unescape,
-            l        => [\&tt2::maketext, 1],
-            loc      => [\&tt2::maketext, 1],
-            helploc  => [\&tt2::maketext, 1],
-            locdt    => [\&tt2::locdatetime, 1],
-            wrap         => [\&tt2::wrap,    1],
-            optdesc      => [\&tt2::optdesc, 1],
-            qencode      => [\&qencode,      0],
-            escape_xml   => [\&escape_xml,   0],
-            escape_url   => [\&escape_url,   0],
-            escape_quote => [\&escape_quote, 0],
-            decode_utf8  => [\&decode_utf8,  0],
-            encode_utf8  => [\&encode_utf8,  0]
-        }
+	# ABSOLUTE => 1,
+	INCLUDE_PATH => $include_path,
+#	PRE_CHOMP  => 1,
+	UNICODE => 0, # Prevent BOM auto-detection
+	
+	FILTERS => {
+	    unescape => \&CGI::Util::unescape,
+	    l => [\&tt2::maketext, 1],
+	    loc => [\&tt2::maketext, 1],
+	    helploc => [\&tt2::maketext, 1],
+	    locdt => [\&tt2::locdatetime, 1],
+	    wrap => [\&tt2::wrap, 1],
+	    optdesc => [\&tt2::optdesc, 1],
+	    qencode => [\&qencode, 0],
+ 	    escape_xml => [\&escape_xml, 0],
+	    escape_url => [\&escape_url, 0],
+	    escape_quote => [\&escape_quote, 0],
+	    decode_utf8 => [\&decode_utf8, 0],
+	    encode_utf8 => [\&encode_utf8, 0]
+	    }
     };
-
-    unless ($options->{'is_not_template'}) {
-        $config->{'INCLUDE_PATH'} = $include_path;
+    
+    unless($options->{'is_not_template'}){
+	$config->{'INCLUDE_PATH'} = $include_path;
     }
     if ($allow_absolute) {
-        $config->{'ABSOLUTE'} = 1;
-        $allow_absolute = 0;
+	$config->{'ABSOLUTE'} = 1;
+	$allow_absolute = 0;
     }
-    if ($options->{'has_header'}) {    # body is separated by an empty line.
-        if (ref $template) {
-            $template = \("\n" . $$template);
-        } else {
-            $template = \"\n[% PROCESS $template %]";
-        }
+    if ($options->{'has_header'}) { # body is separated by an empty line.
+	if (ref $template) {
+	    $template = \("\n" . $$template);
+	} else {
+	    $template = \"\n[% PROCESS $template %]";
+	}
     }
 
-    my $tt2 = Template->new($config)
-        or die "Template error: " . Template->error();
+    my $tt2 = Template->new($config) or die "Template error: ".Template->error();
 
     unless ($tt2->process($template, $data, $output)) {
-        $last_error = $tt2->error();
-        Sympa::Log::Syslog::do_log('err', 'Failed to parse %s : %s',
-            $template, "$last_error");
-        Sympa::Log::Syslog::do_log(
-            'err',
-            'Looking for TT2 files in %s',
-            join(',', @{$include_path})
-        );
-        return undef;
-    }
+	$last_error = $tt2->error();
+	&Log::do_log('err', 'Failed to parse %s : %s', $template, $last_error->as_string);
+	&Log::do_log('err', 'Looking for TT2 files in %s', join(',',@{$include_path}));
+
+
+	return undef;
+    } 
 
     return 1;
 }
+
 
 1;

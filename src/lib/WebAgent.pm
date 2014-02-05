@@ -1,12 +1,14 @@
-# -*- indent-tabs-mode: nil; -*-
-# vim:ft=perl:et:sw=4
-# $Id$
-
+# Fetch.pm - This module includes functions to fetch remote files
+#
+#<!-- RCS Identication ; $Revision: 5934 $ ; $Date: 2009-07-02 20:43:53 +0200 (jeu. 02 juil. 2009) $ -->
+#
+#
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,8 +25,8 @@
 
 package WebAgent;
 
-use strict;
-use warnings;
+use strict "vars";
+
 use LWP::UserAgent;
 ## Good documentation : http://articles.mongueurs.net/magazines/linuxmag57.html
 
@@ -33,9 +35,9 @@ our @ISA = qw (LWP::UserAgent);
 my ($web_user, $web_passwd);
 
 sub get_basic_credentials {
-    my ($self, $realm, $uri) = @_;
+    my ( $self, $realm, $uri ) = @_;
 
-    return ($web_user, $web_passwd);
+    return ( $web_user, $web_passwd );
 }
 
 sub set_basic_credentials {
