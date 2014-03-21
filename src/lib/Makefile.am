@@ -1,3 +1,5 @@
+# $Id$
+
 # Sympa - SYsteme de Multi-Postage Automatique
 #
 # Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
@@ -18,81 +20,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-nobase_modules_DATA = Sympa/Admin.pm \
-		      Sympa/Archive.pm \
-		      Sympa/Auth.pm \
-		      Sympa/BounceMessage.pm \
-		      Sympa/Bulk.pm \
-		      Sympa/Commands.pm \
-		      Sympa/Conf.pm \
-		      Sympa/ConfDef.pm \
-		      Sympa/Config_XML.pm \
-		      Sympa/DatabaseManager.pm \
-		      Sympa/Datasource.pm \
-		      Sympa/DBManipulator.pm \
-		      Sympa/DBManipulator/MySQL.pm \
-		      Sympa/DBManipulator/Oracle.pm \
-		      Sympa/DBManipulator/Postgres.pm \
-		      Sympa/DBManipulator/SQLite.pm\
-		      Sympa/DBManipulator/Sybase.pm \
-		      Sympa/Family.pm \
-		      Sympa/Fetch.pm \
-		      Sympa/HTML/MyFormatText.pm \
-		      Sympa/Language.pm \
-		      Sympa/LDAP.pm \
-		      Sympa/LDAPSource.pm \
-		      Sympa/List.pm \
-		      Sympa/ListDef.pm \
-		      Sympa/LockedFile.pm \
-		      Sympa/Log/Syslog.pm \
-		      Sympa/Log/Database.pm \
-		      Sympa/Mail.pm \
-		      Sympa/Marc.pm \
-		      Sympa/Marc/Search.pm \
-		      Sympa/Message.pm \
-		      Sympa/ModDef.pm \
-		      Sympa/Report.pm \
-		      Sympa/Robot.pm \
-		      Sympa/Scenario.pm \
-		      Sympa/SharedDocument.pm \
-		      Sympa/Site.pm \
-		      Sympa/Site_r.pm \
-		      Sympa/Spool/File.pm \
-		      Sympa/Spool/File/Key.pm \
-		      Sympa/Spool/File/Message.pm \
-		      Sympa/Spool/File/Subscribe.pm \
-		      Sympa/Spool/File/Task.pm \
-		      Sympa/Spool/SQL.pm \
-		      Sympa/SQLSource.pm \
-		      Sympa/Constants.pm \
-		      Sympa/DatabaseDescription.pm \
-		      Sympa/Template/Compat.pm \
-		      Sympa/Session.pm \
-		      Sympa/SOAP.pm \
-		      Sympa/Transport.pm \
-		      Sympa/Task.pm \
-		      Sympa/TaskInstruction.pm \
-		      Sympa/Tools.pm \
-		      Sympa/Tools/Cookie.pm \
-		      Sympa/Tools/SMIME.pm \
-		      Sympa/Tools/DKIM.pm \
-		      Sympa/Tools/Data.pm \
-		      Sympa/Tools/Daemon.pm \
-		      Sympa/Tools/File.pm \
-		      Sympa/Tools/Message.pm \
-		      Sympa/Tools/Password.pm \
-		      Sympa/Tools/Time.pm \
-		      Sympa/Tools/Text.pm \
-		      Sympa/Tools/WWW.pm
-		      Sympa/Tracking.pm \
-		      Sympa/Template.pm \
-		      Sympa/Upgrade.pm \
-		      Sympa/User.pm
+nobase_modules_DATA = admin.pm Archive.pm Bulk.pm Commands.pm confdef.pm \
+		      Conf.pm Config_XML.pm Family.pm Language.pm \
+		      List.pm Log.pm mail.pm Ldap.pm Upgrade.pm Lock.pm \
+		      Fetch.pm Message.pm Task.pm Datasource.pm SQLSource.pm \
+		      LDAPSource.pm Scenario.pm PlainDigest.pm report.pm \
+		      tools.pm tt2.pm time_utils.pm Sympa/Constants.pm \
+		      Sympa/Template/Compat.pm Robot.pm WebAgent.pm \
+		      HTML/myFormatText.pm
 
 EXTRA_DIST = Sympa/Constants.pm.in $(nobase_modules_DATA)
 CLEANFILES = Sympa/Constants.pm
 
 Sympa/Constants.pm: Sympa/Constants.pm.in Makefile
+	if [ -f $(DESTDIR)$(modulesdir)/Sympa/Constants.pm ]; then \
+		PREVIOUS=`$(PERL) -Mlib=$(DESTDIR)$(modulesdir) -MSympa::Constants -e 'print Sympa::Constants::VERSION'`; \
+	elif [ -f $(DESTDIR)$(bindir)/Version.pm ]; then \
+		PREVIOUS=`$(PERL) -Mlib=$(DESTDIR)$(bindir) -MVersion -e 'print $$Version::Version'`; \
+	else \
+		PREVIOUS=$(VERSION); \
+	fi; \
+	echo $${PREVIOUS} > $(top_srcdir)/previous_sympa_version;
 	[ -d Sympa ] || mkdir Sympa
 	rm -f $@
 	$(AM_V_GEN)$(SED) \
