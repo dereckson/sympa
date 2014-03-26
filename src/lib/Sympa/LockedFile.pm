@@ -29,14 +29,14 @@ use Fcntl qw(LOCK_EX LOCK_NB LOCK_SH);
 use File::NFSLock;
 $File::NFSLock::LOCK_EXTENSION = '.lock';
 
-use Sympa::Log::Syslog;
+use Log;
 
 our %lock_of;
 my $default_timeout    = 30;
 my $stale_lock_timeout = 20 * 60;    # TODO should become a config parameter
 
 sub open {
-    Sympa::Log::Syslog::do_log('debug2', '(%s, %s, %s, %s)', @_);
+    Log::do_log('debug2', '(%s, %s, %s, %s)', @_);
     my $self             = shift;
     my $file             = shift;
     my $blocking_timeout = shift || $default_timeout;
@@ -60,14 +60,16 @@ sub open {
         }
     );
     unless ($lock) {
-        Sympa::Log::Syslog::do_log('err', 'Failed locking %s: %s', $file, $!);
+        Log::do_log('err', 'Failed locking %s: %s', $file, $!);
         return undef;
     }
 
-    unless ($self->SUPER::open($file, $mode)) {
-        Sympa::Log::Syslog::do_log('err', 'Failed opening %s: %s', $file, $!);
-        $lock->unlock;    # make sure unlock to occur immediately.
-        return undef;
+    if ($mode ne '+') {
+        unless ($self->SUPER::open($file, $mode)) {
+            Log::do_log('err', 'Failed opening %s: %s', $file, $!);
+            $lock->unlock;    # make sure unlock to occur immediately.
+            return undef;
+        }
     }
 
     $lock_of{$self + 0} = $lock;    # register lock object, i.e. keep locking.
@@ -75,10 +77,15 @@ sub open {
 }
 
 sub close {
-    Sympa::Log::Syslog::do_log('debug2', '(%s)', @_);
+    Log::do_log('debug2', '(%s)', @_);
     my $self = shift;
 
-    my $ret = $self->SUPER::close;
+    my $ret;
+    if (defined $self->fileno) {
+        $ret = $self->SUPER::close;
+    } else {
+        $ret = 1;
+    }
 
     croak 'Lock not found'
         unless exists $lock_of{$self + 0};
@@ -184,6 +191,9 @@ C<'+E<lt>'>, ...), trys to acquire exclusive lock (C<LOCK_EX>),
 otherwise shared lock (C<LOCK_SH>).
 
 Default is C<'E<lt>'>.
+
+Additionally, a special mode C<'+'> will acquire exclusive lock
+without opening file.  In this case the file does not have to exist.
 
 =back
 

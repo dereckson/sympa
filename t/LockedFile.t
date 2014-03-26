@@ -1,15 +1,7 @@
-#!/usr/bin/perl
-# -*- indent-tabs-mode: nil; -*-
-# vim:ft=perl:et:sw=4
-# $Id$
+#-*- perl -*-
 
 use strict;
 use warnings;
-
-use FindBin qw($Bin);
-use lib "$Bin/../src/lib";
-
-use English qw(-no_match_vars);
 use File::Temp;
 use Test::More;
 
@@ -75,18 +67,17 @@ $lock->close;
 ok(!-f $lock_file, "all locks released, underlying lock file doesn't exist");
 
 sub attempt_parallel_lock {
-    my ($file, $mode) = @_;
+	my ($file, $mode) = @_;
 
-    my $code = <<EOF;
+	my $code = <<EOF;
 my \$lock = Sympa::LockedFile->new("$file", -1, "$mode");
 exit \$lock + 0;
 EOF
-    my @command = (
-        $EXECUTABLE_NAME,
-        "-I$Bin/../src/lib",
-        "-MSympa::LockedFile",
-        "-e", $code
-    );
-    system(@command);
-    return $CHILD_ERROR >> 8;
+	my @command = (
+		$^X,
+		"-MSympa::LockedFile",
+		"-e", $code
+	);
+	system(@command);
+	return $? >> 8;
 }
