@@ -165,6 +165,10 @@ select {
          background-color: [% color_13 %];
          }
 
+select[multiple] {
+                   vertical-align: top;
+                   }
+
 .menuInactive2 {
                  font-size: 1em;
                  line-height:1.4em;
@@ -385,14 +389,14 @@ td.review_cels_mail {
                   }
 
 .news_container {
-                  background-color: [% color_3 %];
-                  border: 1px solid [% color_2 %];
-                  -moz-border-radius: 4px;
-                  -webkit-border-radius:4px;
-                  -KHTML-border-radius:4px;
-                  -icab-border-radius:4px;
-                  padding: 5px;
-                  }
+	background-color: [% color_3 %];
+        border: 1px solid [% color_2 %];
+	-moz-border-radius: 4px;
+	-webkit-border-radius:4px;
+	-KHTML-border-radius:4px;
+	-icab-border-radius:4px;
+	padding: 5px;
+	}
 
 .edit_list_request_enum {
                          margin: 1em;
@@ -468,7 +472,7 @@ ul.no_style {
 .align_top {
              vertical-align: top;
              }
-/*explanation bloc of the template "ls_template.tt2"*/
+/* explanation block of the template "ls_template.tt2" */
 #template_editor {
                    margin-top: 10px;
                    }
@@ -509,7 +513,7 @@ ul.no_style {
                                        background-color: [% color_9 %];
                                        }
 
-/*ul of the "help.tt2" template*/
+/* ul of the "help.tt2" template */
 #help {
         padding-left: 10px;
         padding-top: 5px;
@@ -579,7 +583,6 @@ form input[type="checkbox"] {
                               vertical-align: middle;
                               border:none;
                               }
-
 
 #global_mailing_lists {
                         text-align: center;
@@ -1042,7 +1045,7 @@ a.actionMenuLinksCurrentPage:hover{
 
 a.actionMenuLinksInactive {
                             border-bottom: 1px solid [% color_2 %];
-                            border-right:  1px solid [% color_10 %];
+                            border-right: 1px solid [% color_10 %];
                             border-top: 1px solid [% color_10 %];
                             border-left: 1px solid [% color_10 %];
                             color: [% color_10 %];
@@ -1053,7 +1056,7 @@ a.actionMenuLinksInactive {
 
 a.actionMenuLinksInactive:hover {
                                   border-bottom: 1px solid [% color_2 %];
-                                  border-right:  1px solid [% color_10 %];
+                                  border-right: 1px solid [% color_10 %];
                                   border-top: 1px solid [% color_10 %];
                                   border-left: 1px solid [% color_10 %];
                                   color: [% color_10 %];
@@ -1066,6 +1069,7 @@ a.actionMenuLinksInactive:hover {
                          text-decoration: none;
                          padding: 0px 0px 0px 3px;
                          }
+
 /*
 a.ArcMenuLinks {
                  border: 1px solid [% color_2 %];
@@ -1129,7 +1133,7 @@ a.ArcMenuLinksCurrentPage:hover {
 a.ArcMenuLinksInactive,
 a.ArcMenuLinksInactive:hover {
                                border-bottom: 2px solid [% color_2 %];
-                               border-right:  2px solid [% color_2 %];
+                               border-right: 2px solid [% color_2 %];
                                border-top: 1px solid [% color_2 %];
                                border-left: 1px solid [% color_2 %];
                                color: [% color_2 %];
@@ -1177,15 +1181,14 @@ a.ArcMenuLinksSortInactive {
                         }
 
 .ArcActions {
-              float:right;
-              margin-top: -2.9em;
-              margin-right:0.5em
-              }
+	     float:right;
+	     margin-top: -2.9em;
+	     margin-right:0.5em
+}
 
 .ArcActions form {
-                   border: none!important;
-                   }
-
+		   border: none!important;
+}
 
 .block {
          border: 1px dotted [% color_2 %];
@@ -1336,9 +1339,8 @@ h7 strong {
             border-radius:20px;
             }
 
-
 .formError {
-            float:right;
+	    float:right;
             background: [% color_7 %];
             z-index:610!important;
             border: 2px ridge [% color_12 %];
@@ -1348,7 +1350,7 @@ h7 strong {
             -KHTML-border-radius:20px;
             -icab-border-radius:20px;
             border-radius:20px;
-            display:none;
+	    display:none;
             }
 
 #ErrorMsg a {
@@ -1419,8 +1421,6 @@ h7 strong {
                                   color:[% color_5 %]!important;
                                   }
 
-
-
 div.messageContent {
                      text-align: left;
                      color:[% color_5 %]!important;
@@ -1430,8 +1430,6 @@ div.messageContent {
                      overflow-y: scroll;
                      }
 
-
-
 div.hiddenform {
                  position:absolute;
                  width:40%;
@@ -1440,15 +1438,12 @@ div.hiddenform {
                  border: 2px ridge [% color_12 %];
                  padding:1em 0.5em;
                  -moz-border-radius:20px;
-                -webkit-border-radius:20px;
-                -KHTML-border-radius:20px;
-                -icab-border-radius:20px;
-                border-radius:20px;
-                display:none;
-                }
-
-
-
+                 -webkit-border-radius:20px;
+                 -KHTML-border-radius:20px;
+                 -icab-border-radius:20px;
+                 border-radius:20px;
+                 display:none;
+                 }
 
 p.listenum {
              margin: 0 0 0.5em 1.5em;
@@ -1552,7 +1547,6 @@ ul li.calendarLinks:hover {
 ul li.calendarLinks a:hover {
                               color: [% color_5 %]!important;
                               }
-
 
 ul li.calendarLinksCurrentPage,
 ul li.calendarLinksCurrentPage:hover {
@@ -1807,11 +1801,6 @@ table.ls_template {
                     -icab-border-radius:5px;
                     border-radius:5px;
                     }
-
-table.table_style th {
-                       font-weight: bold;
-                       background-color: [% color_9 %]
-                       }
 
 table.table_style th {
                        font-weight: bold;
@@ -2218,12 +2207,10 @@ table.preferences th {
 
 .columns div {
                -moz-column-break-inside: avoid!important;
-
                -webkit-column-break-inside: avoid!important;
-
                column-break-inside: avoid!important;
                }
-*/
+ */
 
 .menu_search {
                width:100%;

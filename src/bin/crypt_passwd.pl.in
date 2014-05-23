@@ -5,9 +5,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,27 +23,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use strict;
 use lib '--modulesdir--';
+use strict;
+use warnings;
 
-use Sympa::DatabaseManager;
-use Sympa::Site;
-use Sympa::Tools::Password;
+use Conf;
+use SDM;
+use tools;
 
-unless (require Crypt::CipherSaber) {
-    die "Crypt::CipherSaber not installed ; cannot crypt passwords";
-}
+die "Crypt::CipherSaber not installed ; cannot crypt passwords"
+    unless tools::ciphersaber_installed();
 
 ## Load sympa config
-Sympa::Site->load or die 'config_error';
+Conf::load(Sympa::Constants::CONFIG) or die 'config_error';
 
-Sympa::Site->home;
+chdir $Conf::Conf{'home'};
 
-Sympa::DatabaseManager::check_db_connect('just_try') or die "Can't connect to database";
+SDM::check_db_connect('just_try') or die "Can't connect to database";
 
 print "Searching uncrypted passwords\n";
 
-my $sth = Sympa::DatabaseManager::do_query(
+my $sth = SDM::do_prepared_query( # don't use do_query() which uses sprintf
     q{SELECT email_user, password_user
       FROM user_table
       WHERE password_user NOT LIKE 'crypt.%'}
@@ -57,14 +58,14 @@ while ($user = $sth->fetchrow_hashref('NAME_lc')) {
 
     printf "\n%s", $user->{'email_user'};
 
-    my $crypted_password = Sympa::Tools::Password::crypt_password($user->{'password_user'});
+    my $crypted_password = tools::crypt_password($user->{'password_user'});
 
     printf " => %s", $crypted_password;
 
-    my $sth2 = Sympa::DatabaseManager::do_prepared_query(
+    my $sth2 = SDM::do_prepared_query(
         q{UPDATE user_table
-	  SET password_user = ?
-	  WHERE email_user = ?},
+          SET password_user = ?
+          WHERE email_user = ?},
         $crypted_password, $user->{'email_user'}
     ) or die "Unable to execute SQL statement";
     $sth2->finish();
@@ -75,6 +76,6 @@ while ($user = $sth->fetchrow_hashref('NAME_lc')) {
 $sth->finish();
 
 ## Disconnect from Database
-Sympa::DatabaseManager::db_disconnect();
+SDM::db_disconnect();
 
 printf "Encrypted %d passwords\n", $count;
