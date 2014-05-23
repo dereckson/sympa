@@ -1,0 +1,94 @@
+#! --PERL--
+# -*- indent-tabs-mode: nil; -*-
+# vim:ft=perl:et:sw=4
+# $Id$
+
+# Sympa - SYsteme de Multi-Postage Automatique
+#
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use lib '--modulesdir--';
+use strict;
+use warnings;
+use Getopt::Long;
+use SOAP::Lite;
+# Use this line for more debug facility
+#use SOAP::Lite +trace;
+use SOAP::Transport::HTTP;
+
+## Defines SOAP::Transport::HTTP::FCGI::Sympa with a modified handle()
+use SympaTransport;
+
+## Sympa API
+use Conf;
+use List;
+use Log;
+use mail;
+use sympasoap;
+
+my $birthday = time ;
+
+## Load sympa config
+unless (Conf::load()) {
+    printf STDERR
+	"Unable to load sympa configuration, file %s or one of the vhost robot.conf files contain errors. Exiting\n",
+	Conf::get_sympa_conf();
+    exit 1;
+}
+
+Log::set_log_level($Conf::Conf{'log_level'});
+
+## Open log
+my $log_facility = $Conf::Conf{'log_facility'} || $Conf::Conf{'syslog'};
+Log::do_openlog($log_facility, $Conf::Conf{'log_socket_type'}, 'soap');
+Log::do_log('info', 'SOAP server launched');
+
+## We set the real UID with the effective UID value
+## It is usefull to allow execution of scripts like alias_manager
+## that otherwise might loose the benefit of SetUID
+$< = $>; ## UID
+$( = $); ## GID
+
+unless (SDM::check_db_connect()) {
+    Log::do_log('err','SOAP server requires a RDBMS to run');
+}
+
+## The process should not fork for sending mail
+## Messages will be spooled instead
+mail::set_send_spool($Conf::Conf{'queue'});
+
+## Loading all Lists at startup, in order to increase execution speed
+
+my $all_lists = List::get_lists('*');
+foreach my $list (@$all_lists){
+    ## Nothing to do here
+ }
+
+
+##############################################################################################
+#    Soap part
+##############################################################################################
+
+my $server = SOAP::Transport::HTTP::FCGI::Sympa->new(); 
+
+#$server->dispatch_with({'urn:Sympa' => 'sympasoap'});
+$server->dispatch_to('--modulesdir--','sympasoap');
+
+$server->handle($birthday);
+
