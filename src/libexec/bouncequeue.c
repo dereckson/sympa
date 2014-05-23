@@ -1,9 +1,11 @@
-/* boucequeue.c - This program does the non-delivery deports spooling
-  RCS Identication ; $Revision: 10094 $ ; $Date: 2014-01-02 12:53:42 +0100 (jeu. 02 janv. 2014) $ 
-
+/* $Id$ */
+/*
   Sympa - SYsteme de Multi-Postage Automatique
-  Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
-  Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
+
+  Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+  Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+  2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+  Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -17,7 +19,7 @@
 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -89,8 +91,9 @@ int
 main(int argn, char **argv)
 {
    char	*bouncedir;
-   char *listname;
-   int	firstline = 1;
+   char        *listname;
+   unsigned int		priority;
+   int			firstline = 1;
 
    /* Usage : bouncequeue list-name */
    if (argn != 2) {
@@ -107,8 +110,7 @@ main(int argn, char **argv)
       exit(EX_NOPERM);
    }
    umask(027);
-   snprintf(qfile, sizeof(qfile), "T.%s.%ld.%d", listname,
-	    (unsigned long int)time(NULL), getpid());
+   snprintf(qfile, sizeof(qfile), "T.%s.%ld.%d", listname, time(NULL), getpid());
    fd = open(qfile, O_CREAT|O_WRONLY, 0600);
    if (fd == -1)
       exit(EX_TEMPFAIL);

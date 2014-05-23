@@ -1,9 +1,10 @@
 # Makefile - This Makefile does the Sympa documentation processing and installation
 # RCS Identication ; $Revision$ ; $Date$ 
 #
-# Sympa - SYsteme de Multi-Postage Automatique
-# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
-# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,17 +19,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-nobase_doc_DATA = sympa.pdf \
-		  samples/README \
-		  samples/trusted_applications.conf \
-		  samples/robot.conf \
-		  samples/employees.ldap \
-		  samples/test/config \
-		  samples/test/info \
-		  samples/test/message.footer \
-		  samples/test/web_tt2/welcome.tt2 \
-		  samples/sampleClient.php \
-		  samples/families/sample-auto/config.tt2 \
-		  samples/families/sample-auto/param_constraint.conf
+nobase_doc_DATA = \
+	sympa.pdf \
+	samples/README \
+	samples/trusted_applications.conf \
+	samples/robot.conf \
+	samples/employees.ldap \
+	samples/test/config \
+	samples/test/info \
+	samples/test/message.footer \
+	samples/test/web_tt2/welcome.tt2 \
+	samples/sampleClient.php \
+	samples/families/sample-auto/config.tt2 \
+	samples/families/sample-auto/param_constraint.conf
 
-EXTRA_DIST = $(nobase_doc_DATA) README.charset README.postfix
+EXTRA_DIST = $(nobase_doc_DATA) README.charset README.config README.postfix

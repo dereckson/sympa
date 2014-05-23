@@ -5,8 +5,8 @@
 Name:     %{name}
 Version:  %{version}
 Release:  %{release}
-Summary:  Sympa is a powerful multilingual List Manager
 Summary(fr): Sympa est un gestionnaire de listes électroniques
+Summary:  Sympa is a powerful multilingual List Manager
 License:  GPL
 Group:    System Environment/Daemons
 URL:      http://www.sympa.org/
@@ -55,7 +55,7 @@ encryption.
     --libdir=%{_libdir} \
     --sysconfdir=%{_sysconfdir} \
     --localstatedir=%{_localstatedir}
-make
+make DESTDIR=%{buildroot}
 
 %install
 rm -rf %{buildroot}
@@ -93,6 +93,5 @@ fi
 %{_datadir}/sympa
 %{_datadir}/locale/*/*/*
 %config(noreplace) %{_sysconfdir}/sympa.conf
-%config(noreplace) %{_sysconfdir}/wwsympa.conf
 %config(noreplace) %{_sysconfdir}/sympa
 %{_initrddir}/sympa
