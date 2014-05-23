@@ -1,0 +1,530 @@
+------------------------------------------------------------------------
+r10710 | sikeda | 2014-05-23 10:37:29 +0200 (ven. 23 mai 2014) | 1 ligne
+Chemins modifiés :
+   M /branches/sympa-6.2-branch/default/web_tt2/review.tt2
+
+[-bug] (con'd r10709) more fixes.
+------------------------------------------------------------------------
+r10709 | sikeda | 2014-05-23 10:26:33 +0200 (ven. 23 mai 2014) | 2 lignes
+Chemins modifiés :
+   M /branches/sympa-6.2-branch/src/cgi/wwsympa.fcgi.in
+   M /branches/sympa-6.2-branch/src/lib/List.pm
+   M /branches/sympa-6.2-branch/src/lib/Sympa/ListDef.pm
+   M /branches/sympa-6.2-branch/src/lib/tools.pm
+   M /branches/sympa-6.2-branch/src/libexec/ldap_alias_manager.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/sympa.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/task_manager.pl.in
+
+[bug] Fixed several misspellings of the word "occurrence(s)" in sources.
+
+------------------------------------------------------------------------
+r10708 | sikeda | 2014-05-23 10:12:52 +0200 (ven. 23 mai 2014) | 4 lignes
+Chemins modifiés :
+   M /branches/sympa-6.2-branch/src/lib/Bounce.pm
+   M /branches/sympa-6.2-branch/src/lib/Bulk.pm
+   M /branches/sympa-6.2-branch/src/lib/List.pm
+   M /branches/sympa-6.2-branch/src/lib/Log.pm
+   M /branches/sympa-6.2-branch/src/lib/Sympa/DatabaseDescription.pm
+   M /branches/sympa-6.2-branch/src/lib/cookielib.pm
+   M /branches/sympa-6.2-branch/src/lib/mail.pm
+   M /branches/sympa-6.2-branch/src/lib/tools.pm
+   M /branches/sympa-6.2-branch/src/sbin/archived.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/bulk.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/sympa.pl.in
+
+[dev] French spelling in English messages and variable names: "receipient" and "adresse".
+
+*NOTE*: On bulkmailer_table, a column is named "recEipients_bulkmailer"; it should not be changed.
+
+------------------------------------------------------------------------
+r10707 | sikeda | 2014-05-23 09:30:11 +0200 (ven. 23 mai 2014) | 1 ligne
+Chemins modifiés :
+   M /branches/sympa-6.2-branch/src/lib/Auth.pm
+   M /branches/sympa-6.2-branch/src/lib/Scenario.pm
+
+[-dev] spelling fix: "Ldap" to "LDAP".
+------------------------------------------------------------------------
+r10706 | sikeda | 2014-05-23 09:27:27 +0200 (ven. 23 mai 2014) | 2 lignes
+Chemins modifiés :
+   M /branches/sympa-6.2-branch
+   M /branches/sympa-6.2-branch/src/cgi/wwsympa.fcgi.in
+   M /branches/sympa-6.2-branch/src/lib/Archive.pm
+   M /branches/sympa-6.2-branch/src/lib/Bounce.pm
+   M /branches/sympa-6.2-branch/src/lib/Commands.pm
+   M /branches/sympa-6.2-branch/src/lib/Conf.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorDefault.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorInformix.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorMySQL.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorOracle.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorPostgres.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorSQLite.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorSybase.pm
+   M /branches/sympa-6.2-branch/src/lib/LDAPSource.pm
+   M /branches/sympa-6.2-branch/src/lib/Ldap.pm
+   M /branches/sympa-6.2-branch/src/lib/List.pm
+   M /branches/sympa-6.2-branch/src/lib/Log.pm
+   M /branches/sympa-6.2-branch/src/lib/Marc/Search.pm
+   M /branches/sympa-6.2-branch/src/lib/Marc.pm
+   M /branches/sympa-6.2-branch/src/lib/PlainDigest.pm
+   M /branches/sympa-6.2-branch/src/lib/SQLSource.pm
+   M /branches/sympa-6.2-branch/src/lib/Sympa/DatabaseDescription.pm
+   M /branches/sympa-6.2-branch/src/lib/Sympa/LockedFile.pm
+   M /branches/sympa-6.2-branch/src/lib/Sympa/User.pm
+   M /branches/sympa-6.2-branch/src/lib/SympaSession.pm
+   M /branches/sympa-6.2-branch/src/lib/SympaTransport.pm
+   M /branches/sympa-6.2-branch/src/lib/Upgrade.pm
+   M /branches/sympa-6.2-branch/src/lib/WebAgent.pm
+   M /branches/sympa-6.2-branch/src/lib/mail.pm
+   M /branches/sympa-6.2-branch/src/lib/tools.pm
+   M /branches/sympa-6.2-branch/src/sbin/task_manager.pl.in
+
+[dev] Won't use exported symbols anymore, and use "base" pragma instead of "our @ISA" magic variable.
+
+------------------------------------------------------------------------
+r10387 | rousse | 2014-03-10 16:38:22 +0100 (lun. 10 mars 2014) | 5 lignes
+Chemins modifiés :
+   M /trunk/src/lib/Sympa/BounceMessage.pm
+   M /trunk/src/lib/Sympa/DBManipulatorDefault.pm
+   M /trunk/src/lib/Sympa/DBManipulatorMySQL.pm
+   M /trunk/src/lib/Sympa/DBManipulatorOracle.pm
+   M /trunk/src/lib/Sympa/DBManipulatorPostgres.pm
+   M /trunk/src/lib/Sympa/DBManipulatorSQLite.pm
+   M /trunk/src/lib/Sympa/DBManipulatorSybase.pm
+   M /trunk/src/lib/Sympa/DatabaseManager.pm
+   M /trunk/src/lib/Sympa/Family.pm
+   M /trunk/src/lib/Sympa/HTML/MyFormatText.pm
+   M /trunk/src/lib/Sympa/KeySpool.pm
+   M /trunk/src/lib/Sympa/LDAPSource.pm
+   M /trunk/src/lib/Sympa/List.pm
+   M /trunk/src/lib/Sympa/Marc/Search.pm
+   M /trunk/src/lib/Sympa/MessageSpool.pm
+   M /trunk/src/lib/Sympa/PlainDigest.pm
+   M /trunk/src/lib/Sympa/Robot.pm
+   M /trunk/src/lib/Sympa/SQLSource.pm
+   M /trunk/src/lib/Sympa/Site.pm
+   M /trunk/src/lib/Sympa/SubscribeSpool.pm
+   M /trunk/src/lib/Sympa/TaskSpool.pm
+   M /trunk/src/lib/Sympa/Transport.pm
+Fision via : r10706
+
+[dev] enforce usage of base pragma for inheritance
+
+Exception: Sympa::Transport relies on SOAP::Transport::HTTP::FCGI package, which
+is actually contained by SOAP/Transport/HTTP.pm module
+
+------------------------------------------------------------------------
+r10382 | rousse | 2014-03-10 15:57:46 +0100 (lun. 10 mars 2014) | 4 lignes
+Chemins modifiés :
+   M /trunk/src/bin/mod2html.pl.in
+   M /trunk/src/bin/tpl2tt2.pl.in
+   M /trunk/src/cgi/wwsympa.fcgi.in
+   M /trunk/src/lib/Sympa/Admin.pm
+   M /trunk/src/lib/Sympa/Auth.pm
+   M /trunk/src/lib/Sympa/Bulk.pm
+   M /trunk/src/lib/Sympa/ClassicSpool.pm
+   M /trunk/src/lib/Sympa/Commands.pm
+   M /trunk/src/lib/Sympa/Conf.pm
+   M /trunk/src/lib/Sympa/Constants.pm.in
+   M /trunk/src/lib/Sympa/DatabaseDescription.pm
+   M /trunk/src/lib/Sympa/DatabaseManager.pm
+   M /trunk/src/lib/Sympa/Family.pm
+   M /trunk/src/lib/Sympa/HTML/MyFormatText.pm
+   M /trunk/src/lib/Sympa/LDAP.pm
+   M /trunk/src/lib/Sympa/LDAPSource.pm
+   M /trunk/src/lib/Sympa/Language.pm
+   M /trunk/src/lib/Sympa/List.pm
+   M /trunk/src/lib/Sympa/Log/Database.pm
+   M /trunk/src/lib/Sympa/Log/Syslog.pm
+   M /trunk/src/lib/Sympa/Mail.pm
+   M /trunk/src/lib/Sympa/Message.pm
+   M /trunk/src/lib/Sympa/PlainDigest.pm
+   M /trunk/src/lib/Sympa/Report.pm
+   M /trunk/src/lib/Sympa/SOAP.pm
+   M /trunk/src/lib/Sympa/SQLSource.pm
+   M /trunk/src/lib/Sympa/SharedDocument.pm
+   M /trunk/src/lib/Sympa/Site_r.pm
+   M /trunk/src/lib/Sympa/Spool.pm
+   M /trunk/src/lib/Sympa/Task.pm
+   M /trunk/src/lib/Sympa/TaskInstruction.pm
+   M /trunk/src/lib/Sympa/TaskSpool.pm
+   M /trunk/src/lib/Sympa/Template.pm
+   M /trunk/src/lib/Sympa/Tools.pm
+Fision via : r10706
+
+[dev] stop exporting symbols outside current package, and always use
+fully-qualified symbol name
+
+
+------------------------------------------------------------------------
+r10703 | sikeda | 2014-05-23 05:02:52 +0200 (ven. 23 mai 2014) | 2 lignes
+Chemins modifiés :
+   M /branches/sympa-6.2-branch/src/cgi/wwsympa.fcgi.in
+   M /branches/sympa-6.2-branch/src/lib/Bounce.pm
+   M /branches/sympa-6.2-branch/src/lib/Commands.pm
+   M /branches/sympa-6.2-branch/src/lib/List.pm
+   M /branches/sympa-6.2-branch/src/lib/Message.pm
+   M /branches/sympa-6.2-branch/src/lib/admin.pm
+   M /branches/sympa-6.2-branch/src/lib/cookielib.pm
+   M /branches/sympa-6.2-branch/src/lib/mail.pm
+   M /branches/sympa-6.2-branch/src/lib/tools.pm
+   M /branches/sympa-6.2-branch/src/sbin/bounced.pl.in
+
+[-dev] (con'd r10699) Kill more indirect method calls.
+
+------------------------------------------------------------------------
+r10702 | sympa-authors | 2014-05-22 18:38:10 +0200 (jeu. 22 mai 2014) | 1 ligne
+Chemins modifiés :
+   M /branches/sympa-6.2-branch/po/sympa/ar.po
+   M /branches/sympa-6.2-branch/po/sympa/bg.po
+   M /branches/sympa-6.2-branch/po/sympa/br.po
+   M /branches/sympa-6.2-branch/po/sympa/ca.po
+   M /branches/sympa-6.2-branch/po/sympa/cs.po
+   M /branches/sympa-6.2-branch/po/sympa/de.po
+   M /branches/sympa-6.2-branch/po/sympa/el.po
+   M /branches/sympa-6.2-branch/po/sympa/en.po
+   M /branches/sympa-6.2-branch/po/sympa/en_US.po
+   M /branches/sympa-6.2-branch/po/sympa/es.po
+   M /branches/sympa-6.2-branch/po/sympa/et.po
+   M /branches/sympa-6.2-branch/po/sympa/eu.po
+   M /branches/sympa-6.2-branch/po/sympa/fi.po
+   M /branches/sympa-6.2-branch/po/sympa/fr.po
+   M /branches/sympa-6.2-branch/po/sympa/gl.po
+   M /branches/sympa-6.2-branch/po/sympa/hu.po
+   M /branches/sympa-6.2-branch/po/sympa/id.po
+   M /branches/sympa-6.2-branch/po/sympa/it.po
+   M /branches/sympa-6.2-branch/po/sympa/ja.po
+   M /branches/sympa-6.2-branch/po/sympa/ko.po
+   M /branches/sympa-6.2-branch/po/sympa/la.po
+   M /branches/sympa-6.2-branch/po/sympa/ml.po
+   M /branches/sympa-6.2-branch/po/sympa/nb_NO.po
+   M /branches/sympa-6.2-branch/po/sympa/nl.po
+   M /branches/sympa-6.2-branch/po/sympa/oc.po
+   M /branches/sympa-6.2-branch/po/sympa/pl.po
+   M /branches/sympa-6.2-branch/po/sympa/pt.po
+   M /branches/sympa-6.2-branch/po/sympa/pt_BR.po
+   M /branches/sympa-6.2-branch/po/sympa/ro.po
+   M /branches/sympa-6.2-branch/po/sympa/ru.po
+   M /branches/sympa-6.2-branch/po/sympa/sv.po
+   M /branches/sympa-6.2-branch/po/sympa/sympa.pot
+   M /branches/sympa-6.2-branch/po/sympa/tr.po
+   M /branches/sympa-6.2-branch/po/sympa/vi.po
+   M /branches/sympa-6.2-branch/po/sympa/zh_CN.po
+   M /branches/sympa-6.2-branch/po/sympa/zh_TW.po
+   M /branches/sympa-6.2-branch/po/web_help/ar.po
+   M /branches/sympa-6.2-branch/po/web_help/bg.po
+   M /branches/sympa-6.2-branch/po/web_help/br.po
+   M /branches/sympa-6.2-branch/po/web_help/ca.po
+   M /branches/sympa-6.2-branch/po/web_help/cs.po
+   M /branches/sympa-6.2-branch/po/web_help/de.po
+   M /branches/sympa-6.2-branch/po/web_help/el.po
+   M /branches/sympa-6.2-branch/po/web_help/en.po
+   M /branches/sympa-6.2-branch/po/web_help/en_US.po
+   M /branches/sympa-6.2-branch/po/web_help/es.po
+   M /branches/sympa-6.2-branch/po/web_help/et.po
+   M /branches/sympa-6.2-branch/po/web_help/eu.po
+   M /branches/sympa-6.2-branch/po/web_help/fi.po
+   M /branches/sympa-6.2-branch/po/web_help/fr.po
+   M /branches/sympa-6.2-branch/po/web_help/hu.po
+   M /branches/sympa-6.2-branch/po/web_help/id.po
+   M /branches/sympa-6.2-branch/po/web_help/it.po
+   M /branches/sympa-6.2-branch/po/web_help/ja.po
+   M /branches/sympa-6.2-branch/po/web_help/nb_NO.po
+   M /branches/sympa-6.2-branch/po/web_help/nl.po
+   M /branches/sympa-6.2-branch/po/web_help/oc.po
+   M /branches/sympa-6.2-branch/po/web_help/pl.po
+   M /branches/sympa-6.2-branch/po/web_help/pt.po
+   M /branches/sympa-6.2-branch/po/web_help/pt_BR.po
+   M /branches/sympa-6.2-branch/po/web_help/ro.po
+   M /branches/sympa-6.2-branch/po/web_help/ru.po
+   M /branches/sympa-6.2-branch/po/web_help/sv.po
+   M /branches/sympa-6.2-branch/po/web_help/tr.po
+   M /branches/sympa-6.2-branch/po/web_help/vi.po
+   M /branches/sympa-6.2-branch/po/web_help/zh_CN.po
+
+[-feature]Committing updated catalogues from Pootle
+------------------------------------------------------------------------
+r10701 | sympa-authors | 2014-05-22 18:17:02 +0200 (jeu. 22 mai 2014) | 1 ligne
+Chemins modifiés :
+   M /branches/sympa-6.2-branch/po/sympa/ar.po
+   M /branches/sympa-6.2-branch/po/sympa/bg.po
+   M /branches/sympa-6.2-branch/po/sympa/br.po
+   M /branches/sympa-6.2-branch/po/sympa/ca.po
+   M /branches/sympa-6.2-branch/po/sympa/cs.po
+   M /branches/sympa-6.2-branch/po/sympa/de.po
+   M /branches/sympa-6.2-branch/po/sympa/el.po
+   M /branches/sympa-6.2-branch/po/sympa/en.po
+   M /branches/sympa-6.2-branch/po/sympa/en_US.po
+   M /branches/sympa-6.2-branch/po/sympa/es.po
+   M /branches/sympa-6.2-branch/po/sympa/et.po
+   M /branches/sympa-6.2-branch/po/sympa/eu.po
+   M /branches/sympa-6.2-branch/po/sympa/fi.po
+   M /branches/sympa-6.2-branch/po/sympa/fr.po
+   M /branches/sympa-6.2-branch/po/sympa/gl.po
+   M /branches/sympa-6.2-branch/po/sympa/hu.po
+   M /branches/sympa-6.2-branch/po/sympa/id.po
+   M /branches/sympa-6.2-branch/po/sympa/it.po
+   M /branches/sympa-6.2-branch/po/sympa/ja.po
+   M /branches/sympa-6.2-branch/po/sympa/ko.po
+   M /branches/sympa-6.2-branch/po/sympa/la.po
+   M /branches/sympa-6.2-branch/po/sympa/ml.po
+   M /branches/sympa-6.2-branch/po/sympa/nb_NO.po
+   M /branches/sympa-6.2-branch/po/sympa/nl.po
+   M /branches/sympa-6.2-branch/po/sympa/oc.po
+   M /branches/sympa-6.2-branch/po/sympa/pl.po
+   M /branches/sympa-6.2-branch/po/sympa/pt.po
+   M /branches/sympa-6.2-branch/po/sympa/pt_BR.po
+   M /branches/sympa-6.2-branch/po/sympa/ro.po
+   M /branches/sympa-6.2-branch/po/sympa/ru.po
+   M /branches/sympa-6.2-branch/po/sympa/sv.po
+   M /branches/sympa-6.2-branch/po/sympa/tr.po
+   M /branches/sympa-6.2-branch/po/sympa/vi.po
+   M /branches/sympa-6.2-branch/po/sympa/zh_CN.po
+   M /branches/sympa-6.2-branch/po/sympa/zh_TW.po
+   M /branches/sympa-6.2-branch/po/web_help/ar.po
+   M /branches/sympa-6.2-branch/po/web_help/bg.po
+   M /branches/sympa-6.2-branch/po/web_help/br.po
+   M /branches/sympa-6.2-branch/po/web_help/ca.po
+   M /branches/sympa-6.2-branch/po/web_help/cs.po
+   M /branches/sympa-6.2-branch/po/web_help/de.po
+   M /branches/sympa-6.2-branch/po/web_help/el.po
+   M /branches/sympa-6.2-branch/po/web_help/en.po
+   M /branches/sympa-6.2-branch/po/web_help/en_US.po
+   M /branches/sympa-6.2-branch/po/web_help/es.po
+   M /branches/sympa-6.2-branch/po/web_help/et.po
+   M /branches/sympa-6.2-branch/po/web_help/eu.po
+   M /branches/sympa-6.2-branch/po/web_help/fi.po
+   M /branches/sympa-6.2-branch/po/web_help/fr.po
+   M /branches/sympa-6.2-branch/po/web_help/hu.po
+   M /branches/sympa-6.2-branch/po/web_help/id.po
+   M /branches/sympa-6.2-branch/po/web_help/it.po
+   M /branches/sympa-6.2-branch/po/web_help/ja.po
+   M /branches/sympa-6.2-branch/po/web_help/nb_NO.po
+   M /branches/sympa-6.2-branch/po/web_help/nl.po
+   M /branches/sympa-6.2-branch/po/web_help/oc.po
+   M /branches/sympa-6.2-branch/po/web_help/pl.po
+   M /branches/sympa-6.2-branch/po/web_help/pt.po
+   M /branches/sympa-6.2-branch/po/web_help/pt_BR.po
+   M /branches/sympa-6.2-branch/po/web_help/ro.po
+   M /branches/sympa-6.2-branch/po/web_help/ru.po
+   M /branches/sympa-6.2-branch/po/web_help/sv.po
+   M /branches/sympa-6.2-branch/po/web_help/tr.po
+   M /branches/sympa-6.2-branch/po/web_help/vi.po
+   M /branches/sympa-6.2-branch/po/web_help/zh_CN.po
+
+[-feature]Committing latest translations from Pootle
+------------------------------------------------------------------------
+r10699 | sikeda | 2014-05-22 17:31:06 +0200 (jeu. 22 mai 2014) | 2 lignes
+Chemins modifiés :
+   M /branches/sympa-6.2-branch/src/bin/arc2webarc.pl.in
+   M /branches/sympa-6.2-branch/src/bin/mod2html.pl.in
+   M /branches/sympa-6.2-branch/src/bin/p12topem.pl.in
+   M /branches/sympa-6.2-branch/src/bin/sympa_soap_client.pl.in
+   M /branches/sympa-6.2-branch/src/cgi/wwsympa.fcgi.in
+   M /branches/sympa-6.2-branch/src/lib/Archive.pm
+   M /branches/sympa-6.2-branch/src/lib/Auth.pm
+   M /branches/sympa-6.2-branch/src/lib/Commands.pm
+   M /branches/sympa-6.2-branch/src/lib/Conf.pm
+   M /branches/sympa-6.2-branch/src/lib/Family.pm
+   M /branches/sympa-6.2-branch/src/lib/Fetch.pm
+   M /branches/sympa-6.2-branch/src/lib/List.pm
+   M /branches/sympa-6.2-branch/src/lib/Message.pm
+   M /branches/sympa-6.2-branch/src/lib/SDM.pm
+   M /branches/sympa-6.2-branch/src/lib/Scenario.pm
+   M /branches/sympa-6.2-branch/src/lib/SharedDocument.pm
+   M /branches/sympa-6.2-branch/src/lib/SympaSession.pm
+   M /branches/sympa-6.2-branch/src/lib/SympaTransport.pm
+   M /branches/sympa-6.2-branch/src/lib/Task.pm
+   M /branches/sympa-6.2-branch/src/lib/Upgrade.pm
+   M /branches/sympa-6.2-branch/src/lib/admin.pm
+   M /branches/sympa-6.2-branch/src/lib/cookielib.pm
+   M /branches/sympa-6.2-branch/src/lib/mail.pm
+   M /branches/sympa-6.2-branch/src/lib/sympasoap.pm
+   M /branches/sympa-6.2-branch/src/lib/tools.pm
+   M /branches/sympa-6.2-branch/src/sbin/archived.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/bounced.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/bulk.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/sympa.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/task_manager.pl.in
+
+[dev] Won't use indirect method calls such as "new Class()".  Use "Class->new()" insead.
+
+------------------------------------------------------------------------
+r10698 | sympa-authors | 2014-05-22 17:03:33 +0200 (jeu. 22 mai 2014) | 1 ligne
+Chemins modifiés :
+   M /branches/sympa-6.2-branch/po/sympa/ar.po
+   M /branches/sympa-6.2-branch/po/sympa/bg.po
+   M /branches/sympa-6.2-branch/po/sympa/br.po
+   M /branches/sympa-6.2-branch/po/sympa/ca.po
+   M /branches/sympa-6.2-branch/po/sympa/cs.po
+   M /branches/sympa-6.2-branch/po/sympa/de.po
+   M /branches/sympa-6.2-branch/po/sympa/el.po
+   M /branches/sympa-6.2-branch/po/sympa/en.po
+   M /branches/sympa-6.2-branch/po/sympa/en_US.po
+   M /branches/sympa-6.2-branch/po/sympa/es.po
+   M /branches/sympa-6.2-branch/po/sympa/et.po
+   M /branches/sympa-6.2-branch/po/sympa/eu.po
+   M /branches/sympa-6.2-branch/po/sympa/fi.po
+   M /branches/sympa-6.2-branch/po/sympa/fr.po
+   M /branches/sympa-6.2-branch/po/sympa/gl.po
+   M /branches/sympa-6.2-branch/po/sympa/hu.po
+   M /branches/sympa-6.2-branch/po/sympa/id.po
+   M /branches/sympa-6.2-branch/po/sympa/it.po
+   M /branches/sympa-6.2-branch/po/sympa/ja.po
+   M /branches/sympa-6.2-branch/po/sympa/ko.po
+   M /branches/sympa-6.2-branch/po/sympa/la.po
+   M /branches/sympa-6.2-branch/po/sympa/ml.po
+   M /branches/sympa-6.2-branch/po/sympa/nb_NO.po
+   M /branches/sympa-6.2-branch/po/sympa/nl.po
+   M /branches/sympa-6.2-branch/po/sympa/oc.po
+   M /branches/sympa-6.2-branch/po/sympa/pl.po
+   M /branches/sympa-6.2-branch/po/sympa/pt.po
+   M /branches/sympa-6.2-branch/po/sympa/pt_BR.po
+   M /branches/sympa-6.2-branch/po/sympa/ro.po
+   M /branches/sympa-6.2-branch/po/sympa/ru.po
+   M /branches/sympa-6.2-branch/po/sympa/sv.po
+   M /branches/sympa-6.2-branch/po/sympa/sympa.pot
+   M /branches/sympa-6.2-branch/po/sympa/tr.po
+   M /branches/sympa-6.2-branch/po/sympa/vi.po
+   M /branches/sympa-6.2-branch/po/sympa/zh_CN.po
+   M /branches/sympa-6.2-branch/po/sympa/zh_TW.po
+   M /branches/sympa-6.2-branch/po/web_help/ar.po
+   M /branches/sympa-6.2-branch/po/web_help/bg.po
+   M /branches/sympa-6.2-branch/po/web_help/br.po
+   M /branches/sympa-6.2-branch/po/web_help/ca.po
+   M /branches/sympa-6.2-branch/po/web_help/cs.po
+   M /branches/sympa-6.2-branch/po/web_help/de.po
+   M /branches/sympa-6.2-branch/po/web_help/el.po
+   M /branches/sympa-6.2-branch/po/web_help/en.po
+   M /branches/sympa-6.2-branch/po/web_help/en_US.po
+   M /branches/sympa-6.2-branch/po/web_help/es.po
+   M /branches/sympa-6.2-branch/po/web_help/et.po
+   M /branches/sympa-6.2-branch/po/web_help/eu.po
+   M /branches/sympa-6.2-branch/po/web_help/fi.po
+   M /branches/sympa-6.2-branch/po/web_help/fr.po
+   M /branches/sympa-6.2-branch/po/web_help/hu.po
+   M /branches/sympa-6.2-branch/po/web_help/id.po
+   M /branches/sympa-6.2-branch/po/web_help/it.po
+   M /branches/sympa-6.2-branch/po/web_help/ja.po
+   M /branches/sympa-6.2-branch/po/web_help/nb_NO.po
+   M /branches/sympa-6.2-branch/po/web_help/nl.po
+   M /branches/sympa-6.2-branch/po/web_help/oc.po
+   M /branches/sympa-6.2-branch/po/web_help/pl.po
+   M /branches/sympa-6.2-branch/po/web_help/pt.po
+   M /branches/sympa-6.2-branch/po/web_help/pt_BR.po
+   M /branches/sympa-6.2-branch/po/web_help/ro.po
+   M /branches/sympa-6.2-branch/po/web_help/ru.po
+   M /branches/sympa-6.2-branch/po/web_help/sv.po
+   M /branches/sympa-6.2-branch/po/web_help/tr.po
+   M /branches/sympa-6.2-branch/po/web_help/vi.po
+   M /branches/sympa-6.2-branch/po/web_help/web_help.pot
+   M /branches/sympa-6.2-branch/po/web_help/zh_CN.po
+
+[-feature]Committing updated catalogues from Pootle
+------------------------------------------------------------------------
+r10697 | sikeda | 2014-05-22 16:23:55 +0200 (jeu. 22 mai 2014) | 6 lignes
+Chemins modifiés :
+   M /branches/sympa-6.2-branch
+   M /branches/sympa-6.2-branch/src/bin/arc2webarc.pl.in
+   M /branches/sympa-6.2-branch/src/bin/crypt_passwd.pl.in
+   M /branches/sympa-6.2-branch/src/bin/mod2html.pl.in
+   M /branches/sympa-6.2-branch/src/bin/p12topem.pl.in
+   M /branches/sympa-6.2-branch/src/bin/sympa_soap_client.pl.in
+   M /branches/sympa-6.2-branch/src/bin/testldap.pl.in
+   M /branches/sympa-6.2-branch/src/bin/testlogs.pl.in
+   M /branches/sympa-6.2-branch/src/bin/tpl2tt2.pl.in
+   M /branches/sympa-6.2-branch/src/cgi/sympa_soap_server.fcgi.in
+   M /branches/sympa-6.2-branch/src/cgi/wwsympa.fcgi.in
+   M /branches/sympa-6.2-branch/src/lib/Archive.pm
+   M /branches/sympa-6.2-branch/src/lib/Auth.pm
+   M /branches/sympa-6.2-branch/src/lib/Bounce.pm
+   M /branches/sympa-6.2-branch/src/lib/Bulk.pm
+   M /branches/sympa-6.2-branch/src/lib/Challenge.pm
+   M /branches/sympa-6.2-branch/src/lib/Commands.pm
+   M /branches/sympa-6.2-branch/src/lib/Conf.pm
+   M /branches/sympa-6.2-branch/src/lib/Config_XML.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorDefault.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorMySQL.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorOracle.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorPostgres.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorSQLite.pm
+   M /branches/sympa-6.2-branch/src/lib/DBManipulatorSybase.pm
+   M /branches/sympa-6.2-branch/src/lib/Datasource.pm
+   M /branches/sympa-6.2-branch/src/lib/Family.pm
+   M /branches/sympa-6.2-branch/src/lib/Fetch.pm
+   M /branches/sympa-6.2-branch/src/lib/LDAPSource.pm
+   M /branches/sympa-6.2-branch/src/lib/Ldap.pm
+   M /branches/sympa-6.2-branch/src/lib/List.pm
+   M /branches/sympa-6.2-branch/src/lib/Log.pm
+   M /branches/sympa-6.2-branch/src/lib/Marc/Search.pm
+   M /branches/sympa-6.2-branch/src/lib/Marc.pm
+   M /branches/sympa-6.2-branch/src/lib/Message.pm
+   M /branches/sympa-6.2-branch/src/lib/PlainDigest.pm
+   M /branches/sympa-6.2-branch/src/lib/Robot.pm
+   M /branches/sympa-6.2-branch/src/lib/SDM.pm
+   M /branches/sympa-6.2-branch/src/lib/SQLSource.pm
+   M /branches/sympa-6.2-branch/src/lib/Scenario.pm
+   M /branches/sympa-6.2-branch/src/lib/SharedDocument.pm
+   M /branches/sympa-6.2-branch/src/lib/Sympa/DatabaseDescription.pm
+   M /branches/sympa-6.2-branch/src/lib/Sympa/Language.pm
+   M /branches/sympa-6.2-branch/src/lib/Sympa/LockedFile.pm
+   M /branches/sympa-6.2-branch/src/lib/Sympa/User.pm
+   M /branches/sympa-6.2-branch/src/lib/SympaSession.pm
+   M /branches/sympa-6.2-branch/src/lib/SympaTransport.pm
+   M /branches/sympa-6.2-branch/src/lib/Task.pm
+   M /branches/sympa-6.2-branch/src/lib/Upgrade.pm
+   M /branches/sympa-6.2-branch/src/lib/admin.pm
+   M /branches/sympa-6.2-branch/src/lib/cookielib.pm
+   M /branches/sympa-6.2-branch/src/lib/mail.pm
+   M /branches/sympa-6.2-branch/src/lib/report.pm
+   M /branches/sympa-6.2-branch/src/lib/sympasoap.pm
+   M /branches/sympa-6.2-branch/src/lib/tools.pm
+   M /branches/sympa-6.2-branch/src/lib/tracking.pm
+   M /branches/sympa-6.2-branch/src/lib/wwslib.pm
+   M /branches/sympa-6.2-branch/src/libexec/alias_manager.pl.in
+   M /branches/sympa-6.2-branch/src/libexec/ldap_alias_manager.pl.in
+   M /branches/sympa-6.2-branch/src/libexec/mysql_alias_manager.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/archived.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/bounced.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/bulk.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/sympa.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/sympa_newaliases.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/sympa_wizard.pl.in
+   M /branches/sympa-6.2-branch/src/sbin/task_manager.pl.in
+
+[dev] Normalize function calls.
+- Use "fn()" instead of "&fn" or "&fn()".
+- Use fully-qualified name "PKG::fn" instead of exported "fn".
+
+These changes are also to make current branch be more sync in trunk.
+
+------------------------------------------------------------------------
+r10451 | rousse | 2014-03-19 09:30:58 +0100 (mer. 19 mars 2014) | 2 lignes
+Chemins modifiés :
+   M /trunk/src/bin/sympa_wizard.pl.in
+   M /trunk/src/cgi/wwsympa.fcgi.in
+   M /trunk/src/lib/Sympa/Archive.pm
+   M /trunk/src/lib/Sympa/Commands.pm
+   M /trunk/src/lib/Sympa/Language.pm
+   M /trunk/src/lib/Sympa/List.pm
+   M /trunk/src/lib/Sympa/Log/Database.pm
+   M /trunk/src/lib/Sympa/Log/Syslog.pm
+   M /trunk/src/lib/Sympa/Mail.pm
+   M /trunk/src/lib/Sympa/Marc/Search.pm
+   M /trunk/src/lib/Sympa/Message.pm
+   M /trunk/src/lib/Sympa/TaskInstruction.pm
+   M /trunk/src/lib/Sympa/Template/Compat.pm
+   M /trunk/src/lib/Sympa/Tools/Cookie.pm
+   M /trunk/src/lib/Sympa/Tools/File.pm
+   M /trunk/src/lib/Sympa/Tools/Message.pm
+   M /trunk/src/lib/Sympa/Tools/Text.pm
+   M /trunk/src/lib/Sympa/Tools/Time.pm
+   M /trunk/src/lib/Sympa/Tools.pm
+   M /trunk/src/lib/Sympa/Upgrade.pm
+   M /trunk/src/libexec/ldap_alias_manager.pl.in
+   M /trunk/src/libexec/mysql_alias_manager.pl.in
+   M /trunk/src/sbin/bounced.pl.in
+   M /trunk/src/sbin/sympa.pl.in
+Fision via : r10697
+
+[dev] second round of import cleanup: enforce consistant usage of fully-qualified function names
+
