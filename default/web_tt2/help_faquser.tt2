@@ -12,7 +12,7 @@
 		<h4>[%|helploc%]You can not log on to the mailing list web interface[%END%]</h4>
 		<p>[%|helploc%]This problem may be due to the following reasons:[%END%]</p>
 		<ul>
-			<li>[%|helploc(path_cgi)%]<strong>You have no password</strong>. To be given a password, follow the <a href="%1/sendpasswd">First login?</a> link from the homepage. You will receive your new password by email.[%END%]</li>
+			<li>[%|helploc(path_cgi)%]<strong>You have no password</strong>. To be given a password, follow the <a href="%1/firstpasswd">First login?</a> link from the homepage. You will receive your new password by email.[%END%]</li>
 			<li>[%|helploc(path_cgi)%]<strong>You entered an incorrect password</strong>. If you forgot your password, you can reset it. To do so, follow the <a href="%1/renewpasswd">Lost password?</a> link from the homepage.[%END%]</li>
 
 			<li>[%|helploc%]<strong>You are not using the correct username</strong> (the email address with which you are subscribed to the list).[%END%]</li>
@@ -40,7 +40,7 @@
 			<li>[%|helploc(path_cgi)%]<strong>Your inbox is subject to some restrictions</strong>: it does not allow you to receive messages with attachments, bans some types of attachments or limits the maximum size of incoming messages; in that case, we advise you to choose the <a href="%1/help/user#deliverymode">Urlize delivery mode</a>.[%END%]</li>
 		</ul>
 		
-		<!--Vérifier systèmes anti-virus, anti-spam-->
+		<!--VÃ©rifier systÃ¨mes anti-virus, anti-spam-->
 
 		<h4>[%|helploc%]You can not send messages to a list[%END%]</h4>
 		<p>[%|helploc%]This problem can have multiple reasons:[%END%]</p>

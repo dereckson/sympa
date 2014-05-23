@@ -5,9 +5,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +22,801 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+## Options :  F         -> do not detach TTY
+##         :  d		-> debug -d is equiv to -dF
+## Now, it is impossible to use -dF but you have to write it -d -F
+
+use lib '--modulesdir--';
+use strict;
+use warnings;
+use Digest::MD5;
+use Getopt::Long;
+use Pod::Usage;
+
+use Sympa::Constants;
+use List;
+use Message;
+use Conf;
+use Log;
+use Sympa::Language;
+use mail;
+use Sympa::Regexps;
+use tools;
+
+my $daemon_name = Log::set_daemon($0);
+my $ip = $ENV{'REMOTE_HOST'};
+
+#getopts('dF');
+
+## Check options
+my %options;
+unless (GetOptions(\%main::options, 'debug|d', 'foreground|F')) {
+    pod2usage(-exitval => 1, -output => \*STDERR);
+}
+
+if ($main::options{'debug'}) {
+    $main::options{'log_level'} = 2 unless ($main::options{'log_level'});
+}
+
+$main::options{'foreground'} = 1 if ($main::options{'debug'});
+$main::options{'log_to_stderr'} = 1 if ($main::options{'debug'} || $main::options{'foreground'});
+
+# Load sympa.conf
+unless (Conf::load()) {
+    printf STDERR
+	"Unable to load sympa configuration, file %s has errors.\n",
+	Conf::get_sympa_conf();
+    exit 1;
+}
+
+## Check databse connectivity
+unless (SDM::check_db_connect()) {
+    Log::fatal_err('Database %s defined in sympa.conf has not the right structure or is unreachable.', $Conf::Conf{'db_name'});
+}
+
+## Put ourselves in background if not in debug mode. 
+unless ($main::options{'debug'} || $main::options{'foreground'}) {
+   open(STDERR, ">> /dev/null");
+   open(STDOUT, ">> /dev/null");
+   if (open(TTY, "/dev/tty")) {
+        # ioctl(TTY, TIOCNOTTY(), 0);
+        ioctl(TTY, 0x20007471, 0);	# XXX s/b TIOCNOTTY
+      close(TTY);
+   }
+   setpgrp(0, 0);
+   if ((my $child_pid = fork) != 0) {
+      print STDOUT "Starting archive daemon, pid $_\n";
+
+      exit(0);
+   }
+}
+
+## If process is running in foreground, don't write STDERR to a dedicated file
+my $options;
+$options->{'stderr_to_tty'} = 1 if ($main::options{'foreground'});
+
+## Create and write the PID file
+tools::write_pid('archived', $$, $options);
+unless ($options->{'stderr_to_tty'}) {
+    tools::direct_stderr_to_file(('pid' => $$));
+}
+
+# setting log_level using conf unless it is set by calling option
+if ($main::options{'log_level'}) {
+    Log::set_log_level($main::options{'log_level'});
+    Log::do_log('info', "Configuration file read, log level set using options : $main::options{'log_level'}"); 
+}else{
+    Log::set_log_level($Conf::Conf{'log_level'});
+    Log::do_log('info', "Configuration file read, default log level $Conf::Conf{'log_level'}"); 
+}
+
+my $log_facility = $Conf::Conf{'log_facility'} || $Conf::Conf{'syslog'};
+Log::do_openlog($log_facility, $Conf::Conf{'log_socket_type'}, 'archived');
+
+## Set the UserID & GroupID for the process
+$( = $) = (getgrnam(Sympa::Constants::GROUP))[2];
+$< = $> = (getpwnam(Sympa::Constants::USER))[2];
+
+
+## Required on FreeBSD to change ALL IDs(effective UID + real UID + saved UID)
+POSIX::setuid((getpwnam(Sympa::Constants::USER))[2]);
+POSIX::setgid((getgrnam(Sympa::Constants::GROUP))[2]);
+
+## Check if the UID has correctly been set (usefull on OS X)
+unless (($( == (getgrnam(Sympa::Constants::GROUP))[2]) && ($< == (getpwnam(Sympa::Constants::USER))[2])) {
+    Log::fatal_err("Failed to change process userID and groupID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via SUDO.");
+}
+
+## Sets the UMASK
+umask(oct($Conf::Conf{'umask'}));
+
+foreach my $robot (@{Conf::get_robots_list()}) {
+    my $arc_dir = Conf::get_robot_conf($robot,'arc_path');
+    ## Create arc_path if required
+    if ($arc_dir) {
+	unless (directory_check($arc_dir)) {
+	    Log::do_log('err','No vailable directory to store archives. Exiting.');
+	    exit -1;
+	}
+    }else{
+	Log::do_log('err','Robot %s has no archives directory. Check arc_path parameter in this robot.conf and in wwsympa.conf.');
+	exit -1;
+    }
+}
+
+## Change to list root
+unless (chdir($Conf::Conf{'home'})) {
+    Log::do_log('err','unable to change directory');
+    exit (-1);
+}
+
+Sympa::Language->instance->set_lang($Conf::Conf{'lang'}, 'en');
+
+Log::do_log('notice', "archived %s Started", Sympa::Constants::VERSION);
+
+
+## Catch SIGTERM, in order to exit cleanly, whenever possible.
+$SIG{'TERM'} = 'sigterm';
+my $end = 0;
+
+
+my $queue = $Conf::Conf{'queueoutgoing'};
+print "queue : $queue\n";
+
+## infinite loop scanning the queue (unless a sig TERM is received
+while (!$end) {
+
+    List::init_list_cache();
+	List::send_notify_to_listmaster(undef, undef, undef, 1); # Process grouped notifications
+	
+   unless (opendir(DIR, $queue)) {
+       Log::fatal_err("Can't open dir %s: %m", $queue); ## No return.
+   }
+
+   my @files =  (grep(/(^[^\.]|^\.(remove|rebuild)\.(.*))/, readdir DIR ));
+   closedir DIR;
+
+   ## this sleep is important to be raisonably sure that sympa is not currently
+   ## writting the file this deamon is openning. 
+   sleep 6;
+
+   foreach my $file (@files) {
+
+       last if $end;
+       next unless (-f "$queue/$file");
+
+       if ($file  =~ /^\.remove\.((.*)\.(\d\d\d\d\-\d\d))\.\d+$/ ) {
+	   my $arclistdir = $1;
+	   my $listname = $2;
+	   my $yyyymm = $3;
+	   ##my $arcpath = "$arcpath/$listname/$yyyymm";
+	  
+	   my $list;
+	   unless ($list = List->new($listname)) {
+	       Log::do_log('err',"remove : unknown list $listname");
+	       next;
+	   }
+	   my $arcpath = Conf::get_robot_conf($list->{'domain'},'arc_path')."/$listname/$yyyymm";
+
+	   Log::do_log('debug',"start remove process :listname :'$listname' arclistdir '$arclistdir' arcpath '$arcpath'  yyyymm '$yyyymm'");
+	    
+	   Log::do_log('debug',"remove found : $file for list $yyyymm");
+
+	   unless (open REMOVE, "$queue/$file") {
+	        Log::do_log ('err',"Ignoring file $queue/$file because couldn't read it, archived.pl must use the same uid as sympa");
+		   next;
+	       }
+
+	   my $email_regexp = Sympa::Regexps::email();
+
+	   foreach my $order (<REMOVE>) { 
+	       unless($order =~ /(.*)\|\|($email_regexp)/){
+		   Log::do_log('err',"Ignoring remove_order $order not recognized format");   
+		   next;
+	       }
+	       my $msgid = $1;
+	       my $sender = $2;
+
+	       chomp 	$msgid ;
+	       if ($msgid =~ /NO-ID-FOUND\.mhonarc\.org/) {
+		   Log::do_log('err','remove_arc: no message id found');
+		   next;
+	       } 
+
+	       my $message ;
+	       unless ($message = Archive::search_msgid("$arcpath/arctxt",$msgid)){
+		   Log::do_log('err','No message with message-id %s found in %s/arctxt',$msgid,$arcpath);
+		   next;
+	       }
+
+	       unless ($list->am_i('privileged_owner',$sender)|| $list->am_i('owner',$sender)||$list->am_i('editor', $sender)||List::is_listmaster($sender,$list->{'domain'} )){
+		   # if not list owner or list editor or listmaster,n check if sender of remove order is sender of the message to remove
+
+		   my $new_message;
+		   unless ($new_message = Message->new({'file'=>"$arcpath/arctxt/$message",'noxsympato'=>'noxsympato'})) {
+		      Log::do_log('err',"unable to load new message $arcpath/arctxt/$message");
+		      next;
+		   }
+		   my $messagesender = lc($new_message->{'sender'});
+
+		   unless ($sender eq $messagesender) {
+		       Log::do_log('err', 'remove command by unauthorized sender');
+		       next;
+		   }
+	       }
+	       # this point : requested command is from a authorized personn (message sender or list admin or listmaster
+
+	       remove($arclistdir,$msgid);
+
+	       my $url_dir = $list->{'dir'}.'/urlized/'.$msgid;
+	       tools::remove_dir ($url_dir);
+
+	       unless (-d "$arcpath/deleted"){
+		   unless (mkdir ("$arcpath/deleted",0777)) {
+		       Log::do_log('info',"remove_arc: unable to create $arcpath/deleted : $!");
+		       last;
+		   }
+	       }
+
+	       unless (rename ("$arcpath/arctxt/$message","$arcpath/deleted/$message")) {
+		   Log::do_log('info',"remove_arc: unable to rename message $arcpath/arctxt/$message");
+		   next;
+	       }
+			       
+	       # remove directory if empty arctxt
+	       unless (opendir (DIR,"$arcpath/arctxt")) {
+		   Log::do_log('info',"remove_arc: unable to open dir $arcpath/arctxt");
+		   next;
+	       }
+	       my @files = grep(/^\d+$/, readdir( DIR ));
+	       closedir (DIR);
+	       if ($#files == -1) {
+		   tools::remove_dir ($arcpath); 
+	       }else{			
+	       }
+	   }
+	   close REMOVE;
+
+	   unless (unlink("$queue/$file")) {
+	       Log::do_log ('err',"Ignoring file $queue/$file because couldn't remove it, archived.pl must use the same uid as sympa");
+	       next;
+	   }
+	   
+       }elsif ($file  =~ /^\.rebuild\.(.*)$/ ) {
+	   Log::do_log('debug',"rebuild found : $file for list $1");
+	   rebuild($1);	
+	   unless (unlink("$queue/$file")) {
+	       Log::do_log ('err',"Ignoring file $queue/$file because couldn't remove it, archived.pl must use the same uid as sympa");
+	       next;
+	   }
+       }else{
+	   my ($yyyy, $mm, $dd, $hh, $min, $ss, $adrlist);
+	   
+	   if ($file =~ /^(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(.*)$/) {
+	       ($yyyy, $mm, $dd, $hh, $min, $ss, $adrlist) = ($1, $2, $3, $4, $5, $6, $7);
+	   }elsif (($file =~ /^(.*)\.(\d+)\.(\d+)\.(\d+)$/) || ($file =~ /^(.*)\.(\d+)\.(\d+)$/)) {
+	       $adrlist = $1;
+	       my $date = $2;
+
+	       my @now = localtime($date);
+	       $yyyy = sprintf '%04d', 1900+$now[5];
+	       $mm = sprintf '%02d', $now[4]+1;
+	       $dd = sprintf '%02d', $now[3];
+	       $hh = sprintf '%02d', $now[2];
+	       $min = sprintf '%02d', $now[1];
+	       $ss = sprintf '%02d', $now[0];
+	       
+	   }else {
+	       Log::do_log ('err',"Ignoring file $queue/$file because not to be rebuid or liste archive");
+               unlink("$queue/$file");
+	       next;
+	   }
+	   
+	   my ($listname, $hostname);
+	   if ($adrlist =~ /^(.*)\@(.*)$/) {
+	       $listname = $1;
+	       $hostname = $2;
+	   }else {
+	       Log::do_log('err',"Match of list address '$adrlist' failed");
+	       return undef;
+	   }
+
+	   Log::do_log('notice',"Archiving $file for list $adrlist");
+	   unless (mail2arc ($file, $listname, $hostname, $yyyy, $mm, $dd, $hh, $min, $ss)) {
+	       tools::save_to_bad({
+		   'file' => $file,
+		   'hostname' => $hostname,
+		   'queue' => $queue,
+	       });
+	       unless (List::send_notify_to_listmaster('archiving_failed',$hostname,{'file' => "$file",'bad' => "$queue/bad"})) {
+		   Log::do_log('notice',"Unable to send notify 'archiving_failed' to listmaster");
+	       }
+	   }
+	   if (-f "$queue/$file") {
+	       unless (unlink("$queue/$file")) {
+		   Log::do_log ('err',"Ignoring file $queue/$file because couldn't remove it, archived.pl must use the same uid as sympa");
+		   Log::do_log ('err',"exiting because I don't want to loop until file system is full");
+		   last;
+	       }
+	   }
+       }
+   }
+    ## Free zombie sendmail processes
+    mail::reaper();
+}
+
+List::send_notify_to_listmaster(undef, undef, undef, undef, 1); # Purge grouped notifications
+
+Log::do_log('notice', 'archived exited normally due to signal');
+tools::remove_pid('archived', $$);
+
+exit(0);
+
+
+## When we catch SIGTERM, just change the value of the loop
+## variable.
+sub sigterm {
+    $end = 1;
+}
+
+#Removes the message having the identifier $msgid from the list named $adrlist.
+#* $adrlist, a character string containing the list name.
+#* $msgid, a character string containing the message identifier.
+sub remove {
+    my $adrlist = shift;
+    my $msgid = shift;
+    my $robot = shift;
+
+    Log::do_log ('debug2',"remove ($adrlist, $msgid)");
+    my $arc ;
+
+    if ($adrlist =~ /^(.*)\.(\d{4}-\d{2})$/) {
+	$adrlist = $1;
+        $arc = $2;
+    }
+
+    Log::do_log('notice',"Removing $msgid in list $adrlist section $2");
+
+    Log::db_stat_log({'robot' => $robot, 'list' => $adrlist, 'operation' => 'remove archive', 'parameter' => '', 'mail' => 'test@cru.fr','client' => $ip, 'daemon' => $daemon_name});
+
+    unless(Log::db_log({'robot' => $robot,'list' => $adrlist,'action' => 'remove','parameters' => $msgid.','.$adrlist,'target_email' => '','msg_id' => $msgid,'status' => 'succes','error_type' => '','user_email' =>'','client' => $ip,'daemon' => $daemon_name})){
+	Log::do_log('error','archived::remove: unable to log event');
+    }
+    my $arcpath = Conf::get_robot_conf($robot,'arc_path');
+    $arc =~ /^(\d{4})-(\d{2})$/ ;
+    my $yyyy = $1 ;
+    my $mm = $2 ;
+    
+    $msgid =~ s/\$/\\\$/g;
+    system "$Conf::Conf{'mhonarc'}  -outdir $arcpath/$adrlist/$yyyy-$mm -rmm $msgid";
+}
+
+# Rebuilds archives for the list the name of which is given in the argument $adrlist.
+#* $adrlist, a character string containing the name of the list the archives of which we want to rebuild.
+sub rebuild {
+
+    my $adrlist = shift;
+    my $arc ;
+
+    Log::do_log ('debug2',"rebuild ($adrlist)");
+
+    if ($adrlist =~ /^(.*)\.(\d{4}-\d{2})$/) {
+	$adrlist = $1;
+        $arc = $2;
+    }
+
+    my ($listname, $hostname);
+    if ($adrlist =~ /^(.*)\@(.*)$/) {
+	$listname = $1;
+	$hostname = $2;
+    }else {
+	Log::do_log('err',"Match of list address '$adrlist' failed");
+	       return undef;
+    }
+
+    my $list = List->new($listname, $hostname);
+    my $robot = $list->{'domain'};
+    my $arcpath = Conf::get_robot_conf($robot,'arc_path');
+    Log::do_log('debug3', "Rebuilding %s archive (%s)", $adrlist, $2);
+
+    my $tag = Archive::get_tag($list);
+
+    my $mhonarc_ressources =
+	tools::search_fullpath($list, 'mhonarc-ressources.tt2');
+
+    if (($list->{'admin'}{'web_archive_spam_protection'} ne 'none') && ($list->{'admin'}{'web_archive_spam_protection'} ne 'cookie')) {
+	set_hidden_mode($tag);
+    }else {
+	unset_hidden_mode();
+    }
+
+    Log::do_log('notice', "Rebuilding %s with M2H_ADDRESSMODIFYCODE : %s",
+	$arc, $ENV{'M2H_ADDRESSMODIFYCODE'});
+
+    if ($arc) {
+        Log::do_log('notice',"Rebuilding %s of %s archive", $arc, $adrlist);
+	$arc =~ /^(\d{4})-(\d{2})$/ ;
+	my $yyyy = $1 ;
+	my $mm = $2 ;
+
+	# remove empty directory
+	my $arcdir = $arcpath.'/'.$adrlist.'/'.$yyyy.'-'.$mm ;
+	my $arctxt = $arcdir.'/arctxt' ;
+	if (opendir (DIR,$arctxt)) {
+	    my @files = (grep(/^\d+$/,(readdir DIR )));
+	    close (DIR);
+	    if ($#files == -1) { 
+		Log::do_log('notice', "Removing empty directory %s", $arcdir);
+		tools::remove_dir ($arcdir);
+		next ;	 
+	    } 
+
+	    ## index file was removed ; recreate it
+	    my $index = $files[$#files];
+	    save_idx($arcdir.'/index', $index+1);
+	}
+	
+	## recreate index file if needed
+	unless (-f $arcdir.'/index') {
+	    create_idx($arcdir);
+	}
+
+	## Remove .mhonarc.db
+	unlink $arcpath.'/'.$adrlist.'/'.$yyyy.'-'.$mm.'/.mhonarc.db';
+	
+	## Remove existing HTML files
+	opendir HTML, "$arcpath/$adrlist/$yyyy-$mm";
+	
+	## Skip arctxt/ . and ..
+	foreach my $html_file (grep !/^arctxt$|^index$|\.+$/, readdir(HTML)) {
+	    unlink $arcpath.'/'.$adrlist.'/'.$yyyy.'-'.$mm.'/'.$html_file;
+	}	
+	closedir HTML;
+
+	my $arcs_dir = Archive::clean_archive_directory(
+	    $robot, "/$adrlist/$arc/arctxt");
+	my $dir_to_rebuild = $arcs_dir->{'dir_to_rebuild'} if($arcs_dir);
+
+	my $cmd = "$Conf::Conf{'mhonarc'} -modifybodyaddresses -addressmodifycode \'$ENV{'M2H_ADDRESSMODIFYCODE'}\' -rcfile $mhonarc_ressources -outdir $arcpath/$adrlist/$yyyy-$mm  -definevars \"listname='$listname' hostname=$hostname yyyy=$yyyy mois=$mm yyyymm=$yyyy-$mm wdir=$arcpath base=" . Conf::get_robot_conf($robot, 'wwsympa_url') . "/arc tag=$tag\" -umask $Conf::Conf{'umask'} $dir_to_rebuild";
+
+	Log::do_log('debug',"System call : $cmd");
+	my $exitcode = system($cmd);
+	$exitcode = $exitcode / 256;
+
+	# Delete temporary directory containing files with escaped HTML.
+	if ($arcs_dir && -d $arcs_dir->{'cleaned_dir'}) {
+	    tools::del_dir($arcs_dir->{'cleaned_dir'});
+	}
+	
+	## Remove lock if required
+	if ($exitcode == 75) {
+	    Log::do_log('notice', 'Removing lock directory %s', $arcpath.'/'.$adrlist.'/'.$arc.'/.mhonarc.lck');
+	    rmdir $arcpath.'/'.$adrlist.'/'.$arc.'/.mhonarc.lck';
+
+	    $exitcode= system($cmd);
+	    $exitcode = $exitcode / 256;	    
+	}
+
+	if ($exitcode) {
+	    Log::do_log('err',"Command $cmd failed with exit code $exitcode");
+	}
+    }else{
+        Log::do_log('notice',"Rebuilding $adrlist archive completely");
+
+	if (!opendir(DIR, "$arcpath/$adrlist" )) {
+	    Log::do_log('err',"unable to open $arcpath/$adrlist to rebuild archive");
+	    return ;
+	}
+	my @archives = (grep (/^\d{4}-\d{2}/, readdir(DIR)));
+	close DIR ; 
+
+	foreach my $arc (@archives) {
+	    $arc =~ /^(\d{4})-(\d{2})$/ ;
+	    my $yyyy = $1 ;
+	    my $mm = $2 ;
+
+	    my $arcdir = $arcpath.'/'.$adrlist.'/'.$yyyy.'-'.$mm;
+
+	    ## Remove .mhonarc.db
+	    unlink $arcdir.'/.mhonarc.db';
+	    
+	    ## Remove existing HTML files
+	    opendir HTML, $arcdir;
+	    ## Skip arctxt/ . and ..
+	    foreach my $html_file (grep !/^arctxt$|^index$|\.+$/, readdir(HTML)) {
+		unlink $arcdir.'/'.$html_file;
+	    }	
+	    closedir HTML;
+	    my $dir_to_rebuild = $arcpath . "/$adrlist/$arc/arctxt";
+	    my $arcs_dir = Archive::clean_archive_directory(
+		$robot, "/$adrlist/$arc/arctxt");
+	    if($arcs_dir) {
+		$dir_to_rebuild = $arcs_dir->{'dir_to_rebuild'};
+	    }
+	    ## recreate index file if needed
+	    unless (-f $arcdir.'/index') {
+		create_idx($arcdir);
+	    }
+
+	    my $cmd = "$Conf::Conf{'mhonarc'} -modifybodyaddresses -addressmodifycode \'$ENV{'M2H_ADDRESSMODIFYCODE'}\'  -rcfile $mhonarc_ressources -outdir $arcdir  -definevars \"listname=$listname hostname=$hostname yyyy=$yyyy mois=$mm yyyymm=$yyyy-$mm wdir=$arcpath base=" . Conf::get_robot_conf($robot, 'wwsympa_url') . "/arc tag=$tag\" -umask $Conf::Conf{'umask'} $dir_to_rebuild";
+	    my $exitcode = system($cmd);
+	    $exitcode = $exitcode / 256;
+
+	    # Delete temporary directory containing files with escaped HTML.
+	    if ($arcs_dir && -d $arcs_dir->{'cleaned_dir'}) {
+		tools::del_dir($arcs_dir->{'cleaned_dir'});
+	    }
+
+	    ## Remove lock if required
+	    if ($exitcode == 75) {
+		Log::do_log('notice', 'Removing lock directory %s', $arcdir.'/.mhonarc.lck');
+		rmdir $arcdir.'/.mhonarc.lck';
+		
+		$exitcode = system($cmd);
+		$exitcode = $exitcode / 256;	    
+	    }
+	    if ($exitcode) {
+		Log::do_log('err',"Command $cmd failed with exit code $exitcode");
+	    }
+	    
+	}
+    }
+}
+
+
+# Archives one message into one list archives directory.
+#* $file: a character string containing the message filename.
+#* $listname: a character string containing the name of the list in which to archive the message
+#* $robot: a character string containing the name of the virtual robot hosting the list.
+#* $yyyy: a character string containing the year of the date when the message is archived (i.e. now)
+#* $mm: a character string containing the month of the date when the message is archived (i.e. now)
+#* $dd: a character string containing the day of the date when the message is archived (i.e. now)
+#* $hh: a character string containing the hour of the date when the message is archived (i.e. now)
+#* $min: a character string containing the minute of the date when the message is archived (i.e. now)
+#* $ss: a character string containing the second of the date when the message is archived (i.e. now)
+sub mail2arc {
+
+    my ($file, $listname, $robot, $yyyy, $mm, $dd, $hh, $min, $ss) = @_;
+    my $newfile;
+
+    my $list = List->new($listname, $robot);
+    my $arcpath = Conf::get_robot_conf($list->{'domain'},'arc_path');
+    unless (defined $list) {
+	Log::do_log('err', 'Unknown list %s@%s', $listname, $robot);
+	return undef;
+    }
+
+    my $tag = Archive::get_tag($list);
+
+    if (($list->{'admin'}{'web_archive_spam_protection'} ne 'none') && ($list->{'admin'}{'web_archive_spam_protection'} ne 'cookie')) {
+	set_hidden_mode($tag);
+    }else {
+	unset_hidden_mode();
+    }    
+
+    Log::do_log('debug',"mail2arc $file for %s yyyy:$yyyy, mm:$mm dd:$dd hh:$hh min$min ss:$ss", $list->get_list_id());
+    #    chdir($arcpath);
+
+    if ($Conf::Conf{'custom_archiver'}) {
+	`$Conf::Conf{'custom_archiver'} --list=$listname\@$robot --file=$queue/$file`;
+	return 1;
+    }else{
+
+	my $basedir = $arcpath.'/'.$list->get_list_id();
+	
+	if (! -d $basedir) {
+	    unless (mkdir $basedir, 0775) {
+		Log::do_log('err', 'Cannot create directory %s', $basedir);
+		unless (List::send_notify_to_listmaster('unable_to_create_dir',$robot,{'dir' => "$basedir"})) {
+		    Log::do_log('notice',"Unable to send notify 'unable_to_create_dir' to listmaster");
+		}
+	    }
+	    Log::do_log('debug',"mkdir $basedir");
+	}
+	
+	## Check quota
+	if ($list->{'admin'}{'web_archive'}{'quota'}) {
+	    my $used = $list->get_arc_size("$arcpath") ;
+	    
+	    if ($used >= $list->{'admin'}{'web_archive'}{'quota'} * 1024){
+		Log::do_log('err',"archived::mail2arc : web_arc Quota exceeded for list $list->{'name'}");
+		unless ($list->send_notify_to_owner('arc_quota_exceeded',{'size' => $used})) {
+		    Log::do_log('notice',"Unable to send notify 'arc_quota_exceeded' to $list->{'name'} owner");	
+		}
+		return undef;
+	    }
+	    if ($used >= ($list->{'admin'}{'web_archive'}{'quota'} * 1024 * 0.95)){
+		Log::do_log('err',"archived::mail2arc : web_arc Quota exceeded for list $list->{'name'}");
+		unless ($list->send_notify_to_owner('arc_quota_95',{'size' => $used,
+								    'rate' => int($used * 100 / ($list->{'admin'}{'web_archive'}{'quota'} * 1024 ))})) {
+		    Log::do_log('notice',"Unable to send notify 'arc_quota_95' to $list->{'name'} owner");	
+		}
+	    }
+	}
+	
+	my $monthdir = $basedir."/$yyyy-$mm";
+	
+	if (! -d $monthdir) {
+	    unless (mkdir ($monthdir, 0775)) {
+		Log::do_log('err', 'Cannot create directory %s', $monthdir);
+		return undef;
+	    }
+	    
+	    Log::do_log('debug',"mkdir $arcpath/%s/$yyyy-$mm", $list->get_list_id());
+	    
+	    if ($list->{'admin'}{'web_archive'}{'max_month'}){ # maybe need to remove some old archive
+		if (opendir DIR,$arcpath.'/'.$list->get_list_id()) {
+		    my @archives = (sort {$a cmp $b} grep (/^\d{4}-\d{2}/, readdir(DIR)));	
+		    closedir DIR;
+		    my $nb_month = $#archives + 1 ;
+		    my $i = 0 ;
+		    while ( $nb_month >  $list->{'admin'}{'web_archive'}{'max_month'}) {
+			Log::do_log('info',"removing  $arcpath/%s/$archives[$i]", $list->get_list_id());
+			tools::remove_dir ($arcpath.'/'.$list->get_list_id().'/'.$archives[$i]);
+			$i ++; $nb_month --;		    
+		    }
+		}
+	    }
+	}
+	
+	my $arctxtdir = $monthdir."/arctxt";
+	
+	if (! -d $arctxtdir) {
+	    unless (mkdir ($arctxtdir, 0775)) {
+		Log::do_log('err', 'Cannot create directory %s', $arctxtdir);
+		return undef;
+	    }
+	    Log::do_log('debug',"mkdir $arctxtdir");
+	}
+	
+	## copy the file in the arctxt and in "mhonarc -add"
+	if( -f $monthdir."/index" ){
+	    open(IDX,"<$monthdir/index") || Log::fatal_err("couldn't read index for $listname");
+	    $newfile = <IDX>;
+	    chomp($newfile);
+	    $newfile++;
+	    close IDX;
+	}else{
+	    ## recreate index file if needed and update it
+	    $newfile = create_idx($monthdir) + 1;
+	}
+
+	# savee arctxt dump of original message.
+	my $output = $Conf::Conf{'tmpdir'}.'/arc'.$newfile;
+	open ORIG, '<', "$queue/$file" or Log::fatal_err("couldn't open file $queue/$file");
+	open DUMP, '>', "$arctxtdir/$newfile" or Log::fatal_err("couldn't open file $arctxtdir/$newfile");
+	print DUMP join('', <ORIG>);
+	close ORIG;
+	close DUMP;
+
+	# prepare a temporary file with clean message content (htlm parts are cleaned) 
+	my $safe = Archive::clean_archived_message(
+	    $robot, "$arctxtdir/$newfile", $output);
+	unless ($safe) {
+	    Log::do_log('err',"Could not clean message, ignoring message");
+	    next;
+	}
+
+	my $mhonarc_ressources =
+	    tools::search_fullpath($list, 'mhonarc-ressources.tt2');
+	
+	Log::do_log('debug',"calling $Conf::Conf{'mhonarc'} for list %s", $list->get_list_id() ) ;
+
+	# call mhonarc on cleaned message source to make clean htlm view of message
+	my $cmd = "$Conf::Conf{'mhonarc'} -add -modifybodyaddresses -addressmodifycode \'$ENV{'M2H_ADDRESSMODIFYCODE'}\'  -rcfile $mhonarc_ressources -outdir $monthdir  -definevars \"listname='$listname' hostname=$robot yyyy=$yyyy mois=$mm yyyymm=$yyyy-$mm wdir=$arcpath base=" . Conf::get_robot_conf($robot, 'wwsympa_url') . "/arc tag=$tag\" -umask $Conf::Conf{'umask'} < $output";
+
+	Log::do_log('debug',"System call : %s",$cmd);
+
+	my $exitcode = system($cmd);
+	$exitcode = $exitcode / 256;
+	
+	# Delete temporary file containing escaped HTML.
+	if ($output && -f $output) {
+	    unlink $output;
+	}
+
+	## Remove lock if required
+	if ($exitcode == 75) {
+	    Log::do_log('notice', 'Removing lock directory %s', $monthdir.'/.mhonarc.lck');
+	    rmdir $monthdir.'/.mhonarc.lck';
+	    
+	    $exitcode = system($cmd);
+	    $exitcode = $exitcode / 256;	    
+	}
+	if ($exitcode) {
+	    Log::do_log('err',"Command $cmd failed with exit code $exitcode");
+	}
+
+	save_idx("$monthdir/index",$newfile);
+    }
+}
+
+# Sets the value of $ENV{'M2H_ADDRESSMODIFYCODE'} and $ENV{'M2H_MODIFYBODYADDRESSES'}
+#* $tag a character string (containing the result of get_tag($list))
+sub set_hidden_mode {
+    my $tag = shift; ## tag is used as variable elements in tags to prevent message contents to be parsed
+
+    ## $ENV{'M2H_MODIFYBODYADDRESSES'} à positionner si le corps du message est parse
+    $ENV{'M2H_ADDRESSMODIFYCODE'} = "s|^([^\@]+)\@([^\@]+)\$|\($tag\%hidden_head\%$tag\)\$1\($tag\%hidden_at\%$tag\)\$2\($tag\%hidden_end\%$tag\)|g";
+    $ENV{'M2H_MODIFYBODYADDRESSES'} = 1;
+}
+
+# Empties $ENV{'M2H_ADDRESSMODIFYCODE'}.
+sub unset_hidden_mode {
+    
+    ## Be carefull, the .mhonarc.db file keeps track of previous M2H_ADDRESSMODIFYCODE setup
+    $ENV{'M2H_ADDRESSMODIFYCODE'} = '';
+}
+
+# Saves the archives index file
+#* $index, a string corresponding to the file name to which save an index.
+#* $lst, a character string
+sub save_idx {
+    my ($index,$lst) = @_;
+#    Log::do_log('notice', "save_idx($index,$lst)");
+    
+    open(INDEXF,">$index") || Log::fatal_err("couldn't overwrite index $index");
+    print INDEXF "$lst\n";
+    close INDEXF;
+    #   Log::do_log('debug',"last arc entry for $index is $lst");
+}
+
+## Create the 'index' file for one archive subdir
+sub create_idx {
+    my $arc_dir = shift; ## corresponds to the yyyy-mm directory
+
+    my $arc_txt_dir = $arc_dir.'/arctxt';
+
+    unless (opendir (DIR, $arc_txt_dir)) {
+	Log::do_log('err', "Failed to open directory '$arc_txt_dir'");
+	return undef;
+    }
+
+    my @files = (sort { $a <=> $b;}  grep(/^\d+$/,(readdir DIR ))) ;
+    my $index = $files[$#files];
+    save_idx($arc_dir.'/index', $index);
+
+    closedir DIR;
+
+    return $index;
+}
+
+# OBSOLETED.
+# Use Archive::get_tag().
+sub get_tag {
+    my $listname = shift;
+    
+    return (substr(Digest::MD5::md5_hex(join('/', $Conf::Conf{'cookie'}, $listname)), -10)) ;
+}
+
+# Checks if directory exists and we have write and read accec to it.
+sub directory_check {
+    my $dir = shift;
+    unless (-d $dir) {
+	printf STDERR "Creating missing %s directory\n", $dir;
+	unless (mkdir $dir, 0775) {
+	    Log::do_log('err','Unable to create directory %s',$dir);
+	    return undef;
+	}
+	unless (tools::set_file_rights(file => $dir,
+					 user  => Sympa::Constants::USER,
+					 group => Sympa::Constants::GROUP,
+					 mode  => 0775,
+					 ))
+	{
+	    Log::do_log('err','Unable to set rights on %s',$dir);
+	    return undef;
+	}
+    }
+    unless ((-r $dir) && (-w $dir)) {
+	Log::do_log('err', 'Unsufficient access to %s directory', $dir);
+	return undef;
+    }
+    return 1;
+}
+
+__END__
 
 =encoding utf-8
 
@@ -86,7 +882,9 @@ L<http://www.sympa.org/manual/>.
 The mailing lists (with web archives) can be accessed at
 L<http://listes.renater.fr/sympa/lists/informatique/sympa>.
 
-=head1 AUTHORS
+=head1 HISTORY
+
+This program was originally written by:
 
 =over 4
 
@@ -100,20 +898,14 @@ ComitE<233> RE<233>seau des UniversitE<233>s
 
 =back
 
-Contact authors at <sympa-authors@listes.renater.fr>
-
 This manual page was initially written by
 JE<233>rE<244>me Marant <jerome.marant@IDEALX.org>
 for the Debian GNU/Linux system.
 
-=head1 COPYRIGHT
-
-Copyright E<169> 1997,1998,1999,2000,2001 ComitE<233> RE<233>seau des UniversitE<233>s
-
-Copyright E<169> 1997,1998,1999 Institut Pasteur & Christophe Wolfhugel
+=head1 LICENSE
 
 You may distribute this software under the terms of the GNU General
-Public License Version 2 (L<http://www.gnu.org/copyleft/gpl.html>)
+Public License Version 2.  For more details see F<README> file.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -131,979 +923,5 @@ See L<http://www.sympa.org/tracking>.
 
 L<sympa(8)>, L<bounced(8)>, L<mhonarc(1)>, L<sympa.conf(5)>.
 
-=cut 
+=cut
 
-use strict;
-use warnings;
-use lib '--modulesdir--';
-
-use DateTime;
-use English qw(-no_match_vars);
-use Getopt::Long;
-use Pod::Usage;
-
-use Sympa::List;
-use Sympa::Log::Database;
-use Sympa::Log::Syslog;
-use Sympa::Mailer;
-use Sympa::Message;
-use Sympa::Tools::Daemon;
-use Sympa::Tools::File;
-
-my $daemon_name = Sympa::Tools::Daemon::get_daemon_name($0);
-my $ip          = $ENV{'REMOTE_HOST'};
-
-## Check options
-my %options;
-unless (GetOptions(\%options, 'debug|d', 'foreground|F', 'help|h')) {
-    pod2usage(-exitval => 1, -output => \*STDERR);
-}
-
-if ($options{'help'}) {
-    pod2usage(0);
-}
-
-if ($options{'debug'}) {
-    $options{'log_level'} = 2 unless ($options{'log_level'});
-}
-
-$options{'foreground'} = 1 if ($options{'debug'});
-$options{'log_to_stderr'} = 1
-    if ($options{'debug'} || $options{'foreground'});
-
-# Load sympa.conf
-unless (defined Sympa::Robot::get_robots()) {
-    Sympa::Log::Syslog::fatal_err(
-        'Unable to load sympa configuration, file %s has errors.',
-        Sympa::Conf::get_sympa_conf());
-}
-
-## Check databse connectivity
-unless (Sympa::DatabaseManager::check_db_connect()) {
-    Sympa::Log::Syslog::fatal_err(
-        'Database %s defined in sympa.conf has not the right structure or is unreachable.',
-        Sympa::Site->db_name
-    );
-}
-
-## Put ourselves in background if not in debug mode.
-unless ($options{'debug'} || $options{'foreground'}) {
-    open(STDERR, ">> /dev/null");
-    open(STDOUT, ">> /dev/null");
-    if (open(TTY, "/dev/tty")) {
-        ioctl(TTY, 0x20007471, 0);
-        close(TTY);
-    }
-    setpgrp(0, 0);
-    if ((my $child_pid = fork) != 0) {
-        print STDOUT "Starting archive daemon, PID $_\n";
-
-        exit(0);
-    }
-}
-
-# check presence of a PID file from a previous execution
-Sympa::Tools::Daemon::check_old_pid_file(
-    name   => 'archived',
-    piddir => Sympa::Constants::PIDDIR,
-    tmpdir => Sympa::Site->tmpdir(),
-);
-
-# Create the PID file
-Sympa::Tools::Daemon::write_pid(
-    name   => 'archived',
-    pid    => $PID,
-    piddir => Sympa::Constants::PIDDIR,
-    user   => Sympa::Constants::USER,
-    group  => Sympa::Constants::GROUP,
-);
-
-# Redirect STDERR to a file, unless the process is running in foreground
-unless ($options{'foreground'}) {
-    Sympa::Tools::Daemon::direct_stderr_to_file(
-        pid    => $PID,
-        tmpdir => Sympa::Site->tmpdir(),
-        user   => Sympa::Constants::USER,
-        group  => Sympa::Constants::GROUP,
-    );
-}
-
-# setting log_level using conf unless it is set by calling option
-if ($options{'log_level'}) {
-    Sympa::Log::Syslog::set_log_level($options{'log_level'});
-    Sympa::Log::Syslog::do_log('info',
-        "Configuration file read, log level set using options : $options{'log_level'}"
-    );
-} else {
-    Sympa::Log::Syslog::set_log_level(Sympa::Site->log_level);
-    Sympa::Log::Syslog::do_log('info',
-        'Configuration file read, default log level %s',
-        Sympa::Site->log_level);
-}
-
-Sympa::Log::Syslog::do_openlog(Sympa::Site->log_facility, Sympa::Site->log_socket_type,
-    'archived');
-
-## Set the User ID & Group ID for the process
-$GID = $EGID = (getgrnam(Sympa::Constants::GROUP))[2];
-$UID = $EUID = (getpwnam(Sympa::Constants::USER))[2];
-
-## Required on FreeBSD to change ALL IDs(effective UID + real UID + saved UID)
-POSIX::setuid((getpwnam(Sympa::Constants::USER))[2]);
-POSIX::setgid((getgrnam(Sympa::Constants::GROUP))[2]);
-
-## Check if the UID has correctly been set (useful on OS X)
-unless (($GID == (getgrnam(Sympa::Constants::GROUP))[2])
-    && ($UID == (getpwnam(Sympa::Constants::USER))[2])) {
-    Sympa::Log::Syslog::fatal_err(
-        "Failed to change process user ID and group ID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via sudo."
-    );
-}
-
-## Sets the UMASK
-umask(oct(Sympa::Site->umask));
-
-foreach my $robot (@{Sympa::Robot::get_robots()}) {
-    my $arc_dir = $robot->arc_path;
-    ## Create arc_path if required
-    if ($arc_dir) {
-        unless (directory_check($arc_dir)) {
-            Sympa::Log::Syslog::do_log('err',
-                'No vailable directory to store archives. Exiting.');
-            exit -1;
-        }
-    } else {
-        Sympa::Log::Syslog::do_log('err',
-            'Robot %s has no archives directory. Check arc_path parameter in this robot.conf and in sympa.conf.'
-        );
-        exit -1;
-    }
-}
-
-## Change to list root
-unless (chdir(Sympa::Site->home)) {
-    Sympa::Log::Syslog::do_log('err', 'unable to change directory');
-    exit(-1);
-}
-
-Sympa::Language::SetLang(Sympa::Site->lang || 'en');
-
-Sympa::Log::Syslog::do_log('notice', "archived %s Started",
-    Sympa::Constants::VERSION);
-
-## Catch SIGTERM, in order to exit cleanly, whenever possible.
-$SIG{'TERM'} = 'sigterm';
-my $end = 0;
-
-my $spoolarchive = Sympa::Spool::File->new('outgoing');
-
-my $mailer = Sympa::Mailer->new(
-    db_type         => Sympa::Site->db_type(),
-    nrcpt_by_domain => Sympa::Site->nrcpt_by_domain(),
-);
-
-## infinite loop scanning the queue (unless a sig TERM is received
-while (!$end) {
-
-    Sympa::List::init_list_cache();
-    sleep 1;
-    my $item = $spoolarchive->next;
-
-    next unless $item;
-
-    my @orders = split(/\n/, $item->{'messageasstring'});
-
-    unless ($item->{'messageasstring'}) {
-        $spoolarchive->move_to_bad($item->{'messagekey'});
-        next;
-    }
-
-    if ($orders[0] =~ /^rebuild\s*$/) {
-        Sympa::Log::Syslog::do_log('debug', "rebuild found ");
-        if ($item->{'list'} && $item->{'robot'}) {
-            rebuild($item->{'list'} . '@' . $item->{'robot'});
-            $spoolarchive->remove_message($item->{'messagekey'});
-        } else {
-            Sympa::Log::Syslog::do_log('err',
-                "unable to rebuild archive for unknown list/robot.Move to bad"
-            );
-            $spoolarchive->move_to_bad($item->{'messagekey'});
-            next;
-        }
-    } elsif ($orders[0] =~ /^remove\.(\d\d\d\d\-\d\d)\.\d+$/) {
-        my $yyyymm = $1;
-        shift @orders;
-        Sympa::Log::Syslog::do_log('debug', "removed found ");
-        unless ($item->{'list'} && $item->{'robot'}) {
-            Sympa::Log::Syslog::do_log('err',
-                "unable to remove messages from archive for unknown list/robot.Move to bad"
-            );
-            $spoolarchive->move_to_bad($item->{'messagekey'});
-            next;
-        }
-        my $listadress = $item->{'list'} . '@' . $item->{'robot'};
-
-        my $arclistdir = $listadress . '.' . $yyyymm;
-        my $arcpath    = Sympa::Site->arc_path . "/$listadress/$yyyymm";
-
-        Sympa::Log::Syslog::do_log('debug',
-            "start remove process :listadress :'$listadress' arclistdir '$arclistdir' arcpath '$arcpath'  yyyymm '$yyyymm'"
-        );
-
-        my $list;
-        unless ($list = Sympa::List->new($listadress)) {
-            Sympa::Log::Syslog::do_log('err', 'remove: unknown list %s',
-                $listadress);
-            $spoolarchive->move_to_bad($item->{'messagekey'});
-            next;
-        }
-        Sympa::Log::Syslog::do_log('debug', "remove found : for $arclistdir");
-
-        my $email_regexp = Sympa::Tools::get_regexp('email');
-
-        foreach my $order (@orders) {
-            unless ($order =~ /(.*)\|\|($email_regexp)/) {
-                Sympa::Log::Syslog::do_log('err',
-                    'Ignoring remove_order "%s", unrecognized format',
-                    $order);
-                next;
-            }
-            my $msgid  = $1;
-            my $sender = $2;
-
-            chomp $msgid;
-            if ($msgid =~ /NO-ID-FOUND\.mhonarc\.org/) {
-                Sympa::Log::Syslog::do_log('err', 'No message ID found');
-                next;
-            }
-
-            my $file;
-            unless ($file = Sympa::Archive::search_msgid("$arcpath/arctxt", $msgid))
-            {
-                Sympa::Log::Syslog::do_log('err',
-                    'No message with message-id %s found in %s/arctxt',
-                    $msgid, $arcpath);
-                next;
-            }
-
-            unless ($list->am_i('privileged_owner', $sender)
-                || $list->am_i('owner',  $sender)
-                || $list->am_i('editor', $sender)
-                || Sympa::List::is_listmaster($sender, $list->{'domain'})) {
-
-                # if not list owner or list editor or listmaster,n check if
-                # sender of remove order is sender of the message to remove
-
-                my $new_message = Sympa::Message->new(
-                    'file'       => "$arcpath/arctxt/$file",
-                    'noxsympato' => 'noxsympato'
-                );
-
-                unless ($new_message) {
-                    Sympa::Log::Syslog::do_log('err',
-                        'Unable to load new message %s/arctxt/%s',
-                        $arcpath, $file);
-                    next;
-                }
-                my $messagesender = lc($new_message->get_sender_email || '');
-
-                unless ($sender eq $messagesender) {
-                    Sympa::Log::Syslog::do_log('err',
-                        'Remove command by unauthorized sender');
-                    next;
-                }
-            }
-
-            # this point : requested command is from a authorized personn
-            # (message sender or list admin or listmaster
-            remove($arclistdir, $msgid);
-
-            my $url_dir = $list->dir . '/urlized/' . $msgid;
-            Sympa::Tools::File::remove_dir($url_dir);
-
-            unless (-d "$arcpath/deleted") {
-                unless (mkdir("$arcpath/deleted", 0777)) {
-                    Sympa::Log::Syslog::do_log('info',
-                        "remove_arc: unable to create $arcpath/deleted : $ERRNO");
-                    last;
-                }
-            }
-
-            unless (rename "$arcpath/arctxt/$file", "$arcpath/deleted/$file")
-            {
-                Sympa::Log::Syslog::do_log('info',
-                    'Unable to rename message %s/arctxt/%s',
-                    $arcpath, $file);
-                next;
-            }
-
-            # remove directory if empty arctxt
-            unless (opendir(DIR, "$arcpath/arctxt")) {
-                Sympa::Log::Syslog::do_log('info',
-                    'Unable to open dir %s/arctxt', $arcpath);
-                next;
-            }
-            my @files = grep(/^\d+$/, readdir(DIR));
-            closedir(DIR);
-            if ($#files == -1) {
-                Sympa::Tools::File::remove_dir($arcpath);
-            }
-        }
-        $spoolarchive->remove_message($item->{'messagekey'});
-    } else {
-        Sympa::Log::Syslog::do_log('notice',
-            'Archiving message %s for list %s@%s',
-            $item->{'messagekey'}, $item->{'list'}, $item->{'robot'});
-        unless (mail2arc($item)) {
-            $spoolarchive->move_to_bad($item->{'messagekey'});
-            Sympa::Log::Syslog::do_log('err',
-                'archiving_failed for message %s',
-                $item->{'messagekey'});
-            unless ($item->{'robot_object'}
-                and $item->{'robot_object'}
-                ->send_notify_to_listmaster('archiving_failed')
-                or !$item->{'robot_object'}
-                and Sympa::Site->send_notify_to_listmaster('archiving_failed')) {
-                Sympa::Log::Syslog::do_log('notice',
-                    "Unable to send notify 'archiving_failed' to listmaster");
-            }
-        }
-        unless ($spoolarchive->remove_message($item->{'messagekey'})) {
-            Sympa::Log::Syslog::do_log(
-                'err',
-                "Couldn't remove message in archive spool %s. exiting to prevent infinite loop",
-                $item->{'messagekey'}
-            );
-            last;
-        }
-    }
-}
-
-# Purge grouped notifications
-Sympa::Site->send_notify_to_listmaster(undef, undef, undef, 1);
-
-## Free zombie sendmail processes
-$mailer->reaper();
-
-Sympa::Log::Syslog::do_log('notice',
-    'archived exited normally due to signal');
-Sympa::Tools::Daemon::remove_pid(
-    name   => 'archived',
-    pid    => $PID,
-    piddir => Sympa::Constants::PIDDIR,
-    tmpdir => Sympa::Site->tmpdir(),
-);
-
-exit(0);
-
-## When we catch SIGTERM, just change the value of the loop
-## variable.
-sub sigterm {
-    $end = 1;
-}
-
-# remove($listname, $msgid, $robotname)
-# Removes the message having the identifier $msgid from the list named $adrlist.
-# Arguments:
-# * $listname: the list name
-# * $msgid: the message identifier
-# * $robotname: the robot name
-sub remove {
-    my $adrlist = shift;
-    my $msgid   = shift;
-    my $robot   = shift;
-
-    Sympa::Log::Syslog::do_log('debug', "remove ($adrlist, $msgid)");
-    my $arc;
-
-    if ($adrlist =~ /^(.*)\.(\d{4}-\d{2})$/) {
-        $adrlist = $1;
-        $arc     = $2;
-    }
-
-    Sympa::Log::Syslog::do_log('notice', 'Removing %s in list %s section %s',
-        $msgid, $adrlist, $arc);
-
-    Sympa::Log::Syslog::db_stat_log(
-        {   'robot'     => $robot,
-            'list'      => $adrlist,
-            'operation' => 'remove archive',
-            'parameter' => '',
-            'mail'      => 'test@cru.fr',
-            'client'    => $ip,
-            'daemon'    => $daemon_name
-        }
-    );
-
-    unless (
-        Sympa::Log::Database::db_log(
-            {   'robot'        => $robot,
-                'list'         => $adrlist,
-                'action'       => 'remove',
-                'parameters'   => $msgid . ',' . $adrlist,
-                'target_email' => '',
-                'msg_id'       => $msgid,
-                'status'       => 'succes',
-                'error_type'   => '',
-                'user_email'   => '',
-                'client'       => $ip,
-                'daemon'       => $daemon_name
-            }
-        )
-        ) {
-        Sympa::Log::Syslog::do_log('error',
-            'archived::remove: unable to log event');
-    }
-    my $arcpath = Sympa::Conf::get_robot_conf($robot, 'arc_path');
-    $arc =~ /^(\d{4})-(\d{2})$/;
-    my $yyyy = $1;
-    my $mm   = $2;
-
-    $msgid =~ s/\$/\\\$/g;
-    system Sympa::Site->mhonarc
-        . "  -outdir $arcpath/$adrlist/$yyyy-$mm -rmm $msgid";
-}
-
-# rebuild($listname)
-# Rebuilds archives for the list the name of which is given in the argument $adrlist.
-# Arguments:
-# * $listname: the list name
-sub rebuild {
-    my $adrlist = shift;
-    my $arc;
-
-    Sympa::Log::Syslog::do_log('debug2', "rebuild ($adrlist)");
-
-    if ($adrlist =~ /^(.*)\.(\d{4}-\d{2})$/) {
-        $adrlist = $1;
-        $arc     = $2;
-    }
-
-    my ($listname, $hostname);
-    if ($adrlist =~ /^(.*)\@(.*)$/) {
-        $listname = $1;
-        $hostname = $2;
-    } else {
-        Sympa::Log::Syslog::do_log('err',
-            "Match of list address '$adrlist' failed");
-        return undef;
-    }
-
-    my $list    = Sympa::List->new($listname, $hostname);
-    my $robot   = $list->robot;
-    my $arcpath = $robot->arc_path;
-    my $tag     = Sympa::Archive::get_tag($list);
-    Sympa::Log::Syslog::do_log('debug3', "Rebuilding %s archive (%s)",
-        $adrlist, $2);
-
-    my $mhonarc_ressources =
-        $list->get_etc_filename('mhonarc-ressources.tt2');
-
-    if (    $list->web_archive_spam_protection ne 'none'
-        and $list->web_archive_spam_protection ne 'cookie') {
-        set_hidden_mode($tag);
-    } else {
-        unset_hidden_mode();
-    }
-
-    Sympa::Log::Syslog::do_log('notice',
-        "Rebuilding %s with M2H_ADDRESSMODIFYCODE : %s",
-        $arc, $ENV{'M2H_ADDRESSMODIFYCODE'});
-
-    if ($arc) {
-        Sympa::Log::Syslog::do_log('notice', "Rebuilding %s of %s archive",
-            $arc, $adrlist);
-        $arc =~ /^(\d{4})-(\d{2})$/;
-        my $yyyy = $1;
-        my $mm   = $2;
-
-        # remove empty directory
-        my $arcdir = $arcpath . '/' . $adrlist . '/' . $yyyy . '-' . $mm;
-        my $arctxt = $arcdir . '/arctxt';
-        if (opendir(DIR, $arctxt)) {
-            my @files = (grep(/^\d+$/, (readdir DIR)));
-            close(DIR);
-            if ($#files == -1) {
-                Sympa::Log::Syslog::do_log('notice',
-                    "Removing empty directory %s", $arcdir);
-                Sympa::Tools::File::remove_dir($arcdir);
-                next;
-            }
-
-            ## index file was removed ; recreate it
-            my $index = $files[$#files];
-            save_idx($arcdir . '/index', $index + 1);
-        }
-
-        ## recreate index file if needed
-        unless (-f $arcdir . '/index') {
-            create_idx($arcdir);
-        }
-
-        ## Remove .mhonarc.db
-        unlink $arcpath . '/' . $adrlist . '/' . $yyyy . '-' . $mm
-            . '/.mhonarc.db';
-
-        ## Remove existing HTML files
-        opendir HTML, "$arcpath/$adrlist/$yyyy-$mm";
-
-        ## Skip arctxt/ . and ..
-        foreach my $html_file (grep !/^arctxt$OUTPUT_AUTOFLUSH^index$OUTPUT_AUTOFLUSH\.+$/, readdir(HTML)) {
-            unlink $arcpath . '/' . $adrlist . '/' . $yyyy . '-' . $mm . '/'
-                . $html_file;
-        }
-        closedir HTML;
-
-        my $arcs_dir =
-            Sympa::Archive::clean_archive_directory($robot, "/$adrlist/$arc/arctxt");
-        my $dir_to_rebuild = $arcs_dir->{'dir_to_rebuild'} if ($arcs_dir);
-
-        my $cmd =
-            sprintf
-            '%s -modifybodyaddresses -addressmodifycode \'%s\' -rcfile %s -outdir %s/%s/%s-%s  -definevars \"listname=\'%s\' hostname=%s yyyy=%s mois=%s yyyymm=%s-%s wdir=%s base=%s/arc tag=%s\" -umask %s %s',
-            Sympa::Site->mhonarc, $ENV{'M2H_ADDRESSMODIFYCODE'},
-            $mhonarc_ressources, $arcpath, $adrlist, $yyyy, $mm,
-            $listname, $hostname, $yyyy, $mm, $yyyy, $mm, $arcpath,
-            $robot->wwsympa_url, $tag, Sympa::Site->umask, $dir_to_rebuild;
-
-        Sympa::Log::Syslog::do_log('debug', "System call : $cmd");
-        my $exitcode = system($cmd);
-        $exitcode = $exitcode >> 8;
-
-        # Delete temporary directory containing files with escaped HTML.
-        if ($arcs_dir && -d $arcs_dir->{'cleaned_dir'}) {
-            Sympa::Tools::File::del_dir($arcs_dir->{'cleaned_dir'});
-        }
-
-        ## Remove lock if required
-        if ($exitcode == 75) {
-            Sympa::Log::Syslog::do_log(
-                'notice',
-                'Removing lock directory %s',
-                $arcpath . '/' . $adrlist . '/' . $arc . '/.mhonarc.lck'
-            );
-            rmdir $arcpath . '/' . $adrlist . '/' . $arc . '/.mhonarc.lck';
-
-            $exitcode = system($cmd);
-            $exitcode = $exitcode >> 8;
-        }
-
-        if ($exitcode) {
-            Sympa::Log::Syslog::do_log('err',
-                "Command $cmd failed with exit code $exitcode");
-        }
-    } else {
-        Sympa::Log::Syslog::do_log('notice',
-            "Rebuilding $adrlist archive completely");
-
-        if (!opendir(DIR, "$arcpath/$adrlist")) {
-            if (-d "$arcpath/$adrlist") {
-                Sympa::Log::Syslog::do_log('err',
-                    "unable to open $arcpath/$adrlist to rebuild archive");
-                return undef;
-            } else {
-                Sympa::Log::Syslog::do_log('err',
-                    "No archives found for list $adrlist (looked for in $arcpath/$adrlist)"
-                );
-                return 0;
-            }
-        }
-        my @archives = (grep (/^\d{4}-\d{2}/, readdir(DIR)));
-        close DIR;
-
-        foreach my $arc (@archives) {
-            $arc =~ /^(\d{4})-(\d{2})$/;
-            my $yyyy = $1;
-            my $mm   = $2;
-
-            my $arcdir = $arcpath . '/' . $adrlist . '/' . $yyyy . '-' . $mm;
-
-            ## Remove .mhonarc.db
-            unlink $arcdir . '/.mhonarc.db';
-
-            ## Remove existing HTML files
-            opendir HTML, $arcdir;
-            ## Skip arctxt/ . and ..
-            foreach
-                my $html_file (grep !/^arctxt$OUTPUT_AUTOFLUSH^index$OUTPUT_AUTOFLUSH\.+$/, readdir(HTML)) {
-                unlink $arcdir . '/' . $html_file;
-            }
-            closedir HTML;
-            my $dir_to_rebuild = $robot->arc_path . "/$adrlist/$arc/arctxt";
-            my $arcs_dir       = Sympa::Archive::clean_archive_directory($robot,
-                "/$adrlist/$arc/arctxt");
-            if ($arcs_dir) {
-                $dir_to_rebuild = $arcs_dir->{'dir_to_rebuild'};
-            }
-            ## recreate index file if needed
-            unless (-f $arcdir . '/index') {
-                create_idx($arcdir);
-            }
-
-            my $cmd =
-                sprintf
-                '%s -modifybodyaddresses -addressmodifycode \'%s\' -rcfile %s -outdir %s -definevars \"listname=%s hostname=%s yyyy=%s mois=%s yyyymm=%s-%s wdir=%s base=%s/arc tag=%s\" -umask %s %s',
-                Sympa::Site->mhonarc, $ENV{'M2H_ADDRESSMODIFYCODE'},
-                $mhonarc_ressources, $arcdir, $listname, $hostname,
-                $yyyy, $mm, $yyyy, $mm, $arcpath, $robot->wwsympa_url,
-                $tag, Sympa::Site->umask, $dir_to_rebuild;
-            my $exitcode = system($cmd);
-            $exitcode = $exitcode >> 8;
-
-            # Delete temporary directory containing files with escaped HTML.
-            if ($arcs_dir && -d $arcs_dir->{'cleaned_dir'}) {
-                Sympa::Tools::File::del_dir($arcs_dir->{'cleaned_dir'});
-            }
-
-            ## Remove lock if required
-            if ($exitcode == 75) {
-                Sympa::Log::Syslog::do_log(
-                    'notice',
-                    'Removing lock directory %s',
-                    $arcdir . '/.mhonarc.lck'
-                );
-                rmdir $arcdir . '/.mhonarc.lck';
-
-                $exitcode = system($cmd);
-                $exitcode = $exitcode >> 8;
-            }
-            if ($exitcode) {
-                Sympa::Log::Syslog::do_log('err',
-                    "Command $cmd failed with exit code $exitcode");
-            }
-
-        }
-    }
-}
-
-# mail2arc($message)
-# Archives one message into one list archives directory.
-# Arguments:
-# * $message: the message
-sub mail2arc {
-    my ($message) = @_;
-
-    my $list  = $message->{'list_object'};
-    my $robot = $message->{'robot_object'};
-
-    my $dt = DateTime->from_epoch(epoch => $message->{'date'});
-    my $yyyy = $dt->year();
-    my $mm   = $dt->month();
-
-    my $newfile;
-
-    my $arcpath = $robot->arc_path;
-
-    unless (ref $list and $list->isa('Sympa::List')) {
-        Sympa::Log::Syslog::do_log(
-            'err',
-            'Unknown list %s',
-            $message->{'list'}
-        );
-        return undef;
-    }
-
-    my $tag = Sympa::Archive::get_tag($list);
-
-    if (    $list->web_archive_spam_protection ne 'none'
-        and $list->web_archive_spam_protection ne 'cookie') {
-        set_hidden_mode($tag);
-    } else {
-        unset_hidden_mode();
-    }
-
-    if (Sympa::Site->custom_archiver) {
-        my $file =
-              Sympa::Site->tmpdir . "/arc."
-            . $list->get_id
-            . $message->{'messagekey'};
-        open DUMP, '>', $file;
-        print DUMP $message->{'messageasstring'};
-        my $cmd = sprintf '%s --list=%s --file=%s', Sympa::Site->custom_archiver,
-            $list->get_id, $file;
-        `$cmd`;
-        return 1;
-    } else {
-        my $basedir = $arcpath . '/' . $list->get_id;
-
-        if (!-d $basedir) {
-            unless (mkdir $basedir, 0775) {
-                Sympa::Log::Syslog::do_log('err',
-                    'Cannot create directory %s', $basedir);
-                unless (
-                    $robot->send_notify_to_listmaster(
-                        'unable_to_create_dir', {'dir' => "$basedir"}
-                    )
-                    ) {
-                    Sympa::Log::Syslog::do_log('notice',
-                        'Unable to send notify "unable_to_create_dir" to listmaster'
-                    );
-                }
-            }
-        }
-
-        ## Check quota
-        if ($list->web_archive->{'quota'}) {
-            my $used = $list->get_arc_size("$arcpath");
-
-            if ($used >= $list->web_archive->{'quota'} * 1024) {
-                Sympa::Log::Syslog::do_log(
-                    'err',
-                    'archived::mail2arc : web_arc Quota exceeded for list %s',
-                    $list
-                );
-                unless (
-                    $list->send_notify_to_owner(
-                        'arc_quota_exceeded', {'size' => $used}
-                    )
-                    ) {
-                    Sympa::Log::Syslog::do_log(
-                        'notice',
-                        'Unable to send notify "arc_quota_exceeded" to %s owner',
-                        $list
-                    );
-                }
-                return undef;
-            }
-            if ($used >= ($list->web_archive->{'quota'} * 1024 * 0.95)) {
-                Sympa::Log::Syslog::do_log(
-                    'err',
-                    'archived::mail2arc : web_arc Quota exceeded for list %s',
-                    $list
-                );
-                unless (
-                    $list->send_notify_to_owner(
-                        'arc_quota_95',
-                        {   'size' => $used,
-                            'rate' => int(
-                                $used * 100 /
-                                    ($list->web_archive->{'quota'} * 1024)
-                            )
-                        }
-                    )
-                    ) {
-                    Sympa::Log::Syslog::do_log('notice',
-                        'Unable to send notify "arc_quota_95" to %s owner',
-                        $list);
-                }
-            }
-        }
-
-        my $monthdir = $basedir . "/$yyyy-$mm";
-
-        if (!-d $monthdir) {
-            unless (mkdir($monthdir, 0775)) {
-                Sympa::Log::Syslog::do_log('err',
-                    'Cannot create directory %s', $monthdir);
-                return undef;
-            }
-
-            if ($list->web_archive->{'max_month'}) {
-
-                # maybe need to remove some old archive
-                if (opendir DIR, $arcpath . '/' . $list->get_id) {
-                    my @archives = (
-                        sort { $a cmp $b }
-                        grep (/^\d{4}-\d{2}/, readdir(DIR))
-                    );
-                    closedir DIR;
-                    my $nb_month = $#archives + 1;
-                    my $i        = 0;
-                    while ($nb_month > $list->web_archive->{'max_month'}) {
-                        Sympa::Log::Syslog::do_log('info',
-                            'removing  %s/%s/%s',
-                            $arcpath, $list->get_id, $archives[$i]);
-                        Sympa::Tools::File::remove_dir($arcpath . '/'
-                                . $list->get_id . '/'
-                                . $archives[$i]);
-                        $i++;
-                        $nb_month--;
-                    }
-                }
-            }
-        }
-
-        my $arctxtdir = $monthdir . "/arctxt";
-
-        if (!-d $arctxtdir) {
-            unless (mkdir($arctxtdir, 0775)) {
-                Sympa::Log::Syslog::do_log('err',
-                    'Cannot create directory %s', $arctxtdir);
-                return undef;
-            }
-        }
-
-        ## fetch next message number in archive arctxt .
-        if (-f $monthdir . "/index") {
-            open(IDX, '<', "$monthdir/index")
-                or Sympa::Log::Syslog::fatal_err("couldn't read index for %s",
-                $list->name);
-            $newfile = <IDX>;
-            chomp($newfile);
-            $newfile++;
-            close IDX;
-        } else {
-            ## recreate index file if needed and update it
-            $newfile = create_idx($monthdir) + 1;
-        }
-
-        # savee arctxt dump of original message.
-        my $file   = $monthdir . '/arctxt/' . $newfile;
-        my $output = Sympa::Site->tmpdir . '/arc' . $newfile;
-        open DUMP, '>', $file;
-        print DUMP $message->{'messageasstring'};
-        close DUMP;
-
-        # prepare a temporary file with clean message content (htlm parts are
-        # cleaned)
-        my $safe = Sympa::Archive::clean_archived_message($robot, $file, $output);
-        unless ($safe) {
-            Sympa::Log::Syslog::do_log('err',
-                "Could not clean message, ignoring it");
-            return undef;
-        }
-
-        my $mhonarc_ressources =
-            $list->get_etc_filename('mhonarc-ressources.tt2');
-
-        # call mhonarc on cleaned message source to make clean htlm view of
-        # message
-        my $cmd = sprintf
-            '%s -add -modifybodyaddresses -addressmodifycode \'%s\' -rcfile %s -outdir %s -definevars "listname=\'%s\' hostname=%s yyyy=%s mois=%s yyyymm=%s-%s wdir=%s base=%s/arc tag=%s" -umask %s < %s',
-            Sympa::Site->mhonarc, $ENV{'M2H_ADDRESSMODIFYCODE'},
-            $mhonarc_ressources, $monthdir, $list->name, $robot->domain,
-            $yyyy, $mm, $yyyy, $mm, $robot->arc_path, $robot->wwsympa_url,
-            $tag, Sympa::Site->umask, $output;
-
-        my $exitcode = system($cmd);
-        $exitcode = $exitcode >> 8;
-
-        ## Remove lock if required
-        if ($exitcode == 75) {
-            Sympa::Log::Syslog::do_log(
-                'notice',
-                'Removing lock directory %s',
-                $monthdir . '/.mhonarc.lck'
-            );
-            rmdir $monthdir . '/.mhonarc.lck';
-
-            $exitcode = system($cmd);
-            $exitcode = $exitcode >> 8;
-        }
-        if ($exitcode) {
-            Sympa::Log::Syslog::do_log('err',
-                "Command $cmd failed with exit code $exitcode");
-            return undef;
-        }
-
-        save_idx("$monthdir/index", $newfile);
-    }
-    return 1;
-}
-
-# set_hidden_mode($tag)
-# Exports M2H_ADDRESSMODIFYCODE and M2H_MODIFYBODYADDRESSES environment variables
-# Arguments:
-# * $tag: a character string
-sub set_hidden_mode {
-    ## tag is used as variable elements in tags to prevent message contents to
-    ## be parsed
-    my $tag = shift;
-
-    ## $ENV{'M2H_MODIFYBODYADDRESSES'} à positionner si le corps du message
-    ## est parse
-    $ENV{'M2H_ADDRESSMODIFYCODE'} =
-        "s|^([^\@]+)\@([^\@]+)\$OUTPUT_AUTOFLUSH\($tag\%hidden_head\%$tag\)\$1\($tag\%hidden_at\%$tag\)\$2\($tag\%hidden_end\%$tag\)|g";
-    $ENV{'M2H_MODIFYBODYADDRESSES'} = 1;
-}
-
-# unset_hidden_mode()
-# unset M2H_ADDRESSMODIFYCODE environment variable.
-sub unset_hidden_mode {
-    ## Be careful, the .mhonarc.db file keeps track of previous
-    ## M2H_ADDRESSMODIFYCODE setup
-    $ENV{'M2H_ADDRESSMODIFYCODE'} = '';
-}
-
-# save_idx($index, $listname)
-# Saves the archives index file
-# Arguments:
-# * $index: the file name
-# * $listname: the list name
-sub save_idx {
-    my ($index, $lst) = @_;
-
-    #    Sympa::Log::Syslog::do_log('notice', "save_idx($index,$lst)");
-
-    open(INDEXF, ">$index")
-        || Sympa::Log::Syslog::fatal_err("couldn't overwrite index $index");
-    print INDEXF "$lst\n";
-    close INDEXF;
-
-    #
-    #   Sympa::Log::Syslog::do_log('debug',"last arc entry for $index is $lst");
-}
-
-# Create the 'index' file for one archive subdir
-sub create_idx {
-    my $arc_dir = shift;    ## corresponds to the yyyy-mm directory
-
-    my $arc_txt_dir = $arc_dir . '/arctxt';
-
-    unless (opendir(DIR, $arc_txt_dir)) {
-        Sympa::Log::Syslog::do_log('err',
-            "Failed to open directory '$arc_txt_dir'");
-        return undef;
-    }
-
-    my @files = (sort { $a <=> $b; } grep(/^\d+$/, (readdir DIR)));
-    my $index = $files[$#files];
-    save_idx($arc_dir . '/index', $index);
-
-    closedir DIR;
-
-    return $index;
-}
-
-# Checks if directory exists and we have write and read accec to it.
-sub directory_check {
-    my $dir = shift;
-    unless (-d $dir) {
-        printf STDERR "Creating missing %s directory\n", $dir;
-        unless (mkdir $dir, 0775) {
-            Sympa::Log::Syslog::do_log('err', 'Unable to create directory %s',
-                $dir);
-            return undef;
-        }
-        unless (
-            Sympa::Tools::File::set_file_rights(
-                file  => $dir,
-                user  => Sympa::Constants::USER,
-                group => Sympa::Constants::GROUP,
-                mode  => 0775,
-            )
-            ) {
-            Sympa::Log::Syslog::do_log('err', 'Unable to set rights on %s',
-                $dir);
-            return undef;
-        }
-    }
-    unless ((-r $dir) && (-w $dir)) {
-        Sympa::Log::Syslog::do_log('err',
-            'Unsufficient access to %s directory', $dir);
-        return undef;
-    }
-    return 1;
-}
-
-=head1 AUTHORS 
-
-=over 
-
-=item * Serge Aumont <sa AT cru.fr> 
-
-=item * Olivier SalaE<252>n <os AT cru.fr> 
-
-=back 
-
-=cut 

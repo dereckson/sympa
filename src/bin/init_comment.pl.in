@@ -5,9 +5,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,20 +23,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use strict;
 use lib '--modulesdir--';
+use strict;
+use warnings;
 
-use Sympa::DatabaseManager;
-use Sympa::Site;
+use Conf;
+use Sympa::Constants;
+use SDM;
 
 ## Load sympa config
-Sympa::Site->load or die 'config_error';
+Conf::load(Sympa::Constants::CONFIG) or die 'config_error';
 
-chdir Sympa::Site->home;
+chdir $Conf::Conf{'home'};
 
-Sympa::DatabaseManager::check_db_connect('just_try') or die "Can't connect to database";
+SDM::check_db_connect('just_try') or die "Can't connect to database";
 
-my $sth = Sympa::DatabaseManager::do_query(
+my $sth = SDM::do_query(
     q{SELECT user_subscriber, comment_subscriber
       FROM subscriber_table}
 ) or die 'Unable to execute SQL statement';
@@ -46,30 +49,32 @@ while ($user = $sth->fetchrow_hashref('NAME_lc')) {
     printf "\nUser: %s", $user->{'user_subscriber'};
 
     unless ($user->{'comment_subscriber'}) {
-        my $sth2 = Sympa::DatabaseManager::do_prepared_query(
+        my $sth2 = SDM::do_prepared_query(
             q{SELECT gecos_user
-	      FROM user_table
-	      WHERE email_user = ?},
+              FROM user_table
+              WHERE email_user = ?},
             $user->{'user_subscriber'}
         ) or die "Unable to execute SQL statement";
 
-        my $gecos = $sth2->fetchrow;
-        $sth2->finish();
-
-        if ($gecos) {
-            printf " =>%s", $gecos;
-            my $sth2 = Sympa::DatabaseManager::do_prepared_query(
+	my $gecos = $sth2->fetchrow;
+	$sth2->finish();
+	
+	if ($gecos) {
+	    printf " =>%s", $gecos;
+            my $sth2 = SDM::do_prepared_query(
                 q{UPDATE subscriber_table
-		  SET comment_subscriber = ?
-		  WHERE user_subscriber = ?},
+                  SET comment_subscriber = ?
+                  WHERE user_subscriber = ?},
                 $gecos, $user->{'user_subscriber'}
             ) or die "Unable to execute SQL statement";
-            $sth2->finish();
-        }
+	    $sth2->finish();
+	}
+	
     }
 }
 
 $sth->finish();
 
 ## Disconnect from Database
-Sympa::DatabaseManager::db_disconnect();
+SDM::db_disconnect();
+
