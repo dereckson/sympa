@@ -1,6 +1,6 @@
 # -*- indent-tabs-mode: nil; -*-
 # vim:ft=perl:et:sw=4
-# $Id: LockedFile.pm 11007 2014-06-18 07:30:17Z sikeda $
+# $Id$
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #

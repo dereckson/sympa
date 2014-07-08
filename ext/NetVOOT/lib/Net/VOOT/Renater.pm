@@ -4,7 +4,7 @@ use base 'Net::VOOT';
 use warnings;
 use strict;
 
-use Sympa::Log::Syslog::Report 'net-voot';
+use Log::Report 'net-voot';
 
 use OAuth::Lite::Consumer ();
 use OAuth::Lite::Token    ();

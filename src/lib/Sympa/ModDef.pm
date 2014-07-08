@@ -1,12 +1,13 @@
-# -*- indent-tabs-mode: t; -*-
-# vim:ft=perl:noet:sw=8
+# -*- indent-tabs-mode: nil; -*-
+# vim:ft=perl:et:sw=4
 # $Id$
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,29 +22,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-=head1 NAME
-
-moddef - Definition of dependent modules
-
-=head1 DESCRIPTION
-
-This module keeps definition of modules required by Sympa.
-
-=cut
-
 package Sympa::ModDef;
 
 use strict;
-
+use warnings;
 use English qw(-no_match_vars);
-
-## This defines the modules :
-##   required_version : Minimum version of package.
-##            Assume required_version = 1.0 if not specified.
-##   package_name : Name of CPAN module.
-##   mandatory : 1|0: if 1, the module is mandatory.  Default is 0.
-##   gettext_id : Usage of this package,
-##   gettext_comment : Description of prerequisites if any.
 
 our %cpan_modules = (
     'Archive::Zip' => {
@@ -65,6 +48,8 @@ our %cpan_modules = (
         mandatory        => 1,
         'gettext_id'     => 'required to run Sympa web interface',
     },
+    # CGI::Cookie is included in CGI.
+    # CGI::Fast is included in CGI.
     'Class::Singleton' => {
         required_version => '1.03',
         package_name     => 'Class-Singleton',
@@ -77,25 +62,29 @@ our %cpan_modules = (
         'gettext_id' =>
             'this module provides reversible encryption of user passwords in the database.  Useful when updating from old version with password reversible encryption, or if secure session cookies in non-SSL environments are required.',
     },
-    'Crypt::OpenSSL::Bignum' => {
-        required_version => '0.04',
-        package_name     => 'Crypt-OpenSSL-Bignum',
-        mandatory        => 1,
-        'gettext_id' =>
-            'required to prevent Mail::DKIM from crashing Sympa processes.',
-    },
     # DateTime is used by DateTime::Format::Mail.
     'DateTime::Format::Mail' => {
         required_version => '0.28',
-        package_name => 'DateTime-Format-Mail',
-        mandatory => 1,
-        usage => 'used to decode date and time in message headers',
+        package_name     => 'DateTime-Format-Mail',
+        mandatory        => 1,
+        'gettext_id'     => 'used to decode date and time in message headers',
     },
-     'DateTime::TimeZone' => {
+    'DateTime::TimeZone' => {
         required_version => '1.10',
         package_name     => 'DateTime-TimeZone',
         mandatory        => 1,
         'gettext_id'     => 'used to decode date and time in message headers',
+    },
+    'DB_File' => {
+        required_version => '1.75',
+        package_name     => 'DB_File',
+        mandatory        => 1,
+        'gettext_id'     => 'used for maintaining snapshots of list members',
+    },
+    'DBD::ODBC' => {
+        package_name => 'DBD-ODBC',
+        'gettext_id' =>
+            'ODBC database driver, required if you connect to a database via ODBC.',
     },
     'DBD::Oracle' => {
         required_version => '0.90',
@@ -140,6 +129,23 @@ our %cpan_modules = (
         mandatory        => 1,
         'gettext_id' =>
             'a generic Database Driver, required by Sympa to access Subscriber information and User preferences. An additional Database Driver is required for each database type you wish to connect to.',
+    },
+    'Digest::MD5' => {
+        required_version => '2.00',
+        package_name     => 'Digest-MD5',
+        mandatory        => 1,
+        'gettext_id'     => 'used to compute MD5 digests for passwords, etc.',
+    },
+    'Email::Simple' => {
+        required_version => '2.100',
+        package_name     => 'Email-Simple',
+        mandatory        => 1,
+        'gettext_id'     => 'Used for email tracking',
+    },
+    'Encode' => {
+        package_name => 'Encode',
+        mandatory    => 1,
+        'gettext_id' => 'module for character encoding processing',
     },
     'Encode::Locale' => {
         required_version => '1.02',
@@ -186,18 +192,17 @@ our %cpan_modules = (
         mandatory        => 1,
         'gettext_id'     => 'internal use for filehandle processing',
     },
+    'IO::Scalar' => {
+        package_name => 'IO-stringy',
+        mandatory    => 1,
+        'gettext_id' => 'internal use for string processing',
+    },
     'IO::Socket::SSL' => {
         required_version => '0.90',
         package_name     => 'IO-Socket-SSL',
         'gettext_id' => 'required when including members of a remote list',
     },
-    'IO::Socket::INET6' => {
-        required_version => '2.69',
-        package_name     => 'IO-Socket-INET6',
-        mandatory        => 1,
-        'gettext_id' =>
-            'required to prevent Mail::DKIM from crashing Sympa processes.',
-    },
+    # Net::SSLeay is included in IO-Socket-SSL.
     'JSON::XS' => {
         required_version => '2.32',
         package_name     => 'JSON-XS',
@@ -205,9 +210,9 @@ our %cpan_modules = (
     },
     'Locale::Messages' => {
         required_version => '1.22',
-        package_name => 'libintl-perl',
-        mandatory    => 1,
-        'gettext_id' => 'internationalization functions',
+        package_name     => 'libintl-perl',
+        mandatory        => 1,
+        'gettext_id'     => 'internationalization functions',
     },
     'LWP' => {
         package_name => 'libwww-perl',
@@ -220,8 +225,10 @@ our %cpan_modules = (
         mandatory        => 1,
         'gettext_id' => 'used to parse or build mailboxes in message headers',
     },
-    'Mail::DKIM' => {
-        required_version => '0.36',
+    # Mail::DKIM::Signer is included in Mail-DKIM.
+    # Mail::DKIM::TextWrap is included in Mail-DKIM.
+    'Mail::DKIM::Verifier' => {
+        required_version => '0.39',
         package_name     => 'Mail-DKIM',
         'gettext_id' =>
             'required in order to use DKIM features (both for signature verification and signature insertion)',
@@ -262,6 +269,13 @@ our %cpan_modules = (
         package_name     => 'MIME-tools',
         mandatory        => 1,
         'gettext_id' => 'provides libraries for manipulating MIME messages',
+    },
+    'Net::DNS' => {
+        required_version => '0.65',
+        package_name     => 'Net-DNS',
+        mandatory        => 1,
+        'gettext_id' =>
+            'this is required if you set a value for "dmarc_protection_mode" which requires DNS verification',
     },
     'Net::LDAP' => {
         required_version => '0.27',
@@ -350,7 +364,61 @@ $cpan_modules{'Unicode::CaseFold'} = {
     mandatory        => 1,
     'gettext_id'     => 'used to compute case-folding search keys'
     }
-    if 5.008 < $]
-        and $] < 5.016;
+    if 5.008 < $] and $] < 5.016;
 
 1;
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+Sympa::ModDef - Definition of dependent modules
+
+=head1 DESCRIPTION
+
+This module keeps definition of modules required by Sympa.
+
+=head2 Global variable
+
+=over
+
+=item %cpan_modules
+
+This defines the modules.
+Each item has Perl package name as key and hashref containing pairs below
+as value.
+
+=over
+
+=item required_version =E<gt> STRING
+
+Minimum version of package.
+Assume required_version = '1.0' if not specified.
+
+=item package_name =E<gt> STRING
+
+Name of CPAN module.
+
+=item mandatory =E<gt> 1|0
+
+If 1, the module is mandatory.  Default is 0.
+
+=item gettext_id =E<gt> STRING
+
+Usage of this package,
+
+=item gettext_comment =E<gt> STRING
+
+Description of prerequisites if any.
+
+=back
+
+=back
+
+=head1 SEE ALSO
+
+sympa_wizard(1).
+
+=cut
+

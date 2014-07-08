@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,14 +26,14 @@ package Sympa::User;
 
 use strict;
 use warnings;
+use Carp qw();
 
-use Carp qw(carp croak);
-
+use Sympa::Auth;
 use Sympa::DatabaseDescription;
-use Sympa::Logger;
-use Sympa::Tools;
-use Sympa::Tools::Data;
-use Sympa::Tools::Password;
+use Sympa::Language;
+use Log;
+use SDM;
+use tools;
 
 ## Database and SQL statement handlers
 my ($sth, @sth_stack);
@@ -59,7 +60,7 @@ foreach my $k (keys %{$db_struct{'user_table'}->{'fields'}}) {
 
 =head1 NAME
 
-User - All Users Identified by Sympa
+Sympa::User - All Users Identified by Sympa
 
 =head1 DESCRIPTION
 
@@ -76,10 +77,9 @@ Create new Sympa::User object.
 =cut
 
 sub new {
-    my $pkg         = shift;
-    my $who         = Sympa::Tools::clean_email(shift || '');
-    my $user_fields = shift;
-    my %values      = @_;
+    my $pkg    = shift;
+    my $who    = tools::clean_email(shift || '');
+    my %values = @_;
     my $self;
     return undef unless $who;
 
@@ -88,7 +88,7 @@ sub new {
         || $values{'lang'}
         if $values{'lang'};
 
-    if (!($self = get_global_user($who, $user_fields))) {
+    if (!($self = get_global_user($who))) {
         ## unauthenticated user would not be added to database.
         $values{'email'} = $who;
         if (scalar grep { $_ ne 'lang' and $_ ne 'email' } keys %values) {
@@ -145,10 +145,10 @@ Change email of user.
 
 sub moveto {
     my $self = shift;
-    my $newemail = Sympa::Tools::clean_email(shift || '');
+    my $newemail = tools::clean_email(shift || '');
 
     unless ($newemail) {
-        $main::logger->do_log(Sympa::Logger::ERR, 'No email');
+        Log::do_log('err', 'No email');
         return undef;
     }
     if ($self->email eq $newemail) {
@@ -166,8 +166,7 @@ sub moveto {
         )
         and $sth->rows
         ) {
-        $main::logger->do_log(Sympa::Logger::ERR, 'Can\'t move user %s to %s',
-            $self, $newemail);
+        Log::do_log('err', 'Can\'t move user %s to %s', $self, $newemail);
         $sth = pop @sth_stack;
         return undef;
     }
@@ -193,8 +192,7 @@ sub save {
     my $self = shift;
     unless (add_global_user('email' => $self->email, %$self)
         or update_global_user($self->email, %$self)) {
-        $main::logger->do_log(Sympa::Logger::ERR, 'Cannot save user %s',
-            $self);
+        Log::do_log('err', 'Cannot save user %s', $self);
         return undef;
     }
 
@@ -234,11 +232,11 @@ sub AUTOLOAD {
         no strict "refs";
         *{$AUTOLOAD} = sub {
             my $self = shift;
-            croak "Can't call method \"$attr\" on uninitialized "
+            Carp::croak "Can't call method \"$attr\" on uninitialized "
                 . ref($self)
                 . " object"
                 unless $self->{'email'};
-            croak "Can't modify \"$attr\" attribute"
+            Carp::croak "Can't modify \"$attr\" attribute"
                 if scalar @_ > 1;
             $self->{$attr};
         };
@@ -247,7 +245,7 @@ sub AUTOLOAD {
         no strict "refs";
         *{$AUTOLOAD} = sub {
             my $self = shift;
-            croak "Can't call method \"$attr\" on uninitialized "
+            Carp::croak "Can't call method \"$attr\" on uninitialized "
                 . ref($self)
                 . " object"
                 unless $self->{'email'};
@@ -256,7 +254,7 @@ sub AUTOLOAD {
             $self->{$attr};
         };
     } else {
-        croak "Can't locate object method \"$2\" via package \"$1\"";
+        Carp::croak "Can't locate object method \"$2\" via package \"$1\"";
     }
     goto &$AUTOLOAD;
 }
@@ -272,7 +270,7 @@ sub AUTOLOAD {
 =cut
 
 sub get_users {
-    croak();
+    die;
 }
 
 ############################################################################
@@ -303,21 +301,20 @@ sub get_users {
 sub delete_global_user {
     my @users = @_;
 
-    $main::logger->do_log(Sympa::Logger::DEBUG2, '');
+    Log::do_log('debug2', '');
 
     return undef unless ($#users >= 0);
 
     foreach my $who (@users) {
-        $who = Sympa::Tools::clean_email($who);
+        $who = tools::clean_email($who);
         ## Update field
 
         unless (
-            Sympa::DatabaseManager::do_prepared_query(
+            SDM::do_prepared_query(
                 q{DELETE FROM user_table WHERE email_user = ?}, $who
             )
             ) {
-            $main::logger->do_log(Sympa::Logger::ERR,
-                'Unable to delete user %s', $who);
+            Log::do_log('err', 'Unable to delete user %s', $who);
             next;
         }
     }
@@ -327,17 +324,19 @@ sub delete_global_user {
 
 ## Returns a hash for a given user
 sub get_global_user {
-    $main::logger->do_log(Sympa::Logger::DEBUG2, '(%s)', @_);
-    my $who         = Sympa::Tools::clean_email(shift);
-    my $user_fields = shift;
+    Log::do_log('debug2', '(%s)', @_);
+    my $who = tools::clean_email(shift);
 
     ## Additional subscriber fields
-    my $additional = $user_fields ? ', ' . $user_fields : '';
+    my $additional = '';
+    if ($Conf::Conf{'db_additional_user_fields'}) {
+        $additional = ', ' . $Conf::Conf{'db_additional_user_fields'};
+    }
 
     push @sth_stack, $sth;
 
     unless (
-        $sth = Sympa::DatabaseManager::do_prepared_query(
+        $sth = SDM::do_prepared_query(
             sprintf(
                 q{SELECT email_user AS email, gecos_user AS gecos,
 			 password_user AS password,
@@ -353,8 +352,7 @@ sub get_global_user {
             $who
         )
         ) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Failed to prepare SQL query');
+        Log::do_log('err', 'Failed to prepare SQL query');
         $sth = pop @sth_stack;
         return undef;
     }
@@ -368,7 +366,7 @@ sub get_global_user {
         ## decrypt password
         if ($user->{'password'}) {
             $user->{'password'} =
-                Sympa::Tools::Password::decrypt_password($user->{'password'});
+                tools::decrypt_password($user->{'password'});
         }
 
         ## Canonicalize lang if possible
@@ -392,7 +390,7 @@ sub get_global_user {
         }
         ## Turn data_user into a hash
         if ($user->{'data'}) {
-            my %prefs = Sympa::Tools::Data::string_2_hash($user->{'data'});
+            my %prefs = tools::string_2_hash($user->{'data'});
             $user->{'prefs'} = \%prefs;
         }
     }
@@ -402,18 +400,15 @@ sub get_global_user {
 
 ## Returns an array of all users in User table hash for a given user
 sub get_all_global_user {
-    $main::logger->do_log(Sympa::Logger::DEBUG2, '()');
+    Log::do_log('debug2', '');
 
     my @users;
 
     push @sth_stack, $sth;
 
-    unless (
-        $sth = Sympa::DatabaseManager::do_prepared_query(
-            'SELECT email_user FROM user_table')
-        ) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Unable to gather all users in DB');
+    unless ($sth =
+        SDM::do_prepared_query('SELECT email_user FROM user_table')) {
+        Log::do_log('err', 'Unable to gather all users in DB');
         $sth = pop @sth_stack;
         return undef;
     }
@@ -430,8 +425,8 @@ sub get_all_global_user {
 
 ## Is the person in user table (db only)
 sub is_global_user {
-    my $who = Sympa::Tools::clean_email(pop);
-    $main::logger->do_log(Sympa::Logger::DEBUG3, '(%s)', $who);
+    my $who = tools::clean_email(pop);
+    Log::do_log('debug3', '(%s)', $who);
 
     return undef unless ($who);
 
@@ -439,12 +434,12 @@ sub is_global_user {
 
     ## Query the Database
     unless (
-        $sth = Sympa::DatabaseManager::do_prepared_query(
+        $sth = SDM::do_prepared_query(
             q{SELECT count(*) FROM user_table WHERE email_user = ?}, $who
         )
         ) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Unable to check whether user %s is in the user table.');
+        Log::do_log('err',
+            'Unable to check whether user %s is in the user table');
         $sth = pop @sth_stack;
         return undef;
     }
@@ -459,7 +454,7 @@ sub is_global_user {
 
 ## Sets new values for the given user in the Database
 sub update_global_user {
-    $main::logger->do_log(Sympa::Logger::DEBUG, '(%s, ...)', @_);
+    Log::do_log('debug', '(%s, ...)', @_);
     my $who    = shift;
     my $values = $_[0];
     if (ref $values) {
@@ -468,7 +463,7 @@ sub update_global_user {
         $values = {@_};
     }
 
-    $who = Sympa::Tools::clean_email($who);
+    $who = tools::clean_email($who);
 
     ## use md5 fingerprint to store password
     $values->{'password'} =
@@ -482,13 +477,15 @@ sub update_global_user {
 
     my ($field, $value);
 
+    my ($user, $statement, $table);
+
     ## Update each table
     my @set_list;
 
     while (($field, $value) = each %{$values}) {
         unless ($map_field{$field}) {
-            $main::logger->do_log('error',
-                "unknown field $field in map_field internal error");
+            Log::do_log('err', 'Unknown field %s in map_field internal error',
+                $field);
             next;
         }
         my $set;
@@ -497,8 +494,7 @@ sub update_global_user {
             $value ||= 0;    ## Can't have a null value
             $set = sprintf '%s=%s', $map_field{$field}, $value;
         } else {
-            $set = sprintf '%s=%s', $map_field{$field},
-                Sympa::DatabaseManager::quote($value);
+            $set = sprintf '%s=%s', $map_field{$field}, SDM::quote($value);
         }
         push @set_list, $set;
     }
@@ -509,13 +505,13 @@ sub update_global_user {
 
     push @sth_stack, $sth;
 
-    $sth = Sympa::DatabaseManager::do_query(
+    $sth = SDM::do_query(
         "UPDATE user_table SET %s WHERE (email_user=%s)",
         join(',', @set_list),
-        Sympa::DatabaseManager::quote($who)
+        SDM::quote($who)
     );
     unless (defined $sth) {
-        $main::logger->do_log(Sympa::Logger::ERR,
+        Log::do_log('err',
             'Could not update informations for user %s in user_table', $who);
         $sth = pop @sth_stack;
         return undef;
@@ -532,7 +528,7 @@ sub update_global_user {
 
 ## Adds a user to the user_table
 sub add_global_user {
-    $main::logger->do_log(Sympa::Logger::DEBUG3, '(...)');
+    Log::do_log('debug3', '(...)');
     my $values = $_[0];
     if (ref $values) {
         $values = {%$values};
@@ -541,6 +537,7 @@ sub add_global_user {
     }
 
     my ($field, $value);
+    my ($user, $statement, $table);
 
     ## encrypt password
     $values->{'password'} =
@@ -552,8 +549,7 @@ sub add_global_user {
         || $values->{'lang'}
         if $values->{'lang'};
 
-    return undef
-        unless (my $who = Sympa::Tools::clean_email($values->{'email'}));
+    return undef unless (my $who = tools::clean_email($values->{'email'}));
     return undef if (is_global_user($who));
 
     ## Update each table
@@ -567,15 +563,15 @@ sub add_global_user {
             $value ||= 0;    ## Can't have a null value
             $insert = $value;
         } else {
-            $insert = sprintf "%s", Sympa::DatabaseManager::quote($value);
+            $insert = sprintf "%s", SDM::quote($value);
         }
         push @insert_value, $insert;
         push @insert_field, $map_field{$field};
     }
 
     unless (@insert_field) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
+        Log::do_log(
+            'err',
             'The fields (%s) do not correspond to anything in the database',
             join(',', keys(%{$values}))
         );
@@ -585,14 +581,13 @@ sub add_global_user {
     push @sth_stack, $sth;
 
     ## Update field
-    $sth = Sympa::DatabaseManager::do_query(
+    $sth = SDM::do_query(
         "INSERT INTO user_table (%s) VALUES (%s)",
         join(',', @insert_field),
         join(',', @insert_value)
     );
     unless (defined $sth) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Unable to add user %s to the DB table user_table',
+        Log::do_log('err', 'Unable to add user %s to the DB table user_table',
             $values->{'email'});
         $sth = pop @sth_stack;
         return undef;
@@ -605,6 +600,66 @@ sub add_global_user {
     $sth = pop @sth_stack;
 
     return 1;
+}
+
+=head2 Miscelaneous
+
+=over 4
+
+=item clean_user ( USER_OR_HASH )
+
+=item clean_users ( ARRAYREF_OF_USERS_OR_HASHES )
+
+I<Function>.
+Warn if the argument is not a Sympa::User object.
+Return Sympa::User object, if any.
+
+I<TENTATIVE>.
+These functions will be used during transition between old and object-oriented
+styles.  At last modifications have been done, they shall be removed.
+
+=back
+
+=cut
+
+sub clean_user {
+    my $user = shift;
+
+    unless (ref $user eq 'Sympa::User') {
+        local $Carp::CarpLevel = 1;
+        Carp::carp("Deprecated usage: user should be a Sympa::User object");
+
+        if (ref $user eq 'HASH') {
+            $user = bless $user => __PACKAGE__;
+        } else {
+            $user = undef;
+        }
+    }
+    $user;
+}
+
+sub clean_users {
+    my $users = shift;
+    return $users unless ref $users eq 'ARRAY';
+
+    my $warned = 0;
+    foreach my $user (@$users) {
+        unless (ref $user eq 'Sympa::User') {
+            unless ($warned) {
+                local $Carp::CarpLevel = 1;
+                Carp::carp(
+                    "Deprecated usage: user should be a Sympa::User object");
+
+                $warned = 1;
+            }
+            if (ref $user eq 'HASH') {
+                $user = bless $user => __PACKAGE__;
+            } else {
+                $user = undef;
+            }
+        }
+    }
+    return $users;
 }
 
 1;
