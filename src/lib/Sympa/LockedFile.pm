@@ -1,6 +1,6 @@
 # -*- indent-tabs-mode: nil; -*-
 # vim:ft=perl:et:sw=4
-# $Id: LockedFile.pm 11007 2014-06-18 07:30:17Z sikeda $
+# $Id$
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
@@ -28,7 +28,7 @@ use strict;
 use warnings;
 use base qw(IO::File);
 
-use Fcntl qw();
+use Fcntl qw( LOCK_EX LOCK_SH LOCK_NB );
 use File::NFSLock;
 $File::NFSLock::LOCK_EXTENSION = '.LOCK';
 

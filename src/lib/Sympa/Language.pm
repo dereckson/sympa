@@ -273,6 +273,10 @@ sub negotiate_lang {
     return $best_lang;
 }
 
+##sub GetSupportedLanguages {
+##DEPRECATED: use tools::get_supported_languages().
+## Supported languages are defined by 'supported_lang' sympa.conf parameter.
+
 ## Old name: PushLang()
 sub push_lang {
     my $self  = shift;
@@ -465,6 +469,12 @@ sub get_lang {
     my $self = shift;
     return $self->{lang} || 'en';    # the last resort
 }
+
+# DEPRECATED: use tools::lang2charset().
+# sub GetCharset;
+
+## DEPRECATED: Use canonic_lang().
+## sub Locale2Lang;
 
 # Internal function.
 # Convert language tag to gettext locale name.

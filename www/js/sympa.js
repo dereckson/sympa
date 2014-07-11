@@ -1,3 +1,33 @@
+// fix IE broken getElementById
+if (/msie/i.test (navigator.userAgent)) //only override IE
+{
+  document.nativeGetElementById = document.getElementById;
+  document.getElementById = function(id)
+  {
+    var elem = document.nativeGetElementById(id);
+    if(elem)
+    {
+      //make sure that it is a valid match on id
+      if(elem.id == id)
+      {
+        return elem;
+      }
+      else
+      {
+        //otherwise find the correct element
+        for(var i=1;i<document.all[id].length;i++)
+        {
+          if(document.all[id][i].id == id)
+          {
+            return document.all[id][i];
+          }
+        }
+      }
+    }
+    return null;
+  };
+}
+
 function showMDN(el) {
   var pre = el.parentNode.getElementsByTagName('pre');
   if(!pre) return;
@@ -234,17 +264,6 @@ function searched_by_msgId(id) {
 	f.elements["target"].value = id;
 	f.submit();
 }
-function searched_by_target(target_type, target) {
-	var f = document.forms["log_form"];
-
-	set_select_value(f.elements["type"], 'all_actions');
-
-	set_select_value(f.elements["target_type"], target_type);
-
-	f.elements["target"].value = target;
-	f.submit();
-}
-
 
 //reset all field in log form.
 function clear_log_form() {
@@ -1114,26 +1133,6 @@ jQuery(document).ready(function() {
     $('#noticeMsg').delay(500).fadeOut(4000);
   }
 );
-
-function spoolPopup(msgkey, url, trigger, remove_if_divclass_present) {
-	if(!remove_if_divclass_present) remove_if_divclass_present = '';
-	jQuery('.viewspool').hide();
-	var p = jQuery('#viewspool' + msgkey).attr({msgkey: msgkey, ridcp: remove_if_divclass_present}).load(url, function(t, s, r) {
-		var p = jQuery(this), msgkey = p.attr('msgkey'), ridcp = p.attr('ridcp');
-		if(ridcp && p.has('.' + ridcp).length) {
-			p.parent().delay(2000).queue(function() {
-				jQuery(this).remove();
-			});
-			if(msgkey) jQuery('#spoolitem' + msgkey).delay(2000).queue(function() {
-				jQuery(this).remove();
-			});
-		}
-	}).parent().show();
-	if(!p.parent().is('body')) {
-		var pos = (trigger ? jQuery(trigger) : p.parent()).offset();
-		p.detach().appendTo(jQuery('body')).css({'top': pos.top, 'left': pos.left, 'width': (jQuery('body').innerWidth() - pos.left - 100) + 'px', 'z-index': 10000});
-	}
-}
 
 /* check if the value of element is not empty */
 function isNotEmpty(id) {
