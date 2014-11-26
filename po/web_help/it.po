@@ -14,22 +14,21 @@
 # FIRST AUTHOR <EMAIL>, YEAR.
 # Giorgio Donnini <giorgio.donnini@Unimi.it>, 2004.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: it\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2007-11-13 14:50+0200\n"
-"PO-Revision-Date: 2007-05-21 18:05+0200\n"
-"Last-Translator: Giorgio Donnini <giorgio.donnini@unimi.it>\n"
+"PO-Revision-Date: 2014-10-21 22:57+0000\n"
+"Last-Translator: vales17 <valeria.siano@gmail.com>\n"
 "Language-Team: Italiano\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"#-#-#-#-#  blank_web_help_it.po (sympa)  #-#-#-#-#\n"
+"Language: it\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"#-#-#-#-#  tmp_web_help_it.po (it)  #-#-#-#-#\n"
-"X-Generator: Pootle 0.10.1\n"
+"X-Generator: Pootle 2.5.1\n"
+"X-POOTLE-MTIME: 1413932276.000000\n"
 
 #: default/web_tt2/help_admin.tt2:3
 msgid "Mailing lists - Owner and moderator guide"
@@ -49,11 +48,11 @@ msgstr ""
 
 #: default/web_tt2/help_admin.tt2:9
 msgid "owner;"
-msgstr ""
+msgstr "proprietario;"
 
 #: default/web_tt2/help_admin.tt2:10
 msgid "moderator;"
-msgstr ""
+msgstr "moderatore;"
 
 #: default/web_tt2/help_admin.tt2:11
 msgid "subscriber."
@@ -1633,7 +1632,7 @@ msgstr ""
 "Messaggio a pié di pagine: come l'<em>intestazione</em>, ma allegato alla "
 "fine del messaggio\n"
 
-#: default/web_tt2/help_editlist.tt2:184 default/web_tt2/help_editlist.tt2:6
+#: default/web_tt2/help_editlist.tt2:6
 msgid ":"
 msgstr ""
 

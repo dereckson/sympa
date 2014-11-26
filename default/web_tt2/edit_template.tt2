@@ -3,8 +3,8 @@
 <h2>[%|loc%]Template edition system[%END%]</h2><br />
 <p>
 <ul>
-<li>[%|loc%]Template name:[%END%]  <strong> [% template_name %] </strong></li>
-<li>[%|loc%]Type:[%END%] <strong> [% SWITCH webormail -%]
+<li>[%|loc%]Template name: [%END%]<strong> [% template_name %] </strong></li>
+<li>[%|loc%]Type: [%END%]<strong> [% SWITCH webormail -%]
 [% CASE 'web' %][%|loc%]web[%END -%]
 [% CASE 'mail' %][%|loc%]mail[%END -%]
 [% CASE %][% webormail -%]
