@@ -5,9 +5,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,18 +23,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use strict;
 use lib '--modulesdir--';
-
+use strict;
+use warnings;
 use English qw(-no_match_vars);
 
-use Sympa::Conf;
-use Sympa::Language;
-use Sympa::Template;
+use Conf;
 use Sympa::Constants;
+use Sympa::Language;
 use Sympa::List;
-use Sympa::Logger;
-use Sympa::Logger::Stderr;
+use Log;
+use SDM;
+use Sympa::Template::Compat;
 use Sympa::Tools::File;
 
 my %options;
@@ -48,19 +49,17 @@ $OUTPUT_AUTOFLUSH = 1;
 #}
 
 ## Load sympa config
-Sympa::Site->load or die 'config_error';
-
-if (Sympa::Site->db_name and Sympa::Site->db_type) {
-    unless (Sympa::DatabaseManager::check_db_connect('just_try') and Sympa::DatabaseManager::probe_db()) {
-        die sprintf
-            'Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf',
-            Sympa::Site->db_name;
-    }
+unless (Conf::load()) {
+    die 'config_error';
 }
 
-our $logger = Sympa::Logger::Stderr->new(
-    level => Sympa::Site->log_level()
-);
+if ($Conf::Conf{'db_name'} and $Conf::Conf{'db_type'}) {
+    unless ($Sympa::List::use_db = SDM::probe_db()) {
+        die('Database %s defined in sympa.conf has not the right structure or is unreachable. If you don\'t use any database, comment db_xxx parameters in sympa.conf',
+            $Conf::Conf{'db_name'}
+        );
+    }
+}
 
 ## We have a parameter that should be a template to convert
 ## Output is sent to stdout
@@ -79,72 +78,72 @@ if ($#ARGV >= 0) {
 
 my @directories;
 my @templates;
-my $sympa_etc = Sympa::Site->etc;
 
 ## Search in main robot
-if (-d Sympa::Site->etc) {
-    push @directories, Sympa::Site->etc;
+if (-d $Conf::Conf{'etc'}) {
+    push @directories, $Conf::Conf{'etc'};
 }
-if (-d Sympa::Site->etc . '/templates') {
-    push @directories, Sympa::Site->etc . '/templates';
+if (-d "$Conf::Conf{'etc'}/templates") {
+    push @directories, "$Conf::Conf{'etc'}/templates";
 }
-if (-d Sympa::Site->etc . '/wws_templates') {
-    push @directories, Sympa::Site->etc . '/wws_templates';
+if (-d "$Conf::Conf{'etc'}/wws_templates") {
+    push @directories, "$Conf::Conf{'etc'}/wws_templates";
 }
-if (-f Sympa::Site->etc . '/mhonarc-ressources') {
-    push @templates, Sympa::Site->etc . '/mhonarc-ressources';
+if (-f "$Conf::Conf{'etc'}/mhonarc-ressources") {
+    push @templates, "$Conf::Conf{'etc'}/mhonarc-ressources";
 }
 
 ## Create_list_templates
-if (-d "$sympa_etc/create_list_templates") {
-    foreach my $dir (<$sympa_etc/create_list_templates/*>) {
-        next unless -d $dir;
+if (-d $Conf::Conf{'etc'} . '/create_list_templates') {
+    foreach my $dir (<$Conf::Conf{'etc'}/create_list_templates/*>) {
+        next unless (-d $dir);
         push @directories, $dir;
     }
 }
 
 ## Go through Virtual Robots
-foreach my $robot (@{Sympa::VirtualHost::get_robots()}) {
-    my $robot_etc = $robot->etc;
-
+foreach my $vr (keys %{$Conf::Conf{'robots'}}) {
     ## Search in etc/
-    if (-d $robot->etc) {
-        push @directories, $robot->etc;
+    if (-d "$Conf::Conf{'etc'}/$vr") {
+        push @directories, "$Conf::Conf{'etc'}/$vr";
     }
-    if (-d $robot->etc . '/templates') {
-        push @directories, $robot->etc . '/templates';
+
+    if (-d "$Conf::Conf{'etc'}/$vr/templates") {
+        push @directories, "$Conf::Conf{'etc'}/$vr/templates";
     }
-    if (-d $robot->etc . '/wws_templates') {
-        push @directories, $robot->etc . '/wws_templates';
+    if (-d "$Conf::Conf{'etc'}/$vr/wws_templates") {
+        push @directories, "$Conf::Conf{'etc'}/$vr/wws_templates";
     }
-    if (-f $robot->etc . '/mhonarc-ressources') {
-        push @templates, $robot->etc . '/mhonarc-ressources';
+    if (-f "$Conf::Conf{'etc'}/$vr/mhonarc-ressources") {
+        push @templates, "$Conf::Conf{'etc'}/$vr/mhonarc-ressources";
     }
 
     ## Create_list_templates
-    if (-d $robot_etc . '/create_list_templates') {
-        foreach my $dir (<$robot_etc/create_list_templates/*>) {
-            next unless -d $dir;
+    if (-d $Conf::Conf{'etc'} . '/' . $vr . '/create_list_templates') {
+        foreach my $dir (<$Conf::Conf{'etc'}/$vr/create_list_templates/*>) {
+            next unless (-d $dir);
             push @directories, $dir;
         }
     }
 
     ## Search in V. Robot Lists
-    my $listOfLists = Sympa::List::get_lists($robot);
+    my $listOfLists = Sympa::List::get_lists($vr);
     foreach my $list (@$listOfLists) {
-        push @directories, $list->dir;
 
-        if (-d $list->dir . '/templates') {
-            push @directories, $list->dir . '/templates';
+        push @directories, $list->{'dir'};
+
+        if (-d "$list->{'dir'}/templates") {
+            push @directories, "$list->{'dir'}/templates";
         }
-        if (-d $list->dir . '/wws_templates') {
-            push @directories, $list->dir . '/wws_templates';
+        if (-d "$list->{'dir'}/wws_templates") {
+            push @directories, "$list->{'dir'}/wws_templates";
         }
     }
 }
 
 ## List .tpl files
 foreach my $d (@directories) {
+
     unless (opendir DIR, $d) {
         printf STDERR "Error: Cannot read %s directory : %s\n", $d, $ERRNO;
         next;
@@ -164,8 +163,7 @@ foreach my $tpl (@templates) {
     if ($tpl =~ /mhonarc\-ressources$/) {
         rename $tpl, "$tpl.incompatible";
         printf STDERR
-            "File %s could not be translated to TT2 ; it has been renamed %s.incompatible. You should customize a standard mhonarc-ressourses.tt2 file\n",
-            $tpl, $tpl;
+            "File $tpl could not be translated to TT2 ; it has been renamed $tpl.incompatible. You should customize a standard mhonarc-ressourses.tt2 file\n";
         next;
     }
 
@@ -214,9 +212,10 @@ foreach my $tpl (@templates) {
 
     ## Create directory if required
     unless (-d $dest_path) {
-        print "Creating $dest_path directory\n";
+        printf "Creating $dest_path directory\n";
         unless (my_mkdir($dest_path)) {
-            print STDERR "Error : Cannot create $dest_path directory : $ERRNO\n";
+            printf STDERR "Error : Cannot create %s directory: %s\n",
+                $dest_path, $ERRNO;
             next;
         }
         unless (
@@ -227,8 +226,8 @@ foreach my $tpl (@templates) {
                 mode  => 0755,
             )
             ) {
-            $logger->do_log(Sympa::Logger::ERR, 'Unable to set rights on %s',
-                Sympa::Site->db_name);
+            Log::do_log('err', 'Unable to set rights on %s',
+                $Conf::Conf{'db_name'});
             next;
         }
     }
@@ -240,7 +239,7 @@ foreach my $tpl (@templates) {
 
     ## Rename old files to .converted
     unless (rename $tpl, "$tpl.converted") {
-        printf STDERR "Error : failed to rename %s to %s.converted : %s\n",
+        printf STDERR "Error : failed to rename %s to %s.converted: %s\n",
             $tpl, $tpl, $ERRNO;
         next;
     }
@@ -274,7 +273,7 @@ sub convert {
     close TT2 if ($out_file);
     close TPL;
 
-    print "Template file $in_file has been converted to $out_file\n";
+    printf "Template file $in_file has been converted to $out_file\n";
 
     unless (
         Sympa::Tools::File::set_file_rights(
@@ -283,8 +282,8 @@ sub convert {
             group => Sympa::Constants::GROUP
         )
         ) {
-        $logger->do_log(Sympa::Logger::ERR, 'Unable to set rights on %s',
-            $Sympa::Conf::Conf{'db_name'});
+        Log::do_log('err', 'Unable to set rights on %s',
+            $Conf::Conf{'db_name'});
         return undef;
     }
 }
@@ -303,14 +302,14 @@ sub my_mkdir {
 
         unless (-d $root_path) {
             unless (mkdir($root_path, 0777)) {
-                printf STDERR "Error : Cannot create directory %s : %s\n",
+                printf STDERR "Error : Cannot create directory %s: %s\n",
                     $root_path, $ERRNO;
                 return undef;
             }
         }
 
         unless (mkdir($path, 0777)) {
-            printf STDERR "Error : Cannot create directory %s : %s\n", $path,
+            printf STDERR "Error : Cannot create directory %s: %s\n", $path,
                 $ERRNO;
             return undef;
         }

@@ -46,7 +46,6 @@ lang="[%tpl_lang_lang%]" xml:lang="[%tpl_lang_lang%]"
         value="[%lg.key%]" [% IF tpl_lang_lang == lg.key %]selected[% END %]>[%lg.value.complete%]</option>
 	[%END%]
 	</select><br />
-[% list %]
   <label for="list_out">[%|loc%]Enter list name: [%END%] </label><input id="list_out" type="text" name="list_out" size="20" value="[% list %]" /><br />
 
     <input type="hidden" name="template_name" value="[% template_name %]" />

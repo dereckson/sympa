@@ -30,7 +30,6 @@ pidfilepath="/dist/sympa/run"
 
 sympadir="--sbindir--"
 sympaconf="--CONFIG--"
-wwsympaconf="--WWSCONFIG--"
 
 start_wait=3
 stop_wait=5
@@ -84,10 +83,6 @@ case "$1" in
 		echo "XXX $sympaconf not found!"
 		exit 2
 	fi
-	if [ ! -f $wwsympaconf ]; then
-		echo "XXX $wwsympadir not found!"
-		exit 2
-	fi
 
 	if [ ! -f $pidfilepath/sympa ]; then
 		echo "Starting Sympa subsystem: "
@@ -111,7 +106,8 @@ case "$1" in
 	echo "Stopping Sympa subsystem: "
 	if [ -f $pidfilepath/sympa ]; then
 		kill `cat $pidfilepath/sympa.pid`
-		kill `cat $pidfilepath/sympa-distribution.pid`
+		kill `cat $pidfilepath/sympa-creation.pid`
+		kill `cat $pidfilepath/sympa-distribute.pid`
 		kill `cat $pidfilepath/archived.pid`
 		kill `cat $pidfilepath/bounced.pid`
 		kill `cat $pidfilepath/task_manager.pid`

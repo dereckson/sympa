@@ -15,16 +15,17 @@ msgstr ""
 "Project-Id-Version: sympa\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2007-11-13 14:50+0200\n"
-"PO-Revision-Date: 2013-01-08 12:33+0200\n"
-"Last-Translator: gotsikas <gotsikas@yahoo.com>\n"
+"PO-Revision-Date: 2014-07-30 13:46+0000\n"
+"Last-Translator: vtzimourtos <vtzimourtos@it.auth.gr>\n"
 "Language-Team: Greek, Modern (1453-) <el@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: el\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"X-Generator: Pootle 2.5.1\n"
 "X-Rosetta-Version: 0.1\n"
+"X-POOTLE-MTIME: 1406728016.000000\n"
 
 #: default/web_tt2/help_admin.tt2:3
 msgid "Mailing lists - Owner and moderator guide"
@@ -1613,7 +1614,7 @@ msgstr ""
 "Υποσέλιδο μηνύματος : ίδιο με <em>Κεφαλίδα μηνύματος,</em> αλλά "
 "επισυναπτόμενο στο τέλος του μηνύματος."
 
-#: default/web_tt2/help_editlist.tt2:184 default/web_tt2/help_editlist.tt2:6
+#: default/web_tt2/help_editlist.tt2:6
 msgid ":"
 msgstr ""
 
@@ -4930,13 +4931,15 @@ msgstr "Τεκμηρίωση συνδρομητή, ιδιοκτήτη και σ�
 
 #: default/web_tt2/help.tt2:13
 msgid "In this documentation, you will find:"
-msgstr "Σε αυτό το κείμενο, θα βρείτε:"
+msgstr "Σε αυτό την τεκμηρίωση θα βρείτε:"
 
 #. (path_cgi)
 #: default/web_tt2/help.tt2:15
 msgid ""
 "a <a href=\"%1/help/introduction\">general introduction</a> to mailing lists;"
-msgstr "μία <a href=\"%1/help/introduction\">γενική εισαγωγή</a στις λίστες."
+msgstr ""
+"μία <a href=\"%1/help/introduction\">γενική εισαγωγή</a στις λίστες "
+"ηλεκτρονικού ταχυδρομείου."
 
 #. (path_cgi)
 #: default/web_tt2/help.tt2:16
@@ -4949,7 +4952,7 @@ msgstr ""
 msgid ""
 "an <a href=\"%1/help/admin\">administrator guide</a> about the use of Sympa."
 msgstr ""
-"ένας <a href=\"%1/help/admin\">οδηγός διαχειριστή για τη χρήση του Sympa."
+"ένας <a href=\"%1/help/admin\">οδηγός διαχειριστή</a> για τη χρήση του Sympa."
 
 #. (path_cgi)
 #: default/web_tt2/help.tt2:20

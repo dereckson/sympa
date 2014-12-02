@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,27 +22,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-=encoding utf-8
-
-=head1 NAME
-
-Sympa::Datasource - FIXME
-
-=head1 DESCRIPTION
-
-FIXME
-
-=cut
-
 package Sympa::Datasource;
 
 use strict;
+use warnings;
+use Digest::MD5 qw();
 
-use Carp qw(croak);
-use Digest::MD5;
-
-use Sympa::Logger;
-use Sympa::Tools;
+use Log;
+use Sympa::Regexps;
 
 ############################################################
 #  constructor
@@ -58,9 +46,8 @@ use Sympa::Tools;
 #
 ##############################################################
 sub new {
-
     my ($pkg, $param) = @_;
-    $main::logger->do_log(Sympa::Logger::DEBUG, '');
+    Log::do_log('debug', '');
     my $self = $param;
     ## Bless Message object
     bless $self, $pkg;
@@ -70,9 +57,8 @@ sub new {
 # Returns a unique ID for an include datasource
 sub _get_datasource_id {
     my ($source) = shift;
-    $main::logger->do_log(Sympa::Logger::DEBUG2,
-        "Getting datasource id for source '%s'", $source);
-    if (ref($source) eq 'Sympa::Datasource') {
+    Log::do_log('debug2', 'Getting datasource id for source "%s"', $source);
+    if (ref($source) eq 'Datasource') {
         $source = shift;
     }
 
@@ -101,13 +87,12 @@ sub is_allowed_to_sync {
     my $ranges = $self->{'nosync_time_ranges'};
     $ranges =~ s/^\s+//;
     $ranges =~ s/\s+$//;
-    my $rsre = Sympa::Tools::get_regexp('time_ranges');
+    my $rsre = Sympa::Regexps::time_ranges();
     return 1 unless ($ranges =~ /^$rsre$/);
 
-    $main::logger->do_log(Sympa::Logger::DEBUG,
-        "Checking whether sync is allowed at current time");
+    Log::do_log('debug', "Checking whether sync is allowed at current time");
 
-    my (undef, $min, $hour) = localtime(time);
+    my ($sec, $min, $hour) = localtime(time);
     my $now = 60 * int($hour) + int($min);
 
     foreach my $range (split(/\s+/, $ranges)) {
@@ -119,7 +104,7 @@ sub is_allowed_to_sync {
         my $end   = 60 * int($3) + int($4);
         $end += 24 * 60 if ($end < $start);
 
-        $main::logger->do_log(Sympa::Logger::DEBUG,
+        Log::do_log('debug',
                   "Checking for range from "
                 . sprintf('%02d', $start / 60) . "h"
                 . sprintf('%02d', $start % 60) . " to "
@@ -129,14 +114,14 @@ sub is_allowed_to_sync {
         next if ($start == $end);
 
         if ($now >= $start && $now <= $end) {
-            $main::logger->do_log(Sympa::Logger::DEBUG, "Failed, sync not allowed.");
+            Log::do_log('debug', 'Failed, sync not allowed');
             return 0;
         }
 
-        $main::logger->do_log(Sympa::Logger::DEBUG, "Pass ...");
+        Log::do_log('debug', "Pass ...");
     }
 
-    $main::logger->do_log(Sympa::Logger::DEBUG, "Sync allowed");
+    Log::do_log('debug', "Sync allowed");
     return 1;
 }
 
