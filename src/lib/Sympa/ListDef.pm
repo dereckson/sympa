@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,8 +25,9 @@
 package Sympa::ListDef;
 
 use strict;
+use warnings;
 
-use Sympa::Tools;
+use Sympa::Regexps;
 
 ## List parameters defaults
 our %default = (
@@ -40,7 +42,7 @@ our @param_order =
     default_user_options msg_topic msg_topic_keywords_apply_on msg_topic_tagging reply_to_header reply_to forced_reply_to *
     verp_rate tracking welcome_return_path remind_return_path user_data_source include_file include_remote_file
     include_list include_remote_sympa_list include_ldap_query
-    include_ldap_2level_query include_sql_query include_admin ttl distribution_ttl creation update
+    include_ldap_2level_query include_sql_query include_voot_group include_admin ttl distribution_ttl creation update
     status serial custom_attribute include_ldap_ca include_ldap_2level_ca include_sql_ca);
 
 ## List parameters aliases
@@ -56,41 +58,6 @@ my %alias = (
     'max-size'        => 'max_size'
 );
 
-##############################################################
-## This hash COMPLETELY defines ALL list parameters
-## It is then used to load, save, view, edit list config files
-##############################################################
-## List parameters format accepts the following keywords :
-## format :      Regexp aplied to the configuration file entry;
-##               some common regexps are defined in %regexp
-## file_format : Config file format of the parameter might not be
-##               the same in memory
-## split_char:   Character used to separate multiple parameters
-## length :      Length of a scalar variable ; used in web forms
-## scenario :    tells that the parameter is a scenario, providing its name
-## default :     Default value for the param ; may be a configuration
-## parameter (conf)
-## synonym :     Defines synonyms for parameter values (for compatibility
-## reasons)
-## gettext_unit :Unit of the parameter ; this is used in web forms and refers
-## to translated
-##               strings in PO catalogs
-## occurrence :  Occurrence of the parameter in the config file
-##               possible values: 0-1 | 1 | 0-n | 1-n
-##               example : a list may have multiple owner
-## gettext_id :    Title reference in NLS catalogues
-## description : deescription text of a parameter
-## group :       Group of parameters
-## obsolete :    Obsolete parameter ; should not be displayed
-##               nor saved
-## obsolete_values : defined obsolete values for a parameter
-##                   these values should not get proposed on the web interface
-##                   edition form
-## order :       Order of parameters within paragraph
-## internal :    Indicates that the parameter is an internal parameter
-##               that should always be saved in the config file
-## field_type :  used to select passwords web input type
-###############################################################
 our %pinfo = (
 
     ### Global definition page ###
@@ -120,7 +87,7 @@ our %pinfo = (
             'email' => {
                 'order'      => 1,
                 'gettext_id' => "email address",
-                'format'     => Sympa::Tools::get_regexp('email'),
+                'format'     => Sympa::Regexps::email(),
                 'occurrence' => '1',
                 'length'     => 30
             },
@@ -203,7 +170,7 @@ our %pinfo = (
             'email' => {
                 'order'      => 1,
                 'gettext_id' => "email address",
-                'format'     => Sympa::Tools::get_regexp('email'),
+                'format'     => Sympa::Regexps::email(),
                 'occurrence' => '1',
                 'length'     => 30
             },
@@ -278,7 +245,7 @@ our %pinfo = (
     'host' => {
         'group'      => 'description',
         'gettext_id' => "Internet domain",
-        'format'     => Sympa::Tools::get_regexp('host'),
+        'format'     => Sympa::Regexps::host(),
         'default'    => {'conf' => 'host'},
         'length'     => 20
     },
@@ -286,15 +253,15 @@ our %pinfo = (
     'lang' => {
         'group'      => 'description',
         'gettext_id' => "Language of the list",
-        'format'      => [],      ## $robot->supported_languages called later
+        'format' => [],    ## tools::get_supported_languages() called later
         'file_format' => '\w+',
-        'default' => {'conf' => 'lang'}
+        'default'     => {'conf' => 'lang'}
     },
 
     'family_name' => {
         'group'      => 'description',
         'gettext_id' => 'Family name',
-        'format'     => Sympa::Tools::get_regexp('family_name'),
+        'format'     => Sympa::Regexps::family_name(),
         'occurrence' => '0-1',
         'internal'   => 1
     },
@@ -486,7 +453,7 @@ our %pinfo = (
             'other_email' => {
                 'order'      => 2,
                 'gettext_id' => "other email address",
-                'format'     => Sympa::Tools::get_regexp('email')
+                'format'     => Sympa::Regexps::email()
             },
             'apply' => {
                 'order'      => 3,
@@ -536,7 +503,7 @@ our %pinfo = (
 
     'merge_feature' => {
         'group'      => 'sending',
-        'gettext_id' => "Allow message personalization",
+        'gettext_id' => "Allow message personnalization",
         'format'     => ['on', 'off'],
         'occurrence' => '0-1',
         'default'    => {'conf' => 'merge_feature'}
@@ -576,6 +543,23 @@ our %pinfo = (
         'default'    => {'conf' => 'rfc2369_header_fields'},
         'occurrence' => '0-n',
         'split_char' => ','
+    },
+
+    'message_hook' => {
+        'group'      => 'sending',
+        'gettext_id' => 'Hook modules for message processing',
+        'format'     => {
+            'pre_distribute' => {
+                'order'      => 1,
+                'gettext_id' => 'A hook on the messages before distribution',
+                'format'     => '(::|\w)+',
+            },
+            'post_archive' => {
+                'order'      => 2,
+                'gettext_id' => 'A hook on the messages just after archiving',
+                'format'     => '(::|\w)+',
+            },
+        },
     },
 
     ### Command page ###
@@ -816,13 +800,13 @@ our %pinfo = (
                 'default' =>
                     {'conf' => 'tracking_delivery_status_notification'}
             },
-            'message_delivery_notification' => {
+            'message_disposition_notification' => {
                 'order' => 2,
                 'gettext_id' =>
-                    "tracking message by message delivery notification",
+                    "tracking message by message disposition notification",
                 'format' => ['on', 'on_demand', 'off'],
                 'default' =>
-                    {'conf' => 'tracking_message_delivery_notification'}
+                    {'conf' => 'tracking_message_disposition_notification'}
             },
             'tracking' => {
                 'order'      => 3,
@@ -929,8 +913,8 @@ our %pinfo = (
     'include_list' => {
         'group'      => 'data_source',
         'gettext_id' => "List inclusion",
-        'format'     => Sympa::Tools::get_regexp('listname') . '(\@'
-            . Sympa::Tools::get_regexp('host') . ')?',
+        'format'     => Sympa::Regexps::listname() . '(\@'
+            . Sympa::Regexps::host() . ')?(\s+filter\s+.+)?',
         'occurrence' => '0-n'
     },
 
@@ -947,7 +931,7 @@ our %pinfo = (
             'host' => {
                 'order'      => 1.5,
                 'gettext_id' => "remote host",
-                'format'     => Sympa::Tools::get_regexp('host'),
+                'format'     => Sympa::Regexps::host(),
                 'occurrence' => '1'
             },
             'port' => {
@@ -988,7 +972,7 @@ our %pinfo = (
             'host' => {
                 'order'      => 2,
                 'gettext_id' => "remote host",
-                'format'     => Sympa::Tools::get_regexp('multiple_host_with_port'),
+                'format'     => Sympa::Regexps::multiple_host_with_port(),
                 'occurrence' => '1'
             },
             'port' => {
@@ -1056,9 +1040,9 @@ our %pinfo = (
             'attrs' => {
                 'order'      => 8,
                 'gettext_id' => "extracted attribute",
-                'format'  => '[-.\w]+(;[-\w]+)*(\s*,\s*[-.\w]+(;[-\w]+)*)?',
-                'default' => 'mail',
-                'length'  => 50
+                'format'     => '\w+(\s*,\s*\w+)?',
+                'default'    => 'mail',
+                'length'     => 50
             },
             'select' => {
                 'order'      => 9,
@@ -1069,7 +1053,7 @@ our %pinfo = (
             'nosync_time_ranges' => {
                 'order'      => 10,
                 'gettext_id' => "Time ranges when inclusion is not allowed",
-                'format'     => Sympa::Tools::get_regexp('time_ranges'),
+                'format'     => Sympa::Regexps::time_ranges(),
                 'occurrence' => '0-1'
             }
         },
@@ -1089,7 +1073,7 @@ our %pinfo = (
             'host' => {
                 'order'      => 2,
                 'gettext_id' => "remote host",
-                'format'     => Sympa::Tools::get_regexp('multiple_host_with_port'),
+                'format'     => Sympa::Regexps::multiple_host_with_port(),
                 'occurrence' => '1'
             },
             'port' => {
@@ -1157,7 +1141,7 @@ our %pinfo = (
             'attrs1' => {
                 'order'      => 8,
                 'gettext_id' => "first-level extracted attribute",
-                'format'     => '[-.\w]+(;[-\w]+)*',
+                'format'     => '\w+',
                 'length'     => 15
             },
             'select1' => {
@@ -1201,9 +1185,9 @@ our %pinfo = (
             'attrs2' => {
                 'order'      => 15,
                 'gettext_id' => "second-level extracted attribute",
-                'format'  => '[-.\w]+(;[-\w]+)*(\s*,\s*[-.\w]+(;[-\w]+)*)?',
-                'default' => 'mail',
-                'length'  => 50
+                'format'     => '\w+(\s*,\s*\w+)?',
+                'default'    => 'mail',
+                'length'     => 50
             },
             'select2' => {
                 'order'      => 16,
@@ -1221,7 +1205,7 @@ our %pinfo = (
             'nosync_time_ranges' => {
                 'order'      => 18,
                 'gettext_id' => "Time ranges when inclusion is not allowed",
-                'format'     => Sympa::Tools::get_regexp('time_ranges'),
+                'format'     => Sympa::Regexps::time_ranges(),
                 'occurrence' => '0-1'
             }
         },
@@ -1247,8 +1231,9 @@ our %pinfo = (
             'host' => {
                 'order'      => 2,
                 'gettext_id' => "remote host",
-                'format'     => Sympa::Tools::get_regexp('host'),
-                'occurrence' => '1'
+                'format'     => Sympa::Regexps::host(),
+                # Not required for ODBC
+                # 'occurrence' => '1'
             },
             'db_port' => {
                 'order'      => 3,
@@ -1287,7 +1272,7 @@ our %pinfo = (
             'sql_query' => {
                 'order'      => 8,
                 'gettext_id' => "SQL query",
-                'format'     => Sympa::Tools::get_regexp('sql_query'),
+                'format'     => Sympa::Regexps::sql_query(),
                 'occurrence' => '1',
                 'length'     => 50
             },
@@ -1300,8 +1285,40 @@ our %pinfo = (
             'nosync_time_ranges' => {
                 'order'      => 10,
                 'gettext_id' => "Time ranges when inclusion is not allowed",
-                'format'     => Sympa::Tools::get_regexp('time_ranges'),
+                'format'     => Sympa::Regexps::time_ranges(),
                 'occurrence' => '0-1'
+            }
+        },
+        'occurrence' => '0-n'
+    },
+
+    'include_voot_group' => {
+        'group'      => 'data_source',
+        'gettext_id' => "VOOT group inclusion",
+        'format'     => {
+            'name' => {
+                'order'      => 1,
+                'gettext_id' => "short name for this source",
+                'format'     => '.+',
+                'length'     => 15
+            },
+            'user' => {
+                'order'      => 2,
+                'gettext_id' => "user",
+                'format'     => '\S+',
+                'occurrence' => '1'
+            },
+            'provider' => {
+                'order'      => 3,
+                'gettext_id' => "provider",
+                'format'     => '\S+',
+                'occurrence' => '1'
+            },
+            'group' => {
+                'order'      => 4,
+                'gettext_id' => "group",
+                'format'     => '\S+',
+                'occurrence' => '1'
             }
         },
         'occurrence' => '0-n'
@@ -1337,7 +1354,7 @@ our %pinfo = (
             'host' => {
                 'order'      => 2,
                 'gettext_id' => "remote host",
-                'format'     => Sympa::Tools::get_regexp('multiple_host_with_port'),
+                'format'     => Sympa::Regexps::multiple_host_with_port(),
                 'occurrence' => '1'
             },
             'port' => {
@@ -1405,7 +1422,7 @@ our %pinfo = (
             'attrs' => {
                 'order'      => 8,
                 'gettext_id' => "extracted attribute",
-                'format'     => '[-.\w]+(;[-\w]+)*',
+                'format'     => '\w+',
                 'default'    => 'mail',
                 'length'     => 15
             },
@@ -1424,7 +1441,7 @@ our %pinfo = (
             'nosync_time_ranges' => {
                 'order'      => 11,
                 'gettext_id' => "Time ranges when inclusion is not allowed",
-                'format'     => Sympa::Tools::get_regexp('time_ranges'),
+                'format'     => Sympa::Regexps::time_ranges(),
                 'occurrence' => '0-1'
             }
         },
@@ -1444,7 +1461,7 @@ our %pinfo = (
             'host' => {
                 'order'      => 1,
                 'gettext_id' => "remote host",
-                'format'     => Sympa::Tools::get_regexp('multiple_host_with_port'),
+                'format'     => Sympa::Regexps::multiple_host_with_port(),
                 'occurrence' => '1'
             },
             'port' => {
@@ -1512,7 +1529,7 @@ our %pinfo = (
             'attrs1' => {
                 'order'      => 8,
                 'gettext_id' => "first-level extracted attribute",
-                'format'     => '[-.\w]+(;[-\w]+)*',
+                'format'     => '\w+',
                 'length'     => 15
             },
             'select1' => {
@@ -1556,7 +1573,7 @@ our %pinfo = (
             'attrs2' => {
                 'order'      => 15,
                 'gettext_id' => "second-level extracted attribute",
-                'format'     => '[-.\w]+(;[-\w]+)*',
+                'format'     => '\w+',
                 'default'    => 'mail',
                 'length'     => 15
             },
@@ -1582,7 +1599,7 @@ our %pinfo = (
             'nosync_time_ranges' => {
                 'order'      => 19,
                 'gettext_id' => "Time ranges when inclusion is not allowed",
-                'format'     => Sympa::Tools::get_regexp('time_ranges'),
+                'format'     => Sympa::Regexps::time_ranges(),
                 'occurrence' => '0-1'
             }
         },
@@ -1608,7 +1625,7 @@ our %pinfo = (
             'host' => {
                 'order'      => 2,
                 'gettext_id' => "remote host",
-                'format'     => Sympa::Tools::get_regexp('host'),
+                'format'     => Sympa::Regexps::host(),
                 'occurrence' => '1'
             },
             'db_port' => {
@@ -1648,7 +1665,7 @@ our %pinfo = (
             'sql_query' => {
                 'order'      => 8,
                 'gettext_id' => "SQL query",
-                'format'     => Sympa::Tools::get_regexp('sql_query'),
+                'format'     => Sympa::Regexps::sql_query(),
                 'occurrence' => '1',
                 'length'     => 50
             },
@@ -1667,7 +1684,7 @@ our %pinfo = (
             'nosync_time_ranges' => {
                 'order'      => 11,
                 'gettext_id' => "Time ranges when inclusion is not allowed",
-                'format'     => Sympa::Tools::get_regexp('time_ranges'),
+                'format'     => Sympa::Regexps::time_ranges(),
                 'occurrence' => '0-1'
             }
         },
@@ -1696,7 +1713,7 @@ our %pinfo = (
                 'order'      => 1,
                 'gettext_id' => "File path for list DKIM private key",
                 'gettext_comment' =>
-                    "The file must contain a RSA PEM encoded private key",
+                    "The file must contain a RSA pem encoded private key",
                 'format'     => '\S+',
                 'occurrence' => '0-1',
                 'default'    => {'conf' => 'dkim_private_key_path'}
@@ -1726,7 +1743,7 @@ our %pinfo = (
                 'gettext_id' =>
                     'DKIM "d=" tag, you should probably use the default value',
                 'gettext_comment' =>
-                    'The DKIM "d=" tag, is the domain of the signing entity. the list domain MUST must be included in the "d=" domain',
+                    'The DKIM "d=" tag, is the domain of the signing entity. the list domain MUST be included in the "d=" domain',
                 'format'     => '\S+',
                 'occurrence' => '0-1',
                 'default'    => {'conf' => 'dkim_signer_domain'}
@@ -1736,7 +1753,7 @@ our %pinfo = (
                 'gettext_id' =>
                     'DKIM "i=" tag, you should probably leave this parameter empty',
                 'gettext_comment' =>
-                    'DKIM "i=" tag, you should probably not use this parameter, as recommended by RFC 4871, default for list broadcast messages is i=<listname>-request@<domain>',
+                    'DKIM "i=" tag, you should probably not use this parameter, as recommended by RFC 4871, default for list brodcasted messages is i=<listname>-request@<domain>',
                 'format'     => '\S+',
                 'occurrence' => '0-1'
             },
@@ -1760,6 +1777,68 @@ our %pinfo = (
         'default'    => {'conf' => 'dkim_signature_apply_on'}
     },
 
+    'dmarc_protection' => {
+        'format' => {
+            'mode' => {
+                'format' => [
+                    'none',           'all',
+                    'dkim_signature', 'dmarc_reject',
+                    'dmarc_any',      'dmarc_quarantine',
+                    'domain_regex'
+                ],
+                'synonym' => {
+                    'dkim'         => 'dkim_signature',
+                    'dkim_exists'  => 'dkim_signature',
+                    'dmarc_exists' => 'dmarc_any',
+                    'domain'       => 'domain_regex',
+                    'domain_match' => 'domain_regex',
+                },
+                'gettext_id' => "Protection modes",
+                'split_char' => ',',
+                'occurrence' => '0-n',
+                'default'    => {'conf' => 'dmarc_protection_mode'},
+                'gettext_comment' =>
+                    'Select one or more operation modes.  "Domain matching regular expression" (domain_regex) matches the specified Domain regexp; "DKIM signature exists" (dkim_signature) matches any message with a DKIM signature header; "DMARC policy ..." (dmarc_*) matches messages from sender domains with a DMARC policy as given; "all" (all) matches all messages.',
+                'order' => 1
+            },
+            'domain_regex' => {
+                'format'          => '.+',
+                'gettext_id'      => "Match domain regexp",
+                'occurrence'      => '0-1',
+                'gettext_comment' => 'Regexp match pattern for From domain',
+                'order'           => 2,
+                'default' => {'conf' => 'dmarc_protection_domain_regex'},
+            },
+            'other_email' => {
+                'format'     => '.+',
+                'gettext_id' => "New From address",
+                'occurrence' => '0-1',
+                'gettext_comment' =>
+                    'This is the email address to use when modifying the From header.  It defaults to the list address.  This is similar to Anonymisation but preserves the original sender details in the From address phrase.',
+                'order'   => 3,
+                'default' => {'conf' => 'dmarc_protection_other_email'},
+            },
+            'phrase' => {
+                'format' => [
+                    'display_name',  'name_and_email',
+                    'name_via_list', 'name_email_via_list'
+                ],
+                'synonym' => {'name' => 'display_name'},
+                'default' => {'conf' => 'dmarc_protection_phrase'},
+                'gettext_id' => "New From name format",
+                'occurrence' => '0-1',
+                'gettext_comment' =>
+                    'This is the format to be used for the sender name part of the new From header.',
+                'order' => 4,
+            },
+        },
+        'gettext_id' => "DMARC Protection",
+        'group'      => 'dkim',
+        'gettext_comment' =>
+            "Parameters to define how to manage From address processing to avoid some domains' excessive DMARC protection",
+        'occurrence' => '0-1',
+    },
+
     ### Others page ###
 
     'account' => {
@@ -1767,7 +1846,7 @@ our %pinfo = (
         'gettext_id' => "Account",
         'format'     => '\S+',
         'length'     => 10,
-        'obsolete'   => 1
+        'obsolete'   => 1,
     },
 
     'clean_delay_queuemod' => {
@@ -1800,7 +1879,7 @@ our %pinfo = (
             'value' => {
                 'order'      => 2,
                 'gettext_id' => 'var value',
-                'format'     => '\S+',
+                'format'     => '.+',
                 'occurrence' => '1',
             }
         },
@@ -1820,7 +1899,7 @@ our %pinfo = (
             'email' => {
                 'order'      => 1,
                 'gettext_id' => 'who ran the instantiation',
-                'format'     => 'listmaster|' . Sympa::Tools::get_regexp('email'),
+                'format'     => 'listmaster|' . Sympa::Regexps::email(),
                 'occurrence' => '0-1'
             },
             'date' => {
@@ -1888,7 +1967,7 @@ our %pinfo = (
             'email' => {
                 'order'      => 1,
                 'gettext_id' => "who created the list",
-                'format'     => 'listmaster|' . Sympa::Tools::get_regexp('email'),
+                'format'     => 'listmaster|' . Sympa::Regexps::email(),
                 'occurrence' => '1'
             }
         },
@@ -1904,7 +1983,7 @@ our %pinfo = (
                 'order'      => 1,
                 'gettext_id' => 'who updated the config',
                 'format'     => '(listmaster|automatic|'
-                    . Sympa::Tools::get_regexp('email') . ')',
+                    . Sympa::Regexps::email() . ')',
                 'occurrence' => '0-1',
                 'length'     => 30
             },
@@ -1990,11 +2069,10 @@ our %pinfo = (
     }
 );
 
-## Apply defaults to parameters definition (%pinfo)
-# XXX MO: to arrange this via import() is a very bad idea!
-sub cleanup($$);
+_apply_defaults();
 
-sub import {
+## Apply defaults to parameters definition (%pinfo)
+sub _apply_defaults {
     return if exists $default{'order'};    # already loaded
 
     ## Parameter order
@@ -2002,7 +2080,7 @@ sub import {
         if ($param_order[$index] eq '*') {
             $default{'order'} = $index;
         } else {
-            $pinfo{$param_order[$index]}->{'order'} = $index;
+            $pinfo{$param_order[$index]}{'order'} = $index;
         }
     }
 
@@ -2012,39 +2090,43 @@ sub import {
     }
 }
 
-sub cleanup($$) {
-    my ($p, $v) = @_;
+sub cleanup {
+    my $p = shift;
+    my $v = shift;
 
     ## Apply defaults to %pinfo
     foreach my $d (keys %default) {
-        $v->{$d} = $default{$d} unless defined $v->{$d};
+        unless (defined $v->{$d}) {
+            $v->{$d} = $default{$d};
+        }
     }
 
     ## Scenario format
     if ($v->{'scenario'}) {
-        $v->{'format'}  = Sympa::Tools::get_regexp('scenario');
+        $v->{'format'}  = Sympa::Regexps::scenario();
         $v->{'default'} = 'default';
     }
 
     ## Task format
     if ($v->{'task'}) {
-        $v->{'format'} = Sympa::Tools::get_regexp('task');
+        $v->{'format'} = Sympa::Regexps::task();
     }
 
     ## Datasource format
     if ($v->{'datasource'}) {
-        $v->{'format'} = Sympa::Tools::get_regexp('datasource');
+        $v->{'format'} = Sympa::Regexps::datasource();
     }
 
     ## Enumeration
-    if (ref $v->{'format'} eq 'ARRAY') {
+    if (ref($v->{'format'}) eq 'ARRAY') {
         $v->{'file_format'} ||= join '|', @{$v->{'format'}};
     }
 
     ## Set 'format' as default for 'file_format'
     $v->{'file_format'} ||= $v->{'format'};
 
-    if ($v->{'occurrence'} =~ /n$/ && $v->{'split_char'}) {
+    if (($v->{'occurrence'} =~ /n$/)
+        && $v->{'split_char'}) {
         my $format = $v->{'file_format'};
         my $char   = $v->{'split_char'};
         $v->{'file_format'} = "($format)*(\\s*$char\\s*($format))*";
@@ -2053,7 +2135,7 @@ sub cleanup($$) {
     ref $v->{'format'} eq 'HASH' && ref $v->{'file_format'} eq 'HASH'
         or return;
 
-    ## Parameter is a Paragraph
+    ## Parameter is a Paragraph)
     foreach my $k (keys %{$v->{'format'}}) {
         ## Defaults
         foreach my $d (keys %default) {
@@ -2063,22 +2145,23 @@ sub cleanup($$) {
         }
 
         ## Scenario format
-        if (ref($v->{'format'}{$k}) && $v->{'format'}{$k}{'scenario'}) {
-            $v->{'format'}{$k}{'format'}  = Sympa::Tools::get_regexp('scenario');
+        if (ref($v->{'format'}{$k})
+            && $v->{'format'}{$k}{'scenario'}) {
+            $v->{'format'}{$k}{'format'}  = Sympa::Regexps::scenario();
             $v->{'format'}{$k}{'default'} = 'default'
-                unless $p eq 'web_archive' && $k eq 'access';
+                unless (($p eq 'web_archive') && ($k eq 'access'));
         }
 
         ## Task format
         if (ref($v->{'format'}{$k})
-            and $v->{'format'}{$k}{'task'}) {
-            $v->{'format'}{$k}{'format'} = Sympa::Tools::get_regexp('task');
+            && $v->{'format'}{$k}{'task'}) {
+            $v->{'format'}{$k}{'format'} = Sympa::Regexps::task();
         }
 
         ## Datasource format
         if (ref($v->{'format'}{$k})
-            and $v->{'format'}{$k}{'datasource'}) {
-            $v->{'format'}{$k}{'format'} = Sympa::Tools::get_regexp('datasource');
+            && $v->{'format'}{$k}{'datasource'}) {
+            $v->{'format'}{$k}{'format'} = Sympa::Regexps::datasource();
         }
 
         ## Enumeration
@@ -2087,7 +2170,7 @@ sub cleanup($$) {
                 @{$v->{'format'}{$k}{'format'}};
         }
 
-        if (   $v->{'file_format'}{$k}{'occurrence'} =~ /n$/
+        if (($v->{'file_format'}{$k}{'occurrence'} =~ /n$/)
             && $v->{'file_format'}{$k}{'split_char'}) {
             my $format = $v->{'file_format'}{$k}{'file_format'};
             my $char   = $v->{'file_format'}{$k}{'split_char'};
@@ -2108,3 +2191,124 @@ sub cleanup($$) {
 }
 
 1;
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+Sympa::ListDef - Definition of list configuration parameters
+
+=head1 DESCRIPTION
+
+This module keeps definition of configuration parameters for each list.
+
+=head2 Global variable
+
+=over
+
+=item %pinfo
+
+This hash COMPLETELY defines ALL list parameters.
+It is then used to load, save, view, edit list config files.
+
+List parameters format accepts the following keywords :
+
+=over
+
+=item format
+
+Regexp aplied to the configuration file entry;
+some common regexps are defined in L<Sympa::Regexps>.
+
+If the parameter is paragraph, value of this item is a hashref containing
+definitions of sub-parameters.
+
+=item file_format
+
+Config file format of the parameter might not be
+the same in memory.
+
+=item split_char
+
+Character used to separate multiple parameters.
+
+=item length
+
+Length of a scalar variable ; used in web forms.
+
+=item scenario
+
+Tells that the parameter is a scenario, providing its name.
+
+=item default
+
+Default value for the param ; may be a robot configuration
+parameter (conf).
+
+=item synonym
+
+Defines synonyms for parameter values (for compatibility
+reasons).
+
+=item gettext_unit
+
+Unit of the parameter ; this is used in web forms and refers
+to translated
+strings in NLS catalogs.
+
+=item occurrence
+
+Occurrence of the parameter in the config file
+possible values: C<0-1>, C<1>, C<0-n> and C<1-n>.
+Example: A list may have multiple owner.
+
+=item gettext_id
+
+Title reference in NLS catalogs.
+
+=item gettext_comment
+
+Deescription text of a parameter.
+
+=item group
+
+Group of parameters.
+
+=item obsolete
+
+Obsolete parameter ; should not be displayed
+nor saved.
+
+=item obsolete_values
+
+Defined obsolete values for a parameter.
+These values should not get proposed on the web interface
+edition form.
+
+=item order
+
+Order of parameters within paragraph.
+
+=item internal
+
+Indicates that the parameter is an internal parameter
+that should always be saved in the config file.
+
+=item field_type
+
+Used to select passwords web input type.
+
+=back
+
+=item @param_order
+
+XXX
+
+=back
+
+=head1 SEE ALSO
+
+L<config(5)>.
+
+=cut
