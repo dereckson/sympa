@@ -1,12 +1,9 @@
-# -*- indent-tabs-mode: nil; -*-
-# vim:ft=perl:et:sw=4
-# $Id$
-
-# Sympa - SYsteme de Multi-Postage Automatique
+# Sympa::Constants.pm - This module contains all installation-related variables
+# RCS Identication ; $Revision: 5768 $ ; $Date: 2009-05-21 16:23:23 +0200 (jeu. 21 mai 2009) $ 
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Sympa - SYsteme de Multi-Postage Automatique
+# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
+# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,26 +16,15 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-=encoding utf-8
-
-=head1 NAME
-
-Sympa::Constants - Definition of constants
-
-=head1 DESCRIPTION
-
-This package contains the definition of all constants, whose value is defined
-at installation time.
-
-FIXME
-
-=cut
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 package Sympa::Constants;
-
 use strict;
+
+use Exporter;
+our @ISA = qw(Exporter);
+
 
 use constant VERSION => '--VERSION--';
 use constant USER    => '--USER--';
@@ -59,7 +45,7 @@ use constant SCRIPTDIR  => '--scriptdir--';
 use constant MODULEDIR  => '--modulesdir--';
 use constant DEFAULTDIR => '--defaultdir--';
 use constant STATICDIR  => '--staticdir--';
-use constant ARCDIR     => '--arcdir--';
+use constant ARCDIR    => '--arcdir--';
 use constant BOUNCEDIR  => '--bouncedir--';
 
 1;

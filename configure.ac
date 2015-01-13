@@ -16,28 +16,82 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 AC_PREREQ(2.60)
-AC_INIT(sympa, 6.2a.33, sympa-authors@cru.fr)
-AM_INIT_AUTOMAKE([foreign -Wall -Werror 1.9 tar-pax])
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+AC_INIT(sympa, 6.0.10, sympa-authors@cru.fr)
+AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AM_PO_SUBDIRS
 
-# only define custom variables
-initdir=$sysconfdir/rc.d/init.d
-piddir=$localstatedir/run/sympa
-lockdir=$localstatedir/lock/subsys
-modulesdir=$datadir/sympa/lib
-scriptdir=$datadir/sympa/bin
-defaultdir=$datadir/sympa/default
-execcgidir=$libdir/sympa/cgi
-expldir=$localstatedir/lib/sympa/list_data
-staticdir=$localstatedir/lib/sympa/static_content
-spooldir=$localstatedir/spool/sympa
-arcdir=$localstatedir/lib/sympa/arc
-bouncedir=$localstatedir/lib/sympa/bounce
-confdir=$sysconfdir
+AC_PREFIX_DEFAULT(/home/sympa)
+
+## first initialises parameters to the standard Sympa filesystem organization
+# $prefix variable initialisation seems to be tricky
+if test "$prefix" = "NONE"; then
+   prefix=$ac_default_prefix
+fi
+
+## allow user to select FHS-compliant installation
+AC_ARG_ENABLE(
+	fhs,
+	AS_HELP_STRING(
+	[--enable-fhs],
+	[use standard FHS files and directories locations and naming (default is no)]
+	),
+	[fhs=$enableval]
+)
+
+if test "$fhs" = "yes"; then
+    # only define custom variables
+    initdir=$sysconfdir/rc.d/init.d
+    piddir=$localstatedir/run/sympa
+    lockdir=$localstatedir/lock/subsys
+    modulesdir=$datadir/sympa/lib
+    scriptdir=$datadir/sympa/bin
+    defaultdir=$datadir/sympa/default
+    mailtemplatedir=$defaultdir/mail_tt2
+    webtemplatedir=$defaultdir/web_tt2
+    execcgidir=$libdir/sympa/cgi
+    expldir=$localstatedir/lib/sympa/list_data
+    staticdir=$localstatedir/lib/sympa/static_content
+    spooldir=$localstatedir/spool/sympa
+    arcdir=$localstatedir/lib/sympa/arc
+    bouncedir=$localstatedir/lib/sympa/bounce
+    confdir=$sysconfdir
+else
+    # redefine default values for some standard variables,
+    # but only if no value was given
+    if test "$sbindir" = '${exec_prefix}/sbin'; then
+       sbindir=$prefix/bin
+    fi
+    if test "$libexecdir" = '${exec_prefix}/libexec'; then
+	libexecdir=$prefix/bin
+    fi
+    if test "$localstatedir" = '${prefix}/var'; then
+	localstatedir=/var
+    fi
+    if test "$localedir" = '${datarootdir}/locale'; then
+	localedir=$prefix/locale
+    fi
+
+    # define custom variables
+    initdir=/etc/rc.d/init.d
+    piddir=$prefix
+    lockdir=$localstatedir/lock/subsys
+    modulesdir=$prefix/bin
+    scriptdir=$prefix/bin
+    defaultdir=$prefix/default
+    mailtemplatedir=$defaultdir/mail_tt2
+    webtemplatedir=$defaultdir/web_tt2
+    execcgidir=$prefix/bin
+    expldir=$prefix/list_data
+    spooldir=$prefix/spool
+    staticdir=$prefix/static_content
+    arcdir=$prefix/arc
+    bouncedir=$prefix/bounce
+    confdir=/etc
+fi
  
 # substitute custom variables
 AC_SUBST(initdir)
@@ -46,6 +100,8 @@ AC_SUBST(lockdir)
 AC_SUBST(modulesdir)
 AC_SUBST(scriptdir)
 AC_SUBST(defaultdir)
+AC_SUBST(mailtemplatedir)
+AC_SUBST(webtemplatedir)
 AC_SUBST(execcgidir)
 AC_SUBST(expldir)
 AC_SUBST(spooldir)
@@ -69,12 +125,80 @@ AC_ARG_WITH(
 )
 
 AC_ARG_WITH(
+    etcdir,
+    AS_HELP_STRING(
+	[--with-etcdir=DIR],
+	[obsolete option, use --sysconfdir instead]
+    ),
+    [
+	AC_MSG_WARN([obsolete --with-etcdir option used])
+	sysconfdir="$withval"
+    ]
+)
+
+AC_ARG_WITH(
+    bindir,
+    AS_HELP_STRING(
+	[--with-bindir=DIR],
+	[obsolete option, those binaries are now installed in libexecdir]
+    ),
+    [AC_MSG_WARN([obsolete --with-bindir option used])]
+)
+
+AC_ARG_WITH(
+    sbindir,
+    AS_HELP_STRING(
+	[--with-sbindir=DIR],
+	[obsolete option, use --sbindir instead]
+    ),
+    [
+	AC_MSG_WARN([obsolete --with-sbindir option used])
+	sbindir="$withval"
+    ]
+)
+
+AC_ARG_WITH(
+    libexecdir,
+    AS_HELP_STRING(
+	[--with-libexecdir=DIR],
+	[obsolete option, use --libexecdir instead]
+    ),
+    [
+	AC_MSG_WARN([obsolete --with-libexecdir option used])
+	libexecdir="$withval"
+    ]
+)
+
+AC_ARG_WITH(
     cgidir,
     AS_HELP_STRING(
 	[--with-cgidir=DIR],
 	[CGI scripts @<:@LIBDIR/sympa/cgi@:>@]
     ),
     [execcgidir="$withval"]
+)
+
+AC_ARG_WITH(
+    datadir,
+    AS_HELP_STRING(
+	[--with-datadir=DIR]
+	[obsolete option, use --datadir instead]
+    ),
+    [
+	AC_MSG_WARN([obsolete --with-datadir option used])
+	datadir="$withval"
+    ]
+)
+
+AC_ARG_WITH(
+    libdir,
+    AS_HELP_STRING(
+	[--with-libdir=DIR]
+	[obsolete option, perl modules are now installed with data]
+    ),
+    [
+	AC_MSG_WARN([obsolete --with-libdir option used])
+    ]
 )
 
 AC_ARG_WITH(
@@ -89,6 +213,18 @@ AC_ARG_WITH(
 )
 
 AC_ARG_WITH(
+    mandir,
+    AS_HELP_STRING(
+	[--with-mandir=DIR],
+	[obsolete option, use --mandir instead]
+    ),
+    [
+     AC_MSG_WARN([obsolete --with-mandir option used])
+     mandir="$withval"
+     ]
+)
+
+AC_ARG_WITH(
     docdir,
     AS_HELP_STRING(
 	[--with-docdir=DIR],
@@ -96,6 +232,17 @@ AC_ARG_WITH(
     ),
     [
 	docdir="$withval"
+    ]
+)
+
+AC_ARG_WITH(
+    sampledir,
+    AS_HELP_STRING(
+	[--with-sampledir=DIR],
+	[obsolete option, samples are now installed with documentation]
+    ),
+    [
+	AC_MSG_WARN([obsolete --with-sampledir option used])
     ]
 )
 
@@ -179,9 +326,6 @@ AC_SUBST(WWSCONFIG)
 AC_PROG_CC
 # needed for using per-target flags
 AM_PROG_CC_C_O
-AC_PATH_PROGS([SED], [sed gsed])
-#AC_PROG_SED
-AC_PROG_LN_S
 
 AC_ARG_WITH(
     [perl],
@@ -213,16 +357,6 @@ else
     if test -z "$PERL"; then
 	AC_MSG_ERROR([perl required])
     fi
-fi
-
-AC_PATH_PROG(POD2MAN, pod2man)
-if test -z "$POD2MAN"; then
-    AC_MSG_ERROR([pod2man required])
-fi
-
-AC_PATH_PROG(PROVE, prove)
-if test -z "$PROVE"; then
-    AC_MSG_WARN([prove required for testing])
 fi
 
 USER=sympa
@@ -361,16 +495,16 @@ AC_CONFIG_FILES([
     src/etc/Makefile
     src/etc/script/Makefile
     src/lib/Makefile
-    src/libexec/Makefile
-    src/cgi/Makefile
-    src/sbin/Makefile
-    src/bin/Makefile
+    soap/Makefile
     doc/Makefile
-    default/Makefile
-    www/Makefile
-    po/Makefile
-    po/sympa/Makefile.in
-    po/web_help/Makefile.in
+    doc/man8/Makefile
+    doc/sample/Makefile
+    web_tt2/Makefile
+    wwsympa/Makefile
+    wwsympa/icons/Makefile
+    mail_tt2/Makefile
+    po/Makefile.in
+    po-wwsympa/Makefile.in
     sympa.spec
 ])
 AC_OUTPUT

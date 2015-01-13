@@ -16,67 +16,24 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-SUBDIRS = src default doc po www
-
-check_SCRIPTS = t/compile_modules.t \
-		t/compile_executables.t \
-		t/pod_syntax.t \
-		t/pod_spelling.t \
-		t/pod_coverage.t \
-		t/Datasource_LDAP.t \
-		t/Instruction.t \
-		t/Language.t \
-		t/LockedFile.t \
-		t/Logger.t \
-		t/Mailer.t \
-		t/Message.t \
-		t/Tools_Data.t \
-		t/Tools_Daemon.t \
-		t/Tools_File.t \
-		t/Tools_Time.t \
-		t/Tools_SMIME.t
-check_DATA = t/locale/cs/LC_MESSAGES/sympa.mo \
-	     t/locale/cs/LC_MESSAGES/web_help.mo \
-	     t/locale/zh_TW/LC_MESSAGES/sympa.mo
+SUBDIRS = src wwsympa soap web_tt2 mail_tt2 doc po po-wwsympa
 
 EXTRA_DIST = important_changes.pl \
 	     sympa.spec.in \
 	     sympa.spec \
-	     $(check_SCRIPTS) $(check_DATA)
-CLEANFILES = sympa_wizard.pl.inst
-
-MSGFMT=@MSGFMT@
-.po.mo:
-	$(MSGFMT) -o $@ $<
-
-check-local:
-	[ -z "$(TEST_FILES)" ] && TEST_FILES="$(check_SCRIPTS)"; \
-	PERL5LIB=src/lib; export PERL5LIB; \
-	$(PROVE) $$TEST_FILES
-
-check-local-jenkins:
-	[ ! -d out ] && mkdir out; \
-	[ -z "$(TEST_FILES)" ] && TEST_FILES="$(check_SCRIPTS)"; \
-	PERL5LIB=src/lib; export PERL5LIB; \
-	$(PROVE) --archive out $$TEST_FILES
+	     README.charset
 
 install-data-hook: installdir installconfig nextstep importantchanges
 
 installdir:
-	@echo "Creating plugin directory"
-	@for dir in $(modulesdir)/Sympa/Template/Plugin; do \
-		if [ ! -d $(DESTDIR)$$dir ] ; then \
-			echo "Creating $(DESTDIR)$$dir"; \
-			install -d -m 755 $(DESTDIR)$$dir; \
-		fi; \
-	done
 	@echo "Creating writable directories"
 	@for dir in $(expldir) $(spooldir) $(spooldir)/msg $(spooldir)/digest \
 		$(spooldir)/moderation $(spooldir)/expire $(spooldir)/auth \
 		$(spooldir)/outgoing $(spooldir)/tmp $(spooldir)/task \
-		$(bouncedir) $(arcdir) $(piddir) $(staticdir) $(staticdir)/js $(sysconfdir); do \
+		$(bouncedir) $(arcdir) $(piddir) $(staticdir) $(sysconfdir); do \
 		if [ ! -d $(DESTDIR)$$dir ] ; then \
 			echo "Creating $(DESTDIR)$$dir"; \
 			install -d -m 755 $(DESTDIR)$$dir; \
@@ -85,13 +42,7 @@ installdir:
 		chgrp $(GROUP) $(DESTDIR)$$dir || /bin/true; \
 	done
 
-sympa_wizard.pl.inst: $(top_srcdir)/src/sbin/sympa_wizard.pl.in Makefile
-	$(SED) \
-		-e 's|--PERL--|$(PERL)|' \
-		-e 's|--modulesdir--|$(top_srcdir)/src/lib|' \
-		< $(top_srcdir)/src/sbin/sympa_wizard.pl.in > $@
-
-installconfig: installdir sympa_wizard.pl.inst
+installconfig: installdir
 	@echo "Installing basic configuration ..."
 	export PERL5LIB=$(DESTDIR)$(modulesdir); \
 	if [ ! -f  $(DESTDIR)$(confdir)/sympa.conf ]; then \
@@ -99,9 +50,13 @@ installconfig: installdir sympa_wizard.pl.inst
 		if [ ! -d $(DESTDIR)$(confdir) ]; then \
 			$(INSTALL) -d -m 755 $(DESTDIR)$(confdir); \
 		fi; \
-		$(PERL) sympa_wizard.pl.inst \
+		$(DESTDIR)$(sbindir)/sympa_wizard.pl \
 			--create sympa.conf \
 			--target $(DESTDIR)$(confdir)/sympa.conf \
+			|| /bin/true; \
+		$(DESTDIR)$(sbindir)/sympa_wizard.pl \
+			--create wwsympa.conf \
+			--target $(DESTDIR)$(confdir)/wwsympa.conf \
 			|| /bin/true; \
 	fi; \
 	if [ ! -f $(DESTDIR)$(sysconfdir)/data_structure.version ]; then \

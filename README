@@ -1,4 +1,4 @@
-              SYMPA -- Syst√®me de Multi-Postage Automatique
+              SYMPA -- SystËme de Multi-Postage Automatique
 
 SYMPA is an electronic mailing list manager. It is used to automate list
 management functions such as subscription, moderation and management of 
@@ -13,46 +13,16 @@ Documentation is available under HTML and SGML (source) formats.
 
 ==============================================================================
 
-SYMPA est un gestionnaire de listes √©lectroniques. Il permet d'automatiser
-les fonctions de gestion des listes telles les abonnements, la mod√©ration
-et la gestion des archives. SYMPA g√®re √©galement le renvoi des messages
-adress√©s aux listes et permet de limiter la charge sur le syst√®me. Dans des
-configurations avec suffisamment de m√©moire, SYMPA est particuli√®rement
-adapt√© aux grandes listes. Avec une liste de 20 000 abonn√©s, il faut 5 
-minutes pour envoyer un message √† 90% des abonn√©s, lorsque le r√©seau est 
-disponible bien √©videmment.
+SYMPA est un gestionnaire de listes Èlectroniques. Il permet d'automatiser
+les fonctions de gestion des listes telles les abonnements, la modÈration
+et la gestion des archives. SYMPA gËre Ègalement le renvoi des messages
+adressÈs aux listes et permet de limiter la charge sur le systËme. Dans des
+configurations avec suffisamment de mÈmoire, SYMPA est particuliËrement
+adaptÈ aux grandes listes. Avec une liste de 20 000 abonnÈs, il faut 5 
+minutes pour envoyer un message ‡ 90% des abonnÈs, lorsque le rÈseau est 
+disponible bien Èvidemment.
 
 La documentation est disponible  sous forme HTML. Pour consulter
-la premi√®re page veuillez ouvrir la page `doc/HTML/sympa.html' dans votre
-outil de navigation pr√©f√©r√©. Le source SGML de la doc est aussi disponible
-pour g√©n√©ration du format imprimable de votre choix.
-
-Authors
--------
-* Christophe Wolfhugel
-* Serge Aumont
-* Olivier Sala√ºn
-* David Verdin
-* Etienne Meleard
-* Soji Ikeda
-* Guillaume Rousse
-
-Copyright
----------
-
-Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-Copyright (c) 1997-2011 Comite Reseau des Universites
-Copyright (c) 2011-2014 GIP RENATER
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>
+la premiËre page veuillez ouvrir la page `doc/HTML/sympa.html' dans votre
+outil de navigation prÈfÈrÈ. Le source SGML de la doc est aussi disponible
+pour gÈnÈration du format imprimable de votre choix.

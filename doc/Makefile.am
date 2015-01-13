@@ -16,19 +16,12 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-nobase_doc_DATA = sympa.pdf \
-		  samples/README \
-		  samples/trusted_applications.conf \
-		  samples/robot.conf \
-		  samples/employees.ldap \
-		  samples/test/config \
-		  samples/test/info \
-		  samples/test/message.footer \
-		  samples/test/web_tt2/welcome.tt2 \
-		  samples/sampleClient.php \
-		  samples/families/sample-auto/config.tt2 \
-		  samples/families/sample-auto/param_constraint.conf
+SUBDIRS = man8 sample
 
-EXTRA_DIST = $(nobase_doc_DATA) README.charset README.postfix
+## pdf_DATA requires autoconf 2.60; not available yet
+#pdf_DATA = sympa.pdf
+
+EXTRA_DIST = $(pdf_DATA)
