@@ -3,25 +3,6 @@
 # vim:ft=perl:et:sw=4
 # $Id$
 
-# Sympa - SYsteme de Multi-Postage Automatique
-#
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 ## This version of alias_manager.pl has been customized by Bea.
 ## It has the ability to add/remove list aliases in a MySQL database for
 ## vpopmail
@@ -29,36 +10,25 @@
 ## as /home/sympa/bin/alias_manager.pl
 ## You should edit all the $mysql_xxx below to use your own mysql database
 
+use strict;
+use warnings;
+use lib split(/:/, $ENV{SYMPALIB} || ''), '--modulesdir--';
+use DBI;
+use POSIX;
+
+use Conf;
+use Sympa::Constants;
+use Sympa::Crash;    # Show traceback.
+use tools;
+use tt2;
+
 $ENV{'PATH'} = '';
 
 ## Load Sympa.conf
-use strict;
-use lib '--modulesdir--';
-use English qw(-no_match_vars);
-use DBI;
-use POSIX qw();
-
-use Sympa::Logger;
-use Sympa::Logger::Syslog;
-#use Conf; # load in Site - Robot
-#use Sympa::Tools; # load in Conf - Robot
-use Sympa::Template;
-
-#use Sympa::Constants; # load in confdef - Conf
-use Sympa::VirtualHost;
-
-unless (Sympa::Site->load('no_db' => 1)) {
-    printf STDERR
-        "Unable to load Sympa configuration, file %s or any of the virtual host robot.conf files contain errors. Exiting.\n",
-        Sympa::Conf::get_sympa_conf();
-    exit 1;
+unless (Conf::load(Sympa::Constants::CONFIG)) {
+    print gettext("The configuration file contains errors.\n");
+    exit(1);
 }
-
-our $logger = Sympa::Logger::Syslog->new(
-    service  => 'alias_manager',
-    level    => Sympa::Site->log_level(),
-    facility => Sympa::Site->log_facility(),
-);
 
 ## MYSQL configuration
 my $mysql_host = "localhost";
@@ -67,42 +37,35 @@ my $mysql_user = "vpopmail";
 my $mysql_pass = "password";
 
 my $default_domain;
-
+my $return_path_suffix;
 my ($operation, $listname, $domain, $file) = @ARGV;
-
-my $robot;
 
 my $dbh;
 my $sql;
-my $enr;
+my @enr;
 
 if (($operation !~ /^(add|del)$/) || ($#ARGV < 2)) {
-    print STDERR "Usage: $0 <add|del> <listname> <robot> [<file>]\n";
+    printf "Usage: $0 <add|del> <listname> <domain> [<file>]\n";
     exit(2);
 }
 
-unless ($robot = Sympa::VirtualHost->new($domain, 'no_db' => 1)) {
-    printf STDERR "Unknown robot %s\n", $domain;
-    exit(16);
-}
-
-$default_domain = Sympa::Site->domain;
+$default_domain     = $Conf::Conf{'domain'};
+$return_path_suffix = $Conf::Conf{'return_path_suffix'};
 
 my %data;
 $data{'date'} = POSIX::strftime("%d %b %Y", localtime(time));
 $data{'list'}{'domain'} = $data{'robot'} = $domain;
 $data{'list'}{'name'}   = $listname;
 $data{'default_domain'} = $default_domain;
-$data{'is_default_domain'} = 1 if ($domain eq $default_domain);
-$data{'return_path_suffix'} = $robot->return_path_suffix;
-
+#$data{'is_default_domain'} = 1 if ($domain eq $default_domain);
+$data{'is_default_domain'}  = 1;
+$data{'return_path_suffix'} = $return_path_suffix;
 my @aliases;
 
-my $tt2_include_path = $robot->get_etc_include_path();
+my $tt2_include_path = tools::get_search_path($domain);
 
 my $aliases_dump;
-Sympa::Template::parse_tt2(\%data, 'list_aliases.tt2', \$aliases_dump,
-    $tt2_include_path);
+tt2::parse_tt2(\%data, 'list_aliases.tt2', \$aliases_dump, $tt2_include_path);
 
 @aliases = split /\n/, $aliases_dump;
 
@@ -112,6 +75,7 @@ unless (@aliases) {
 }
 
 if ($operation eq 'add') {
+
     ## Check existing aliases
     if (already_defined(@aliases)) {
         print STDERR "some alias already exist\n";
@@ -134,16 +98,16 @@ if ($operation eq 'add') {
         $command_value =~ s/\"//g;
 
         # We create the new mysql alias.
-        unless (
-            Sympa::DatabaseManager::do_query(
-                q{INSERT INTO valias
-	      SET alias = %s, domain = %s, valias_line = %s},
-                Sympa::DatabaseManager::quote($alias_value), Sympa::DatabaseManager::quote($domain),
-                Sympa::DatabaseManager::quote($command_value)
-            )
-            ) {
-            die $DBI::errstr;
-        }
+        $sql =
+              "INSERT INTO valias SET alias = '"
+            . $alias_value
+            . "', domain = '"
+            . $domain
+            . "', valias_line = '"
+            . $command_value . "'";
+
+        # We finally add the entry
+        $dbh->do($sql) or die "$sql : $DBI::errstr";
     }
 
     finalize_mysql();
@@ -164,15 +128,12 @@ if ($operation eq 'add') {
         my $alias_value = $1;
         $alias_value =~ s/\+/\-/g;
 
-        unless (
-            Sympa::DatabaseManager::do_query(
-                q{DELETE FROM valias
-	      WHERE alias = %s and domain = %s},
-                Sympa::DatabaseManager::quote($alias_value), Sympa::DatabaseManager::quote($domain)
-            )
-            ) {
-            die $DBI::errstr;
-        }
+        $sql =
+              "DELETE FROM valias WHERE alias = '"
+            . $alias_value
+            . "' and domain = '"
+            . $domain . "'";
+        $dbh->do($sql) or die "$sql : $DBI::errstr";
     }
 
     finalize_mysql();
@@ -199,20 +160,15 @@ sub already_defined {
         my $alias_value = $1;
         $alias_value =~ s/\+/\-/g;
 
-        my $sth;
-        unless (
-            $sth = Sympa::DatabaseManager::do_query(
-                q{SELECT COUNT(alias) as e_alias
-	      FROM valias
-	      WHERE alias = %s and domain = %s},
-                Sympa::DatabaseManager::quote($alias_value), Sympa::DatabaseManager::quote($domain)
-            )
-            ) {
-            die $DBI::errstr;
-        }
+        $sql =
+              "SELECT COUNT(alias) as e_alias FROM valias where alias = '"
+            . $alias_value
+            . "' and domain = '"
+            . $domain . "'";
+        $dbh->do($sql) or die "$sql : $DBI::errstr";
 
-        $enr = $sth->fetchrow_array();
-        if ($enr != 0) {
+        @enr = $dbh->selectrow_array($sql);
+        if ($enr[0] != 0) {
             print STDERR "Alias already defined : $alias_value\n";
             finalize_mysql();
             return 1;
@@ -225,16 +181,19 @@ sub already_defined {
 
 ## Connect to MySQL Database
 sub initialize_mysql {
-##    unless ($dbh =
-##    DBI->connect("DBI:mysql:dbname=$mysql_base;host=$mysql_host",
-##    $mysql_user, $mysql_pass)) {
-##        print "Can't connect to Database :", $DBI::errstr;
-##	return 0
-##    }
+    unless (
+        $dbh = DBI->connect(
+            "DBI:mysql:dbname=$mysql_base;host=$mysql_host", $mysql_user,
+            $mysql_pass
+        )
+        ) {
+        print "Can't connect to Database :", $DBI::errstr;
+        return 0;
+    }
     return 1;
 }
 
 ## Close the MySQL Connection
 sub finalize_mysql {
-    Sympa::DatabaseManager::db_disconnect;
+    $dbh->disconnect;
 }
