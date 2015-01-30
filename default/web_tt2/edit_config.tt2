@@ -1,4 +1,6 @@
+<!-- $Id$ -->
 
+<div class="block">
 <h2>[%|loc%]Edit robot config[%END%]</h2><br />
 <div>
 
@@ -35,7 +37,11 @@
   <input class="MainMenuLinks" type="submit" name="action_edit_config" value="[%|loc%]Set[%END%]" style="width:20%" />
 
 [% ELSE %]
+[% UNLESS confparam.obfuscated == '1' %]
 [% confparam.current_value %]
+[% ELSE %]
+[% confparam.current_value.replace('.','*') %]
+[% END %]
 [% END %]
 </td>
 <td>
@@ -61,3 +67,5 @@
 [% close_table %]
 
 </div>
+</div>
+<!-- end edit_config.tt2 -->
