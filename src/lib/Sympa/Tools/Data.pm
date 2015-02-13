@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,47 +22,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-=encoding utf-8
-
-=head1 NAME
-
-Sympa::Tools::Data - Data-related functions
-
-=head1 DESCRIPTION
-
-This package provides data-related functions.
-
-=cut
-
 package Sympa::Tools::Data;
 
 use strict;
 use warnings;
-
 use English qw(-no_match_vars);
+use HTML::Entities qw();
 use POSIX qw();
 
-=head1 FUNCTIONS
-
-=over
-
-=item recursive_transformation($var, $subref)
-
-This applies recursively to a data structure.
-The transformation subroutine is passed as a ref
-
-Parameters:
-
-=over
-
-=item * I<$var>: FIXME
-
-=item * I<$subref>: FIXME
-
-=back
-
-=cut
-
+## This applies recursively to a data structure
+## The transformation subroutine is passed as a ref
 sub recursive_transformation {
     my ($var, $subref) = @_;
 
@@ -88,24 +58,7 @@ sub recursive_transformation {
     return;
 }
 
-=item dump_var($var, $level, $fd)
-
-Dump a variable's content
-
-Parameters:
-
-=over
-
-=item * I<$var>: FIXME
-
-=item * I<$level>: FIXME
-
-=item * I<$fd>: FIXME
-
-=back
-
-=cut
-
+## Dump a variable's content
 sub dump_var {
     my ($var, $level, $fd) = @_;
 
@@ -126,31 +79,18 @@ sub dump_var {
                 dump_var($var->{$key}, $level + 1, $fd);
             }
         } else {
-            printf $fd "%s'%s'\n", ("\t" x $level), ref($var);
+            printf $fd "\t" x $level . "'%s'" . "\n", ref($var);
         }
     } else {
         if (defined $var) {
-            printf $fd "%s'%s'\n", ("\t" x $level), $var;
+            print $fd "\t" x $level . "'$var'" . "\n";
         } else {
-            printf $fd "%sUNDEF\n", ("\t" x $level);
+            print $fd "\t" x $level . "UNDEF\n";
         }
     }
 }
 
-=item dump_html_var($var)
-
-Dump a variable's content
-
-Parameters:
-
-=over
-
-=item * I<$var>: FIXME
-
-=back
-
-=cut
-
+## Dump a variable's content
 sub dump_html_var {
     my ($var) = shift;
     my $html = '';
@@ -180,7 +120,7 @@ sub dump_html_var {
         }
     } else {
         if (defined $var) {
-            $html .= escape_html($var);
+            $html .= HTML::Entities::encode_entities($var, '<>&"');
         } else {
             $html .= 'UNDEF';
         }
@@ -188,20 +128,7 @@ sub dump_html_var {
     return $html;
 }
 
-=item dup_var($var)
-
-Duplicate a complex variable
-
-Parameters:
-
-=over
-
-=item * I<$var>: FIXME
-
-=back
-
-=cut
-
+## Duplictate a complex variable
 sub dup_var {
     my ($var) = @_;
 
@@ -224,21 +151,19 @@ sub dup_var {
     return $var;
 }
 
-=item get_array_from_splitted_string($string)
-
-Return an array made on a string split by ','.
-It removes spaces.
-
-Parameters:
-
-=over
-
-=item * I<$string>: string to split
-
-=back
-
-=cut
-
+####################################################
+# get_array_from_splitted_string
+####################################################
+# return an array made on a string splited by ','.
+# It removes spaces.
+#
+#
+# IN : -$string (+): string to split
+#
+# OUT : -ref(ARRAY)
+#
+######################################################
+# Note: This is used only by Sympa::List.
 sub get_array_from_splitted_string {
     my ($string) = @_;
     my @array;
@@ -252,36 +177,22 @@ sub get_array_from_splitted_string {
     return \@array;
 }
 
-=item diff_on_arrays($setA, $setB)
-
-Compute set arithmetic on the two given lists.
-
-Parameters:
-
-=over
-
-=item * I<$setA>: first set
-
-=item * I<$setA>: second set
-
-=back
-
-Returns an hashref with the following keys:
-
-=over
-
-=item * I<deleted>: FIXME
-
-=item * I<added>: FIXME
-
-=item * I<intersection>: FIXME
-
-=item * I<union>: FIXME
-
-=back
-
-=cut
-
+####################################################
+# diff_on_arrays
+####################################################
+# Makes set operation on arrays (seen as set, with no double) :
+#  - deleted : A \ B
+#  - added : B \ A
+#  - intersection : A /\ B
+#  - union : A \/ B
+#
+# IN : -$setA : ref(ARRAY) - set
+#      -$setB : ref(ARRAY) - set
+#
+# OUT : -ref(HASH) with keys :
+#          deleted, added, intersection, union
+#
+#######################################################
 sub diff_on_arrays {
     my ($setA, $setB) = @_;
     my $result = {
@@ -343,24 +254,87 @@ sub diff_on_arrays {
 
 }
 
-=item string_2_hash($string)
+####################################################
+# is_in_array
+####################################################
+# Test if a value is on an array
+#
+# IN : -$setA : ref(ARRAY) - set
+#      -$value : a serached value
+#
+# OUT : boolean
+#######################################################
+sub is_in_array {
+    my $set = shift;
+    die 'missing parameter "$value"' unless @_;
+    my $value = shift;
 
-Convert a string formatted as var1="value1";var2="value2"; into a hash.
+    if (defined $value) {
+        foreach my $elt (@{$set || []}) {
+            next unless defined $elt;
+            return 1 if $elt eq $value;
+        }
+    } else {
+        foreach my $elt (@{$set || []}) {
+            return 1 unless defined $elt;
+        }
+    }
 
-Current encoding is NOT compatible with encoding of values with '"'
+    return undef;
+}
+
+=over
+
+=item smart_eq ( $a, $b )
+
+I<Function>.
+Check if two strings are identical.
 
 Parameters:
 
 =over
 
-=item * I<$string>: the string to convert
+=item $a, $b
+
+Operands.
+
+If both of them are undefined, they are equal.
+If only one of them is undefined, the are not equal.
+If C<$b> is a L<Regexp> object and it matches to C<$a>, they are equal.
+Otherwise, they are compared as strings.
 
 =back
 
-Returns an hash ref.
+Returns:
+
+If arguments matched, true value.  Otherwise false value.
+
+=back
 
 =cut
 
+sub smart_eq {
+    die 'missing argument' if scalar @_ < 2;
+    my ($a, $b) = @_;
+
+    if (defined $a and defined $b) {
+        if (ref $b eq 'Regexp') {
+            return 1 if $a =~ $b;
+        } else {
+            return 1 if $a eq $b;
+        }
+    } elsif (!defined $a and !defined $b) {
+        return 1;
+    }
+
+    return undef;
+}
+
+## convert a string formated as var1="value1";var2="value2"; into a hash.
+## Used when extracting from session table some session properties or when
+## extracting users preference from user table
+## Current encoding is NOT compatible with encoding of values with '"'
+##
 sub string_2_hash {
     my $data = shift;
     my %hash;
@@ -375,56 +349,26 @@ sub string_2_hash {
     return (%hash);
 
 }
-
-=item hash_2_string($hash)
-
-Convert an hash into a string formated as var1="value1";var2="value2";.
-
-Parameters:
-
-=over
-
-=item * I<$hash>: the hash to convert
-
-=back
-
-Returns a string.
-
-=cut
-
+## convert a hash into a string formated as var1="value1";var2="value2"; into
+## a hash
 sub hash_2_string {
     my $refhash = shift;
 
-    return undef unless ((ref($refhash)) && (ref($refhash) eq 'HASH'));
+    return undef unless ref $refhash eq 'HASH';
 
     my $data_string;
     foreach my $var (keys %$refhash) {
-        next unless ($var);
+        next unless length $var;
         my $val = $refhash->{$var};
+        $val = '' unless defined $val;
+
         $val =~ s/([\"\\])/\\$1/g;
         $data_string .= ';' . $var . '="' . $val . '"';
     }
     return ($data_string);
 }
 
-=item smart_lessthan($stra, $strb)
-
-Compare 2 scalars, string/numeric independent.
-
-Parameters:
-
-=over
-
-=item * I<$stra>: first scalar
-
-=item * I<$stab>: second scalar
-
-=back
-
-Returns a boolean.
-
-=cut
-
+## compare 2 scalars, string/numeric independant
 sub smart_lessthan {
     my ($stra, $strb) = @_;
     $stra =~ s/^\s+//;
@@ -432,7 +376,7 @@ sub smart_lessthan {
     $strb =~ s/^\s+//;
     $strb =~ s/\s+$//;
     $ERRNO = 0;
-    my (undef, $unparsed) = POSIX::strtod($stra);
+    my ($numa, $unparsed) = POSIX::strtod($stra);
     my $numb;
     $numb = POSIX::strtod($strb)
         unless ($ERRNO || $unparsed != 0);
@@ -443,9 +387,5 @@ sub smart_lessthan {
         return $stra < $strb;
     }
 }
-
-=back
-
-=cut
 
 1;

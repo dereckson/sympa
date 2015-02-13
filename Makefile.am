@@ -2,8 +2,11 @@
 # RCS Identication ; $Revision$ ; $Date$ 
 #
 # Sympa - SYsteme de Multi-Postage Automatique
-# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
-# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
+#
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,32 +23,29 @@
 
 SUBDIRS = src default doc po www
 
-check_SCRIPTS = t/compile_modules.t \
-		t/compile_executables.t \
-		t/pod_syntax.t \
-		t/pod_spelling.t \
-		t/pod_coverage.t \
-		t/Datasource_LDAP.t \
-		t/Instruction.t \
-		t/Language.t \
+check_SCRIPTS = t/Language.t \
 		t/LockedFile.t \
-		t/Logger.t \
-		t/Mailer.t \
-		t/Message.t \
-		t/Tools_Data.t \
-		t/Tools_Daemon.t \
-		t/Tools_File.t \
-		t/Tools_Time.t \
-		t/Tools_SMIME.t
+		t/Regexps.t \
+		t/compile_modules.t \
+		t/compile_executables.t \
+		t/Database_LDAP.t \
+		t/tools_data.t \
+		t/tools_file.t \
+		t/Tools_SMIME.t \
+		t/tools_time.t
 check_DATA = t/locale/cs/LC_MESSAGES/sympa.mo \
 	     t/locale/cs/LC_MESSAGES/web_help.mo \
-	     t/locale/zh_TW/LC_MESSAGES/sympa.mo
+	     t/locale/zh_TW/LC_MESSAGES/sympa.mo \
+	     t/stub/Sympa/Constants.pm
 
 EXTRA_DIST = important_changes.pl \
-	     sympa.spec.in \
+	     META.json.pl \
+	     META.json \
+	     sympa.spec.pl \
 	     sympa.spec \
+	     etc_README \
 	     $(check_SCRIPTS) $(check_DATA)
-CLEANFILES = sympa_wizard.pl.inst
+CLEANFILES = META.json previous_sympa_version sympa.spec sympa_wizard.pl.inst
 
 MSGFMT=@MSGFMT@
 .po.mo:
@@ -54,13 +54,7 @@ MSGFMT=@MSGFMT@
 check-local:
 	[ -z "$(TEST_FILES)" ] && TEST_FILES="$(check_SCRIPTS)"; \
 	PERL5LIB=src/lib; export PERL5LIB; \
-	$(PROVE) $$TEST_FILES
-
-check-local-jenkins:
-	[ ! -d out ] && mkdir out; \
-	[ -z "$(TEST_FILES)" ] && TEST_FILES="$(check_SCRIPTS)"; \
-	PERL5LIB=src/lib; export PERL5LIB; \
-	$(PROVE) --archive out $$TEST_FILES
+	$(PERL) -MTest::Harness -e 'runtests @ARGV' $$TEST_FILES
 
 install-data-hook: installdir installconfig nextstep importantchanges
 
@@ -76,6 +70,7 @@ installdir:
 	@for dir in $(expldir) $(spooldir) $(spooldir)/msg $(spooldir)/digest \
 		$(spooldir)/moderation $(spooldir)/expire $(spooldir)/auth \
 		$(spooldir)/outgoing $(spooldir)/tmp $(spooldir)/task \
+		$(spooldir)/bulk \
 		$(bouncedir) $(arcdir) $(piddir) $(staticdir) $(staticdir)/js $(sysconfdir); do \
 		if [ ! -d $(DESTDIR)$$dir ] ; then \
 			echo "Creating $(DESTDIR)$$dir"; \
@@ -99,6 +94,8 @@ installconfig: installdir sympa_wizard.pl.inst
 		if [ ! -d $(DESTDIR)$(confdir) ]; then \
 			$(INSTALL) -d -m 755 $(DESTDIR)$(confdir); \
 		fi; \
+		chown $(USER) $(DESTDIR)$(confdir) || /bin/true; \
+		chgrp $(GROUP) $(DESTDIR)$(confdir) || /bin/true; \
 		$(PERL) sympa_wizard.pl.inst \
 			--create sympa.conf \
 			--target $(DESTDIR)$(confdir)/sympa.conf \
@@ -111,6 +108,24 @@ installconfig: installdir sympa_wizard.pl.inst
 		echo $(VERSION) >> data_structure.version; \
 		chown $(USER) data_structure.version || /bin/true; \
 		chgrp $(GROUP) data_structure.version || /bin/true; \
+	fi
+	@for dir in create_list_templates custom_actions custom_conditions \
+		data_sources families global_task_models list_task_models \
+		mail_tt2 scenari search_filters web_tt2; do \
+		if [ ! -d $(DESTDIR)$(sysconfdir)/$$dir ] ; then \
+			echo "Creating $(DESTDIR)$(sysconfdir)/$$dir"; \
+			install -d -m 755 $(DESTDIR)$(sysconfdir)/$$dir; \
+		fi; \
+		chown $(USER) $(DESTDIR)$(sysconfdir)/$$dir || /bin/true; \
+		chgrp $(GROUP) $(DESTDIR)$(sysconfdir)/$$dir || /bin/true; \
+	done
+	@if [ ! -e $(DESTDIR)$(sysconfdir)/README ]; then \
+		echo "Creating $(DESTDIR)$(sysconfdir)/README"; \
+		$(SED) \
+			-e 's|--sysconfdir--|$(sysconfdir)|' \
+			-e 's|--defaultdir--|$(defaultdir)|' \
+			etc_README > $(DESTDIR)$(sysconfdir)/README; \
+		chmod 444 $(DESTDIR)$(sysconfdir)/README; \
 	fi
 
 nextstep: 
@@ -134,15 +149,22 @@ nextstep:
 	@echo "#######################################################"
 
 importantchanges:
-	if [ -f $(DESTDIR)$(modulesdir)/Sympa/Constants.pm ]; then \
-		previous=`perl -Mlib=$(DESTDIR)$(modulesdir) -MSympa::Constants -e 'print Sympa::Constants::VERSION'`; \
-        elif [ -f $(DESTDIR)$(bindir)/Version.pm ]; then \
-                previous=`perl -Mlib=$(DESTDIR)$(bindir) -MVersion -e 'print $$Version::Version'`; \
+	if test -f $(top_srcdir)/previous_sympa_version; then \
+		export PREVIOUS=`$(CAT) $(top_srcdir)/previous_sympa_version`; \
 	fi; \
 	$(PERL) $(top_srcdir)/important_changes.pl \
 		--current=$(VERSION) \
-		--previous=$${previous};
+		--previous=$${PREVIOUS};
 
 uninstall-hook:
 	rm -f $(DESTDIR)$(confdir)/sympa.conf
 	rm -f $(DESTDIR)$(confdir)/wwsympa.conf
+
+META.json: META.json.pl Makefile src/lib/Sympa/ModDef.pm
+	cd src/lib; $(MAKE) Sympa/Constants.pm
+	$(PERL) META.json.pl > META.json
+
+sympa.spec: sympa.spec.pl Makefile src/lib/Sympa/ModDef.pm
+	cd src/lib; $(MAKE) Sympa/Constants.pm
+	$(PERL) sympa.spec.pl > sympa.spec
+

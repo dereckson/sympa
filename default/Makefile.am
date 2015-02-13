@@ -1,6 +1,11 @@
+# $id$
+
 # Sympa - SYsteme de Multi-Postage Automatique
-# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
-# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
+#
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,6 +60,7 @@ nobase_default_DATA = \
 	global_task_models/purge_one_time_ticket_table.daily.task \
 	global_task_models/purge_orphan_bounces.monthly.task \
 	global_task_models/purge_session_table.daily.task \
+	global_task_models/purge_spools.daily.task \
 	global_task_models/purge_tables.daily.task \
 	global_task_models/purge_user_table.monthly.task \
 	list_task_models/expire.yearly.task \
@@ -69,38 +75,48 @@ nobase_default_DATA = \
 	scenari/access_web_archive.private \
 	scenari/access_web_archive.public \
 	scenari/add.auth \
+	scenari/add.authdkim \
 	scenari/add.closed \
 	scenari/add.owner \
 	scenari/add.owner_notify \
-	scenari/automatic_list_creation.family_owner \
+	scenari/add.ownerdkim \
+	scenari/archive_mail_access.closed \
+	scenari/archive_mail_access.owner \
+	scenari/archive_mail_access.private \
+	scenari/archive_mail_access.public \
 	scenari/automatic_list_creation.listmaster \
 	scenari/automatic_list_creation.public \
+	scenari/automatic_list_creation.family_owner \
 	scenari/create_list.intranet \
 	scenari/create_list.listmaster \
 	scenari/create_list.public_listmaster \
-	scenari/del.auth \
-	scenari/del.closed \
-	scenari/del.owner \
-	scenari/del.owner_notify \
 	scenari/d_edit.editor \
 	scenari/d_edit.owner \
 	scenari/d_edit.private \
 	scenari/d_edit.private-https \
 	scenari/d_edit.public \
+	scenari/del.auth \
+	scenari/del.authdkim \
+	scenari/del.closed \
+	scenari/del.owner \
+	scenari/del.owner_notify \
+	scenari/del.ownerdkim \
 	scenari/d_read.owner \
 	scenari/d_read.private \
 	scenari/d_read.private-https \
 	scenari/d_read.public \
 	scenari/global_remind.listmaster \
-	scenari/info.conceal \
 	scenari/info.open \
 	scenari/info.private \
+	scenari/info.conceal \
 	scenari/invite.closed \
 	scenari/invite.owner \
 	scenari/invite.private \
 	scenari/invite.public \
 	scenari/remind.listmaster \
+	scenari/remind.listmasterdkim \
 	scenari/remind.owner \
+	scenari/remind.ownerdkim \
 	scenari/review.closed \
 	scenari/review.intranet \
 	scenari/review.listmaster \
@@ -109,6 +125,7 @@ nobase_default_DATA = \
 	scenari/review.public \
 	scenari/send.closed \
 	scenari/send.confidential \
+	scenari/send.editordkim \
 	scenari/send.editorkey \
 	scenari/send.editorkeyonly \
 	scenari/send.editorkeyonlyauth \
@@ -127,12 +144,15 @@ nobase_default_DATA = \
 	scenari/send.public \
 	scenari/send.publickey \
 	scenari/send.publicnoattachment \
-	scenari/send.publicnomultipart \
 	scenari/send.public_nobcc \
+	scenari/send.publicnomultipart \
 	scenari/spam_status.x-spam-status \
 	scenari/subscribe.auth \
+	scenari/subscribe.authdkim \
 	scenari/subscribe.auth_notify \
+	scenari/subscribe.auth_notifydkim \
 	scenari/subscribe.auth_owner \
+	scenari/subscribe.auth_ownerdkim \
 	scenari/subscribe.closed \
 	scenari/subscribe.intranet \
 	scenari/subscribe.intranetorowner \
@@ -148,7 +168,9 @@ nobase_default_DATA = \
 	scenari/tracking.owner \
 	scenari/tracking.private \
 	scenari/unsubscribe.auth \
+	scenari/unsubscribe.authdkim \
 	scenari/unsubscribe.auth_notify \
+	scenari/unsubscribe.auth_notifydkim \
 	scenari/unsubscribe.closed \
 	scenari/unsubscribe.open \
 	scenari/unsubscribe.open_notify \
@@ -198,11 +220,10 @@ nobase_default_DATA = \
 	web_tt2/edit_config.tt2 \
 	web_tt2/editfile.tt2 \
 	web_tt2/edit_list_request.tt2 \
-	web_tt2/oauth_check.tt2 \
-	web_tt2/oauth_authorize.tt2 \
 	web_tt2/editsubscriber.tt2 \
 	web_tt2/edit_template.tt2 \
 	web_tt2/error.tt2 \
+	web_tt2/exclusion_table.tt2 \
 	web_tt2/family_signoff.tt2 \
 	web_tt2/family_signoff_request.tt2 \
 	web_tt2/footer.tt2 \
@@ -251,6 +272,7 @@ nobase_default_DATA = \
 	web_tt2/menu_search.tt2 \
 	web_tt2/modindex.tt2 \
 	web_tt2/modform.tt2 \
+	web_tt2/my.tt2 \
 	web_tt2/nav.tt2 \
 	web_tt2/news.tt2 \
 	web_tt2/notice.tt2 \
@@ -267,6 +289,8 @@ nobase_default_DATA = \
 	web_tt2/rss_request.tt2 \
 	web_tt2/rss.tt2 \
 	web_tt2/scenario_test.tt2 \
+	web_tt2/search_list.tt2 \
+	web_tt2/search_list_request.tt2 \
 	web_tt2/search_user.tt2 \
 	web_tt2/serveradmin.tt2 \
 	web_tt2/setlang.tt2 \
@@ -274,7 +298,6 @@ nobase_default_DATA = \
 	web_tt2/show_cert.tt2 \
 	web_tt2/show_exclude.tt2 \
 	web_tt2/show_sessions.tt2 \
-	web_tt2/sigindex.tt2 \
 	web_tt2/sigrequest.tt2 \
 	web_tt2/skinsedit.tt2 \
 	web_tt2/sso_login.tt2 \
@@ -290,23 +313,19 @@ nobase_default_DATA = \
 	web_tt2/tt2_error.tt2 \
 	web_tt2/viewbounce.tt2 \
 	web_tt2/viewlogs.tt2 \
-	web_tt2/viewspools.tt2 \
-	web_tt2/viewspool_message.tt2 \
-	web_tt2/viewspool_message_dump.tt2 \
-	web_tt2/viewspool_message_remove.tt2 \
-	web_tt2/viewspool_message_mv.tt2 \
 	web_tt2/viewmod.tt2 \
 	web_tt2/view_template.tt2 \
 	web_tt2/your_lists.tt2 \
-	web_tt2/ja_JP/css.tt2 \
-	web_tt2/ko_KR/css.tt2 \
-	web_tt2/zh_CN/css.tt2 \
-	web_tt2/zh_TW/css.tt2 \
+	web_tt2/ja/css.tt2 \
+	web_tt2/ko/css.tt2 \
+	web_tt2/zh-CN/css.tt2 \
+	web_tt2/zh-TW/css.tt2 \
 	mail_tt2/authorization_reject.tt2 \
+	mail_tt2/automatic_bounce_management.tt2 \
 	mail_tt2/bye.tt2 \
 	mail_tt2/certif_warning.tt2 \
 	mail_tt2/command_report.tt2 \
-	mail_tt2/digest_plain.tt2 \
+	mail_tt2/digestplain.tt2 \
 	mail_tt2/digest.tt2 \
 	mail_tt2/dsn.tt2 \
 	mail_tt2/d_install_shared.tt2 \
@@ -327,6 +346,7 @@ nobase_default_DATA = \
 	mail_tt2/listowner_notification.tt2 \
 	mail_tt2/list_rejected.tt2 \
 	mail_tt2/lists.tt2 \
+	mail_tt2/list_unknown.tt2 \
 	mail_tt2/message_report.tt2 \
 	mail_tt2/moderate.tt2 \
 	mail_tt2/modindex.tt2 \
@@ -352,20 +372,22 @@ EXTRA_DIST = $(nobase_default_DATA) \
 
 CLEANFILES = list_aliases.tt2
 
-DEFAULT_SCENARIOS = add.owner \
-		    d_edit.owner \
-		    d_read.private \
-		    del.owner \
-		    info.open \
-		    invite.private \
-		    remind.owner \
-		    review.owner \
-		    send.private \
-		    subscribe.open \
-		    topics_visibility.noconceal \
-		    tracking.owner \
-		    unsubscribe.open \
-		    visibility.conceal
+DEFAULT_SCENARIOS = \
+	add.owner \
+	archive_mail_acccess.closed \
+	d_edit.owner \
+	d_read.private \
+	del.owner \
+	info.open \
+	invite.private \
+	remind.owner \
+	review.owner \
+	send.private \
+	subscribe.open \
+	topics_visibility.noconceal \
+	tracking.owner \
+	unsubscribe.open \
+	visibility.conceal
 
 list_aliases.tt2: Makefile list_aliases.tt2.in
 	rm -f $@
@@ -378,9 +400,10 @@ install-data-hook:
 	for file in $(DEFAULT_SCENARIOS); do \
 		$(LN_S) -f $$file `echo $$file | $(SED) -e 's/\.[^.]*$$/.default/'`; \
 	done
-	cd  $(DESTDIR)$(defaultdir)/web_tt2; \
+	cd $(DESTDIR)$(defaultdir)/web_tt2; \
+	rm -f ja_JP/css.tt2 ko_KR/css.tt2 zh_CN/css.tt2 zh_TW/css.tt2; \
 	$(LN_S) -f review.tt2 search.tt2; \
 	$(LN_S) -f lists.tt2 which.tt2; \
-	$(LN_S) -f lists.tt2 search_list.tt2 \
+	$(LN_S) -f lists.tt2 search_list.tt2; \
 	rm -f authorization_reject.tt2; \
 	$(LN_S) -f ../mail_tt2/authorization_reject.tt2
