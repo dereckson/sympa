@@ -7,7 +7,7 @@
 # Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
 # Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 # 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
-# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,26 +22,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-=encoding utf-8
-
-=head1 NAME
-
-Sympa::Language - Handling languages and locales
-
-=head1 DESCRIPTION
-
-This package provides interfaces for i18n (internationalization) of Sympa.
-
-The language tags are used to determine each language.
-A language tag consists of one or more subtags: language, script, region and
-variant.  Below are some examples.
-
-=cut
-
 package Sympa::Language;
 
 use strict;
 use warnings;
+use base qw(Class::Singleton);
 
 use Locale::Messages '1.22';    # virtually same as 1.23.
 use POSIX qw();
@@ -67,10 +52,11 @@ BEGIN {
     Locale::Messages::bind_textdomain_codeset(web_help => 'utf-8');
 }
 
-sub new {
+# Constructor for Class::Singleton.
+sub _new_instance {
     my $class = shift;
+    my $self  = $class->SUPER::_new_instance();
 
-    my $self = bless {}, $class;
     ## Initialize lang/locale.
     $self->set_lang('en');
     return $self;
@@ -287,6 +273,10 @@ sub negotiate_lang {
     return $best_lang;
 }
 
+##sub GetSupportedLanguages {
+##DEPRECATED: use tools::get_supported_languages().
+## Supported languages are defined by 'supported_lang' sympa.conf parameter.
+
 ## Old name: PushLang()
 sub push_lang {
     my $self  = shift;
@@ -479,6 +469,12 @@ sub get_lang {
     my $self = shift;
     return $self->{lang} || 'en';    # the last resort
 }
+
+# DEPRECATED: use tools::lang2charset().
+# sub GetCharset;
+
+## DEPRECATED: Use canonic_lang().
+## sub Locale2Lang;
 
 # Internal function.
 # Convert language tag to gettext locale name.
@@ -712,6 +708,27 @@ sub maketext {
 1;
 __END__
 
+=encoding utf-8
+
+=head1 NAME
+
+Sympa::Language - Handling languages and locales
+
+=head1 SYNOPSIS
+
+  use Sympa::Language;
+  my $language = Sympa::Language->instance;
+  $language->set_lang('zh-TW', 'zh', 'en');
+  
+  print $language->gettext('Lorem ipsum dolor sit amet.');
+
+=head1 DESCRIPTION
+
+This package provides interfaces for i18n (internationalization) of Sympa.
+
+The language tags are used to determine each language.
+A language tag consists of one or more subtags: language, script, region and
+variant.  Below are some examples.
 
 =over 4
 
@@ -969,7 +986,7 @@ Note that the language actually set may not be identical to the parameter
 $lang, even when latter has been canonicalized.
 
 The language tag C<'en'> is special:
-it is used to set C<'C'> locale and will succeed always.
+It is used to set C<'C'> locale and will succeed always.
 
 Note:
 This function of Sympa 6.2a or earlier returned old style "locale" names.
@@ -1014,7 +1031,26 @@ If it is not known, returns default language tag.
 =item dgettext ( $domain, $msgid )
 
 I<Instance method>.
-XXX @todo doc
+Returns the translation of given string using NLS catalog in domain $domain.
+Note that L</set_lang>() must be called in advance.
+
+Parameter:
+
+=over
+
+=item $domain
+
+gettext domain.
+
+=item $msgid
+
+gettext message ID.
+
+=back
+
+Returns:
+
+Translated string or, if it wasn't found, original string.
 
 =item gettext ( $msgid )
 
@@ -1101,7 +1137,33 @@ Translated and formatted string.
 =item maketext ( $textdomain, $template, $args, ... )
 
 I<Instance method>.
-XXX @todo doc
+At first, translates $template argument using L</gettext>().
+Then replaces placeholders (C<%1>, C<%2>, ...) in template with arguments.
+
+Numeric arguments will be formatted using appropriate locale, if any:
+Typically, the decimal point specific to each locale may be used.
+
+Parameters:
+
+=over
+
+=item $textdomain
+
+NLS domain to be used for searching catalogs.
+
+=item $template
+
+Template string which may include placeholders.
+
+=item $args, ...
+
+Arguments corresponding to placeholders.
+
+=back
+
+Returns:
+
+Translated and replaced string.
 
 =back
 
