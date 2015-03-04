@@ -1,5 +1,4 @@
-
-<!--  subscriber_table.tt2  -->
+<!-- $Id$ -->
 
     <table summary="[%|loc%]List members[%END%]" class="listOfItems text_center">
       <tr>
@@ -98,7 +97,7 @@
  	     [% END %]
 	   </td>
 	 [% IF is_owner %]
-           <td class="bg_color_error"><strong>[%|loc%]bouncing[%END%]</strong>
+           <td class="color7"><strong>[%|loc%]bouncing[%END%]</strong>
 	   </td>
 	 [% END %]
 
@@ -123,13 +122,13 @@
   	    [% END %]
   	  [% END %]
 	  <td>
-             <span class="smaller">
+             <span>
 	        [% u.gecos %]&nbsp;
 	     </span>
           </td>
 	  [% IF is_owner %]
   	    <td>
-  	      [%|optdesc('reception')%][% u.reception %][% END %]
+  	      [%|optdesc('reception')%][% u.reception %][%END%]
 	    </td>
             <td>
             [% IF u.subscribed %]
@@ -172,4 +171,4 @@
       </tr>
     [% END %]
 </table>
-<!-- end subscribers_table.tt2 (distrib) -->
+<!-- End subscribers_table.tt2 -->
