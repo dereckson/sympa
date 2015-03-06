@@ -191,7 +191,7 @@ warn ref $self, Dumper $args;
 sub registerListSource($)
 {   my ($self, $args) = @_;
 
-    # Add info to listdef.pm table.  This can be made simpler with some
+    # Add info to ListDef.pm table.  This can be made simpler with some
     # better defaults in ListDef.pm itself.
     if(my $form = $args->{listdef})
     {   my @form = @$form;
@@ -221,7 +221,7 @@ sub registerListSource($)
         }
     }
 
-    List->registerPlugin($self);
+    Sympa::List->registerPlugin($self);
 }
 
 
