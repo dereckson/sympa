@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,26 +22,59 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-=encoding utf-8
-
-=head1 NAME
-
-Sympa::Tracking - FIXME
-
-=head1 DESCRIPTION
-
-FIXME
-
-=cut
-
 package Sympa::Tracking;
 
 use strict;
+use warnings;
+use DateTime::Format::Mail;
+use English qw(-no_match_vars);
 
-use MIME::Base64;
+use Sympa::Constants;
+use Sympa::Log;
+use SDM;
+use tools;
+use Sympa::Tools::File;
 
-use Sympa::Logger;
-use Sympa::DatabaseManager;
+my $log = Sympa::Log->instance;
+
+sub new {
+    my $class = shift;
+    my $list  = shift;
+
+    die 'Bug in logic.  Ask developer'
+        unless ref $list eq 'Sympa::List';
+
+    my $self = bless {
+        directory => $list->get_bounce_dir,
+        context   => $list,
+    } => $class;
+
+    $self->_create_spool;
+
+    return $self;
+}
+
+sub _create_spool {
+    my $self = shift;
+
+    my $umask = umask oct $Conf::Conf{'umask'};
+    foreach my $directory (($self->{directory})) {
+        unless (-d $directory) {
+            $log->syslog('info', 'Creating spool %s', $directory);
+            unless (
+                mkdir($directory, 0755)
+                and Sympa::Tools::File::set_file_rights(
+                    file  => $directory,
+                    user  => Sympa::Constants::USER(),
+                    group => Sympa::Constants::GROUP()
+                )
+                ) {
+                die sprintf 'Cannot create %s: %s', $directory, $ERRNO;
+            }
+        }
+    }
+    umask $umask;
+}
 
 ##############################################
 #   get_recipients_status
@@ -55,83 +89,71 @@ use Sympa::DatabaseManager;
 #
 ##############################################
 sub get_recipients_status {
-    $main::logger->do_log(Sympa::Logger::DEBUG2, '(%s, %s)', @_);
-    my $list     = shift;
+    $log->syslog('debug2', '(%s, %s, %s)', @_);
     my $msgid    = shift;
-    my $listname = $list->name;
-    my $robot_id = $list->domain;
+    my $listname = shift;
+    my $robot    = shift;
+
+    $msgid = tools::clean_msg_id($msgid);
 
     my $sth;
 
-    # the message->head method return message-id including <blabla@dom>
-    # where mhonarc return blabla@dom that's why we test both of them
+    # the message->head method return message-id including <blabla@dom> where
+    # mhonarc return blabla@dom that's why we test both of them
     unless (
-        $sth = Sympa::DatabaseManager::do_query(
+        $sth = SDM::do_prepared_query(
             q{SELECT recipient_notification AS recipient,
-	  reception_option_notification AS reception_option,
-	  status_notification AS status,
-	  arrival_date_notification AS arrival_date,
-	  type_notification as type,
-	  message_notification as notification_message
-	 FROM notification_table
-	 WHERE list_notification = %s AND robot_notification = %s AND
-	       (message_id_notification = %s OR
-		CONCAT('<',message_id_notification,'>') = %s OR
-		message_id_notification = %s)},
-            Sympa::DatabaseManager::quote($listname), Sympa::DatabaseManager::quote($robot_id),
-            Sympa::DatabaseManager::quote($msgid),    Sympa::DatabaseManager::quote($msgid),
-            Sympa::DatabaseManager::quote('<' . $msgid . '>')
+                     reception_option_notification AS reception_option,
+                     status_notification AS status,
+                     arrival_date_notification AS arrival_date,
+                     arrival_date_epoch_notification AS arrival_date_epoch,
+                     type_notification AS "type",
+                     pk_notification AS envid
+              FROM notification_table
+              WHERE list_notification = ? AND robot_notification = ? AND
+                    (message_id_notification = ? OR
+                     message_id_notification = ?)},
+            $listname, $robot,
+            $msgid,
+            '<' . $msgid . '>'
         )
         ) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
-            'Unable to retrieve tracking informations for message %s, list %s',
+        $log->syslog(
+            'err',
+            'Unable to retrieve tracking information for message %s, list %s@%s',
             $msgid,
-            $list
+            $listname,
+            $robot
         );
         return undef;
     }
-
     my @pk_notifs;
     while (my $pk_notif = $sth->fetchrow_hashref) {
-        if ($pk_notif->{'notification_message'}) {
-            $pk_notif->{'notification_message'} =
-                MIME::Base64::decode($pk_notif->{'notification_message'});
-        } else {
-            $pk_notif->{'notification_message'} = '';
-        }
         push @pk_notifs, $pk_notif;
     }
+    $sth->finish;
+
     return \@pk_notifs;
 }
 
-##############################################
-#   db_init_notification_table
-##############################################
-# Function used to initialyse notification table for each subscriber
-# IN :
-#   listname
-#   robot,
-#   msgid  : the messageid of the original message
-#   rcpt : a tab ref of recipients
-#   reception_option : teh reception option of thoses subscribers
-# OUT : 1 | undef
-#
-##############################################
-sub db_init_notification_table {
-    my $list   = shift;
-    my %params = @_;
+# Old name: Sympa::Tracking::db_init_notification_table()
+sub register {
+    my $self    = shift;
+    my $message = shift;
+    my $rcpt    = shift;
+    my %params  = @_;
 
-    my $msgid = $params{'msgid'};
-    chomp $msgid;
-    my $listname         = $list->name;
-    my $robot_id         = $list->domain;
+    # What ever the message is transformed because of the reception option,
+    # tracking use the original message ID.
+    my $msgid            = $message->{message_id};
+    my $listname         = $self->{context}->{'name'};
+    my $robot            = $self->{context}->{'domain'};
     my $reception_option = $params{'reception_option'};
-    my @rcpt             = @{$params{'rcpt'}};
+    my @rcpt             = @{$rcpt || []};
 
-    $main::logger->do_log(Sympa::Logger::DEBUG2,
-        '(%s, msgid=%s, reception_option=%s)',
-        $list, $msgid, $reception_option);
+    $log->syslog('debug2',
+        '(msgid = %s, listname = %s, reception_option = %s',
+        $msgid, $listname, $reception_option);
 
     my $time = time;
 
@@ -139,22 +161,22 @@ sub db_init_notification_table {
         my $email = lc($email);
 
         unless (
-            Sympa::DatabaseManager::do_prepared_query(
+            SDM::do_prepared_query(
                 q{INSERT INTO notification_table
-	      (message_id_notification, recipient_notification,
-	       reception_option_notification,
-	       list_notification, robot_notification, date_notification)
-	      VALUES (?, ?, ?, ?, ?, ?)},
-                $msgid,    $email,    $reception_option,
-                $listname, $robot_id, $time
+                  (message_id_notification, recipient_notification,
+                   reception_option_notification,
+                   list_notification, robot_notification, date_notification)
+                  VALUES (?, ?, ?, ?, ?, ?)},
+                $msgid, $email, $reception_option, $listname, $robot, $time
             )
             ) {
-            $main::logger->do_log(
-                Sympa::Logger::ERR,
-                'Unable to prepare notification table for user %s, message %s, list %s',
+            $log->syslog(
+                'err',
+                'Unable to prepare notification table for user %s, message %s, list %s@%s',
                 $email,
                 $msgid,
-                $list
+                $listname,
+                $robot
             );
             return undef;
         }
@@ -162,8 +184,50 @@ sub db_init_notification_table {
     return 1;
 }
 
+# copy the bounce to the appropriate filename
+# Old name: store_bounce() in bounced.pl
+sub store {
+    $log->syslog('debug2', '(%s, %s, %s, %s, ...)', @_);
+    my $self    = shift;
+    my $message = shift;
+    my $rcpt    = shift;
+    my %options = @_;
+
+    my $bounce_dir = $self->{directory};
+
+    # Store bounce
+    my $ofh;
+
+    my $filename;
+    unless (defined $options{envid} and length $options{envid}) {
+        $filename = tools::escape_chars($rcpt);
+    } else {
+        $filename = sprintf '%s_%08s', tools::escape_chars($rcpt),
+            $options{envid};
+    }
+    unless (open $ofh, '>', $bounce_dir . '/' . $filename) {
+        $log->syslog('err', 'Unable to write %s/%s', $bounce_dir, $filename);
+        return undef;
+    }
+    print $ofh $message->as_string;
+    close $ofh;
+
+    if (defined $options{envid} and length $options{envid}) {
+        unless (
+            _db_insert_notification(
+                $options{envid},  $options{type},
+                $options{status}, $options{arrival_date}
+            )
+            ) {
+            return undef;
+        }
+    }
+
+    return 1;
+}
+
 ##############################################
-#   db_insert_notification
+#   _db_insert_notification
 ##############################################
 # Function used to add a notification entry
 # corresponding to a new report. This function
@@ -177,35 +241,40 @@ sub db_init_notification_table {
 # IN :-$id (+): the identifiant entry of the initial mail
 #     -$type (+): the notification entry type (DSN|MDN)
 #     -$recipient (+): the list subscriber who correspond to this entry
-#     -$msg_id (+): the report message-id
 #     -$status (+): the new state of the recipient entry depending of the
 #     report data
 #     -$arrival_date (+): the mail arrival date.
-#     -$notification_as_string : the DSN or the MDM as string
 #
 # OUT : 1 | undef
 #
 ##############################################
-sub db_insert_notification {
-    $main::logger->do_log(Sympa::Logger::DEBUG2, '(%s, %s, %s, %s, ...)', @_);
-    my ($notification_id, undef, $status, $arrival_date,
-        $notification_as_string)
-        = @_;
-    chomp $arrival_date;
+sub _db_insert_notification {
+    my ($notification_id, $type, $status, $arrival_date) = @_;
 
-    $notification_as_string = MIME::Base64::encode($notification_as_string);
+    $log->syslog('debug2',
+        'Notification_id: %s, type: %s, recipient: %s, status: %s',
+        $notification_id, $type, $status);
+
+    chomp $arrival_date;
+    my $arrival_date_epoch = eval {
+        DateTime::Format::Mail->new->loose->parse_datetime($arrival_date)
+            ->epoch;
+    };
 
     unless (
-        Sympa::DatabaseManager::do_prepared_query(
+        SDM::do_prepared_query(
             q{UPDATE notification_table
-	  SET status_notification = ?, arrival_date_notification = ?,
-	      message_notification = ?
-	  WHERE pk_notification = ?},
-            $status, $arrival_date, $notification_as_string, $notification_id
+              SET status_notification = ?, type_notification = ?,
+                  arrival_date_notification = ?,
+                  arrival_date_epoch_notification = ?
+              WHERE pk_notification = ?},
+            $status, $type,
+            $arrival_date,
+            $arrival_date_epoch,
+            $notification_id
         )
         ) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Unable to update notification %s in database',
+        $log->syslog('err', 'Unable to update notification %s in database',
             $notification_id);
         return undef;
     }
@@ -224,53 +293,55 @@ sub db_insert_notification {
 ##############################################
 
 sub find_notification_id_by_message {
+    $log->syslog('debug2', '(%s, %s, %s, %s)', @_);
     my $recipient = shift;
     my $msgid     = shift;
-    chomp $msgid;
-    my $listname = shift;
-    my $robot_id = shift;
+    my $listname  = shift;
+    my $robot     = shift;
 
-    $main::logger->do_log(Sympa::Logger::DEBUG2,
-        'find_notification_id_by_message(%s,%s,%s,%s)',
-        $recipient, $msgid, $listname, $robot_id);
+    $msgid = tools::clean_msg_id($msgid);
 
     my $sth;
 
     # the message->head method return message-id including <blabla@dom> where
     # mhonarc return blabla@dom that's why we test both of them
     unless (
-        $sth = Sympa::DatabaseManager::do_query(
-            "SELECT pk_notification FROM notification_table WHERE ( recipient_notification = %s AND list_notification = %s AND robot_notification = %s AND (message_id_notification = %s OR CONCAT('<',message_id_notification,'>') = %s OR message_id_notification = %s ))",
-            Sympa::DatabaseManager::quote($recipient),
-            Sympa::DatabaseManager::quote($listname),
-            Sympa::DatabaseManager::quote($robot_id),
-            Sympa::DatabaseManager::quote($msgid),
-            Sympa::DatabaseManager::quote($msgid),
-            Sympa::DatabaseManager::quote('<' . $msgid . '>')
+        $sth = SDM::do_prepared_query(
+            q{SELECT pk_notification
+              FROM notification_table
+              WHERE recipient_notification = ? AND
+                    list_notification = ? AND robot_notification = ? AND
+                    (message_id_notification = ? OR
+                     message_id_notification = ?)},
+            $recipient,
+            $listname, $robot,
+            $msgid,
+            '<' . $msgid . '>'
         )
         ) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
-            'Unable to retrieve the tracking informations for user %s, message %s, list %s@%s',
+        $log->syslog(
+            'err',
+            'Unable to retrieve the tracking information for user %s, message %s, list %s@%s',
             $recipient,
             $msgid,
             $listname,
-            $robot_id
+            $robot
         );
         return undef;
     }
 
     my @pk_notifications = $sth->fetchrow_array;
-    if ($#pk_notifications > 0) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
-            'Found more then one pk_notification maching  (recipient=%s,msgis=%s,listname=%s,robot%s)',
+    $sth->finish;
+
+    if (scalar @pk_notifications > 1) {
+        $log->syslog(
+            'err',
+            'Found more then one envelope ID maching (recipient=%s, msgis=%s, listname=%s, robot%s)',
             $recipient,
             $msgid,
             $listname,
-            $robot_id
+            $robot
         );
-
         # we should return undef...
     }
     return $pk_notifications[0];
@@ -289,28 +360,60 @@ sub find_notification_id_by_message {
 #
 ##############################################
 sub remove_message_by_id {
-    $main::logger->do_log(Sympa::Logger::DEBUG2, '(%s, %s)', @_);
-    my $list  = shift;
+    $log->syslog('debug2', '(%s, %s, %s)', @_);
+    my $self  = shift;
     my $msgid = shift;
 
-    my $listname = $list->name;
-    my $robot_id = $list->domain;
+    my $listname = $self->{context}->{'name'};
+    my $robot    = $self->{context}->{'domain'};
 
     my $sth;
+
+    # Remove messages in bounce directory.
     unless (
-        $sth = Sympa::DatabaseManager::do_prepared_query(
-            q{DELETE FROM notification_table
-	  WHERE message_id_notification = ? AND
-	  list_notification = ? AND robot_notification = ?},
-            $msgid, $listname, $robot_id
+        $sth = SDM::do_prepared_query(
+            q{SELECT recipient_notification AS recipient,
+                     pk_notification AS envid
+              FROM notification_table
+              WHERE message_id_notification = ? AND
+                    list_notification = ? AND robot_notification = ?},
+            $msgid,
+            $listname, $robot
         )
         ) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
-            'Unable to remove the tracking informations for message %s, list %s',
+        $log->syslog(
+            'err',
+            'Unable to search tracking information for message %s, list %s@%s',
             $msgid,
             $listname,
-            $robot_id
+            $robot
+        );
+        return undef;
+    }
+    while (my $info = $sth->fetchrow_hashref('NAME_lc')) {
+        my $bounce_dir    = $self->{directory};
+        my $escaped_email = tools::escape_chars($info->{'recipient'});
+        my $envid         = $info->{'envid'};
+        unlink sprintf('%s/%s_%08s', $bounce_dir, $escaped_email, $envid);
+    }
+    $sth->finish;
+
+    # Remove row in notification table.
+    unless (
+        $sth = SDM::do_prepared_query(
+            q{DELETE FROM notification_table
+              WHERE message_id_notification = ? AND
+                    list_notification = ? AND robot_notification = ?},
+            $msgid,
+            $listname, $robot
+        )
+        ) {
+        $log->syslog(
+            'err',
+            'Unable to remove the tracking information for message %s, list %s@%s',
+            $msgid,
+            $listname,
+            $robot
         );
         return undef;
     }
@@ -323,37 +426,70 @@ sub remove_message_by_id {
 ##############################################
 # Function use to remove notifications older than number of days
 #
-# IN : $list : ref(List)
-#    : $period
+# IN : $period
+#    : $listname
+#    : $robot
 #
 # OUT : $sth | undef
 #
 ##############################################
 sub remove_message_by_period {
-    $main::logger->do_log(Sympa::Logger::DEBUG2, '(%s, %s)', @_);
-    my $list   = shift;
+    $log->syslog('debug2', '(%s, %s, %s)', @_);
+    my $self   = shift;
     my $period = shift;
 
-    my $listname = $list->name;
-    my $robot_id = $list->domain;
+    my $listname = $self->{context}->{'name'};
+    my $robot    = $self->{context}->{'domain'};
 
     my $sth;
 
     my $limit = time - ($period * 24 * 60 * 60);
 
+    # Remove messages in bounce directory.
     unless (
-        $sth = Sympa::DatabaseManager::do_prepared_query(
-            q{DELETE FROM notification_table
-	  WHERE "date_notification" < ? AND
-	  list_notification = ? AND robot_notification = ?},
-            $limit, $listname, $robot_id
+        $sth = SDM::do_prepared_query(
+            q{SELECT recipient_notification AS recipient,
+                     pk_notification AS envid
+              FROM notification_table
+              WHERE date_notification < ? AND
+                    list_notification = ? AND robot_notification = ?},
+            $limit,
+            $listname, $robot
         )
         ) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
-            'Unable to remove the tracking informations older than %s days for list %s',
+        $log->syslog(
+            'err',
+            'Unable to search tracking information for older than %s days for list %s@%s',
             $limit,
-            $list
+            $listname,
+            $robot
+        );
+        return undef;
+    }
+    while (my $info = $sth->fetchrow_hashref('NAME_lc')) {
+        my $bounce_dir    = $self->{directory};
+        my $escaped_email = tools::escape_chars($info->{'recipient'});
+        my $envid         = $info->{'envid'};
+        unlink sprintf('%s/%s_%08s', $bounce_dir, $escaped_email, $envid);
+    }
+    $sth->finish;
+
+    # Remove rows in notification table.
+    unless (
+        $sth = SDM::do_prepared_query(
+            q{DELETE FROM notification_table
+              WHERE date_notification < ? AND
+              list_notification = ? AND robot_notification = ?},
+            $limit,
+            $listname, $robot
+        )
+        ) {
+        $log->syslog(
+            'err',
+            'Unable to remove the tracking information older than %s days for list %s@%s',
+            $limit,
+            $listname,
+            $robot
         );
         return undef;
     }
@@ -363,3 +499,139 @@ sub remove_message_by_period {
 }
 
 1;
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+Sympa::Tracking - Spool for message tracking
+
+=head1 SYNOPSIS
+
+TBD.
+
+=head1 DESCRIPTION
+
+The tracking feature is a way to request Delivery Status Notification (DSN) or
+DSN and Message Disposition Notification (MDN) when sending a 
+message to each subscribers. In that case, Sympa (bounced.pl) collect both 
+DSN and MDN and store them in tracking spools.
+Thus, for each message, the user can know which subscribers has displayed,
+received or not received the message. This can be used for some important 
+list where list owner need to collect the proof of reception or display of 
+each message.
+
+=head2 Methods
+
+=over
+
+=item new ( $list )
+
+I<Constructor>.
+Creates new L<Sympa::Tracking> instance.
+
+Parameter:
+
+=over
+
+=item $list
+
+L<Sympa::List> object.
+
+=back
+
+Returns:
+
+New L<Sympa::Tracking> object or C<undef>.
+If unrecoverable error occurred, this method will die.
+
+=item get_recipients_status
+
+TBD.
+
+=item register ( $message, $rcpts, reception_option => $mode )
+
+I<Instance method>.
+Initializes notification table for each subscriber.
+
+Parameters:
+
+=over
+
+=item $message
+
+The message.
+
+=item $rcpts
+
+An arrayref of recipients.
+
+=item reception_option =E<gt> $mode
+
+The reception option of those subscribers.
+
+=back
+
+Returns:
+
+C<1> or C<undef>.
+
+=item store ( $message, $rcpt,
+[ envid =E<gt> $envid, status =E<gt> $status, type =E<gt> $type,
+arrival_date =E<gt> $datestring ] )
+
+I<Instance method>.
+Store notification into tracking spool.
+
+Parameters:
+
+=over
+
+=item $message
+
+Notification message.
+
+=item $rcpt
+
+E-mail address of recipient of original message.
+
+=item envid =E<gt> $envid, status =E<gt> $status, type =E<gt> $type,
+arrival_date =E<gt> $datestring
+
+If these optional parameters are specified,
+notification table is updated.
+
+=back
+
+Returns:
+
+True value if storing succeed.  Otherwise false.
+
+=item find_notification_id_by_message
+
+TBD.
+
+=item remove_message_by_id
+
+TBD.
+
+=item remove_message_by_period
+
+TBD.
+
+=back
+
+=head1 SEE ALSO
+
+bounced(8), L<Sympa::Message>.
+
+=head1 HISTORY
+
+The tracking feature was contributed by
+Guillaume Colotte and laurent Cailleux,
+French army DGA Information Superiority.
+
+L<Sympa::Tracking> module appeared on Sympa 6.2.
+
+=cut

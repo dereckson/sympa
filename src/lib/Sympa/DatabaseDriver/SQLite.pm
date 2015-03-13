@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,37 +25,45 @@
 package Sympa::DatabaseDriver::SQLite;
 
 use strict;
-use base qw(Sympa::DatabaseDriver);
-use version;
-
+use warnings;
+use DBI qw();
 use English qw(-no_match_vars);
+use POSIX qw();
 
-use Sympa::Logger;
+use Sympa::Log;
 
-#######################################################
-####### Beginning the RDBMS-specific code. ############
-#######################################################
+use base qw(Sympa::DatabaseDriver);
 
-our %date_format = (
-    'read'  => {'SQLite' => 'strftime(\'%%s\',%s,\'utc\')'},
-    'write' => {'SQLite' => 'datetime(%d,\'unixepoch\',\'localtime\')'}
-);
+my $log = Sympa::Log->instance;
 
-# Builds the string to be used by the DBI to connect to the database.
-#
-# IN: Nothing
-#
-# OUT: Nothing
+use constant required_modules    => [qw(DBD::SQLite)];
+use constant required_parameters => [qw(db_name)];
+use constant optional_parameters => [qw(db_timeout)];
+
 sub build_connect_string {
     my $self = shift;
-    $self->{'connect_string'} =
-        "DBI:SQLite(sqlite_use_immediate_transaction=>1):dbname=$self->{'db_name'}";
+
+    return 'DBI:SQLite(sqlite_use_immediate_transaction=>1):dbname='
+        . $self->{'db_name'};
 }
 
-## Returns an SQL clause to be inserted in a query.
-## This clause will compute a substring of max length
-## $param->{'substring_length'} starting from the first character equal
-## to $param->{'separator'} found in the value of field $param->{'source_field'}.
+sub connect {
+    my $self = shift;
+
+    $self->SUPER::connect() or return undef;
+
+    # Configure to use sympa database
+    $self->__dbh->func('func_index', -1, sub { return index($_[0], $_[1]) },
+        'create_function');
+    if (defined $self->{'db_timeout'}) {
+        $self->__dbh->func($self->{'db_timeout'}, 'busy_timeout');
+    } else {
+        $self->__dbh->func(5000, 'busy_timeout');
+    }
+
+    return 1;
+}
+
 sub get_substring_clause {
     my $self  = shift;
     my $param = shift;
@@ -67,85 +76,42 @@ sub get_substring_clause {
         . $param->{'substring_length'} . ")";
 }
 
-## Returns an SQL clause to be inserted in a query.
-## This clause will limit the number of records returned by the query to
-## $param->{'rows_count'}. If $param->{'offset'} is provided, an offset of
-## $param->{'offset'} rows is done from the first record before selecting
-## the rows to return.
-sub get_limit_clause {
-    my $self  = shift;
-    my $param = shift;
-    if ($param->{'offset'}) {
-        return
-              "LIMIT "
-            . $param->{'rows_count'}
-            . " OFFSET "
-            . $param->{'offset'};
-    } else {
-        return "LIMIT " . $param->{'rows_count'};
-    }
-}
+# DEPRECATED.
+#sub get_limit_clause ( { rows_count => $rows, offset => $offset } );
 
-# Returns a character string corresponding to the expression to use in a query
-# involving a date.
-# IN: A ref to hash containing the following keys:
-#	* 'mode'
-# 	   authorized values:
-#		- 'write': the sub returns the expression to use in 'INSERT'
-#		or 'UPDATE' queries
-#		- 'read': the sub returns the expression to use in 'SELECT' queries
-#	* 'target': the name of the field or the value to be used in the query
-#
-# OUT: the formatted date or undef if the date format mode is unknonw.
 sub get_formatted_date {
     my $self  = shift;
     my $param = shift;
-    $main::logger->do_log(Sympa::Logger::DEBUG3, 'Building SQL date formatting');
+    $log->syslog('debug', 'Building SQL date formatting');
     if (lc($param->{'mode'}) eq 'read' or lc($param->{'mode'}) eq 'write') {
         return $param->{'target'};
     } else {
-        $main::logger->do_log(Sympa::Logger::ERR, "Unknown date format mode %s",
-            $param->{'mode'});
+        $log->syslog('err', "Unknown date format mode %s", $param->{'mode'});
         return undef;
     }
 }
 
-# Checks whether a field is an autoincrement field or not.
-# IN: A ref to hash containing the following keys:
-# * 'field' : the name of the field to test
-# * 'table' : the name of the table to add
-#
-# OUT: Returns true if the field is an autoincrement field, false otherwise
 sub is_autoinc {
     my $self  = shift;
     my $param = shift;
     my $table = $param->{'table'};
     my $field = $param->{'field'};
 
-    $main::logger->do_log(Sympa::Logger::DEBUG3,
-        'Checking whether field %s.%s is autoincremental',
+    $log->syslog('debug', 'Checking whether field %s.%s is autoincremental',
         $table, $field);
 
     my $type = $self->_get_field_type($table, $field);
     return undef unless $type;
-    return $type =~ /\bAUTOINCREMENT\b/i
-        or $type =~ /^integer\s+PRIMARY\s+KEY\b/i;
+    return ($type =~ /\binteger PRIMARY KEY\b/i) ? 1 : 0;
 }
 
-# Defines the field as an autoincrement field
-# IN: A ref to hash containing the following keys:
-# * 'field' : the name of the field to set
-# * 'table' : the name of the table to add
-#
-# OUT: 1 if the autoincrement could be set, undef otherwise.
 sub set_autoinc {
     my $self  = shift;
     my $param = shift;
     my $table = $param->{'table'};
     my $field = $param->{'field'};
 
-    $main::logger->do_log(Sympa::Logger::DEBUG3,
-        'Setting field %s.%s as autoincremental',
+    $log->syslog('debug', 'Setting field %s.%s as autoincremental',
         $table, $field);
 
     my $type = $self->_get_field_type($table, $field);
@@ -153,7 +119,7 @@ sub set_autoinc {
 
     my $r;
     my $pk;
-    if ($type =~ /^integer\s+PRIMARY\s+KEY\b/i) {
+    if ($type =~ /\binteger\s+PRIMARY\s+KEY\b/i) {
         ## INTEGER PRIMARY KEY is auto-increment.
         return 1;
     } elsif ($type =~ /\bPRIMARY\s+KEY\b/i) {
@@ -172,25 +138,20 @@ sub set_autoinc {
     }
 
     unless ($r) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Unable to set field %s in table %s as autoincremental',
+        $log->syslog('err',
+            'Unable to set field %s in table %s as autoincrement',
             $field, $table);
         return undef;
     }
     return 1;
 }
 
-# Returns the list of the tables in the database.
-# Returns undef if something goes wrong.
-#
-# OUT: a ref to an array containing the list of the tables names in the
-# database, undef if something went wrong
 sub get_tables {
     my $self = shift;
     my @raw_tables;
     my @result;
-    unless (@raw_tables = $self->{'dbh'}->tables()) {
-        $main::logger->do_log(Sympa::Logger::ERR,
+    unless (@raw_tables = $self->__dbh->tables()) {
+        $log->syslog('err',
             'Unable to retrieve the list of tables from database %s',
             $self->{'db_name'});
         return undef;
@@ -204,22 +165,15 @@ sub get_tables {
     return \@result;
 }
 
-# Adds a table to the database
-# IN: A ref to hash containing the following keys:
-#	* 'table' : the name of the table to add
-#
-# OUT: A character string report of the operation done or undef if something
-# went wrong.
 sub add_table {
     my $self  = shift;
     my $param = shift;
-    $main::logger->do_log(Sympa::Logger::DEBUG3, 'Adding table %s to database %s',
+    $log->syslog('debug', 'Adding table %s to database %s',
         $param->{'table'}, $self->{'db_name'});
     unless (
         $self->do_query("CREATE TABLE %s (temporary INT)", $param->{'table'}))
     {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Could not create table %s in database %s',
+        $log->syslog('err', 'Could not create table %s in database %s',
             $param->{'table'}, $self->{'db_name'});
         return undef;
     }
@@ -227,16 +181,6 @@ sub add_table {
         $self->{'db_name'};
 }
 
-# Returns a ref to an hash containing the description of the fields in a table
-# from the database.
-# IN: A ref to hash containing the following keys:
-#	* 'table' : the name of the table whose fields are requested.
-#
-# OUT: A hash in which:
-#	* the keys are the field names
-#	* the values are the field type
-#	Returns undef if something went wrong.
-#
 sub get_fields {
     my $self  = shift;
     my $param = shift;
@@ -244,13 +188,12 @@ sub get_fields {
     my $sth;
     my %result;
     unless ($sth = $self->do_query(q{PRAGMA table_info('%s')}, $table)) {
-        $main::logger->do_log(Sympa::Logger::ERR,
+        $log->syslog('err',
             'Could not get the list of fields from table %s in database %s',
             $table, $self->{'db_name'});
         return undef;
     }
     while (my $field = $sth->fetchrow_hashref('NAME_lc')) {
-
         # http://www.sqlite.org/datatype3.html
         my $type = $field->{'type'};
         if ($type =~ /int/) {
@@ -261,6 +204,8 @@ sub get_fields {
             $type = 'none';
         } elsif ($type =~ /real|floa|doub/) {
             $type = 'real';
+        } elsif ($type =~ /timestamp/) {    # for compatibility to SQLite 2.
+            $type = 'timestamp';
         } else {
             $type = 'numeric';
         }
@@ -269,16 +214,6 @@ sub get_fields {
     return \%result;
 }
 
-# Changes the type of a field in a table from the database.
-# IN: A ref to hash containing the following keys:
-# * 'field' : the name of the field to update
-# * 'table' : the name of the table whose fields will be updated.
-# * 'type' : the type of the field to add
-# * 'notnull' : specifies that the field must not be null
-#
-# OUT: A character string report of the operation done or undef if something
-# went wrong.
-#
 sub update_field {
     my $self    = shift;
     my $param   = shift;
@@ -287,51 +222,50 @@ sub update_field {
     my $type    = $param->{'type'};
     my $options = '';
     if ($param->{'notnull'}) {
-        $options .= ' NOT NULL';
+        $options .= ' NOT NULL ';
     }
     my $report;
 
-    $main::logger->do_log(Sympa::Logger::DEBUG3,
-        'Updating field %s in table %s (%s%s)',
+    $log->syslog('debug', 'Updating field %s in table %s (%s%s)',
         $field, $table, $type, $options);
+
     my $r = $self->_update_table($table, qr(\b$field\s[^,]+),
         "$field\t$type$options");
     unless (defined $r) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Could not update field %s in table %s (%s%s)',
+        $log->syslog('err', 'Could not update field %s in table %s (%s%s)',
             $field, $table, $type, $options);
         return undef;
     }
     $report = $r;
-    $main::logger->do_log(Sympa::Logger::INFO, '%s', $r);
+    $log->syslog('info', '%s', $r);
+
+    # Conversion between timestamp and number is not obvious.
+    # So convert explicitly.
+    my $fields = $self->get_fields({'table' => $table});
+    if ($fields->{$field} eq 'timestamp' and $type =~ /^number/i) {
+        $self->do_query('UPDATE %s SET %s = strftime(\'%%s\', %s, \'utc\')',
+            $table, $field, $field);
+    }
+
     $report .= "\nTable $table, field $field updated";
-    $main::logger->do_log(Sympa::Logger::INFO, 'Table %s, field %s updated',
-        $table, $field);
+    $log->syslog('info', 'Table %s, field %s updated', $table, $field);
 
     return $report;
 }
 
-# Adds a field in a table from the database.
-# IN: A ref to hash containing the following keys:
-#	* 'field' : the name of the field to add
-#	* 'table' : the name of the table where the field will be added.
-#	* 'type' : the type of the field to add
-#	* 'notnull' : specifies that the field must not be null
-#	* 'autoinc' : specifies that the field must be autoincremental
-#	* 'primary' : specifies that the field is a key
-#
-# OUT: A character string report of the operation done or undef if something
-# went wrong.
-#
 sub add_field {
     my $self  = shift;
     my $param = shift;
     my $table = $param->{'table'};
     my $field = $param->{'field'};
-    my $type  = $param->{'type'};
 
+    $log->syslog(
+        'debug',             'Adding field %s in table %s (%s, %s, %s, %s)',
+        $field,              $table,
+        $param->{'type'},    $param->{'notnull'},
+        $param->{'autoinc'}, $param->{'primary'}
+    );
     my $options = '';
-
     # To prevent "Cannot add a NOT NULL column with default value NULL" errors
     if ($param->{'primary'}) {
         $options .= ' PRIMARY KEY';
@@ -342,16 +276,14 @@ sub add_field {
     if ($param->{'notnull'}) {
         $options .= ' NOT NULL';
     }
-    $main::logger->do_log(Sympa::Logger::DEBUG3, 'Adding field %s in table %s (%s%s)',
-        $field, $table, $type, $options);
 
     my $report = '';
 
     if ($param->{'primary'}) {
         $report = $self->_update_table($table, qr{[(]\s*},
-            "(\n\t $field\t$type$options,\n\t ");
+            "(\n\t $field\t$param->{'type'}$options,\n\t ");
         unless (defined $report) {
-            $main::logger->do_log(Sympa::Logger::ERR,
+            $log->syslog('err',
                 'Could not add field %s to table %s in database %s',
                 $field, $table, $self->{'db_name'});
             return undef;
@@ -360,77 +292,54 @@ sub add_field {
         unless (
             $self->do_query(
                 q{ALTER TABLE %s ADD %s %s%s},
-                $table, $field, $type, $options
+                $table, $field, $param->{'type'}, $options
             )
             ) {
-            $main::logger->do_log(Sympa::Logger::ERR,
+            $log->syslog('err',
                 'Could not add field %s to table %s in database %s',
                 $field, $table, $self->{'db_name'});
             return undef;
-        }
-        if ($self->_vernum <= 3.001003) {
-            unless ($self->do_query(q{VACUUM})) {
-                $main::logger->do_log(Sympa::Logger::ERR,
-                    'Could not vacuum database %s',
-                    $self->{'db_name'});
-                return undef;
-            }
         }
     }
 
     $report .= "\n" if $report;
     $report .= sprintf 'Field %s added to table %s (%s%s)',
-        $field, $table, $type, $options;
-    $main::logger->do_log(Sympa::Logger::INFO, 'Field %s added to table %s (%s%s)',
-        $field, $table, $type, $options);
+        $field, $table, $param->{'type'}, $options;
+    $log->syslog('info', 'Field %s added to table %s (%s%s)',
+        $field, $table, $param->{'type'}, $options);
 
     return $report;
 }
 
-# Deletes a field from a table in the database.
-# IN: A ref to hash containing the following keys:
-#	* 'field' : the name of the field to delete
-#	* 'table' : the name of the table where the field will be deleted.
-#
-# OUT: A character string report of the operation done or undef if something
-# went wrong.
-#
 sub delete_field {
     my $self  = shift;
     my $param = shift;
     my $table = $param->{'table'};
     my $field = $param->{'field'};
-    $main::logger->do_log(Sympa::Logger::DEBUG3, 'Deleting field %s from table %s',
-        $field, $table);
+
+    return '' if $field eq 'temporary';
+
+    $log->syslog('debug', 'Deleting field %s from table %s', $field, $table);
 
     ## SQLite does not support removal of columns
-
     my $report =
         "Could not remove field $field from table $table since SQLite does not support removal of columns";
-    $main::logger->do_log(Sympa::Logger::INFO, '%s', $report);
+    $log->syslog('info', '%s', $report);
 
     return $report;
 }
 
-# Returns the list fields being part of a table's primary key.
-# IN: A ref to hash containing the following keys:
-#	* 'table' : the name of the table for which the primary keys are requested.
-#
-# OUT: A ref to a hash in which each key is the name of a primary key or undef
-# if something went wrong.
-#
 sub get_primary_key {
     my $self  = shift;
     my $param = shift;
     my $table = $param->{'table'};
-    $main::logger->do_log(Sympa::Logger::DEBUG3, 'Getting primary key for table %s',
-        $table);
+    $log->syslog('debug', 'Getting primary key for table %s', $table);
 
     my %found_keys = ();
 
     my $sth;
     unless ($sth = $self->do_query(q{PRAGMA table_info('%s')}, $table)) {
-        $main::logger->do_log(Sympa::Logger::ERR,
+        $log->syslog('err',
             'Could not get field list from table %s in database %s',
             $table, $self->{'db_name'});
         return undef;
@@ -445,97 +354,68 @@ sub get_primary_key {
     return \%found_keys;
 }
 
-# Drops the primary key of a table.
-# IN: A ref to hash containing the following keys:
-#	* 'table' : the name of the table for which the primary keys must be
-#	dropped.
-#
-# OUT: A character string report of the operation done or undef if something
-# went wrong.
-#
 sub unset_primary_key {
     my $self  = shift;
     my $param = shift;
     my $table = $param->{'table'};
     my $report;
-    $main::logger->do_log(Sympa::Logger::DEBUG3, 'Removing primary key from table %s',
-        $table);
 
+    $log->syslog('debug', 'Removing primary key from table %s', $table);
     my $r =
         $self->_update_table($table, qr{,\s*PRIMARY\s+KEY\s+[(][^)]+[)]}, '');
     unless (defined $r) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Could not remove primary key from table %s', $table);
-        return undef;
+        $r = $self->_update_table($table, qr{(?<=integer)\s+PRIMARY\s+KEY},
+            '');
+        unless (defined $r) {
+            $log->syslog('err', 'Could not remove primary key from table %s',
+                $table);
+            return undef;
+        }
     }
     $report = $r;
-    $main::logger->do_log(Sympa::Logger::INFO, '%s', $r);
+    $log->syslog('info', '%s', $r);
     $report .= "\nTable $table, PRIMARY KEY dropped";
-    $main::logger->do_log(Sympa::Logger::INFO, 'Table %s, PRIMARY KEY dropped',
-        $table);
+    $log->syslog('info', 'Table %s, PRIMARY KEY dropped', $table);
 
     return $report;
 }
 
-# Sets the primary key of a table.
-# IN: A ref to hash containing the following keys:
-#	* 'table' : the name of the table for which the primary keys must be
-#	defined.
-#	* 'fields' : a ref to an array containing the names of the fields used
-#	in the key.
-#
-# OUT: A character string report of the operation done or undef if something
-# went wrong.
-#
 sub set_primary_key {
     my $self   = shift;
     my $param  = shift;
     my $table  = $param->{'table'};
     my $fields = join ',', @{$param->{'fields'}};
     my $report;
-    $main::logger->do_log(Sympa::Logger::DEBUG3,
-        'Setting primary key for table %s (%s)',
-        $table, $fields);
 
+    $log->syslog('debug', 'Setting primary key for table %s (%s)',
+        $table, $fields);
     my $r = $self->_update_table($table, qr{\s*[)]\s*$},
         ",\n\t PRIMARY KEY ($fields)\n )");
     unless (defined $r) {
-        $main::logger->do_log(Sympa::Logger::DEBUG,
-            'Could not set primary key for table %s (%s)',
+        $log->syslog('debug', 'Could not set primary key for table %s (%s)',
             $table, $fields);
         return undef;
     }
     $report = $r;
-    $main::logger->do_log(Sympa::Logger::INFO, '%s', $r);
+    $log->syslog('info', '%s', $r);
     $report .= "\nTable $table, PRIMARY KEY set on $fields";
-    $main::logger->do_log(Sympa::Logger::INFO, 'Table %s, PRIMARY KEY set on %s',
-        $table, $fields);
+    $log->syslog('info', 'Table %s, PRIMARY KEY set on %s', $table, $fields);
 
     return $report;
 }
 
-# Returns a ref to a hash in which each key is the name of an index.
-# IN: A ref to hash containing the following keys:
-#	* 'table' : the name of the table for which the indexes are requested.
-#
-# OUT: A ref to a hash in which each key is the name of an index. These key
-# point to
-#	a second level hash in which each key is the name of the field indexed.
-#      Returns undef if something went wrong.
-#
 sub get_indexes {
     my $self  = shift;
     my $param = shift;
-    $main::logger->do_log(Sympa::Logger::DEBUG3, 'Looking for indexes in %s',
-        $param->{'table'});
+    $log->syslog('debug', 'Looking for indexes in %s', $param->{'table'});
 
     my %found_indexes;
     my $sth;
     my $l;
     unless ($sth =
         $self->do_query(q{PRAGMA index_list('%s')}, $param->{'table'})) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
+        $log->syslog(
+            'err',
             'Could not get the list of indexes from table %s in database %s',
             $param->{'table'},
             $self->{'db_name'}
@@ -551,8 +431,8 @@ sub get_indexes {
     foreach my $index_name (keys %found_indexes) {
         unless ($sth =
             $self->do_query(q{PRAGMA index_info('%s')}, $index_name)) {
-            $main::logger->do_log(
-                Sympa::Logger::ERR,
+            $log->syslog(
+                'err',
                 'Could not get the list of indexes from table %s in database %s',
                 $param->{'table'},
                 $self->{'db_name'}
@@ -568,52 +448,34 @@ sub get_indexes {
     return \%found_indexes;
 }
 
-# Drops an index of a table.
-# IN: A ref to hash containing the following keys:
-#	* 'table' : the name of the table for which the index must be dropped.
-#	* 'index' : the name of the index to be dropped.
-#
-# OUT: A character string report of the operation done or undef if something
-# went wrong.
-#
 sub unset_index {
     my $self  = shift;
     my $param = shift;
-    $main::logger->do_log(Sympa::Logger::DEBUG3, 'Removing index %s from table %s',
+    $log->syslog('debug', 'Removing index %s from table %s',
         $param->{'index'}, $param->{'table'});
 
     my $sth;
     unless ($sth = $self->do_query(q{DROP INDEX "%s"}, $param->{'index'})) {
-        $main::logger->do_log(Sympa::Logger::ERR,
+        $log->syslog('err',
             'Could not drop index %s from table %s in database %s',
             $param->{'index'}, $param->{'table'}, $self->{'db_name'});
         return undef;
     }
     my $report = "Table $param->{'table'}, index $param->{'index'} dropped";
-    $main::logger->do_log(Sympa::Logger::INFO, 'Table %s, index %s dropped',
+    $log->syslog('info', 'Table %s, index %s dropped',
         $param->{'table'}, $param->{'index'});
 
     return $report;
 }
 
-# Sets an index in a table.
-# IN: A ref to hash containing the following keys:
-#	* 'table' : the name of the table for which the index must be defined.
-#	* 'fields' : a ref to an array containing the names of the fields used
-#	in the index.
-#	* 'index_name' : the name of the index to be defined..
-#
-# OUT: A character string report of the operation done or undef if something
-# went wrong.
-#
 sub set_index {
     my $self  = shift;
     my $param = shift;
 
     my $sth;
     my $fields = join ',', @{$param->{'fields'}};
-    $main::logger->do_log(
-        Sympa::Logger::DEBUG3,
+    $log->syslog(
+        'debug',
         'Setting index %s for table %s using fields %s',
         $param->{'index_name'},
         $param->{'table'}, $fields
@@ -624,8 +486,8 @@ sub set_index {
             $param->{'table'},             $fields
         )
         ) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
+        $log->syslog(
+            'err',
             'Could not add index %s using field %s for table %s in database %s',
             $fields,
             $param->{'table'},
@@ -634,20 +496,36 @@ sub set_index {
         return undef;
     }
     my $report = "Table $param->{'table'}, index %s set using $fields";
-    $main::logger->do_log(Sympa::Logger::INFO,
-        'Table %s, index %s set using fields %s',
+    $log->syslog('info', 'Table %s, index %s set using fields %s',
         $param->{'table'}, $param->{'index_name'}, $fields);
     return $report;
 }
 
-############################################################################
-## Overridden methods
-############################################################################
+sub translate_type {
+    my $self = shift;
+    my $type = shift;
 
-## To prevent "database is locked" error, acquire "immediate" lock
-## by each query.  All queries including "SELECT" need to lock in this
-## manner.
+    return undef unless $type;
 
+    # SQLite
+    $type =~ s/^varchar.*/text/g;
+    $type =~ s/^.*int\(1\).*/numeric/g;
+    $type =~ s/^int.*/integer/g;
+    $type =~ s/^tinyint.*/integer/g;
+    $type =~ s/^bigint.*/integer/g;
+    $type =~ s/^smallint.*/integer/g;
+    $type =~ s/^double/real/g;
+    $type =~ s/^longtext.*/text/g;
+    $type =~ s/^datetime.*/numeric/g;
+    $type =~ s/^enum.*/text/g;
+    $type =~ s/^mediumblob/none/g;
+    return $type;
+}
+
+# Note:
+# To prevent "database is locked" error, acquire "immediate" lock
+# by each query.  Most queries excluding "SELECT" need to lock in this
+# manner.
 sub do_query {
     my $self = shift;
     my $sth;
@@ -659,9 +537,8 @@ sub do_query {
         );
 
     ## acquire "immediate" lock
-    unless (!$need_lock or $self->{'dbh'}->begin_work) {
-        $main::logger->do_log(Sympa::Logger::ERR, 'Could not lock database: (%s) %s',
-            $self->{'dbh'}->err, $self->{'dbh'}->errstr);
+    unless (!$need_lock or $self->__dbh->begin_work) {
+        $log->syslog('err', 'Could not lock database: %s', $self->error);
         return undef;
     }
 
@@ -672,17 +549,16 @@ sub do_query {
     return $sth unless $need_lock;
     eval {
         if ($sth) {
-            $rc = $self->{'dbh'}->commit;
+            $rc = $self->__dbh->commit;
         } else {
-            $rc = $self->{'dbh'}->rollback;
+            $rc = $self->__dbh->rollback;
         }
     };
     if ($EVAL_ERROR or !$rc) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
+        $log->syslog(
+            'err',
             'Could not unlock database: %s',
-            $EVAL_ERROR || sprintf('(%s) %s',
-                $self->{'dbh'}->err, $self->{'dbh'}->errstr)
+            $EVAL_ERROR || $self->error
         );
         return undef;
     }
@@ -701,9 +577,8 @@ sub do_prepared_query {
         );
 
     ## acquire "immediate" lock
-    unless (!$need_lock or $self->{'dbh'}->begin_work) {
-        $main::logger->do_log(Sympa::Logger::ERR, 'Could not lock database: (%s) %s',
-            $self->{'dbh'}->err, $self->{'dbh'}->errstr);
+    unless (!$need_lock or $self->__dbh->begin_work) {
+        $log->syslog('err', 'Could not lock database: %s', $self->error);
         return undef;
     }
 
@@ -714,17 +589,16 @@ sub do_prepared_query {
     return $sth unless $need_lock;
     eval {
         if ($sth) {
-            $rc = $self->{'dbh'}->commit;
+            $rc = $self->__dbh->commit;
         } else {
-            $rc = $self->{'dbh'}->rollback;
+            $rc = $self->__dbh->rollback;
         }
     };
     if ($EVAL_ERROR or !$rc) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
+        $log->syslog(
+            'err',
             'Could not unlock database: %s',
-            $EVAL_ERROR || sprintf('(%s) %s',
-                $self->{'dbh'}->err, $self->{'dbh'}->errstr)
+            $EVAL_ERROR || $self->error
         );
         return undef;
     }
@@ -732,24 +606,15 @@ sub do_prepared_query {
     return $sth;
 }
 
-## For BLOB types.
 sub AS_BLOB {
     return ({TYPE => DBI::SQL_BLOB()} => $_[1])
         if scalar @_ > 1;
     return ();
 }
 
-############################################################################
-## private methods
-############################################################################
+# Private methods
 
-## get numified version of SQLite
-sub _vernum {
-    my $self = shift;
-    return version->new('v' . $self->{'dbh'}->{'sqlite_version'})->numify;
-}
-
-## get raw type of column
+# Get raw type of column
 sub _get_field_type {
     my $self  = shift;
     my $table = shift;
@@ -757,7 +622,7 @@ sub _get_field_type {
 
     my $sth;
     unless ($sth = $self->do_query(q{PRAGMA table_info('%s')}, $table)) {
-        $main::logger->do_log(Sympa::Logger::ERR,
+        $log->syslog('err',
             'Could not get the list of fields from table %s in database %s',
             $table, $self->{'db_name'});
         return undef;
@@ -766,13 +631,17 @@ sub _get_field_type {
     while ($l = $sth->fetchrow_hashref('NAME_lc')) {
         if (lc $l->{'name'} eq lc $field) {
             $sth->finish;
-            return $l->{'type'};
+            return
+                  $l->{'type'}
+                . ($l->{'pk'}         ? ' PRIMARY KEY'                : '')
+                . ($l->{'notnull'}    ? ' NOT NULL'                   : '')
+                . ($l->{'dflt_value'} ? " DEFAULT $l->{'dflt_value'}" : '');
         }
     }
     $sth->finish;
 
-    $main::logger->do_log(
-        Sympa::Logger::ERR,
+    $log->syslog(
+        'err',
         'Could not gather information of field %s from table %s in database %s',
         $field,
         $table,
@@ -781,8 +650,8 @@ sub _get_field_type {
     return undef;
 }
 
-## update table structure
-## old table will be saved as "<table name>_<YYmmddHHMMSS>_<PID>".
+# Update table structure
+# Old table will be saved as "<table name>_<YYmmddHHMMSS>_<PID>".
 sub _update_table {
     my $self        = shift;
     my $table       = shift;
@@ -797,25 +666,33 @@ sub _update_table {
     ## create temporary table with new structure
     $statement = $self->_get_create_table($table);
     unless (defined $statement) {
-        $main::logger->do_log(Sympa::Logger::ERR, 'Table \'%s\' does not exist',
-            $table);
-        return undef;
-    }
-    $statement =~
-        s/^\s*CREATE\s+TABLE\s+([\"\w]+)/CREATE TABLE ${table_saved}_new/;
-    $statement =~ s/$regex/$replacement/;
-    my $s = $statement;
-    $s =~ s/\n\s*/ /g;
-    $s =~ s/\t/ /g;
-    $main::logger->do_log(Sympa::Logger::INFO, '%s', $s);
-    unless ($self->do_query('%s', $statement)) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Could not create temporary table \'%s_new\'', $table_saved);
+        $log->syslog('err', 'Table "%s" does not exist', $table);
         return undef;
     }
 
-    $main::logger->do_log(Sympa::Logger::INFO, 'Copy \'%s\' to \'%s_new\'',
-        $table, $table_saved);
+    $statement =~
+        s/^\s*CREATE\s+TABLE\s+([\"\w]+)/CREATE TABLE ${table_saved}_new/;
+
+    my $statement_orig = $statement;
+    $statement =~ s/$regex/$replacement/;
+    if ($statement eq $statement_orig) {
+        $log->syslog('debug', 'Table "%s" was not changed', $table);
+        return undef;
+    }
+    $statement =~ s/\btemporary\s+INT,\s*//;    # Omit "temporary" field.
+
+    my $s = $statement;
+    $s =~ s/\n\s*/ /g;
+    $s =~ s/\t/ /g;
+    $log->syslog('info', '%s', $s);
+
+    unless ($self->do_query('%s', $statement)) {
+        $log->syslog('err', 'Could not create temporary table "%s_new"',
+            $table_saved);
+        return undef;
+    }
+
+    $log->syslog('info', 'Copy "%s" to "%s_new"', $table, $table_saved);
     ## save old table
     my $indexes = $self->get_indexes({'table' => $table});
     unless (defined $self->_copy_table($table, "${table_saved}_new")
@@ -844,7 +721,7 @@ sub _update_table {
     return $report;
 }
 
-## Get SQL statement by which table was created.
+# Get SQL statement by which table was created.
 sub _get_create_table {
     my $self  = shift;
     my $table = shift;
@@ -858,8 +735,7 @@ sub _get_create_table {
             $table
         )
         ) {
-        $main::logger->do_log(
-            'Could not get table \'%s\' on database \'%s\'',
+        $log->syslog('Could not get table \'%s\' on database \'%s\'',
             $table, $self->{'db_name'});
         return undef;
     }
@@ -869,16 +745,17 @@ sub _get_create_table {
     return $sql || undef;
 }
 
-## copy table content to another table
-## target table must have all columns source table has.
+# Copy table content to another table
+# Target table must have all columns source table has.
 sub _copy_table {
     my $self      = shift;
     my $table     = shift;
     my $table_new = shift;
     return undef unless defined $table and defined $table_new;
 
-    my $fields = join ', ',
+    my $fields = join ', ', grep { $_ ne 'temporary' }
         sort keys %{$self->get_fields({'table' => $table})};
+    $fields ||= 'temporary';
 
     my $sth;
     unless (
@@ -887,8 +764,8 @@ sub _copy_table {
             $table_new, $fields, $fields, $table
         )
         ) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Could not copy talbe \'%s\' to temporary table \'%s_new\'',
+        $log->syslog('err',
+            'Could not copy talbe "%s" to temporary table "%s_new"',
             $table, $table_new);
         return undef;
     }
@@ -896,8 +773,8 @@ sub _copy_table {
     return 1;
 }
 
-## rename table
-## if target already exists, do nothing and return 0.
+# Rename table
+# If target already exists, do nothing and return 0.
 sub _rename_table {
     my $self      = shift;
     my $table     = shift;
@@ -909,16 +786,15 @@ sub _rename_table {
     }
     unless (
         $self->do_query(q{ALTER TABLE %s RENAME TO %s}, $table, $table_new)) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'Could not rename table \'%s\' to \'%s\'',
+        $log->syslog('err', 'Could not rename table "%s" to "%s"',
             $table, $table_new);
         return undef;
     }
     return 1;
 }
 
-## rename table
-## if target already exists, drop source table.
+# Rename table
+# If target already exists, drop source table.
 sub _rename_or_drop_table {
     my $self      = shift;
     my $table     = shift;
@@ -931,8 +807,7 @@ sub _rename_or_drop_table {
         return $r;
     } else {
         unless ($self->do_query(q{DROP TABLE "%s"}, $table)) {
-            $main::logger->do_log(Sympa::Logger::ERR, 'Could not drop table \'%s\'',
-                $table);
+            $log->syslog('err', 'Could not drop table "%s"', $table);
             return undef;
         }
         return 0;
@@ -940,3 +815,16 @@ sub _rename_or_drop_table {
 }
 
 1;
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+Sympa::DatabaseDriver::SQLite - Database driver for SQLite
+
+=head1 SEE ALSO
+
+L<Sympa::DatabaseDriver>.
+
+=cut

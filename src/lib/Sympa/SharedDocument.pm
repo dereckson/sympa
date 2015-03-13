@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,225 +22,184 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-=encoding utf-8
-
-=head1 NAME
-
-Sympa::SharedDocument - A document shared by multiple users
-
-=head1 DESCRIPTION
-
-FIXME
-
-=cut
-
-package Sympa::SharedDocument;
+package SharedDocument;
 
 use strict;
+use warnings;
+use HTML::Entities qw();
 
-use English qw(-no_match_vars);
-
-use Sympa::Logger;
+use Sympa::Log;
 use Sympa::Scenario;
-use Sympa::Tools;
+use tools;
+use Sympa::Tools::Data;
+use Sympa::Tools::File;
 
-=head1 CLASS METHODS
+my $log = Sympa::Log->instance;
 
-=over 4
-
-=item Sympa::SharedDocument->new(%parameters)
-
-Creates a new L<Sympa::SharedDocument> object.
-
-Parameters:
-
-=over 4
-
-=item * I<list>: FIXME
-
-=item * I<path>: FIXME
-
-=item * I<param>: FIXME
-
-=item * I<icon_base>: FIXME
-
-=back
-
-Returns a new L<Sympa::SharedDocument> object, or I<undef> for failure.
-
-=cut
-
+## Creates a new object
 sub new {
-    $main::logger->do_log(Sympa::Logger::DEBUG2, '(%s, %s, %s, %s)', @_);
-    my ($class, %params) = @_;
+    my ($pkg, $list, $path, $param) = @_;
 
-    my $list      = $params{list};
-    my $path      = $params{path};
-    my $param     = $params{param};
-    my $icon_base = $params{icon_base};
     my $email = $param->{'user'}{'email'};
-
     #$email ||= 'nobody';
-    my $self = {};
+    my $document = {};
+    $log->syslog('debug2', '(%s, %s)', $list->{'name'}, $path);
 
-    unless (ref $list and $list->isa('Sympa::List')) {
-        $main::logger->do_log(Sympa::Logger::ERR, 'Invalid list parameter');
+    unless (ref($list) =~ /List/i) {
+        $log->syslog('err', 'Incorrect list parameter');
         return undef;
     }
 
-    $self->{'root_path'} = $list->dir . '/shared';
+    my $robot_id = $list->{'domain'};
 
-    $self->{'path'} = Sympa::Tools::WWW::no_slash_end($path);
-    $self->{'escaped_path'} =
-        Sympa::Tools::escape_chars($self->{'path'}, '/');
+    $document->{'root_path'} = $list->{'dir'} . '/shared';
+
+    $document->{'path'} = Sympa::Tools::WWW::no_slash_end($path);
+    $document->{'escaped_path'} =
+        tools::escape_chars($document->{'path'}, '/');
 
     ### Document isn't a description file
-    if ($self->{'path'} =~ /\.desc/) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            "SharedDocument::new : %s : description file",
-            $self->{'path'});
+    if ($document->{'path'} =~ /\.desc/) {
+        $log->syslog('err', '%s: description file', $document->{'path'});
         return undef;
     }
 
     ## absolute path
     # my $doc;
-    $self->{'absolute_path'} = $self->{'root_path'};
-    if ($self->{'path'}) {
-        $self->{'absolute_path'} .= '/' . $self->{'path'};
+    $document->{'absolute_path'} = $document->{'root_path'};
+    if ($document->{'path'}) {
+        $document->{'absolute_path'} .= '/' . $document->{'path'};
     }
 
     ## Check access control
-    $self->check_access_control($param);
+    check_access_control($document, $param);
 
     ###############################
     ## The path has been checked ##
     ###############################
 
     ### Document exist ?
-    unless (-r $self->{'absolute_path'}) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
-            "SharedDocument::new : unable to read %s : no such file or directory",
-            $self->{'absolute_path'}
+    unless (-r $document->{'absolute_path'}) {
+        $log->syslog(
+            'err',
+            'Unable to read %s: no such file or directory',
+            $document->{'absolute_path'}
         );
         return undef;
     }
 
     ### Document has non-size zero?
-    unless (-s $self->{'absolute_path'}) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
-            "SharedDocument::new : unable to read %s : empty document",
-            $self->{'absolute_path'}
+    unless (-s $document->{'absolute_path'}) {
+        $log->syslog(
+            'err',
+            'Unable to read %s: empty document',
+            $document->{'absolute_path'}
         );
         return undef;
     }
 
-    $self->{'visible_path'} =
-        Sympa::Tools::WWW::make_visible_path($self->{'path'});
+    $document->{'visible_path'} =
+        Sympa::Tools::WWW::make_visible_path($document->{'path'});
 
     ## Date
-    my @info = stat $self->{'absolute_path'};
-    $self->{'date_epoch'} = $info[9];
+    $document->{'date_epoch'} =
+        Sympa::Tools::File::get_mtime($document->{'absolute_path'});
 
     # Size of the doc
-    $self->{'size'} = (-s $self->{'absolute_path'}) / 1000;
+    $document->{'size'} = (-s $document->{'absolute_path'}) / 1000;
 
     ## Filename
-    my @tokens = split /\//, $self->{'path'};
-    $self->{'filename'} = $self->{'visible_filename'} =
+    my @tokens = split /\//, $document->{'path'};
+    $document->{'filename'} = $document->{'visible_filename'} =
         $tokens[$#tokens];
 
     ## Moderated document
-    if ($self->{'filename'} =~ /^\.(.*)(\.moderate)$/) {
-        $self->{'moderate'}         = 1;
-        $self->{'visible_filename'} = $1;
+    if ($document->{'filename'} =~ /^\.(.*)(\.moderate)$/) {
+        $document->{'moderate'}         = 1;
+        $document->{'visible_filename'} = $1;
     }
 
-    $self->{'escaped_filename'} =
-        Sympa::Tools::escape_chars($self->{'filename'});
+    $document->{'escaped_filename'} =
+        tools::escape_chars($document->{'filename'});
 
     ## Father dir
-    if ($self->{'path'} =~ /^(([^\/]*\/)*)([^\/]+)$/) {
-        $self->{'father_path'} = $1;
+    if ($document->{'path'} =~ /^(([^\/]*\/)*)([^\/]+)$/) {
+        $document->{'father_path'} = $1;
     } else {
-        $self->{'father_path'} = '';
+        $document->{'father_path'} = '';
     }
-    $self->{'escaped_father_path'} =
-        Sympa::Tools::escape_chars($self->{'father_path'}, '/');
+    $document->{'escaped_father_path'} =
+        tools::escape_chars($document->{'father_path'}, '/');
 
     ### File, directory or URL ?
-    if (!(-d $self->{'absolute_path'})) {
+    if (!(-d $document->{'absolute_path'})) {
 
-        if ($self->{'filename'} =~ /^\..*\.(\w+)\.moderate$/) {
-            $self->{'file_extension'} = $1;
-        } elsif ($self->{'filename'} =~ /^.*\.(\w+)$/) {
-            $self->{'file_extension'} = $1;
+        if ($document->{'filename'} =~ /^\..*\.(\w+)\.moderate$/) {
+            $document->{'file_extension'} = $1;
+        } elsif ($document->{'filename'} =~ /^.*\.(\w+)$/) {
+            $document->{'file_extension'} = $1;
         }
 
-        if ($self->{'file_extension'} eq 'url') {
-            $self->{'type'} = 'url';
+        if ($document->{'file_extension'} eq 'url') {
+            $document->{'type'} = 'url';
         } else {
-            $self->{'type'} = 'file';
+            $document->{'type'} = 'file';
         }
     } else {
-        $self->{'type'} = 'directory';
+        $document->{'type'} = 'directory';
     }
 
     ## Load .desc file unless root directory
     my $desc_file;
-    if ($self->{'type'} eq 'directory') {
-        $desc_file = $self->{'absolute_path'} . '/.desc';
+    if ($document->{'type'} eq 'directory') {
+        $desc_file = $document->{'absolute_path'} . '/.desc';
     } else {
-        if ($self->{'absolute_path'} =~ /^(([^\/]*\/)*)([^\/]+)$/) {
+        if ($document->{'absolute_path'} =~ /^(([^\/]*\/)*)([^\/]+)$/) {
             $desc_file = $1 . '.desc.' . $3;
         } else {
-            $main::logger->do_log(
-                Sympa::Logger::ERR,
-                "SharedDocument::new() : cannot determine desc file for %s",
-                $self->{'absolute_path'}
+            $log->syslog(
+                'err',
+                'Cannot determine desc file for %s',
+                $document->{'absolute_path'}
             );
             return undef;
         }
     }
 
-    if ($self->{'path'} && (-e $desc_file)) {
-        my @info = stat $desc_file;
-        $self->{'serial_desc'} = $info[9];
+    if ($document->{'path'} && (-e $desc_file)) {
+        $document->{'serial_desc'} = (stat $desc_file)[9];
 
         my %desc_hash = Sympa::Tools::WWW::get_desc_file($desc_file);
-        $self->{'owner'} = $desc_hash{'email'};
-        $self->{'title'} = $desc_hash{'title'};
-        $self->{'escaped_title'} =
-            Sympa::Tools::escape_html($self->{'title'});
+        $document->{'owner'} = $desc_hash{'email'};
+        $document->{'title'} = $desc_hash{'title'};
+        $document->{'escaped_title'} =
+            HTML::Entities::encode_entities($document->{'title'}, '<>&"');
 
         # Author
         if ($desc_hash{'email'}) {
-            $self->{'author'} = $desc_hash{'email'};
-            $self->{'author_mailto'} =
+            $document->{'author'} = $desc_hash{'email'};
+            $document->{'author_mailto'} =
                 Sympa::Tools::WWW::mailto($list, $desc_hash{'email'});
-            $self->{'author_known'} = 1;
+            $document->{'author_known'} = 1;
         }
     }
 
     ### File, directory or URL ?
-    if ($self->{'type'} eq 'url') {
+    if ($document->{'type'} eq 'url') {
+        $document->{'icon'} = Sympa::Tools::WWW::get_icon($robot_id, 'url');
 
-        $self->{'icon'} = $icon_base . Sympa::Tools::WWW::get_icon('url');
-
-        open DOC, $self->{'absolute_path'};
+        open DOC, $document->{'absolute_path'};
         my $url = <DOC>;
         close DOC;
         chomp $url;
-        $self->{'url'} = $url;
+        $document->{'url'} = $url;
 
-        if ($self->{'filename'} =~ /^(.+)\.url/) {
-            $self->{'anchor'} = $1;
+        if ($document->{'filename'} =~ /^(.+)\.url/) {
+            $document->{'anchor'} = $1;
         }
-    } elsif ($self->{'type'} eq 'file') {
-
-        if (my $type = Sympa::Tools::WWW::get_mime_type($self->{'file_extension'})) {
-
+    } elsif ($document->{'type'} eq 'file') {
+        if (my $type =
+            Sympa::Tools::WWW::get_mime_type($document->{'file_extension'})) {
             # type of the file and apache icon
             if ($type =~ /^([\w\-]+)\/([\w\-]+)$/) {
                 my ($mimet, $subt) = ($1, $2);
@@ -250,36 +210,34 @@ sub new {
                     }
                     $type = "$subt file";
                 }
-                $self->{'icon'} =
-                    $icon_base . Sympa::Tools::WWW::get_icon($mimet) ||
-                    $icon_base . Sympa::Tools::WWW::get_icon('unknown');
+                $document->{'icon'} =
+                       Sympa::Tools::WWW::get_icon($robot_id, $mimet)
+                    || Sympa::Tools::WWW::get_icon($robot_id, 'unknown');
             }
         } else {
-
             # unknown file type
-            $self->{'icon'} =
-                $icon_base . Sympa::Tools::WWW::get_icon('unknown');
+            $document->{'icon'} =
+                Sympa::Tools::WWW::get_icon($robot_id, 'unknown');
         }
 
         ## HTML file
-        if ($self->{'file_extension'} =~ /^html?$/i) {
-            $self->{'html'} = 1;
-            $self->{'icon'} =
-                $icon_base . Sympa::Tools::WWW::get_icon('text');
+        if ($document->{'file_extension'} =~ /^html?$/i) {
+            $document->{'html'} = 1;
+            $document->{'icon'} =
+                Sympa::Tools::WWW::get_icon($robot_id, 'text');
         }
 
         ## Directory
     } else {
-
-        $self->{'icon'} = 
-            $icon_base . Sympa::Tools::WWW::get_icon('folder');
+        $document->{'icon'} =
+            Sympa::Tools::WWW::get_icon($robot_id, 'folder');
 
         # listing of all the shared documents of the directory
-        unless (opendir DIR, $self->{'absolute_path'}) {
-            $main::logger->do_log(
-                Sympa::Logger::ERR,
-                "SharedDocument::new() : cannot open %s : %s",
-                $self->{'absolute_path'}, $ERRNO
+        unless (opendir DIR, $document->{'absolute_path'}) {
+            $log->syslog(
+                'err',
+                'Cannot open %s: %m',
+                $document->{'absolute_path'}
             );
             return undef;
         }
@@ -290,38 +248,31 @@ sub new {
 
         my $dir =
             Sympa::Tools::WWW::get_directory_content(\@tmpdir, $email, $list,
-            $self->{'absolute_path'});
+            $document->{'absolute_path'});
 
         foreach my $d (@{$dir}) {
 
             my $sub_document =
-                Sympa::SharedDocument->new(
-                    list  => $list,
-                    path  => $self->{'path'} . '/' . $d,
-                    param => $param
-                );
-            push @{$self->{'subdir'}}, $sub_document;
+                SharedDocument->new($list, $document->{'path'} . '/' . $d,
+                $param);
+            push @{$document->{'subdir'}}, $sub_document;
         }
     }
 
-    $self->{'list'} = $list;
+    $document->{'list'} = $list;
 
-    bless $self, $class;
+    ## Bless Message object
+    bless $document, $pkg;
 
-    return $self;
+    return $document;
 }
 
-=back
+sub dump {
+    my $self = shift;
+    my $fd   = shift;
 
-=head1 INSTANCE METHODS
-
-=over
-
-=item $document->dup()
-
-FIXME
-
-=cut
+    Sympa::Tools::Data::dump_var($self, 0, $fd);
+}
 
 sub dup {
     my $self = shift;
@@ -347,7 +298,6 @@ sub dup {
 #                        control A)
 
 sub check_access_control {
-
     # Arguments:
     # (\%mode,$path)
     # if mode->{'read'} control access only for read
@@ -376,8 +326,7 @@ sub check_access_control {
 
     my $list = $self->{'list'};
 
-    $main::logger->do_log(Sympa::Logger::DEBUG, "check_access_control(%s)",
-        $self->{'path'});
+    $log->syslog('debug', '(%s)', $self->{'path'});
 
     # Control for editing
     my $may_read     = 1;
@@ -386,8 +335,10 @@ sub check_access_control {
     my $why_not_edit = '';
 
     ## First check privileges on the root shared directory
-    $result{'scenario'}{'read'} = $list->shared_doc->{'d_read'}{'name'};
-    $result{'scenario'}{'edit'} = $list->shared_doc->{'d_edit'}{'name'};
+    $result{'scenario'}{'read'} =
+        $list->{'admin'}{'shared_doc'}{'d_read'}{'name'};
+    $result{'scenario'}{'edit'} =
+        $list->{'admin'}{'shared_doc'}{'d_edit'}{'name'};
 
     ## Privileged owner has all privileges
     if ($param->{'is_privileged_owner'}) {
@@ -399,43 +350,46 @@ sub check_access_control {
         return 1;
     }
 
-    my $result = Sympa::Scenario::request_action(
-        that        => $list,
-        operation   => 'shared_doc.d_read',
-        auth_method => $param->{'auth_method'},
-        context     => {
-            'sender'      => $param->{'user'}{'email'},
-            'remote_host' => $param->{'remote_host'},
-            'remote_addr' => $param->{'remote_addr'}
+    # if not privileged owner
+    if (1) {
+        my $result = Sympa::Scenario::request_action(
+            $list,
+            'shared_doc.d_read',
+            $param->{'auth_method'},
+            {   'sender'      => $param->{'user'}{'email'},
+                'remote_host' => $param->{'remote_host'},
+                'remote_addr' => $param->{'remote_addr'}
+            }
+        );
+        my $action;
+        if (ref($result) eq 'HASH') {
+            $action       = $result->{'action'};
+            $why_not_read = $result->{'reason'};
         }
-    );
-    my $action;
-    if (ref($result) eq 'HASH') {
-        $action       = $result->{'action'};
-        $why_not_read = $result->{'reason'};
+
+        $may_read = ($action =~ /do_it/i);
     }
 
-    $may_read = ($action =~ /do_it/i);
-
-    my $result = Sympa::Scenario::request_action(
-        that        => $list,
-        operation   => 'shared_doc.d_edit',
-        auth_method => $param->{'auth_method'},
-        context     => {
-            'sender'      => $param->{'user'}{'email'},
-            'remote_host' => $param->{'remote_host'},
-            'remote_addr' => $param->{'remote_addr'}
+    if (1) {
+        my $result = Sympa::Scenario::request_action(
+            $list,
+            'shared_doc.d_edit',
+            $param->{'auth_method'},
+            {   'sender'      => $param->{'user'}{'email'},
+                'remote_host' => $param->{'remote_host'},
+                'remote_addr' => $param->{'remote_addr'}
+            }
+        );
+        my $action;
+        if (ref($result) eq 'HASH') {
+            $action       = $result->{'action'};
+            $why_not_edit = $result->{'reason'};
         }
-    );
-    my $action;
-    if (ref($result) eq 'HASH') {
-        $action       = $result->{'action'};
-        $why_not_edit = $result->{'reason'};
-    }
 
-    #edit = 0, 0.5 or 1
-    $may_edit = Sympa::Tools::WWW::find_edit_mode($action);
-    $why_not_edit = '' if ($may_edit);
+        #edit = 0, 0.5 or 1
+        $may_edit = Sympa::Tools::WWW::find_edit_mode($action);
+        $why_not_edit = '' if ($may_edit);
+    }
 
     ## Only authenticated users can edit files
     unless ($param->{'user'}{'email'}) {
@@ -449,7 +403,6 @@ sub check_access_control {
     my $user = $param->{'user'}{'email'} || 'nobody';
 
     while ($current_path ne "") {
-
         # no description file found yet
         my $def_desc_file = 0;
         my $desc_file;
@@ -460,12 +413,10 @@ sub check_access_control {
 
         # opening of the description file appropriated
         if (-d $self->{'root_path'} . '/' . $current_path) {
-
             # case directory
 
             #		unless ($slash) {
             $current_path = $current_path . '/';
-
             #		}
 
             if (-e "$self->{'root_path'}/$current_path.desc") {
@@ -475,7 +426,6 @@ sub check_access_control {
             }
 
         } else {
-
             # case file
             if (-e "$self->{'root_path'}/$next_path.desc.$3") {
                 $desc_file =
@@ -485,7 +435,6 @@ sub check_access_control {
         }
 
         if ($def_desc_file) {
-
             # a description file was found
             # loading of acces information
 
@@ -501,47 +450,53 @@ sub check_access_control {
                 return 1;
             }
 
-            my $result = Sympa::Scenario::request_action(
-                that        => $list,
-                operation   => 'shared_doc.d_read',
-                auth_method => $param->{'auth_method'},
-                context     => {
-                    'sender'      => $param->{'user'}{'email'},
-                    'remote_host' => $param->{'remote_host'},
-                    'remote_addr' => $param->{'remote_addr'},
-                    'scenario'    => $desc_hash{'read'}
+            if (1) {
+
+                my $result = Sympa::Scenario::request_action(
+                    $list,
+                    'shared_doc.d_read',
+                    $param->{'auth_method'},
+                    {   'sender'      => $param->{'user'}{'email'},
+                        'remote_host' => $param->{'remote_host'},
+                        'remote_addr' => $param->{'remote_addr'},
+                        'scenario'    => $desc_hash{'read'}
+                    }
+                );
+                my $action;
+                if (ref($result) eq 'HASH') {
+                    $action       = $result->{'action'};
+                    $why_not_read = $result->{'reason'};
                 }
-            );
-            my $action;
-            if (ref($result) eq 'HASH') {
-                $action       = $result->{'action'};
-                $why_not_read = $result->{'reason'};
+
+                $may_read = $may_read && ($action =~ /do_it/i);
+                $why_not_read = '' if ($may_read);
             }
 
-            $may_read = $may_read && ($action =~ /do_it/i);
-            $why_not_read = '' if ($may_read);
-
-            my $result = Sympa::Scenario::request_action(
-                that        => $list,
-                operation   => 'shared_doc.d_edit',
-                auth_method => $param->{'auth_method'},
-                context     => {
-                    'sender'      => $param->{'user'}{'email'},
-                    'remote_host' => $param->{'remote_host'},
-                    'remote_addr' => $param->{'remote_addr'},
-                    'scenario'    => $desc_hash{'edit'}
+            if (1) {
+                my $result = Sympa::Scenario::request_action(
+                    $list,
+                    'shared_doc.d_edit',
+                    $param->{'auth_method'},
+                    {   'sender'      => $param->{'user'}{'email'},
+                        'remote_host' => $param->{'remote_host'},
+                        'remote_addr' => $param->{'remote_addr'},
+                        'scenario'    => $desc_hash{'edit'}
+                    }
+                );
+                my $action_edit;
+                if (ref($result) eq 'HASH') {
+                    $action_edit  = $result->{'action'};
+                    $why_not_edit = $result->{'reason'};
                 }
-            );
-            my $action_edit;
-            if (ref($result) eq 'HASH') {
-                $action_edit  = $result->{'action'};
-                $why_not_edit = $result->{'reason'};
-            }
 
-            # $may_edit = 0, 0.5 or 1
-            my $may_action_edit = Sympa::Tools::WWW::find_edit_mode($action_edit);
-            $may_edit = Sympa::Tools::WWW::merge_edit($may_edit, $may_action_edit);
-            $why_not_edit = '' if ($may_edit);
+                # $may_edit = 0, 0.5 or 1
+                my $may_action_edit =
+                    Sympa::Tools::WWW::find_edit_mode($action_edit);
+                $may_edit = Sympa::Tools::WWW::merge_edit($may_edit,
+                    $may_action_edit);
+                $why_not_edit = '' if ($may_edit);
+
+            }
 
             ## Only authenticated users can edit files
             unless ($param->{'user'}{'email'}) {
@@ -560,17 +515,18 @@ sub check_access_control {
         $current_path = $next_path;
     }
 
-    $result{'may'}{'read'}    = $may_read;
-    $result{'reason'}{'read'} = $why_not_read;
-    $result{'may'}{'edit'}    = $may_edit;
-    $result{'reason'}{'edit'} = $why_not_edit;
+    if (1) {
+        $result{'may'}{'read'}    = $may_read;
+        $result{'reason'}{'read'} = $why_not_read;
+    }
+
+    if (1) {
+        $result{'may'}{'edit'}    = $may_edit;
+        $result{'reason'}{'edit'} = $why_not_edit;
+    }
 
     $self->{'access'} = \%result;
     return 1;
 }
-
-=back
-
-=cut
 
 1;
