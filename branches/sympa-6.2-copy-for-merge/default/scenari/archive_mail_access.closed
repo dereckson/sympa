@@ -1,5 +1,0 @@
-title.gettext closed
-
-true()   smtp,dkim,smime,md5 -> reject(reason='mail_archive_closed')
-
-

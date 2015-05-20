@@ -1,7 +1,0 @@
-<!-- $Id$ -->
-[% TRY ~%]
-  [% html_content | eval %]
-[%~ CATCH ~%]
-  <!-- [% error | html %] -->
-[%~ END %]
-<!-- end viewbounce.tt2 -->
