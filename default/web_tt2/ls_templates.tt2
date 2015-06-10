@@ -2,7 +2,7 @@
 
 <h2>[%|loc%]Template edition system[%END%]</h2>
 
-<div id="template_editor">
+<article id="template_editor">
 
 [%|loc%]This page is suggested in order to edit or create mail or web tt2 templates.[%END%]
 
@@ -29,15 +29,15 @@
 </fieldset>
 </form>
 
-</div>
+</article>
 
 <p>
 
 [% IF templates %]
-<table summary="[%|loc%]This table contain all templates you can copy or see[%END%]" class="ls_template">
+<table summary="[%|loc%]This table contain all templates you can copy or see[%END%]" class="responsive ls_template">
 <tr>
 <th>[%|loc%]template name[%END%]</th>
-<th colspan="[% colspan_per_level.distrib %]">[%|loc%]distrib[%END%]</th>
+<th colspan="[% colspan_per_level.distrib %]">[%|loc%]default[%END%]</th>
 <th colspan="[% colspan_per_level.site %]">[%|loc%]site[%END%]</th>
 <th colspan="[% colspan_per_level.robot %]">[%|loc%]robot[%END%]</th>
 <th  colspan="[% colspan_per_level.list %]">[%|loc(list)%]list %1[%END%]</th>
@@ -51,7 +51,7 @@
 [%- IF lang.key == 'default' -%]
 <th>&nbsp;</th>
 [%- ELSE -%]
-<th class="LanguageNeutral"
+<th class="neutral"
 lang="[%lang.value.lang%]" xml:lang="[%lang.value.lang%]"
 >[%lang.value.title%] ([%lang.key%])</th>
 [%- END %]
@@ -61,7 +61,7 @@ lang="[%lang.value.lang%]" xml:lang="[%lang.value.lang%]"
 [%- IF lang.key == 'default' -%]
 <th>&nbsp;</th>
 [%- ELSE -%]
-<th class="LanguageNeutral"
+<th class="neutral"
 lang="[%lang.value.lang%]" xml:lang="[%lang.value.lang%]"
 >[%lang.value.title%] ([%lang.key%])</th>
 [%- END %]
@@ -71,7 +71,7 @@ lang="[%lang.value.lang%]" xml:lang="[%lang.value.lang%]"
 [%- IF lang.key == 'default' -%]
 <th>&nbsp;</th>
 [%- ELSE -%]
-<th class="LanguageNeutral"
+<th class="neutral"
 lang="[%lang.value.lang%]" xml:lang="[%lang.value.lang%]"
 >[%lang.value.title%] ([%lang.key%])</th>
 [%- END %]
@@ -81,7 +81,7 @@ lang="[%lang.value.lang%]" xml:lang="[%lang.value.lang%]"
 [%- IF lang.key == 'default' -%]
 <th>&nbsp;</th>
 [%- ELSE -%]
-<th class="LanguageNeutral"
+<th class="neutral"
 lang="[%lang.value.lang%]" xml:lang="[%lang.value.lang%]"
 >[%lang.value.title%] ([%lang.key%])</th>
 [%- END %]

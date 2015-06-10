@@ -81,10 +81,12 @@ $PRINTABLE_MONTH$
 
 <DefineVar>
 POWERED_BY
+($tag$% IF '$with_powered_by$' -%$tag$)
 <hr size="1" noshade>
 <p><font size="-1">
 ($tag$%|loc%$tag$)Archive powered by($tag$%END%$tag$) <a href="$DOCURL$">MHonArc $VERSION$</a>.
 </font></p>
+($tag$%- END %$tag$)
 </DefineVar>
 
 <!-- ============================================================== -->
@@ -182,7 +184,7 @@ IDXPGEND
     <a class="ArcMenuLinksSortActive" href="mail$PAGENUM$.html">($tag$%|loc%$tag$)Chronological($tag$%END%$tag$)</a>
     <a class="ArcMenuLinksSortInactive" href="thrd$PAGENUM$.html">($tag$%|loc%$tag$)Thread($tag$%END%$tag$)</a>
   </span>
-  $PREVPGLINK$ ($tag$%|loc($PAGENUM$,$NUMOFPAGES$)%$tag$)page # %1/%2($tag$%END%$tag$) $NEXTPGLINK$   
+  $PREVPGLINK$ ($tag$%|loc($PAGENUM$,$NUMOFPAGES$)%$tag$)page %1 / %2($tag$%END%$tag$) $NEXTPGLINK$   
 </div>
 <!-- end header -->
 </IDXPGBEGIN>
@@ -294,7 +296,7 @@ TIDXPGEND
      <a class="ArcMenuLinksSortInactive" href="mail$PAGENUM$.html">($tag$%|loc%$tag$)Chronological($tag$%END%$tag$)</a>
      <a class="ArcMenuLinksSortActive" href="thrd$PAGENUM$.html">($tag$%|loc%$tag$)Thread($tag$%END%$tag$)</a>
    </span>  
-   $TPREVPGLINK$ ($tag$%|loc($PAGENUM$,$NUMOFPAGES$)%$tag$)page # %1/%2($tag$%END%$tag$) $TNEXTPGLINK$ 
+   $TPREVPGLINK$ ($tag$%|loc($PAGENUM$,$NUMOFPAGES$)%$tag$)page %1 / %2($tag$%END%$tag$) $TNEXTPGLINK$ 
 </div>
 <!-- end header -->
 
@@ -407,7 +409,7 @@ MSGPGEND
      <a class="ArcMenuLinksSortInactive" href="$IDXFNAME$#$MSGNUM$">($tag$%|loc%$tag$)Chronological($tag$% END %$tag$)</a>
      <a class="ArcMenuLinksSortInactive" href="$TIDXFNAME$#$MSGNUM$">($tag$%|loc%$tag$)Thread($tag$% END %$tag$)</a>&nbsp;
    </span>
-   <ul id="MainMenuLinks">
+   <ul class="MainMenu">
      $PREVBUTTON$ ($tag$%|loc%$tag$)Chronological($tag$%END%$tag$) $NEXTBUTTON$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$TPREVBUTTON$  ($tag$%|loc%$tag$)Thread($tag$%END%$tag$) $TNEXTBUTTON$
    </ul>
 </div>
@@ -423,9 +425,11 @@ MSGPGEND
 </HEADBODYSEP>
 
 <MSGBODYEND>
+($tag$% IF '$with_tslice$' -%$tag$)
 <br clear="all" />
 <hr size="1" noshade>
 $TSLICE(10;10;1)$
+($tag$%- END %$tag$)
 </MSGBODYEND>
 
 <BOTLINKS>
@@ -470,24 +474,24 @@ $POWERED_BY$
       ($tag$% END %$tag$)
   ($tag$% ELSE %$tag$)
       ($tag$%|loc%$tag$)Reply to($tag$%END%$tag$)
+      <label class="inlineLabel" for="to_sender">($tag$%|loc%$tag$)sender($tag$%END%$tag$)</label>
       <input id="to_sender" type="radio" name="to"
        value="$FROMADDRNAME:J$ $FROMADDRDOMAIN$"
        ($tag$% IF list_conf.reply_to_header.value == 'sender' %$tag$)
 	checked
 	($tag$%END%$tag$) />
-      <label for="to_sender">($tag$%|loc%$tag$)sender($tag$%END%$tag$)</label>
+      <label class="inlineLabel" for="to_list">($tag$%|loc%$tag$)list($tag$%END%$tag$)</label>
       <input id="to_list" type="radio" name="to"
        value="($tag$% list %$tag$) ($tag$% list_conf.host %$tag$)"
        ($tag$% IF list_conf.reply_to_header.value == 'list' %$tag$)
 	checked
 	($tag$%END%$tag$) />
-      <label for="to_list">($tag$%|loc%$tag$)list($tag$%END%$tag$)</label>
+      <label class="inlineLabel" for="to_both">($tag$%|loc%$tag$)both($tag$%END%$tag$)</label>
       <input id="to_both" type="radio" name="to"
        value="$FROMADDRNAME:J$ $FROMADDRDOMAIN$,($tag$% list %$tag$) ($tag$% list_conf.host %$tag$)"
        ($tag$% IF list_conf.reply_to_header.value == 'all' %$tag$)
 	checked
 	($tag$%END%$tag$) />
-      <label for="to_both">($tag$%|loc%$tag$)both($tag$%END%$tag$)</label>
   ($tag$% END %$tag$)
   <input class="MainMenuLinks" type="submit" name="action_compose_mail" value="($tag$%|loc%$tag$)Reply($tag$%END%$tag$)" /><br />
   <input class="MainMenuLinks" type="submit" name="action_send_me" value="($tag$%|loc(user.email)%$tag$)send it back to %1($tag$%END%$tag$)" /><br />
@@ -504,7 +508,7 @@ $POWERED_BY$
 
     ($tag$% IF listconf.tracking.delivery_status_notification == 'on' || listconf.tracking.message_delivery_notification == 'on_demand' || listconf.tracking.message_delivery_notification == 'on' %$tag$) 
       ($tag$% IF may_tracking %$tag$) 
-        <input class="MainMenuLinks" type="submit" name="action_tracking" value="mail tracking" /> 
+        <input class="MainMenuLinks" type="submit" name="action_tracking" value="($tag$%|loc%$tag$)mail tracking($tag$%END%$tag$)" /> 
       ($tag$% END %$tag$) 
     ($tag$% END %$tag$) 
 
