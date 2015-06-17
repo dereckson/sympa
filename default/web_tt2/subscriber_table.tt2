@@ -1,12 +1,12 @@
+<!-- $Id$ -->
 
-<!--  subscriber_table.tt2  -->
-
-    <table summary="[%|loc%]List members[%END%]" class="listOfItems text_center">
-      <tr>
+    <table summary="[%|loc%]List members[%END%]" class="listOfItems text_center responsive">
+      <tbody>
+        <tr>
 	[% SET colspan = 0 %]
 	[% IF is_owner %]
 	   [% SET colspan = colspan + 1 %]
-	   <th><a href="#" onclick="toggle_selection(document.myform.email);return false;" title="[%|loc%]Toggle Selection[%END%]">&laquo;&raquo;</a></th>
+	   <th><a href="#" onclick="toggle_selection(document.myform.email);return false;" title="[%|loc%]Toggle Selection[%END%]"><i class="fa fa-check-square-o"></i> </a></th>
 	[% END %]
 
 	[% SET colspan = colspan + 3 %]
@@ -98,7 +98,7 @@
  	     [% END %]
 	   </td>
 	 [% IF is_owner %]
-           <td class="bg_color_error"><strong>[%|loc%]bouncing[%END%]</strong>
+           <td class="color7"><strong>[%|loc%]bouncing[%END%]</strong>
 	   </td>
 	 [% END %]
 
@@ -123,13 +123,13 @@
   	    [% END %]
   	  [% END %]
 	  <td>
-             <span class="smaller">
+             <span>
 	        [% u.gecos %]&nbsp;
 	     </span>
           </td>
 	  [% IF is_owner %]
   	    <td>
-  	      [%|optdesc('reception')%][% u.reception %][% END %]
+  	      [%|optdesc('reception')%][% u.reception %][%END%]
 	    </td>
             <td>
             [% IF u.subscribed %]
@@ -171,5 +171,6 @@
 	</th>
       </tr>
     [% END %]
+  </tbody>
 </table>
-<!-- end subscribers_table.tt2 (distrib) -->
+<!-- End subscribers_table.tt2 -->

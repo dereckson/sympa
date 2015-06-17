@@ -1,22 +1,50 @@
 <!-- $Id$ -->
-   <h1>[%|loc%]Mailing lists server[%END%]</h1>
-<p class="text_justify">
-[%|loc%]This server provides you access to your mailing list environment. Starting from this web page, you can perform subscription options, unsubscription, archive, list moderation, list configuration.[%END%]
-</p>
 
+<h1>[%|loc%]Welcome[%END%]</h1>
+<p>[%|loc%]This server provides you access to your mailing list environment. Starting from this web page, you can perform subscription options, unsubscription, archive, list moderation, list configuration.[%END%]<p>
 
-[% PROCESS news.tt2 %]
+[% IF not user.email %]
+<h2>[%|loc%]Logging In[%END%]</h2>
+[% IF top_menu -%]
+<p>[%|loc%]Many functions in Sympa require you to identify yourself to the system by logging in, using the login form in the top right menu.[%END%]<p>
+[% ELSE -%]
+<p>[%|loc%]Many functions in Sympa require you to identify yourself to the system by logging in, using the login form to the left.[%END%]<p>
+[% END -%]
 
+[%# ELSE %]
+[% END %]
 
+<h2>[%|loc%]What would you like to do ?[%END%]</h2>
 
+<article class="small-12 medium-4 columns home">
+<div>
+[% PROCESS search_list_request.tt2 %]
+</div>
+</article>
+[% IF user.email %]
+<article class="small-12 medium-4 columns home">
+<div>
+<h2><i class="fa fa-plus"></i> [%|loc%]Create list[%END%] <a  href="[% path_cgi %]/nomenu/help/admin#create_list" title="[%|loc%]Open in a new window[%END%]" onclick="window.open('','wws_help','toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no,width=800,height=400')" target="wws_help"><i class="fa fa-question-circle" title="[%|loc%]Help[%END%]"></i></a></h2>
 
-<h2>[%|loc%]Mailing lists categories[%END%]</h2>
-<br />
+<a class="button" href="[% path_cgi %]/create_list_request" title="[%|loc%]Create list[%END%]">[%|loc%]Go[%END%]</a>
 
-<div id="home_container">
-
- <div id="global_mailing_lists">
- 
+[%# PROCESS create_list_request.tt2 %]
+</div>
+</article><article class="small-12 medium-4 columns home">
+<div>
+<h2><i class="fa fa-envelope-square"></i> [%|loc%]My lists[%END%]</h2>
+<a class="button" href="[% path_cgi %]/my" title="[%|loc%]My lists[%END%]">[%|loc%]Go[%END%]</a>
+[%# PROCESS my.tt2 %]
+</div>
+</article><article class="small-12 medium-4 columns home">
+<div>
+<h2><i class="fa fa-user"></i> [%|loc%]User preferences[%END%]</h2>
+<a class="button" href="[% path_cgi %]/pref" title="[%|loc%]User preferences[%END%]">[%|loc%]Go[%END%]</a>
+[%# PROCESS pref.tt2 %]
+</div>
+</article>[% END %]<article class="small-12 medium-4 columns home">
+<div>
+<h2><i class="fa fa-sitemap"></i> [%|loc%]Browse lists by categories[%END%]</h2>
   [% SET single_topic = "other" %]
   [% FOREACH topic = topics %]
     [% IF topic.id && topic.id != "other" && topic.id != "topicsless" %]
@@ -31,7 +59,7 @@
   [% END %]
   [% IF single_topic != "" %]
     <ul class="mailing_lists_menu">
-      <li><a href="[% path_cgi %]/lists"><strong>[%|loc%]List of lists[%END%]</strong></a></li>
+      <li><a href="[% path_cgi %]/lists" onclick="show('loading'); hide('content-inner');"><strong>[%|loc%]List of lists[%END%]</strong></a></li>
     </ul>
   [% ELSE %]
       <ul class="mailing_lists_menu">
@@ -39,17 +67,17 @@
     [% FOREACH topic = topics %]
       [% IF topic.id == 'other' || topic.id == 'topicsless' %]
 	[% UNLESS topic_other %]
-          <li><a href="[% path_cgi %]/lists/[% topic.id %]"><strong>[% IF topic.current_title %][% topic.current_title %][% ELSE %][%|loc%]Others[%END%][% END %]</strong></a></li>
+          <li><a href="[% path_cgi %]/lists/[% topic.id %]" onclick="show('loading'); hide('content-inner');"><strong>[% IF topic.current_title %][% topic.current_title %][% ELSE %][%|loc%]Others[%END%][% END %]</strong></a></li>
 	  [% SET topic_other = 1 %]
 	[% END %]
       [% ELSE %]
-       <li><a href="[% path_cgi %]/lists/[% topic.id %]"><strong>[% topic.current_title %]</strong></a></li>
+       <li><a href="[% path_cgi %]/lists/[% topic.id %]" onclick="show('loading'); hide('content-inner');"><strong>[% topic.current_title %]</strong></a></li>
       [% END %]
 
       [% IF topic.sub.size %]
             <ul class="no_style">
       [% FOREACH subtopic = topic.sub %]
-              <li class="smaller"><a href="[% path_cgi %]/lists/[% topic.id %]/[% subtopic.key %]">[% subtopic.value.current_title %]</a></li>
+              <li class="smaller"><a href="[% path_cgi %]/lists/[% topic.id %]/[% subtopic.key %]" onclick="show('loading'); hide('content-inner');">[% subtopic.value.current_title %]</a></li>
       [% END %]
       </ul>
       [% END %]
@@ -62,16 +90,12 @@
     [% END %]
       </ul>
   [% END %]
-
-  </div>
-<div id="home_search_list">
- <form action="[% path_cgi %]" method="post"> 
- <fieldset id="home_rss_news">
-    <input type="submit" name="action_rss_request" value="[%|loc%]RSS news[%END%]" />
- </fieldset> 
- </form>
+<div>
+</article><article class="small-12 medium-4 columns home">
+<div>
+[% PROCESS help.tt2 %]
 </div>
+</article>
 
-</div>
-<br />
+
 <!-- end home.tt2 -->
