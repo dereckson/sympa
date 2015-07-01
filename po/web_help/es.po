@@ -25,7 +25,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2007-11-13 14:50+0200\n"
-"PO-Revision-Date: 2014-05-23 10:04+0200\n"
+"PO-Revision-Date: 2014-05-23 10:04+0000\n"
 "Last-Translator: sbriongos <sbriongos@umh.es>\n"
 "Language-Team: Español\n"
 "MIME-Version: 1.0\n"
@@ -33,7 +33,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"X-Generator: Pootle 2.5.1\n"
+"X-POOTLE-MTIME: 1400839495.000000\n"
 
 #: default/web_tt2/help_admin.tt2:3
 msgid "Mailing lists - Owner and moderator guide"
@@ -2150,7 +2151,7 @@ msgstr ""
 "el\n"
 "fin de el mensaje "
 
-#: default/web_tt2/help_editlist.tt2:184 default/web_tt2/help_editlist.tt2:6
+#: default/web_tt2/help_editlist.tt2:6
 msgid ":"
 msgstr ":"
 
@@ -6306,7 +6307,7 @@ msgstr ""
 
 #: default/web_tt2/help_suspend.tt2:16
 msgid "Click \"Resume\"."
-msgstr ""
+msgstr "Pulsar en \"Continuar\""
 
 #: default/web_tt2/help.tt2:11
 msgid "Subscriber, moderator and owner documentation"
@@ -6363,8 +6364,9 @@ msgstr ""
 "\"Preguntas Frecuentemente Formuladas\">FAQ</acronym> del administrador</a>."
 
 #: default/web_tt2/help_user_options.tt2:3
+#, fuzzy
 msgid ""
-"This is a description of the receivie modes available in Sympa. These "
+"This is a description of the reception modes available in Sympa. These "
 "options are mutually exclusive, which means that you can't set two different "
 "receive modes at the same time. Only some of the modes might be available to "
 "specific mailing lists."
@@ -7145,7 +7147,7 @@ msgid ""
 "<acronym lang=\"en\" xml:lang=\"en\" title=\"HyperText Markup Language"
 "\">HTML</acronym>)."
 msgstr ""
-"<strong>modo sólo texto</strong: este modo permite recibir únicamente la "
+"<strong>modo sólo texto</strong>: este modo permite recibir únicamente la "
 "versión en texto (text/plain) de un mensaje enviado en varios formatos "
 "(texto plano y <acronym lang=\"en\" xml:lang=\"en\" title=\"HyperText Markup "
 "Language\">HTML</acronym>)."

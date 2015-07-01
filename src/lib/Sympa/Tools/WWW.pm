@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,32 +22,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-=encoding utf-8
-
-=head1 NAME
-
-Sympa::Tools::WWW - Web-related functions
-
-=head1 DESCRIPTION
-
-This package provides some web-related functions.
-
-=cut
-
 package Sympa::Tools::WWW;
 
 use strict;
-
-use Carp qw(croak);
+use warnings;
 use English qw(-no_match_vars);
-use Scalar::Util qw(blessed);
+use File::Path qw();
 
+use Sympa;
+use Conf;
+use Sympa::ConfDef;
 use Sympa::Constants;
-use Sympa::Logger;
 use Sympa::Language;
-use Sympa::Site;
+use Sympa::LockedFile;
+use Sympa::Log;
+use Sympa::Report;
+use Sympa::Template;
+use tools;
+use Sympa::Tools::File;
+use Sympa::User;
+
+my $log = Sympa::Log->instance;
 
 # hash of the icons linked with a type of file
+# application file
 my %icons = (
     'unknown'        => 'unknown.png',
     'folder'         => 'folder.png',
@@ -68,7 +67,7 @@ my %icons = (
 my %mime_types;
 
 ## Cookie expiration periods with corresponding entry in NLS
-my %cookie_period = (
+our %cookie_period = (
     0     => {'gettext_id' => "session"},
     10    => {'gettext_id' => "10 minutes"},
     30    => {'gettext_id' => "30 minutes"},
@@ -80,7 +79,7 @@ my %cookie_period = (
 );
 
 ## Filenames with corresponding entry in NLS set 15
-my %filenames = (
+our %filenames = (
     'welcome.tt2'       => {'gettext_id' => "welcome message"},
     'bye.tt2'           => {'gettext_id' => "unsubscribe message"},
     'removed.tt2'       => {'gettext_id' => "deletion message"},
@@ -103,14 +102,8 @@ my %filenames = (
     'list_aliases.tt2'      => {'gettext_id' => "list aliases template"}
 );
 
-my %task_flavours = (
-    'daily'   => {'gettext_id' => 'daily'},
-    'monthly' => {'gettext_id' => 'monthly'},
-    'weekly'  => {'gettext_id' => 'weekly'},
-);
-
 ## Defined in RFC 1893
-my %bounce_status = (
+our %bounce_status = (
     '1.0' => 'Other address status',
     '1.1' => 'Bad destination mailbox address',
     '1.2' => 'Bad destination system address',
@@ -160,6 +153,18 @@ my %bounce_status = (
     '7.7' => 'Message integrity failure'
 );
 
+## Load WWSympa configuration file
+##sub load_config
+## MOVED: use Conf::_load_wwsconf().
+
+## Load HTTPD MIME Types
+# Moved to _load_mime_types().
+#sub load_mime_types();
+
+## Returns user information extracted from the cookie
+# Deprecated.  Use Sympa::Session->new etc.
+#sub get_email_from_cookie;
+
 sub new_passwd {
 
     my $passwd;
@@ -171,44 +176,113 @@ sub new_passwd {
     return 'init' . $passwd;
 }
 
-sub get_my_url {
+## Basic check of an email address
+# DUPLICATE: Use tools::valid_email().
+#sub valid_email($email);
 
+# 6.2b: added $robot parameter.
+sub init_passwd {
+    my ($robot, $email, $data) = @_;
+
+    my ($passwd, $user);
+
+    if (Sympa::User::is_global_user($email)) {
+        $user = Sympa::User::get_global_user($email);
+
+        $passwd = $user->{'password'};
+
+        unless ($passwd) {
+            $passwd = new_passwd();
+
+            unless (
+                Sympa::User::update_global_user(
+                    $email, {'password' => $passwd}
+                )
+                ) {
+                Sympa::Report::reject_report_web('intern',
+                    'update_user_db_failed', {'user' => $email},
+                    '', '', $email, $robot);
+                $log->syslog('info', 'Update failed');
+                return undef;
+            }
+        }
+    } else {
+        $passwd = new_passwd();
+        unless (
+            Sympa::User::add_global_user(
+                {   'email'    => $email,
+                    'password' => $passwd,
+                    'lang'     => $data->{'lang'},
+                    'gecos'    => $data->{'gecos'}
+                }
+            )
+            ) {
+            Sympa::Report::reject_report_web('intern', 'add_user_db_failed',
+                {'user' => $email},
+                '', '', $email, $robot);
+            $log->syslog('info', 'Add failed');
+            return undef;
+        }
+    }
+
+    return 1;
+}
+
+sub get_my_url {
     my $return_url;
 
-    ## Mod_ssl sets SSL_PROTOCOL ; apache-ssl sets SSL_PROTOCOL_VERSION
-    if ($ENV{'HTTPS'} eq 'on') {
+    # mod_ssl sets SSL_PROTOCOL; Apache-SSL sets SSL_PROTOCOL_VERSION.
+    if ($ENV{'HTTPS'} and $ENV{'HTTPS'} eq 'on') {
         $return_url = 'https';
     } else {
         $return_url = 'http';
     }
 
-    $return_url .= '://' . main::get_header_field('HTTP_HOST');
+    $return_url .= '://' . Sympa::Tools::WWW::get_http_host();
     $return_url .= ':' . $ENV{'SERVER_PORT'}
-        unless (($ENV{'SERVER_PORT'} eq '80')
-        || ($ENV{'SERVER_PORT'} eq '443'));
+        unless $ENV{'SERVER_PORT'} eq '80'
+            or $ENV{'SERVER_PORT'} eq '443';
     $return_url .= $ENV{'REQUEST_URI'};
     return ($return_url);
+}
+
+# Old name: (part of) get_header_field() in wwsympa.fcgi.
+sub get_server_name {
+    # HTTP_X_ header fields set when using a proxy
+    return $ENV{'HTTP_X_FORWARDED_SERVER'} || $ENV{'SERVER_NAME'};
+}
+
+# Old name: (part of) get_header_field() in wwsympa.fcgi.
+sub get_http_host {
+    # HTTP_X_ header fields set when using a proxy
+    return $ENV{'HTTP_X_FORWARDED_HOST'} || $ENV{'HTTP_HOST'};
 }
 
 # Uploade source file to the destination on the server
 sub upload_file_to_server {
     my $param = shift;
-    $main::logger->do_log(
-        Sympa::Logger::DEBUG,
+    $log->syslog(
+        'debug',
         "Uploading file from field %s to destination %s",
         $param->{'file_field'},
         $param->{'destination'}
     );
     my $fh;
     unless ($fh = $param->{'query'}->upload($param->{'file_field'})) {
-        $main::logger->do_log(Sympa::Logger::DEBUG,
-            "Cannot upload file from field $param->{'file_field'}");
+        $log->syslog(
+            'debug',
+            'Cannot upload file from field %s',
+            $param->{'file_field'}
+        );
         return undef;
     }
 
     unless (open FILE, ">:bytes", $param->{'destination'}) {
-        $main::logger->do_log(Sympa::Logger::DEBUG,
-            "Cannot open file $param->{'destination'} : $ERRNO");
+        $log->syslog(
+            'debug',
+            'Cannot open file %s: %m',
+            $param->{'destination'}
+        );
         return undef;
     }
     while (<$fh>) {
@@ -252,12 +326,11 @@ sub make_visible_path {
     }
 
     ## Qdecode the visible path
-    return Sympa::Tools::qdecode_filename($visible_path);
+    return tools::qdecode_filename($visible_path);
 }
 
 ## returns a mailto according to list spam protection parameter
 sub mailto {
-
     my $list  = shift;
     my $email = shift;
     my $gecos = shift;
@@ -279,7 +352,7 @@ sub mailto {
             split('@', $address);
     }
 
-    if ($list->spam_protection eq 'none') {
+    if ($list->{'admin'}{'spam_protection'} eq 'none') {
         $mailto .= "<a href=\"mailto:?";
         foreach my $address (@addresses) {
             $mailto .= "&amp;" if ($next_one);
@@ -287,7 +360,7 @@ sub mailto {
             $next_one = 1;
         }
         $mailto .= "\">$gecos</a>";
-    } elsif ($list->spam_protection eq 'javascript') {
+    } elsif ($list->{'admin'}{'spam_protection'} eq 'javascript') {
 
         if ($gecos =~ /\@/) {
             $gecos =~ s/@/\" + \"@\" + \"/;
@@ -305,7 +378,7 @@ sub mailto {
         $mailto .= "\"\\\">$gecos<\" + \"/a>\")
  // --></script>";
 
-    } elsif ($list->spam_protection eq 'at') {
+    } elsif ($list->{'admin'}{'spam_protection'} eq 'at') {
         foreach my $address (@addresses) {
             $mailto .= " AND " if ($next_one);
             $mailto .=
@@ -360,7 +433,6 @@ sub get_desc_file {
 
     while ($ligne = <DESC_FILE>) {
         if ($ligne =~ /^title\s*$/) {
-
             #case title of the document
             while ($ligne = <DESC_FILE>) {
                 last if ($ligne =~ /^\s*$/);
@@ -370,7 +442,6 @@ sub get_desc_file {
         }
 
         if ($ligne =~ /^creation\s*$/) {
-
             #case creation of the document
             while ($ligne = <DESC_FILE>) {
                 last if ($ligne =~ /^\s*$/);
@@ -380,12 +451,10 @@ sub get_desc_file {
                 if ($ligne =~ /^\s*date_epoch\s*(\d*)\s*/) {
                     $hash{'date'} = $1;
                 }
-
             }
         }
 
         if ($ligne =~ /^access\s*$/) {
-
             #case access scenarios for the document
             while ($ligne = <DESC_FILE>) {
                 last if ($ligne =~ /^\s*$/);
@@ -395,16 +464,13 @@ sub get_desc_file {
                 if ($ligne =~ /^\s*edit\s*(\S*)\s*/) {
                     $hash{'edit'} = $1;
                 }
-
             }
         }
-
     }
 
     close DESC_FILE;
 
     return %hash;
-
 }
 
 ## return a ref on an array of file (or subdirecties) to show to user
@@ -450,9 +516,14 @@ sub select_my_files {
 }
 
 sub get_icon {
+    my $robot = shift || '*';
     my $type = shift;
 
-    return '/icons.' . $icons{$type};
+    return undef unless defined $icons{$type};
+    return
+          Conf::get_robot_conf($robot, 'static_content_url')
+        . '/icons/'
+        . $icons{$type};
 }
 
 sub get_mime_type {
@@ -464,72 +535,62 @@ sub get_mime_type {
 }
 
 sub _load_mime_types {
+    my %types = ();
+
     my @localisation = (
-        '/etc/mime.types',
-        '/usr/local/apache/conf/mime.types',
+        Sympa::search_fullpath('*', 'mime.types'),
+        '/etc/mime.types', '/usr/local/apache/conf/mime.types',
         '/etc/httpd/conf/mime.types',
-        'mime.types'
     );
 
     foreach my $loc (@localisation) {
-        next unless (-r $loc);
+        my $fh;
+        next unless $loc and open $fh, '<', $loc;
 
-        unless (open(CONF, $loc)) {
-            print STDERR "load_mime_types: unable to open $loc\n";
-            return undef;
-        }
-    }
+        foreach my $line (<$fh>) {
+            next if $line =~ /^\s*\#/;
+            chomp $line;
 
-    my %types;
+            my ($k, $v) = split /\s+/, $line, 2;
+            next unless $k and $v and $v =~ /\S/;
 
-    while (<CONF>) {
-        next if /^\s*\#/;
-
-        if (/^(\S+)\s+(.+)\s*$/i) {
-            my ($k, $v) = ($1, $2);
-
-            my @extensions = split / /, $v;
-
-            ## provides file extension, given the content-type
-            if ($#extensions >= 0) {
+            my @extensions = split /\s+/, $v;
+            # provides file extention, given the content-type
+            if (@extensions) {
                 $types{$k} = $extensions[0];
             }
-
             foreach my $ext (@extensions) {
                 $types{$ext} = $k;
             }
-            next;
         }
+
+        close $fh;
+        return %types;
     }
 
-    close FILE;
-    return %types;
+    return;
 }
 
 ## return a hash from the edit_list_conf file
+# Old name: tools::load_create_list_conf().
 sub _load_create_list_conf {
     my $robot = shift;
-
-    croak "missing 'robot' parameter" unless $robot;
-    croak "invalid 'robot' parameter" unless
-        (blessed $robot and $robot->isa('Sympa::VirtualHost'));
 
     my $file;
     my $conf;
 
-    $file = $robot->get_etc_filename('create_list.conf');
+    $file = Sympa::search_fullpath($robot, 'create_list.conf');
     unless ($file) {
-        $main::logger->do_log(
-            Sympa::Logger::INFO,
-            'unable to read %s',
+        $log->syslog(
+            'info',
+            'Unable to read %s',
             Sympa::Constants::DEFAULTDIR . '/create_list.conf'
         );
         return undef;
     }
 
     unless (open(FILE, $file)) {
-        $main::logger->do_log(Sympa::Logger::INFO, 'Unable to open config file %s',
-            $file);
+        $log->syslog('info', 'Unable to open config file %s', $file);
         return undef;
     }
 
@@ -539,9 +600,11 @@ sub _load_create_list_conf {
         if (/^\s*(\S+)\s+(read|hidden)\s*$/i) {
             $conf->{$1} = lc($2);
         } else {
-            $main::logger->do_log(Sympa::Logger::INFO,
-                'unknown parameter in %s  (Ignored) %s',
-                $file, $_);
+            $log->syslog(
+                'info',
+                'Unknown parameter in %s (Ignored) %s',
+                "$Conf::Conf{'etc'}/create_list.conf", $_
+            );
             next;
         }
     }
@@ -550,11 +613,11 @@ sub _load_create_list_conf {
     return $conf;
 }
 
+# Old name: tools::get_list_list_tpl().
 sub get_list_list_tpl {
     my $robot = shift;
-    croak "missing 'robot' parameter" unless $robot;
-    croak "invalid 'robot' parameter" unless
-        (blessed $robot and $robot->isa('Sympa::VirtualHost'));
+
+    my $language = Sympa::Language->instance;
 
     my $list_conf;
     my $list_templates;
@@ -562,184 +625,211 @@ sub get_list_list_tpl {
         return undef;
     }
 
-    foreach my $dir (
-        reverse @{$robot->get_etc_include_path('create_list_templates')}) {
-        if (opendir(DIR, $dir)) {
-            LOOP_FOREACH_TEMPLATE:
-            foreach my $template (sort grep (!/^\./, readdir(DIR))) {
-                my $status = $list_conf->{$template}
-                    || $list_conf->{'default'};
-                next if ($status eq 'hidden');
+    my %tpl_names;
+    foreach my $directory (
+        @{  Sympa::get_search_path(
+                $robot,
+                subdir => 'create_list_templates',
+                lang   => $language->get_lang
+            )
+        }
+        ) {
+        my $dh;
+        if (opendir $dh, $directory) {
+            foreach my $tpl_name (readdir $dh) {
+                next if $tpl_name =~ /\A\./;
+                next unless -d $directory . '/' . $tpl_name;
 
-                $list_templates->{$template}{'path'} = $dir;
-
-                # Look for a comment.tt2.
-                # Check old style locale first then canonic language and its
-                # fallbacks.
-                my $lang = $main::language->get_lang;
-                my $comment_tt2;
-                foreach my $l (
-                    Sympa::Language::lang2oldlocale($lang),
-                    Sympa::Language::implicated_langs($lang)
-                ) {
-                    next unless $l;
-                    $comment_tt2 = $dir.'/'.$template.'/'.$l.'/comment.tt2';
-                    if (-r $comment_tt2) {
-                        $list_templates->{$template}{'comment'} = $comment_tt2;
-                        next LOOP_FOREACH_TEMPLATE;
-                    }
-                }
-                $comment_tt2 = $dir.'/'.$template.'/comment.tt2';
-                if (-r $comment_tt2) {
-                    $list_templates->{$template}{'comment'} = $comment_tt2;
-                }
+                $tpl_names{$tpl_name} = 1;
             }
-            closedir(DIR);
+            closedir $dh;
         }
     }
 
-    return ($list_templates);
-}
+LOOP_FOREACH_TPL_NAME:
+    foreach my $tpl_name (keys %tpl_names) {
+        my $status = $list_conf->{$tpl_name}
+            || $list_conf->{'default'};
+        next if $status eq 'hidden';
 
-sub get_templates_list {
+        # Look for a comment.tt2.
+        # Check old style locale first then canonic language and its
+        # fallbacks.
+        my $comment_tt2 = Sympa::search_fullpath(
+            $robot, 'comment.tt2',
+            subdir => 'create_list_templates/' . $tpl_name,
+            lang   => $language->get_lang
+        );
+        next unless $comment_tt2;
 
-    my $type    = shift;
-    my $robot   = shift;
-    my $list    = shift;
-    my $options = shift;
+        open my $fh, '<', $comment_tt2 or next;
+        my $tpl_string = do { local $RS; <$fh> };
+        close $fh;
 
-    my $listdir;
+        pos $tpl_string = 0;
+        my %titles;
+        while ($tpl_string =~ /\G(title(?:[.][-\w]+)?[ \t]+(?:.*))(\n|\z)/cgi
+            or $tpl_string =~ /\G(\s*)(\n|\z)/cg) {
+            my $line = $1;
+            last if $line =~ /\A\s*\z/;
 
-    $main::logger->do_log(Sympa::Logger::DEBUG,
-        "get_templates_list ($type, $robot, $list)");
-    unless (($type eq 'web') || ($type eq 'mail')) {
-        $main::logger->do_log(Sympa::Logger::INFO,
-            'get_templates_list () : internal error incorrect parameter');
-    }
-
-    my $distrib_dir = Sympa::Constants::DEFAULTDIR . '/' . $type . '_tt2';
-    my $site_dir    = Sympa::Site->etc . '/' . $type . '_tt2';
-    my $robot_dir   = Sympa::Site->etc . '/' . $robot . '/' . $type . '_tt2';
-
-    my @try;
-
-    ## The 'ignore_global' option allows to look for files at list level only
-    unless ($options->{'ignore_global'}) {
-        push @try, $distrib_dir;
-        push @try, $site_dir;
-        push @try, $robot_dir;
-    }
-
-    if (defined $list) {
-        $listdir = $list->dir . '/' . $type . '_tt2';
-        push @try, $listdir;
-    }
-
-    my $i = 0;
-    my $tpl;
-
-    foreach my $dir (@try) {
-        next unless opendir(DIR, $dir);
-        foreach my $file (grep (!/^\./, readdir(DIR))) {
-            ## Subdirectory for a lang
-            if (-d $dir . '/' . $file) {
-                my $lang_dir = $file;
-                my $lang     = Sympa::Language::canonic_lang($lang_dir);
-                next unless $lang;
-                next unless opendir(LANGDIR, $dir . '/' . $lang_dir);
-
-                foreach my $file (grep (!/^\./, readdir(LANGDIR))) {
-                    next unless $file =~ /\.tt2$/;
-                    if ($dir eq $distrib_dir) {
-                        $tpl->{$file}{'distrib'}{$lang} =
-                            $dir . '/' . $lang_dir . '/' . $file;
-                    }
-                    if ($dir eq $site_dir) {
-                        $tpl->{$file}{'site'}{$lang} =
-                            $dir . '/' . $lang_dir . '/' . $file;
-                    }
-                    if ($dir eq $robot_dir) {
-                        $tpl->{$file}{'robot'}{$lang} =
-                            $dir . '/' . $lang_dir . '/' . $file;
-                    }
-                    if ($dir eq $listdir) {
-                        $tpl->{$file}{'list'}{$lang} =
-                            $dir . '/' . $lang_dir . '/' . $file;
-                    }
-                }
-                closedir LANGDIR;
-
-            } else {
-                next unless ($file =~ /\.tt2$/);
-                if ($dir eq $distrib_dir) {
-                    $tpl->{$file}{'distrib'}{'default'} = $dir . '/' . $file;
-                }
-                if ($dir eq $site_dir) {
-                    $tpl->{$file}{'site'}{'default'} = $dir . '/' . $file;
-                }
-                if ($dir eq $robot_dir) {
-                    $tpl->{$file}{'robot'}{'default'} = $dir . '/' . $file;
-                }
-                if ($dir eq $listdir) {
-                    $tpl->{$file}{'list'}{'default'} = $dir . '/' . $file;
-                }
+            if ($line =~ /^title\.gettext\s+(.*)\s*$/i) {
+                $titles{'gettext'} = $1;
+            } elsif ($line =~ /^title\.(\S+)\s+(.*)\s*$/i) {
+                my ($lang, $title) = ($1, $2);
+                # canonicalize lang if possible.
+                $lang = Sympa::Language::canonic_lang($lang) || $lang;
+                $titles{$lang} = $title;
+            } elsif (/^title\s+(.*)\s*$/i) {
+                $titles{'default'} = $1;
             }
         }
-        closedir DIR;
-    }
-    return ($tpl);
 
+        $list_templates->{$tpl_name}{'html_content'} = substr $tpl_string,
+            pos $tpl_string;
+
+        # Set the title in the current language
+        foreach
+            my $lang (Sympa::Language::implicated_langs($language->get_lang))
+        {
+            if (exists $titles{$lang}) {
+                $list_templates->{$tpl_name}{'title'} = $titles{$lang};
+                next LOOP_FOREACH_TPL_NAME;
+            }
+        }
+        if ($titles{'gettext'}) {
+            $list_templates->{$tpl_name}{'title'} =
+                $language->gettext($titles{'gettext'});
+        } elsif ($titles{'default'}) {
+            $list_templates->{$tpl_name}{'title'} = $titles{'default'};
+        }
+    }
+
+    return $list_templates;
 }
 
-# return the path for a specific template
-sub get_template_path {
-    $main::logger->do_log(Sympa::Logger::DEBUG2, '(%s, %s. %s, %s, %s, %s)', @_);
-    my $type  = shift;
-    my $robot = shift;
-    my $scope = shift;
-    my $tpl   = shift;
-    my $lang  = shift || 'default';
-    my $list  = shift;
+# Old name: Conf::update_css().
+sub update_css {
+    my %options = @_;
 
-    my $subdir = '';
-    # canonicalize language name which may be old-style locale name.
-    unless ($lang eq 'default') {
-       my $oldlocale = Sympa::Language::lang2oldlocale($lang);
-       unless ($oldlocale eq $lang) {
-           $subdir = Sympa::Language::canonic_lang($lang);
-           unless ($subdir) {
-               $main::logger->do_log(Sympa::Logger::INFO, 'internal error incorrect parameter');
-               return undef;
-           }
-       }
-    }
+    my $force = $options{force};
 
-    unless ($type eq 'web' or $type eq 'mail') {
-        $main::logger->do_log(Sympa::Logger::INFO,
-            'internal error incorrect parameter');
-        return undef;
-    }
+    # Set umask.
+    my $umask = umask 022;
 
-    my $dir;
-    if ($scope eq 'list') {
-        unless (ref $list) {
-            $main::logger->do_log(Sympa::Logger::ERR, 'missing parameter "list"');
-            return undef;
+    # create or update static CSS files
+    my $css_updated = undef;
+    my @robots = ('*', keys %{$Conf::Conf{'robots'}});
+    foreach my $robot (@robots) {
+        my $dir = Conf::get_robot_conf($robot, 'css_path');
+
+        ## Get colors for parsing
+        my $param = {};
+
+        foreach my $p (
+            map  { $_->{name} }
+            grep { $_->{name} } @Sympa::ConfDef::params
+            ) {
+            $param->{$p} = Conf::get_robot_conf($robot, $p)
+                if $p =~ /_color$/
+                    or $p =~ /color_/;
         }
-        $dir = $list->dir;
-    } elsif ($scope eq 'robot' and $robot->etc ne Sympa::Site->etc) {
-        $dir = $robot->etc;
-    } elsif ($scope eq 'site') {
-        $dir = Sympa::Site->etc;
-    } elsif ($scope eq 'distrib') {
-        $dir = Sympa::Constants::DEFAULTDIR;
-    } else {
-        return undef;
+
+        # Create directory if required
+        unless (-d $dir) {
+            my $error;
+            File::Path::make_path(
+                $dir,
+                {   mode  => 0755,
+                    owner => Sympa::Constants::USER(),
+                    group => Sympa::Constants::GROUP(),
+                    error => \$error
+                }
+            );
+            if (@$error) {
+                my ($target, $err) = %{$error->[-1] || {}};
+
+                Sympa::send_notify_to_listmaster($robot, 'cannot_mkdir',
+                    ["Could not create $target: $err"]);
+                $log->syslog('err', 'Failed to create %s: %s', $target, $err);
+
+                umask $umask;
+                return undef;
+            }
+        }
+
+        my $css_tt2_path =
+            Sympa::search_fullpath($robot, 'css.tt2', subdir => 'web_tt2');
+        my $css_tt2_mtime = Sympa::Tools::File::get_mtime($css_tt2_path);
+
+        foreach my $css ('style.css', 'print.css', 'fullPage.css',
+            'print-preview.css') {
+            # Lock file to prevent multiple processes from writing it.
+            my $lock_fh = Sympa::LockedFile->new($dir . '/' . $css, -1, '+');
+            next unless $lock_fh;
+
+            $param->{'css'} = $css;
+
+            # Update the CSS if it is missing or if a new css.tt2 was
+            # installed
+            if (!-f $dir . '/' . $css
+                or $css_tt2_mtime >
+                Sympa::Tools::File::get_mtime($dir . '/' . $css)
+                or $force) {
+                $log->syslog(
+                    'notice',
+                    'TT2 file %s has changed; updating static CSS file %s/%s; previous file renamed',
+                    $css_tt2_path,
+                    $dir,
+                    $css
+                );
+
+                ## Keep copy of previous file
+                rename $dir . '/' . $css, $dir . '/' . $css . '.' . time;
+
+                unless (open CSS, '>', $dir . '/' . $css) {
+                    my $errno = $ERRNO;
+                    Sympa::send_notify_to_listmaster($robot,
+                        'cannot_open_file',
+                        ["Could not open file $dir/$css: $errno"]);
+                    $log->syslog('err',
+                        'Failed to open (write) file %s/%s: %s',
+                        $dir, $css, $errno);
+
+                    umask $umask;
+                    return undef;
+                }
+
+                my $css_template =
+                    Sympa::Template->new($robot, subdir => 'web_tt2');
+                unless ($css_template->parse($param, 'css.tt2', \*CSS)) {
+                    my $error = $css_template->{last_error};
+                    $param->{'tt2_error'} = $error;
+                    Sympa::send_notify_to_listmaster($robot, 'web_tt2_error',
+                        [$error]);
+                    $log->syslog('err', 'Error while installing %s/%s',
+                        $dir, $css);
+                }
+
+                $css_updated++;
+
+                close CSS;
+            }
+        }
+    }
+    if ($css_updated) {
+        ## Notify main listmaster
+        Sympa::send_notify_to_listmaster(
+            '*',
+            'css_updated',
+            [   "Static CSS files have been updated ; check log file for details"
+            ]
+        );
     }
 
-    $dir .= '/' . $type . '_tt2';
-    $dir .= '/' . $lang unless $lang eq 'default';
-    return $dir . '/' . $tpl;
+    umask $umask;
+    return 1;
 }
 
 1;
+__END__
