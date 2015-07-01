@@ -1,0 +1,3 @@
+title.gettext Moderated, even for moderators
+
+true()                             smtp,dkim,smime,md5        -> editorkey
