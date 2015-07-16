@@ -1,9 +1,11 @@
+# $Id$
+
 # Sympa - SYsteme de Multi-Postage Automatique
 #
 # Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
 # Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 # 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
-# Copyright (c) 2011, 2012, 2013, 2014 GIP RENATER
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,88 +20,104 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-nobase_modules_DATA = Sympa/Admin.pm \
-		      Sympa/Archive.pm \
-		      Sympa/Auth.pm \
-		      Sympa/BounceMessage.pm \
-		      Sympa/Bulk.pm \
-		      Sympa/Commands.pm \
-		      Sympa/ConfigurableObject.pm \
-		      Sympa/Conf.pm \
-		      Sympa/ConfDef.pm \
-		      Sympa/Config_XML.pm \
-		      Sympa/DatabaseManager.pm \
-		      Sympa/DatabaseDriver.pm \
-		      Sympa/DatabaseDriver/MySQL.pm \
-		      Sympa/DatabaseDriver/Oracle.pm \
-		      Sympa/DatabaseDriver/Postgres.pm \
-		      Sympa/DatabaseDriver/SQLite.pm\
-		      Sympa/DatabaseDriver/Sybase.pm \
-		      Sympa/Datasource.pm \
-		      Sympa/Datasource/LDAP.pm \
-		      Sympa/Datasource/SQL.pm \
-		      Sympa/Family.pm \
-		      Sympa/Fetch.pm \
-		      Sympa/HTML/MyFormatText.pm \
-		      Sympa/Instruction.pm \
-		      Sympa/Language.pm \
-		      Sympa/List.pm \
-		      Sympa/ListDef.pm \
-		      Sympa/LockedFile.pm \
-		      Sympa/Logger.pm \
-		      Sympa/Logger/Syslog.pm \
-		      Sympa/Logger/Stderr.pm \
-		      Sympa/Logger/Memory.pm \
-		      Sympa/Mailer.pm \
-		      Sympa/Marc.pm \
-		      Sympa/Marc/Search.pm \
-		      Sympa/Message.pm \
-		      Sympa/ModDef.pm \
-		      Sympa/Monitor.pm \
-		      Sympa/Report.pm \
-		      Sympa/Rule.pm \
-		      Sympa/Scenario.pm \
-		      Sympa/SharedDocument.pm \
-		      Sympa/Site.pm \
-		      Sympa/Spool.pm \
-		      Sympa/Spool/File.pm \
-		      Sympa/Spool/File/Key.pm \
-		      Sympa/Spool/File/Message.pm \
-		      Sympa/Spool/File/Subscribe.pm \
-		      Sympa/Spool/File/Task.pm \
-		      Sympa/Spool/SQL.pm \
-		      Sympa/Constants.pm \
-		      Sympa/DatabaseDescription.pm \
-		      Sympa/Template/Compat.pm \
-		      Sympa/Session.pm \
-		      Sympa/SOAP.pm \
-		      Sympa/Transport.pm \
-		      Sympa/Task.pm \
-		      Sympa/Task/Global.pm \
-		      Sympa/Task/List.pm \
-		      Sympa/Tools.pm \
-		      Sympa/Tools/Cookie.pm \
-		      Sympa/Tools/SMIME.pm \
-		      Sympa/Tools/DKIM.pm \
-		      Sympa/Tools/Data.pm \
-		      Sympa/Tools/Daemon.pm \
-		      Sympa/Tools/File.pm \
-		      Sympa/Tools/Message.pm \
-		      Sympa/Tools/Time.pm \
-		      Sympa/Tools/Text.pm \
-		      Sympa/Tools/WWW.pm \
-		      Sympa/Tracking.pm \
-		      Sympa/Template.pm \
-		      Sympa/Upgrade.pm \
-		      Sympa/User.pm \
-		      Sympa/VirtualHost.pm
+nobase_nodist_modules_DATA = \
+	Sympa/Constants.pm
+nobase_dist_modules_DATA = \
+        Sympa/Internals.pod
+nobase_modules_DATA = \
+	Sympa.pm \
+	Sympa/Admin.pm \
+	Sympa/Alarm.pm \
+	Sympa/Archive.pm \
+	Sympa/Auth.pm \
+	Sympa/Bulk.pm \
+	Sympa/Commands.pm \
+	Conf.pm \
+	Sympa/ConfDef.pm \
+	Sympa/Config_XML.pm \
+	Sympa/Crash.pm \
+	Sympa/Database.pm \
+	Sympa/DatabaseDescription.pm \
+	Sympa/DatabaseDriver.pm \
+	Sympa/DatabaseDriver/CSV.pm \
+	Sympa/DatabaseDriver/LDAP.pm \
+	Sympa/DatabaseDriver/MySQL.pm \
+	Sympa/DatabaseDriver/ODBC.pm \
+	Sympa/DatabaseDriver/Oracle.pm \
+	Sympa/DatabaseDriver/Oracle/St.pm \
+	Sympa/DatabaseDriver/PostgreSQL.pm \
+	Sympa/DatabaseDriver/SQLite.pm \
+	Sympa/DatabaseDriver/Sybase.pm \
+	Sympa/DatabaseManager.pm \
+	Sympa/Datasource.pm \
+	Sympa/Family.pm \
+	Sympa/Fetch.pm \
+	Sympa/HTML/FormatText.pm \
+	Sympa/HTMLSanitizer.pm \
+	Sympa/Language.pm \
+	Sympa/List.pm \
+	Sympa/ListDef.pm \
+	Sympa/LockedFile.pm \
+	Sympa/Log.pm \
+	Sympa/Mailer.pm \
+	Sympa/Marc.pm \
+	Sympa/Marc/Search.pm \
+	Sympa/Message.pm \
+	Sympa/Message/Plugin.pm \
+	Sympa/Message/Plugin/FixEncoding.pm \
+	Sympa/ModDef.pm \
+	Sympa/Regexps.pm \
+	Sympa/Report.pm \
+	Sympa/Robot.pm \
+	Sympa/Scenario.pm \
+	SDM.pm \
+	Sympa/SharedDocument.pm \
+	Sympa/Session.pm \
+	Sympa/SOAP.pm \
+	Sympa/SOAP/Transport.pm \
+	Sympa/Spool.pm \
+	Sympa/Spool/Archive.pm \
+	Sympa/Task.pm \
+	Sympa/Template.pm \
+	tools.pm \
+	Sympa/Tools/Daemon.pm \
+	Sympa/Tools/Data.pm \
+	Sympa/Tools/DKIM.pm \
+	Sympa/Tools/File.pm \
+	Sympa/Tools/Password.pm \
+	Sympa/Tools/SMIME.pm \
+	Sympa/Tools/Text.pm \
+	Sympa/Tools/Time.pm \
+	Sympa/Tools/WWW.pm \
+	Sympa/Tracking.pm \
+	Sympa/Upgrade.pm \
+	Sympa/User.pm
 
-EXTRA_DIST = Sympa/Constants.pm.in $(nobase_modules_DATA)
-CLEANFILES = Sympa/Constants.pm
+man3dir = $(mandir)/man3
+man3ext = 3Sympa
+MAN3POD = \
+	$(nobase_nodist_modules_DATA) \
+	$(nobase_dist_modules_DATA) \
+	$(nobase_modules_DATA)
+
+EXTRA_DIST = \
+	Sympa/Constants.pm.in \
+	Sympa/Internals.podpl \
+	$(nobase_modules_DATA)
+
+CLEANFILES = Sympa/Constants.pm *.$(man3ext)
 
 Sympa/Constants.pm: Sympa/Constants.pm.in Makefile
+	if [ -f $(DESTDIR)$(modulesdir)/Sympa/Constants.pm ]; then \
+		PREVIOUS=`$(PERL) -Mlib=$(DESTDIR)$(modulesdir) -MSympa::Constants -e 'print Sympa::Constants::VERSION'`; \
+	elif [ -f $(DESTDIR)$(bindir)/Version.pm ]; then \
+		PREVIOUS=`$(PERL) -Mlib=$(DESTDIR)$(bindir) -MVersion -e 'print $$Version::Version'`; \
+	else \
+		PREVIOUS=$(VERSION); \
+	fi; \
+	echo $${PREVIOUS} > $(top_srcdir)/previous_sympa_version;
 	[ -d Sympa ] || mkdir Sympa
-	rm -f $@
+	@rm -f $@
 	$(AM_V_GEN)$(SED) \
 		-e 's|--VERSION--|$(VERSION)|' \
 		-e 's|--USER--|$(USER)|' \
@@ -121,3 +139,41 @@ Sympa/Constants.pm: Sympa/Constants.pm.in Makefile
 		-e 's|--arcdir--|$(arcdir)|' \
 		-e 's|--bouncedir--|$(bouncedir)|' \
 		< $(srcdir)/$@.in > $@
+
+Sympa/Internals.pod: Sympa/Internals.podpl Sympa/Constants.pm.in $(nobase_modules_DATA)
+	@rm -f $@
+	$(AM_V_GEN)$(PERL) $< Sympa/Constants.pm.in $(nobase_modules_DATA) > $@
+
+man3pm: $(MAN3POD) Makefile
+	@test -n "$(man3ext)" || exit 0; \
+	for pm in $(MAN3POD); do \
+		echo "$$pm" \
+		| $(SED) -e 's/\.pm$$//' -e 's/\.pod$$//' -e 's/\//::/g' \
+		| while read pod; do \
+			rm -f $$pod.$(man3ext); \
+			if grep '^=head1 NAME$$' $$pm > /dev/null; then \
+				echo "  GEN   " $$pod.$(man3ext); \
+				$(POD2MAN) --section=$(man3ext) \
+					--center="sympa $(VERSION)" \
+					--lax --release="$(VERSION)" \
+					$$pm $$pod.$(man3ext); \
+			fi; \
+		done; \
+	done
+
+install-data-hook: man3pm
+	@test -n "$(man3ext)" || exit 0; \
+	test -n "$(man3dir)" || exit 0; \
+	$(INSTALL) -d "$(DESTDIR)$(man3dir)" || exit 1; \
+	for pm in $(MAN3POD); do \
+		echo "$$pm" \
+		| $(SED) -e 's/\.pm$$//' -e 's/\.pod$$//' -e 's/\//::/g' \
+		| while read pod; do \
+			if grep '^=head1 NAME$$' $$pm > /dev/null; then \
+				echo "installing $$pod.$(man3ext)"; \
+				$(INSTALL_DATA) "$$pod.$(man3ext)" "$(DESTDIR)$(man3dir)" \
+				|| exit $$?; \
+			fi; \
+		done; \
+	done
+
