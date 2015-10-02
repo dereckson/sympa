@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,51 +22,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-=encoding utf-8
-
-=head1 NAME
-
-Sympa::Tools::Text - Text-related functions
-
-=head1 DESCRIPTION
-
-This package provides some text-related functions.
-
-=cut
-
 package Sympa::Tools::Text;
 
 use strict;
 use warnings;
-
-use Encode qw();
 use Text::LineFold;
 use if (5.008 < $] && $] < 5.016), qw(Unicode::CaseFold fc);
 use if (5.016 <= $]), qw(feature fc);
-
-=head1 FUNCTIONS
-
-=over
-
-=item wrap_text($text, $init, $subs, $cols)
-
-Return line-wrapped text.
-
-Parameters:
-
-=over
-
-=item * I<$text>: FIXME
-
-=item * I<$init>: FIXME
-
-=item * I<$subs>: FIXME
-
-=item * I<$cols>: FIXME
-
-=back
-
-=cut
 
 sub wrap_text {
     my $text = shift;
@@ -76,7 +39,7 @@ sub wrap_text {
     return $text unless $cols;
 
     $text = Text::LineFold->new(
-        Language      => $main::language->get_lang(),
+        Language      => Sympa::Language->instance->get_lang,
         OutputCharset => (Encode::is_utf8($text) ? '_UNICODE_' : 'utf8'),
         Prep          => 'NONBREAKURI',
         ColumnsMax    => $cols
@@ -84,20 +47,6 @@ sub wrap_text {
 
     return $text;
 }
-
-=item foldcase($text)
-
-Returns "fold-case" string suitable for case-insensitive match.
-
-Parameters:
-
-=over
-
-=item * I<$text>: FIXME
-
-=back
-
-=cut
 
 sub foldcase {
     my $str = shift;
@@ -112,8 +61,76 @@ sub foldcase {
     }
 }
 
+1;
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+Sympa::Tools::Text - Text-related functions
+
+=head1 DESCRIPTION
+
+This package provides some text-related functions.
+
+=head2 Functions
+
+=over
+
+=item wrap_text ( $text, [ $init_tab, [ $subsequent_tab, [ $cols ] ] ] )
+
+I<Function>.
+Returns line-wrapped text.
+
+Parameters:
+
+=over
+
+=item $text
+
+The text to be folded.
+
+=item $init_tab
+
+Indentation prepended to the first line of paragraph.
+Default is C<''>, no indentation.
+
+=item $subsequent_tab
+
+Indentation prepended to each subsequent line of folded paragraph.
+Default is C<''>, no indentation.
+
+=item $cols
+
+Max number of columns of folded text.
+Default is C<78>.
+
+=back
+
+=item foldcase ( $str )
+
+I<Function>.
+Returns "fold-case" string suitable for case-insensitive match.
+For example, a code below looks for a needle in haystack not regarding case,
+even if they are non-ASCII UTF-8 strings.
+
+  $haystack = Sympa::Tools::Text::foldcase($HayStack);
+  $needle   = Sympa::Tools::Text::foldcase($NeedLe);
+  if (index $haystack, $needle >= 0) {
+      ...
+  }
+
+Parameter:
+
+=over
+
+=item $str
+
+A string.
+
+=back
+
 =back
 
 =cut
-
-1;

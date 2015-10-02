@@ -6,17 +6,17 @@
 ## Use the src/etc/script/js/sympa.js file instead to write your scripts.
 #%]
 <script>
-
+<!--
 // this script only contains variable initializations.
 
 // Miscellaneous vars
 var path_cgi = '[% path_cgi %]/';
 var lang = '[% lang %]';
-
+//-->
 </script>
 
 <script>
-
+<!--
 // A few configuration settings
 var CROSSHAIRS_LOCATION = '[% icons_url %]/crosshairs.png';
 var HUE_SLIDER_LOCATION = '[% icons_url %]/h.png';
@@ -47,41 +47,36 @@ var param_dfin = {"ddeb" : "date_deb", "titre" : "[%|loc%]End date[%END%]"  };
 var tempo = new Array(); /*gestion de la fermeture des calendriers quand on perd le focus*/
 var nomove={"TR":0,"CENTER":0,"B":0,"P":0,"U":0,"I":0,"DIV":0,"A":0,"FONT":0,"LI":0,"PRE":0,"SPAN":0,"SUB":0,"SUP":0,"FORM":0};
 //var nomove={"TD":0,"TABLE":0};
+
+//-->
 </script>
 
 <!-- Now retrieving the javascript files -->
 
-<script src="[% static_content_url %]/js/jquery.js"></script>
-<script src="[% static_content_url %]/js/jquery.jqplot.min.js"></script>
-<script src="[% static_content_url %]/js/jqplot.categoryAxisRenderer.min.js"></script>
-<script src="[% static_content_url %]/js/jqplot.barRenderer.min.js"></script>
-<script src="[% static_content_url %]/js/jqplot.CanvasAxisTickRenderer.js"></script>
-<script src="[% static_content_url %]/js/jqplot.CanvasTextRenderer.js"></script>
-<link rel="stylesheet" href="[% static_content_url %]/js/jquery.jqplot.css" />
+<script src="[% static_content_url %]/external/jquery.js"></script>
+
+<script src="[% static_content_url %]/external/jquery-ui.js"></script>
+<link rel="stylesheet" href="[% static_content_url %]/external/jquery-ui.css" />
+
+<script src="[% static_content_url %]/external/jquery.jqplot.min.js"></script>
+<script src="[% static_content_url %]/external/jqplot.categoryAxisRenderer.min.js"></script>
+<script src="[% static_content_url %]/external/jqplot.barRenderer.min.js"></script>
+<script src="[% static_content_url %]/external/jqplot.canvasAxisTickRenderer.min.js"></script>
+<script src="[% static_content_url %]/external/jqplot.canvasTextRenderer.min.js"></script>
+<link rel="stylesheet" href="[% static_content_url %]/external/jquery.jqplot.css" />
+
+<link rel="stylesheet" href="[% static_content_url %]/external/font-awesome/css/font-awesome.css" />
+
+<script src="[% static_content_url %]/external/modernizr.custom.js"></script>
+
 <script src="[% static_content_url %]/js/sympa.js"></script>
 
 [% IF use_html_editor -%]
 <script src="[% html_editor_url %]"></script>
 <script>
-function html_editor_toggle(id) {
-  var flg = document.getElementById("html_editor_enabled");
-  var btn = document.getElementById("html_editor_button");
-  if (flg && flg.value) {
-[% IF html_editor_hide -%]
-    [% html_editor_hide %];
-    flg.value = "";
-    if (btn) btn.value = "[%|loc%]Enable HTML Editor[%END%]";
-[%- END %]
-  } else {
-[% IF html_editor_show -%]
-    [% html_editor_show %];
-    if (flg) flg.value = "on";
-    if (btn) btn.value = "[%|loc%]Disable HTML Editor[%END%]";
-[%- END %]
-  }
-  return false;
-}
+<!--
 [% html_editor_init %];
+//-->
 </script>
 [% END -%]
 <!-- end javascript.tt2 -->
