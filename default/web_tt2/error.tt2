@@ -23,6 +23,8 @@
   [% ELSIF i_err.msg == 'db_update_failed' %][%|loc(i_err.key)%]Failed to update database.[%END%]
   [% ELSIF i_err.msg == 'file_update_failed' %][%|loc(i_err.key)%]Failed to update a file.[%END%]
   [% ELSIF i_err.msg == 'create_list' %][%|loc(i_err.listname)%]Failed creating list '%1'. The list might already exist or listname might include forbidden characters.[%END%]
+  [% ELSIF i_err.msg == 'unable_to_rename_list' %][%|loc(i_err.listname,i_err.new_listname)%]Unable to rename list '%1' to '%2'.[%END%]
+
 [% END %]
 <br />
 	
@@ -45,7 +47,6 @@
   [% IF u_err.msg == 'wrong_param' %][%|loc()%]Wrong parameters[%END%]
   [% ELSIF u_err.msg == 'unknown_action' %][%|loc()%]Unknown action[%END%]
   [% ELSIF u_err.msg == 'syntax_errors' %][%|loc(u_err.params)%]Syntax errors with the following parameters: %1[%END%]
-  [% ELSIF u_err.msg == 'unknown_auth_key' %][%|loc()%]Unknown authentication key[%END%]
   [% ELSIF u_err.msg == 'authorization_reject' %][%|loc()%]Authorization rejected. Maybe you forgot to log in?[%END%]
   [% ELSIF u_err.msg == 'unknown_list' %][%|loc(u_err.list)%]%1: unknown list[%END%]
   [% ELSIF u_err.msg == 'unknown_robot' %][%|loc(u_err.new_robot)%]%1: unknown robot[%END%]
@@ -74,14 +75,15 @@
   [% ELSIF u_err.msg == 'custom_attribute' %][%|loc%]Check the additional information[%END%]
   [% ELSIF u_err.msg == 'not_available_reception_mode' %][%|loc(u_err.reception_mode)%]%1 is not an available reception mode[%END%]
   [% ELSIF u_err.msg == 'file_not_editable' %][%|loc(u_err.file)%]%1: file not editable[%END%]
-  [% ELSIF u_err.msg == 'subscription_request_failed' %][%|loc(u_err.list)%]Your subscription request to list %1 failed[%END%]
   [% ELSIF u_err.msg == 'already_subscriber' %][%|loc(u_err.list)%]You are already subscribed to the list %1[%END%]
   [% ELSIF u_err.msg == 'user_already_subscriber' %][%|loc(u_err.email,u_err.list)%]%1 is already subscribed to the list %2[%END%] 
   [% ELSIF u_err.msg == 'no_passwd' %][%|loc%]Please provide your password[%END%]
   [% ELSIF u_err.msg == 'diff_passwd' %][%|loc%]The passwords you typed do not match[%END%]
+  [% ELSIF u_err.msg == 'passwd_validation' %][%|loc(u_err.reason)%]The password you typed does not match this sites standards of strength: %1. Please pick a stronger password.[%END%]
   [% ELSIF u_err.msg == 'wrong_input_path' %][%|loc(u_err.tpl)%]Provided path is incorrect for template '%1'[%END%]
   [% ELSIF u_err.msg == 'cannot_open_file' %][%|loc(u_err.path)%]Cannot open file '%1'[%END%]
   [% ELSIF u_err.msg == 'listname_needed' %][%|loc%]You need to provide list name[%END%]
+  [% ELSIF u_err.msg == 'already_confirmed' %][%|loc%]Failed to get the held message; it has probably been confirmed[%END%]
   [% ELSIF u_err.msg == 'already_moderated' %][%|loc%]Failed to moderate a message; it was probably moderated by another moderator[%END%]
   [% ELSIF u_err.msg == 'msg_topic_missing' %][%|loc%]Tagging message is required for this list[%END%]
   [% ELSIF u_err.msg == 'empty_archives' %][%|loc%]Archives are empty for this list[%END%]
@@ -135,8 +137,11 @@
   [% ELSIF u_err.msg == 'change_member_email_failed_included' %][%|loc(u_err.listname)%]Failed to update member email in list '%1', list owner has been notified.[%END%]
   [% ELSIF u_err.msg == 'change_admin_email_failed_included' %][%|loc(u_err.listname)%]Failed to update admin email in list '%1', list owner has been notified.[%END%]
   [% ELSIF u_err.msg == 'merge_failed' %][%|loc(u_err.error)%]Your message cannot be personalized due to error: %1.  Please check template syntax.[%END%]
- [% ELSIF u_err.msg %][%u_err.msg%]
-  [% END %]
+  [% ELSE %]
+    [% TRY %][% INCLUDE $u_err.msg %]
+    [% CATCH %][% u_err.msg %]
+    [%END%]
+  [%END%]
   <br />
 [% END %]
 
