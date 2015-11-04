@@ -1,0 +1,5 @@
+<!-- $Id$ -->  
+    <li><label><i class="fa fa-user"></i> [% IF user.gecos %][% user.gecos %][% ELSE %][%|loc%]User Information[%END%][% END %]</label></li>
+    [% PROCESS 'loginbanner.tt2' %]
+
+<!-- end login_menu.tt2 -->

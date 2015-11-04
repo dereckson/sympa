@@ -1,0 +1,57 @@
+<!-- $Id$ -->
+
+ <div class="block">
+  <strong>
+   [%|loc%]Listname:[%END%] [% list %]<br />
+   [%|loc%]Subject:[%END%] [% list_subject %]<br />
+  </strong>
+   [%|loc%]List requested by[%END%] [% list_request_by %] [%|loc(list_request_date)%] on %1[%END%]<br />
+ </div>
+
+[% IF is_listmaster %]
+[% IF list_status == 'pending' %]
+<div>
+<form action="[% path_cgi %]" method="post">
+<fieldset>
+<input type="hidden" name="list" value="[% list %]" />
+<input type="hidden" name="serial" value="[% list_serial %]" />
+
+<ul id="set_pending_radio">
+<li><input id="status" type="radio" name="status" value="closed" /><label for="status">[%|loc%]Close it[%END%]</label></li>
+<li><input id="status2" type="radio" name="status" value="open" /><label for="status2">[%|loc%]Install it[%END%]</label></li>
+</ul>
+<input class="MainMenuLinks" type="submit" name="action_install_pending_list" value="[%|loc%]submit[%END%]" />
+<input id="notify" type="checkbox" name="notify" checked="checked" /><label for="notify">[%|loc%]notify owner[%END%]</label>
+</fieldset>
+</form>
+</div>
+<hr />
+[% END %]
+[% END %]
+
+<div class="block">
+<h2>[%|loc%]Information file[%END%]</h2>
+[% IF is_listmaster ~%]
+  <code>[% list_info %]</code>
+[%~ END ~%]
+
+<pre class="code">
+  [%~ IF list_info_file_exists ~%]
+    [% list_info_content %]
+  [%~ ELSE ~%]
+    [%|loc%]No info file provided.[%END%]
+  [%~ END %]
+</pre>
+</div>
+
+<div class="block">
+<h2>[%|loc%]Configuration file[%END%]</h2>
+[% IF is_listmaster ~%]
+  <code>[% list_config %]</code>
+[%~ END %]
+
+<pre class="code">
+  [%~ list_config_content ~%]
+</pre>
+</div>
+<!-- end set_pending_list_request.tt2 -->
