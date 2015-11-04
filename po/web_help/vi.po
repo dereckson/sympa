@@ -95,7 +95,7 @@ msgid ""
 "required to create a list."
 msgstr ""
 
-#. (conf.host)
+#. ('',conf.host)
 #: default/web_tt2/help_admin.tt2:22
 msgid ""
 "Give your list a <strong>name</strong> (only enter the name without the '@' "
@@ -109,6 +109,7 @@ msgid ""
 "characters might cause problems."
 msgstr ""
 
+#. ('',conf.host)
 #: default/web_tt2/help_admin.tt2:24
 msgid ""
 "Choose an explicit yet short name: think of the subscribers who will have to "
@@ -1579,7 +1580,7 @@ msgid ""
 "end of the message."
 msgstr ""
 
-#: default/web_tt2/help_editlist.tt2:184 default/web_tt2/help_editlist.tt2:6
+#: default/web_tt2/help_editlist.tt2:6
 msgid ":"
 msgstr ""
 
@@ -4683,7 +4684,7 @@ msgstr ""
 
 #: default/web_tt2/help_user_options.tt2:3
 msgid ""
-"This is a description of the receivie modes available in Sympa. These "
+"This is a description of the reception modes available in Sympa. These "
 "options are mutually exclusive, which means that you can't set two different "
 "receive modes at the same time. Only some of the modes might be available to "
 "specific mailing lists."
