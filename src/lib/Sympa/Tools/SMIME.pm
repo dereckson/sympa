@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,70 +22,66 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-=encoding utf-8
-
-=head1 NAME
-
-Sympa::Tools::SMIME - S/MIME-related functions
-
-=head1 DESCRIPTION
-
-This package provides some S/MIME-related functions.
-
-=cut
-
 package Sympa::Tools::SMIME;
 
 use strict;
 use warnings;
-
 use English qw(-no_match_vars);
 
-use Sympa::Logger;
+use Conf;
+use Sympa::Log;
 
-=head1 FUNCTIONS
-
-=over
-
-=item find_keys($directory, $operation)
-
-Find the appropriate S/MIME key and certificate files for given operation in
-given directory.
+my $log = Sympa::Log->instance;
 
 =over
 
-=item * I<$directory>: FIXME
+=item find_keys ( $that, $operation )
 
-=item * I<$operation>: one of the following values:
+Find the appropriate S/MIME keys/certs for $operation of $that.
+
+$operation can be:
 
 =over
 
-=item - sign: return the preferred signing key/cert
+=item 'sign'
 
-=item - decrypt: return a list of possible decryption keys/certs
+return the preferred signing key/cert
 
-=item - encrypt: return the preferred encryption key/cert
+=item 'decrypt'
+
+return a list of possible decryption keys/certs
+
+=item 'encrypt'
+
+return the preferred encryption key/cert
 
 =back
 
-=back
+Returnss C<($certs, $keys)>.
+For 'sign' and 'encrypt', these are strings containing the absolute filename.
+For 'decrypt', these are arrayrefs containing absolute filenames.
 
-Returns a pair of two strings, corresponding to the absolute file names of
-certificate and key.
+=back
 
 =cut
 
+# Old name: tools::smime_find_keys()
 sub find_keys {
-    my ($dir, $oper) = @_;
-    $main::logger->do_log(Sympa::Logger::DEBUG,
-        'Sympa::Tools::find_keys(%s, %s)',
-        $dir, $oper);
+    $log->syslog('debug2', '(%s, %s)', @_);
+    my $that = shift || '*';
+    my $operation = shift;
+
+    my $dir;
+    if (ref $that eq 'Sympa::List') {
+        $dir = $that->{'dir'};
+    } else {
+        $dir = $Conf::Conf{'home'} . '/sympa';    #FIXME
+    }
 
     my (%certs, %keys);
-    my $ext = ($oper eq 'sign' ? 'sign' : 'enc');
+    my $ext = ($operation eq 'sign' ? 'sign' : 'enc');
 
     unless (opendir(D, $dir)) {
-        $main::logger->do_log(Sympa::Logger::ERR, "unable to opendir $dir: $ERRNO");
         return undef;
     }
 
@@ -101,8 +98,8 @@ sub find_keys {
         my $k = $c;
         $k =~ s/\/cert\.pem/\/private_key/;
         unless ($keys{$k}) {
-            $main::logger->do_log(Sympa::Logger::NOTICE,
-                "$c exists, but matching $k doesn't");
+            $log->syslog('debug3', '%s exists, but matching %s doesn\'t',
+                $c, $k);
             delete $certs{$c};
         }
     }
@@ -111,14 +108,14 @@ sub find_keys {
         my $c = $k;
         $c =~ s/\/private_key/\/cert\.pem/;
         unless ($certs{$c}) {
-            $main::logger->do_log(Sympa::Logger::NOTICE,
-                "$k exists, but matching $c doesn't");
+            $log->syslog('debug3', '%s exists, but matching %s doesn\'t',
+                $k, $c);
             delete $keys{$k};
         }
     }
 
     my ($certs, $keys);
-    if ($oper eq 'decrypt') {
+    if ($operation eq 'decrypt') {
         $certs = [sort keys %certs];
         $keys  = [sort keys %keys];
     } else {
@@ -129,197 +126,105 @@ sub find_keys {
             $certs = "$dir/cert.pem";
             $keys  = "$dir/private_key";
         } else {
-            $main::logger->do_log(Sympa::Logger::INFO,
-                "$dir: no certs/keys found for $oper");
+            $log->syslog('debug3', '%s: no certs/keys found for %s',
+                $that, $operation);
             return undef;
         }
     }
 
+    $log->syslog('debug3', '%s: certs/keys for %s found', $that, $operation);
     return ($certs, $keys);
 }
 
-=item parse_cert(%parameters)
+BEGIN { eval 'use Crypt::OpenSSL::X509'; }
 
-FIXME.
-
-=over
-
-=item * I<file>: the certificat, as a file
-
-=item * I<string>: the certificat, as a string
-
-=item * I<openssl>: path to openssl binary (default: 'openssl')
-
-=item * I<tmpdir>: path to temporary file directory (default: '/tmp')
-
-=back
-
-Returns an hashref with the following keys:
-
-=over
-
-=item * I<email>: email address from cert
-
-=item * I<subject>: distinguished name
-
-=item * I<purpose>: hashref with following keys:
-
-=over
-
-=item - enc: true if v3 purpose is encryption
-
-=item - sign: true if v3 purpose is signing
-
-=back
-
-=back
-
-=cut
-
+# IN: hashref:
+# file => filename
+# text => PEM-encoded cert
+# OUT: hashref
+# email => email address from cert
+# subject => distinguished name
+# purpose => hashref
+#  enc => true if v3 purpose is encryption
+#  sign => true if v3 purpose is signing
+#
+# Old name: tools::smime_parse_cert()
 sub parse_cert {
-    my (%params) = @_;
-
-    my $file   = $params{file};
-    my $string = $params{string};
-    my $tmpdir  = $params{tmpdir} || '/tmp';
-    my $openssl = $params{openssl} || 'openssl';
-
-    $main::logger->do_log(
-        Sympa::Logger::DEBUG,
-        'Sympa::Tools::parse_cert(%s)',
-        join('/', %params)
-    );
+    $log->syslog('debug3', '(%s => %s)', @_);
+    my %arg = @_;
 
     ## Load certificate
-    my $cert_string;
-    if ($string) {
-        $cert_string = $string;
-    } elsif ($file) {
-        eval {
-            $cert_string = Sympa::Tools::File::slurp_file($file);
-        };
-        if ($EVAL_ERROR) {
-            $main::logger->do_log(
-                Sympa::Logger::ERR,
-                "unable to read certificate file: %s", $EVAL_ERROR
-            );
-            return undef;
-        }
+    my $x509;
+    if ($arg{'text'}) {
+        $x509 = eval { Crypt::OpenSSL::X509->new_from_string($arg{'text'}) };
+    } elsif ($arg{'file'}) {
+        $x509 = eval { Crypt::OpenSSL::X509->new_from_file($arg{'file'}) };
     } else {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
-            'neither "string" nor "file" given'
-        );
+        $log->syslog('err', 'Neither "text" nor "file" given');
+        return undef;
+    }
+    unless ($x509) {
+        $log->syslog('err', 'Cannot parse certificate');
         return undef;
     }
 
-    ## Extract information from cert
-    my ($tmpfile) = $tmpdir . "/parse_cert.$PID";
-    my $command =
-        "$openssl x509 -email -subject -purpose -noout > $tmpfile";
-    my $command_handle;
-    unless (open($command_handle, '|-', $command)) {
-        $main::logger->do_log(
-            Sympa::Logger::ERR,
-            'unable to execute command %s: %s',
-        );
-        return undef;
-    }
-    print $command_handle $cert_string;
-    close $command_handle;
-
-    unless (open(PSC, "$tmpfile")) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            "parse_cert: open $tmpfile: $ERRNO");
-        return undef;
-    }
-
-    my $result;
-
-    # the lines before the subject contains the email address(es)
-    while (my $line = <PSC>) {
-        if ($line =~ /^subject=\s+(\S.+)\s*$/) {
-            $result->{'subject'} = $1;
-            last;
-        }
-        chomp $line;
-        push @{$result->{'email'}}, lc($line);
-    }
-
-    # the lines after the subject contains the purpose
-    while (my $line = <PSC>) {
-        if ($line =~ /^S\/MIME signing : (\S+)/) {
-            $result->{purpose}->{sign} = ($1 eq 'Yes');
-            next;
-        }
-
-       if ($line =~ /^S\/MIME encryption : (\S+)/) {
-            $result->{purpose}->{enc} = ($1 eq 'Yes');
-            next;
+    my %res;
+    $res{subject} = join '',
+        map { '/' . $_->as_string } @{$x509->subject_name->entries};
+    my $extensions = $x509->extensions_by_name();
+    my %emails;
+    foreach my $extension_name (keys %$extensions) {
+        if ($extension_name eq 'subjectAltName') {
+            my $extension_value = $extensions->{$extension_name}->value();
+            my @addresses = split '\.{2,}', $extension_value;
+            shift @addresses;
+            foreach my $address (@addresses) {
+                $emails{$address} = 1;
+            }
         }
     }
-
-    # some CA put the email address in the DN only
-    if (!$result->{email} && $result->{subject} =~ /\/email(address)?=([^\/]+)/) {
-        $result->{email} = [ $1 ];
+    if (%emails) {
+        foreach my $email (keys %emails) {
+            $res{email}{lc($email)} = 1;
+        }
+    } elsif ($x509->email) {
+        $res{email}{lc($x509->email)} = 1;
     }
-
-    close(PSC);
-    unlink($tmpfile);
-
-    return $result;
+    # Check key usage roughy.
+    my %purposes = $x509->extensions_by_name->{keyUsage}->hash_bit_string;
+    $res{purpose}->{sign} = $purposes{'Digital Signature'} ? 1 : '';
+    $res{purpose}->{enc}  = $purposes{'Key Encipherment'}  ? 1 : '';
+    return \%res;
 }
 
-=item extract_certs(%parameters)
-
-FIXME.
-
-=over
-
-=item * I<entity>: FIXME
-
-=item * I<file>: FIXME
-
-=item * I<openssl>: path to openssl binary (default: 'openssl')
-
-=back
-
-=cut
-
-sub extract_certs {
-    my (%params) = @_;
-
-    my $mime    = $params{entity};
-    my $outfile = $params{file};
-    my $openssl = $params{openssl} || 'openssl';
-
-    $main::logger->do_log(Sympa::Logger::DEBUG2,
-        "Sympa::Tools::extract_certs(%s)",
-        $mime->mime_type);
+# NO LONGER USED
+# However, this function may be useful because it can extract messages openssl
+# can not (e.g. signature part not encoded by BASE64).
+sub smime_extract_certs {
+    my ($mime, $outfile) = @_;
+    $log->syslog('debug2', '(%s)', $mime->mime_type);
 
     if ($mime->mime_type =~ /application\/(x-)?pkcs7-/) {
-        my $cmd = sprintf '%s pkcs7 -print_certs -inform der', $openssl;
-        unless (open(MSGDUMP, "| $cmd > $outfile")) {
-            $main::logger->do_log(Sympa::Logger::ERR,
-                'unable to run openssl pkcs7: %s', $ERRNO);
+        my $pipeout;
+        unless (
+            open $pipeout,
+            '|-', $Conf::Conf{openssl}, 'pkcs7', '-print_certs',
+            '-inform' => 'der',
+            '-out'    => $outfile
+            ) {
+            $log->syslog('err', 'Unable to run openssl pkcs7: %m');
             return 0;
         }
-        print MSGDUMP $mime->bodyhandle->as_string();
-        close(MSGDUMP);
-        if ($CHILD_ERROR) {
-            $main::logger->do_log(
-                Sympa::Logger::ERR,
-                "openssl pkcs7 returned an error: ",
-                $CHILD_ERROR / 256
-            );
+        print $pipeout $mime->bodyhandle->as_string;
+        close $pipeout;
+        my $status = $CHILD_ERROR >> 8;
+        if ($status) {
+            $log->syslog('err', 'Openssl pkcs7 returned an error: %s',
+                $status);
             return 0;
         }
         return 1;
     }
 }
-
-=back
-
-=cut
 
 1;

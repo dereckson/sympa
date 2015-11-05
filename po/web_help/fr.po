@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fr\n"
 "POT-Creation-Date: 2007-11-13 14:50+0200\n"
-"PO-Revision-Date: 2014-05-21 13:30+0200\n"
+"PO-Revision-Date: 2014-07-04 16:52+0000\n"
 "Last-Translator: David Verdin <david.verdin@cru.fr>\n"
 "Language-Team: Français\n"
 "MIME-Version: 1.0\n"
@@ -26,7 +26,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"X-Generator: Pootle 2.5.1\n"
+"X-POOTLE-MTIME: 1404492778.000000\n"
 
 #: default/web_tt2/help_admin.tt2:3
 msgid "Mailing lists - Owner and moderator guide"
@@ -114,7 +115,7 @@ msgstr ""
 "Si le bouton n'apparait pas, cela signifie que vous n'avez pas les "
 "privilèges nécessaires pour créer une liste.</span>"
 
-#. (conf.host)
+#. ('',conf.host)
 #: default/web_tt2/help_admin.tt2:22
 msgid ""
 "Give your list a <strong>name</strong> (only enter the name without the '@' "
@@ -133,6 +134,7 @@ msgstr ""
 "N'utilisez pas d'espaces, d'accents, ni de caractères spéciaux dans les noms "
 "des listes&#160;: ces caractères peuvent créer des problèmes."
 
+#. ('',conf.host)
 #: default/web_tt2/help_admin.tt2:24
 msgid ""
 "Choose an explicit yet short name: think of the subscribers who will have to "
@@ -2211,7 +2213,7 @@ msgstr ""
 "Attachement de fin de message : Identique à l'<em>Attachement de début de "
 "message</em> mais attaché en fin de message."
 
-#: default/web_tt2/help_editlist.tt2:184 default/web_tt2/help_editlist.tt2:6
+#: default/web_tt2/help_editlist.tt2:6
 msgid ":"
 msgstr "&#160;:"
 
@@ -6426,7 +6428,7 @@ msgstr "Cliquez sur \"Reprendre mes abonnements\"."
 
 #: default/web_tt2/help.tt2:11
 msgid "Subscriber, moderator and owner documentation"
-msgstr "Documentation destinée aux abonnés, modérateurs et propriétaires"
+msgstr "Documentation destinée aux abonnés, modérateurs et propriétaires."
 
 #: default/web_tt2/help.tt2:13
 msgid "In this documentation, you will find:"
@@ -6480,7 +6482,7 @@ msgstr ""
 
 #: default/web_tt2/help_user_options.tt2:3
 msgid ""
-"This is a description of the receivie modes available in Sympa. These "
+"This is a description of the reception modes available in Sympa. These "
 "options are mutually exclusive, which means that you can't set two different "
 "receive modes at the same time. Only some of the modes might be available to "
 "specific mailing lists."
