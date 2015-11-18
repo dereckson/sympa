@@ -11,26 +11,12 @@ Subject: [% FILTER qencode %][%|loc(list.name,list.host,email)%]List "%1@%2" cre
 [%|loc%]To activate/delete this mailing list:[%END%]
 [% conf.wwsympa_url %]/ticket/[%one_time_ticket%]
 
-[%- ELSIF type == 'task_error' -%]
-Subject: [% FILTER qencode %][%|loc(task.description)%]Error in task %1[%END%][%END%]
+[%- ELSIF type == 'list_created' -%]
+[% PROCESS 'list_created.tt2' -%]
 
-[%|loc(task.description,task.human_date,task.template)%]Execution of the task %1 failed at %2.[%END%]
+[%- ELSIF type == 'list_rejected' -%]
+[% PROCESS 'list_rejected.tt2' -%]
 
-[% IF task.errors.size > 0 -%]
-[%|loc()%]Below are the errors that caused the problem:[%END%]
-
-[% FOREACH error IN task.errors -%]
-[% IF error.type == 'execution'-%]
-- [%|loc(error.line,error.message)%]Line %1: execution error: %2[%END%]
-[% ELSIF error.type == 'parsing' -%]
-- [%|loc(error.line,error.message)%]Line %1: parse error: %2[%END%]
-[% ELSE -%]
-- [%|loc(error.line,error.message)%]Line %1: error: %2[%END%]
-[% END -%]
-[% END -%]
-[% ELSE -%]
-[%|loc()%]A very unexpected error happened while running task. Nothing to report here. Please, check the logs for more details.[%END%]
-[% END -%]
 [%- ELSIF type == 'request_list_renaming' -%]
 [%- IF mode == 'copy' -%]
 Subject: [% FILTER qencode %][%|loc(new_listname)%]%1 mailing list creation[%END%][%END%]
@@ -46,21 +32,21 @@ Subject: [% FILTER qencode %][%|loc(list.name)%]List "%1" renaming[%END%][%END%]
 [% conf.wwsympa_url %]/ticket/[%one_time_ticket%]
 
 [% ELSIF type == 'no_db' -%]
-Subject: [% FILTER qencode %][%|loc%]No Database[%END%][%END%]
+Subject: [% FILTER qencode %][%|loc%]No DataBase[%END%][%END%]
 
 [%|loc(db_name)%]Cannot connect to database %1, still trying...[%END%]
 
 
 [% ELSIF type == 'missing_dbd' -%]
-Subject: [% FILTER qencode %][%|loc(db_type)%]No Database Driver for %1[%END%][%END%]
+Subject: [% FILTER qencode %][%|loc(db_type)%]No DataBase Driver for %1[%END%][%END%]
 
-[%|loc(db_type)%]No Database Driver installed for %1; you should download and install DBD::%1 from CPAN.[%END%]
-
+[%|loc(db_type,db_module)%]No Database Driver installed for %1; you should download and install %2 from CPAN.[%END%]
 
 [% ELSIF type == 'crash' -%]
 Subject: [% FILTER qencode %][%|loc(crashed_process)%]Previous process %1 crashed[%END%][%END%]
+X-Sympa-NoWrap: yes
 
-[%|loc(crashed_process,pid)%]Previous process %1 (with PID %2) has died unexpectedly.[%END%]
+[%|wrap(0,0)%][%|loc(crashed_process,pid)%]Previous process %1 (with PID %2) has died unexpectedly.[%END%][%END#wrap%]
 [%|loc(crash_date)%]Date of crash: %1[%END%]
 [%|loc%]Errors:[%END%]
 
@@ -68,7 +54,7 @@ Subject: [% FILTER qencode %][%|loc(crashed_process)%]Previous process %1 crashe
 [% err %]
 [% END %]
 
-[%|loc%]Check log file for further details.[%END%]
+[%|wrap(0,0)%][%|loc%]Check log file for further details.[%END%][%END#wrap%]
 
 [% ELSIF type == 'upgrade_failed' -%]
 Subject: [% FILTER qencode %][%|loc%]Upgrade procedures failed[%END%][%END%]
@@ -80,10 +66,12 @@ Subject: [% FILTER qencode %][%|loc%]Upgrade procedures failed[%END%][%END%]
 
 [% ELSIF type == 'db_struct_updated' -%]
 Subject: [% FILTER qencode %][%|loc%]Database structure updated[%END%][%END%]
+X-Sympa-NoWrap: yes
 
-[%|loc(db_name)%]The database structure has been updated; check log file for further details: [%END%]
+[%|wrap(0,0)%][%|loc(db_name)%]The database structure has been updated; check log file for further details: [%END%][%END#wrap%]
+
 [% FOREACH report_item IN report -%]
-  [% report_item %]
+[% report_item %]
 [% END %]
 
 [% ELSIF type == 'css_updated' -%]
@@ -91,18 +79,35 @@ Subject: [% FILTER qencode %][%|loc%]CSS files have been updated[%END%][%END%]
 
 [%|loc%]Static CSS files have been updated.  Check log file for details.[%END%]
 
+[% ELSIF type == 'css_update_failed' -%]
+Subject: [%|qencode%][%|loc%]CSS update failed[%END%][%END%]
+
+[%|loc%]Static CSS failed updating.[%END%]
+
+[% IF error == 'cannot_mkdir' -%]
+[%|loc(target,message)%]Cannot make directory %1: %2.[%END -%]
+[% ELSIF error == 'cannot_open_file' -%]
+[%|loc(file,message)%]Cannot open file %1: %2.[%END -%]
+[% ELSIF error == 'tt2_error' -%]
+[%|loc(message)%]Parsing template failed: %1.[%END -%]
+[% ELSE -%]
+[%|loc%]Unknown error.[%END -%]
+[%END %]
 
 [% ELSIF type == 'db_restored' -%]
-Subject: [% FILTER qencode %][%|loc%]Database connection restored[%END%][%END%]
+Subject: [% FILTER qencode %][%|loc%]DataBase connection restored[%END%][%END%]
 
 [%|loc(db_name)%]Connection to database %1 restored.[%END%]
-
 
 [% ELSIF type == 'bulk_error' -%]
 Subject: [% FILTER qencode %][%|loc%]Bulk mailer error[%END%][%END%]
 
-[%|loc(listname)%]Sympa failed to store a message for list %1 in the bulk mailer. You should check log files !![%END%]
+[%|loc(message_id)%]Sympa failed to store a message <%1> in the bulk mailer. You should check log files !![%END%]
 
+[% ELSIF type == 'bulk_failed' -%]
+Subject: [% FILTER qencode %][%|loc%]Bulk mailer error[%END%][%END%]
+
+[%|loc(message_id)%]Sympa failed to process a message <%1> in the bulk spool. You should check log files!![%END%]
 
 [% ELSIF type == 'loop_command' -%]
 Subject: [% FILTER qencode %][%|loc%]Loop detected[%END%][%END%]
@@ -120,10 +125,9 @@ Content-Transfer-Encoding: 8bit
 Content-Disposition: inline
 X-Sympa-Attach: yes
 
-[% INSERT $msg IF msg %]
+[%# Message is attached here. #%]
 
 --[% boundary %]--
-
 
 [% ELSIF type == 'virus_scan_failed' -%]
 Subject: [% FILTER qencode %][%|loc%]Antivirus scan failed[%END%][%END%]
@@ -154,13 +158,32 @@ Subject: [% FILTER qencode %][%|loc%]A message archiving failed[%END%][%END%]
 [%|loc(file,bad)%]Sympa could not archive message '%1'. Moving it into directory '%2'.[%END%]
 [%|loc%]See logs for more details.[%END%]
 
-[% ELSIF type == 'bounce_management_failed' -%]
-Subject: [% FILTER qencode %][%|loc%]A bounce management failed[%END%][%END%]
+[% ELSIF type == 'automatic_bounce_management' -%]
+[% PROCESS 'automatic_bounce_management.tt2' -%]
 
-[%|loc(file,bad)%]Sympa could not handle bounce message '%1'. Moving it into directory '%2'.[%END%]
+[% ELSIF type == 'arf_processing_failed' -%]
+Subject: [% FILTER qencode %][%|loc%]Processing email feedback report failed[%END%][%END%]
+Content-Type: multipart/mixed; boundary="[%boundary%]"
 
+--[%boundary%]
+Content-Disposition: inline
+
+[%|loc%]Sympa could not handle email feedback report.[%END%]
+
+[%|loc(list.name,list.host)%]List: %1@%2[%END%]
 [%|loc(error)%]Error: %1[%END%]
+[%|loc(feedback_type)%]Feedback type: %1[%END%]
 [%|loc%]See logs for more details.[%END%]
+
+--[%boundary%]
+Content-Disposition: inline
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 8bit
+X-Sympa-Attach: yes
+
+[%# msg #%]
+
+--[%boundary%]--
 
 [% ELSIF type == 'edit_list_error' -%]
 Subject: [% FILTER qencode %][%|loc%]incorrect format of edit_list.conf[%END%][%END%]
@@ -172,21 +195,18 @@ Subject: [% FILTER qencode %][%|loc%]incorrect format of edit_list.conf[%END%][%
 [%|loc(param0)%]Until then we recommend your remove %1;
 default configuration will be used.[%END%]
 
-[% ELSIF type == 'subscribers_limit_exceeded' -%]
-Subject: [% FILTER qencode %][%|loc(listname)%]Limit of users count reached for list %1[%END%][%END%]
-
-[%|loc(listname,max_number_of_subscribers)%]Sympa could not include subscribers to list %1 because the maximum number of users was reached for this list. This limit is defined to %2.[%END%]
 [% ELSIF type == 'sync_include_failed' -%]
-Subject: [% FILTER qencode %][%|loc(listname)%]subscribers update failed for list %1[%END%][%END%]
+Subject: [% FILTER qencode %][%|loc(list.name)%]Failed to include members for list '%1'[%END%][%END%]
 
-[%|loc%]Sympa could not include subscribers from the following external data sources:[%END%]
+[%|loc%]Sympa could not include members from external data sources; the database or LDAP directory might be unreachable.[%END%]
 
-[% FOREACH e IN errors %]
-[%|loc(e.name,e.type)%]Include of datasource %1 (type %2) failed.[% END %]
+[%IF errors -%]
+[% FOREACH e = errors -%]
+[%|loc(e.type,e.name)%]- Datasource '%2' (type %1)[%END%]
 [% END %]
 
+[%END -%]
 [%|loc%]Check Sympa log files for more precise information[%END%]
-
 
 [% ELSIF type == 'sync_include_admin_failed' -%]
 Subject: [% FILTER qencode %][%|loc(param0)%]admins update failed for list %1[%END%][%END%]
@@ -222,7 +242,7 @@ If you are able to do so, you should probably update these data sources with thi
 [% ELSIF type == 'error_copy_file' -%]
 Subject: [% FILTER qencode %][%|loc(param0)%]list %1 in status error_config[%END%][%END%]
 
-[%|loc(param0,param1)%]Errors occurred while copying family %2 file in list %1 directory.[%END%]
+[%|loc(param0,param1)%]Errors occured while copying family %2 file in list %1 directory.[%END%]
 [%|loc%]The list status has been set to error_config.[%END%]
 [%|loc%]Check Sympa log files for more precise information.[%END%]
 
@@ -283,33 +303,19 @@ Subject: [% FILTER qencode %][%|loc(param0)%]list %1 in status error_config[%END
 [%|loc%]The list status has been set to error_config.[%END%]
 [%|loc%]Check Sympa log files for more precise information.[%END%]
 
+[% ELSIF type == 'web_tt2_error' -%]
+Subject: [% FILTER qencode %][%|loc%]Failed to parse web template[%END%][%END%]
 
-[% ELSIF type == 'automatic_bounce_management' -%]
-Subject: [% FILTER qencode %][%|loc(list.name)%]List %1 automatic bounce management[%END%][%END%]
-
-[% IF action == 'notify_bouncers' -%]
-[%|loc(total,list.name)%]Because we received MANY non-delivery reports, the %1 subscribers listed below have been
-notified that they might be removed from list %2:[%END%]
-[% ELSIF action == 'remove_bouncers' -%]
-[%|loc(total,list.name)%]Because we received MANY non-delivery reports, the %1 subscribers listed below have been
-removed from list %2:[%END%]
-[% ELSIF action == 'none' -%]
-[%|loc(total,list.name)%]Because we received MANY non-delivery reports, the %1 subscribers listed below have been
-selected by Sympa as severe bouncing addresses:[%END%]
-[%END%]
-
-[% FOREACH user IN user_list -%]
-[% user %]
-[% END %]
-
-[%|loc%]Managing bouncing subscribers:[%END%] [% conf.wwsympa_url %]/reviewbouncing/[% list.name %]
+[%|loc%]Sympa could not deliver the requested page for the following reason: [%END%]
+[%|loc(param0)%]Error: %1[%END%]
+[%|loc%]Check Sympa log files for more precise information.[%END%]
 
 [%# INTERNAL SERVER ERROR  : MAIL -%]
 [% ELSIF type == 'mail_intern_error' -%]
-Subject: [% FILTER qencode %][%|loc(list.name)%]Listmaster: internal server error [%END%][%END%]
+Subject: [% FILTER qencode %][%|loc%]Listmaster: internal server error [%END%][%END%]
 
 [%|loc(who)%] User %1 has encountered an internal server error[%END%]
-([%action%][% IF msg_id %] - MSG_ID[%|loc%]:[%END%] [%msg_id%][%END%][% IF cmd %] - COMMAND[%|loc%]:[%END%] [%cmd%][%END%][% IF list.name %] - LIST[%|loc%]:[%END%] [%list.name%]@[%conf.host%][%END%])[%|loc%]:[%END%]
+([%action%][% IF msg_id %] - MSG_ID[%|loc%]:[%END%] [%msg_id%][%END%][% IF cmd %] - COMMAND[%|loc%]:[%END%] [%cmd%][%END%][% IF list.name %] - LIST[%|loc%]:[%END%] [%list.name%]@[%list.host%][%END%])[%|loc%]:[%END%]
 
 [%IF error%][%error%]
 [%END%]  
@@ -322,6 +328,17 @@ Subject: [% FILTER qencode %][%|loc(list.name)%]Listmaster: internal server erro
 [%|loc(error)%]The following error occurred while managing bounces: %1[%END%]
 
 [%|loc%]See logs for more details.[%END%]
+
+[% ELSIF type == 'hundred_percent_error' -%]
+Subject: [% FILTER qencode %][%|loc(list.name, list.host)%]Listmaster: list %1@%2 at 100 percents error [%END%][%END%]
+
+[%|loc(list.name, list.host)%]The list %1@%2 has 100 percents of its users in error. Something unusual must have happened.[%END%]
+
+[%|loc(sender)%]The user %1, who tried to send a mail to this list, has been warned, as well as the list owners.[%END%]
+
+[%|loc%]See logs for more details.[%END%]
+
+[%|loc%]Check the bounces in this list:[% END %] [% conf.wwsympa_url %]/reviewbouncing/[% listname %]
 
 [% ELSIF type == 'automatic_list_creation_failed' -%]
 Subject: [% FILTER qencode %][%|loc%]Listmaster: internal server error [%END%][%END%]
@@ -342,7 +359,7 @@ Subject: [% FILTER qencode %][%|loc(list.name)%]Listmaster: internal server erro
 [%IF error == 'chdir_error' %][%|loc%]Unable to change directory.[%END%]
 [%ELSIF error == 'no_authentication_service_name' %][%|loc%]The authentication server name is not defined.[%END%]
 [%ELSIF error == 'auth_conf_no_identified_user' %][%|loc%]auth.conf error: either email_http_header or ldap_host/ldap_get_email_by_uid_filter entries should be defined.[%END%]
-[%ELSIF error == 'unknown_authentication_service' %][%|loc(name)%]Unknown authentication service %1.[%END%]
+[%ELSIF error == 'unknown_authentication_service' %][%|loc(name)%]Unkown authentication service %1.[%END%]
 [%ELSIF error == 'add_user_db_failed' %][%|loc(user)%]Add user '%1' in DB failed.[%END%]
 [%ELSIF error == 'update_user_db_failed' %][%|loc(user)%]Update user '%1' in DB failed[%END%][% IF old_email %][%|loc(old_email)%] (old email: %1)[%END%][%END%]
 [%ELSIF error == 'add_subscriber_db_failed' %][%|loc(sub)%]Add subscriber '%1' in DB failed.[%END%]
@@ -380,8 +397,8 @@ Subject: [% FILTER qencode %][%|loc(list.name)%]Listmaster: internal server erro
 [%ELSIF error == 'sync_include_failed' %][%|loc(list.name)%]Failed to include members for list '%1'[%END%] 
 [%ELSIF error == 'sync_include_admin_failed' %][%|loc(list.name)%]Failed to include list admins for list '%1'[%END%] 
 [%ELSIF error == 'no_owner_defined' %][%|loc%]No owner is defined for the list '%1'[%END%] 
-[%ELSIF error == 'exportation_failed' %][%|loc(list.name)%]The exportation to an LDAP directory failed for list '%1'[%END%] 
-[%ELSIF error == 'unable_to_check_list_smtp' %][%|loc(new_listname)%]Unable to check list name '%1' on SMTP server[%END%]
+[%ELSIF error == 'exportation_failed' %][%|loc(list.name)%]The exportation to an Ldap directory failed for list '%1'[%END%] 
+[%ELSIF error == 'unable_to_check_list_smtp' %][%|loc(new_listname)%]Unable to check listname '%1' on SMTP server[%END%]
 [%ELSIF error == 'create_shared' %][%|loc(list.name)%]Cannot create shared for list '%1'.[%END%]
 [%ELSIF error == 'restore_shared'%][%|loc(list.name)%]Cannot restore shared for list '%1'.[%END%]
 [%ELSIF error == 'delete_shared'%][%|loc(list.name)%]Cannot delete shared for list '%1'.[%END%]
@@ -399,6 +416,7 @@ Subject: [% FILTER qencode %][%|loc(list.name)%]Listmaster: internal server erro
 [%ELSIF error == 'new_document_failed' %][%|loc(path,list.name)%]Unable to create a SharedDocument with path '%1' for list '%2'.[%END%]
 [%ELSIF error == 'cookie_error' %][%|loc%]Parameter cookie undefined, authentication failure.[%END%]
 [%ELSIF error == 'cookie_error_env' %][%|loc(env)%]Cookie error: '%1' undefined, authentication failure.[%END%]
+[%ELSIF error == 'unable_to_rename_list' %][%|loc(list.name,new_listname)%]Unable to rename list '%1' to '%2'.[%END%]
 [%ELSIF error%][%error%]
 [%END%]
 [%|loc%]See logs for more details.[%END%]

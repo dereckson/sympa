@@ -5,23 +5,13 @@
 <meta charset="UTF-8" />
 <meta name="generator" content="Sympa [% version %]" />
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
 <title> [% main_title %] - [% action %] </title>
 
-[% IF custom_css %]
-<style>
-[% custom_css %]
-</style>
-[% ELSE %]
-<link rel="stylesheet" href="[% css_url %]/style.css" media="screen" title="Sympa CSS" />
-[% END %]
+[% PROCESS head_ui.tt2 %]
 
-[% PROCESS css_ie.tt2 %]
-
-[% IF locale_css %]
-<style>
-[% locale_css %]
-</style>
-[% END %]
+[% PROCESS head_javascript.tt2 %]
 
 <!-- RSS chanel -->
    [% IF list -%] 
@@ -37,89 +27,79 @@
      [% END -%]
    [% END -%]
 
-
-<!-- the following CSS have to be improved before to be used -->
-<!-- <link rel="stylesheet" href="[% css_url %]/print.css" media="print" /> -->
-<!-- <link rel="alternative stylesheet" href="[% css_url %]/fullPage.css" media="screen" title="View Full Page" /> -->
-<!-- <link rel="alternative stylesheet" href="[% css_url %]/print-preview.css" media="screen" title="Print Preview" /> -->
-
-[% IF conf.favicon_url %]
-<link rel="shortcut icon" href="[% conf.favicon_url %]" />
-[% ELSE %]
-<link rel="shortcut icon" href="[% icons_url %]/favicon_sympa.png" />
-[% END %]
-
-[% PROCESS javascript.tt2 %]
-
 [% IF base %] <base href="[% base %]" /> [% END %]
 
 </head>
 
-<body[% IF back_to_mom %] onload="setTimeout('refresh_mom_and_die()',1000);"[% END %]>
+<body onload="[% IF use_htmlarea %] HTMLArea.replaceAll();[% END %][% IF back_to_mom %] setTimeout('refresh_mom_and_die()',1000);[% END %]">
 
-<div id="TopAnchor"><a name="top"></a></div>
+[% top_menu = 1 %]
+
+<div id="top"><a class="displayNone" name="top" href="#content-inner">[%|loc%]Skip to Content.[%END%]</a></div>
 
 <noscript><em>[%|loc%]Please activate JavaScript in your web browser[%END%]</em></noscript>
 
 [% IF nomenu %]
-       [% PROCESS error.tt2 IF errors %]
-       <div class="ContentBlock"> 
-         [% PROCESS notice.tt2 IF notices %]
-         [% PROCESS "${action}.tt2" IF action %]
-       </div>
+  [% PROCESS error.tt2 IF errors %]
+  <div class="nomenu">
+    [% PROCESS "${action}.tt2" IF action %]
+    [% PROCESS notice.tt2 IF notices %]
+  </div>
 [% ELSE %]
 
-       [% PROCESS error.tt2 IF errors %]
-       [% PROCESS login_menu.tt2 %]
-<div id="Canvas">
+    [% PROCESS error.tt2 IF errors %]
 
-  <div id="Header">
-    
-	<!-- a href="javascript:afficheId('contenu','Stretcher')">ouvrir</a>
-    	<a href="javascript:cacheId('contenu','Stretcher');">Fermer</a-->
-
-    [% PROCESS title.tt2 %]
-    [% PROCESS menu.tt2 %]
-  </div> <!-- end div Header -->
-  <!-- <div class="contenant" id="contenu"> --> <!-- To hide Menus -->&nbsp;
-  <div id="Menus"><!-- Start Menus -->&nbsp;
-
-	
-    [% PROCESS menu_search.tt2 %]
-    [% PROCESS list_menu.tt2 IF list %]
-    [% PROCESS your_lists.tt2 IF !list %]
-    [% PROCESS setlang.tt2 %]
-  </div><!-- End div Menus -->
-  <!-- </div> --><!-- End div contenant -->
-	
-
-  <div id="Stretcher">  <!-- <span id="toggleMenu" title="A javascript could hide or show the menu" class="smalltext info printNone toggleNone">toggle menu</span><br /> --> &nbsp;<br />
-     <div id="Paint">
-
-       [% IF list %]
-	<div class="listTitle"><a href="[% path_cgi %]/info/[% list %]">[% list_protected_email %]</a>&nbsp;</div>
-        <div class="listTitle description">
-	[% IF list_title %] <span> [% list_title %] </span> [% END %]</div><br />
-       [% END %]
-
-	 [% PROCESS nav.tt2 %]
-
-        <div class="ContentBlock">
-         [% PROCESS notice.tt2 IF notices %]
-	 [% IF action == 'edit_list_request' || action == 'editfile' %]<br /><br />[% END %]
-         [% PROCESS "${action}.tt2" IF action %]
-       </div><!-- End div ContentBlock -->
-      <div class="top"><a href="#top" title="Top of Page"><img src="[% icons_url %]/top.png" alt="Top of Page" /></a></div>
-     </div><!-- End div Paint -->
-  </div><!-- end div Stretcher -->
-
-
-  [% PROCESS dumpvars.tt2 IF dumpvars == 'true'%]
-
-</div> <!-- end div canvas -->
-
-  [% PROCESS footer.tt2 %]
+[% IF top_menu %]
+    [% PROCESS header.tt2 %]
 [% END %]
+
+[% IF top_menu %][% IF not list %]<div id="loading" class="row">
+[% ELSE %]<div id="loading" class="medium-9 columns">[% END %][% ELSE %]<div id="loading" class="medium-9 columns">[% END %]
+   <div id="loadingText"><i class="fa fa-spinner fa-pulse"></i> <span></span></div></div>
+
+    [% PROCESS aside_menu.tt2 %]
+    [% IF top_menu %]
+      [%~ IF not list ~%]
+        <main id="content-inner" class="row">
+      [%~ ELSE ~%]
+        <main id="content-inner" class="medium-9 columns">
+      [%~ END %]
+    [%~ ELSE ~%]
+      <main id="content-inner" class="medium-9 columns">
+    [%~ END ~%]
+    <a name="content-inner"></a>
+
+      [% IF not top_menu %]
+        <h1>[% main_title %]</h1>
+      [% END %]
+      [% IF list %]
+       [% PROCESS title.tt2 %]
+       [% IF list_title %]<p><b>[%|loc%]Subject:[%END%]</b> [% list_title %] [% IF is_owner %]<a href="[% path_cgi %]/edit_list_request/[% list %]/description"><i class="fa fa-pencil-square fa-lg" title="[%|loc%](Edit)[%END%]"></i></a>[% END %]</p>[% END %]
+      [% END %]
+
+    [% PROCESS nav.tt2 %]
+
+    [% IF action == 'edit_list_request' %][% END %]
+    [% PROCESS "${action}.tt2" IF action %]
+    [% PROCESS notice.tt2 IF notices %]
+
+    [% PROCESS dumpvars.tt2 IF dumpvars == 'true'%]
+
+    [% IF top_menu %][% IF not list %][% END %][% END %]
+  </main><!-- End content-inner -->
+
+<div class="displayNone"><a href="#top">[%|loc%]Top of Page[%END%]</a></div>
+
+<div class="scroll-top-wrapper ">
+	<span class="scroll-top-inner">
+		<i class="fa fa-2x fa-arrow-circle-up"></i>
+	</span>
+</div>
+
+[% PROCESS footer.tt2 %]
+[% END %]
+
 </body>
+
 <!-- end main.tt2 -->
 </html>
