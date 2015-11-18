@@ -1,0 +1,353 @@
+#!--PERL--
+# -*- indent-tabs-mode: nil; -*-
+# vim:ft=perl:et:sw=4
+# $Id$
+
+# Sympa - SYsteme de Multi-Postage Automatique
+#
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use lib split(/:/, $ENV{SYMPALIB} || ''), '--modulesdir--';
+use strict;
+use warnings;
+use English qw(-no_match_vars);
+use Getopt::Long;
+use Pod::Usage;
+use POSIX qw();
+
+use Sympa::Alarm;
+use Conf;
+use Sympa::Constants;
+use Sympa::Crash;    # Show traceback.
+use Sympa::DatabaseManager;
+use Sympa::Language;
+use Sympa::Log;
+use Sympa::Process;
+use Sympa::Spindle::StoreArchive;
+
+my $process = Sympa::Process->instance;
+$process->init(pidname => 'archived');
+
+# Check options
+my %options;
+unless (
+    GetOptions(
+        \%main::options, 'config|f=s',  'debug|d', 'help|h',
+        'foreground|F',  'log_level=s', 'version|v'
+    )
+    ) {
+    pod2usage(-exitval => 1, -output => \*STDERR);
+}
+if ($main::options{'help'}) {
+    pod2usage(0);
+} elsif ($main::options{'version'}) {
+    printf "Sympa %s\n", Sympa::Constants::VERSION;
+    exit 0;
+}
+
+if ($main::options{'debug'}) {
+    $main::options{'log_level'} = 2 unless $main::options{'log_level'};
+    $main::options{'foreground'} = 1;
+}
+
+my $log = Sympa::Log->instance;
+$log->{'log_to_stderr'} = 'all' if $main::options{'foreground'};
+
+# Load sympa.conf
+unless (Conf::load()) {
+    die sprintf
+        "Unable to load sympa configuration, file %s has errors.\n",
+        Conf::get_sympa_conf();
+}
+
+# Check database connectivity
+unless (Sympa::DatabaseManager->instance) {
+    die sprintf
+        "Database %s defined in sympa.conf has not the right structure or is unreachable.\n",
+        $Conf::Conf{'db_name'};
+}
+
+## Put ourselves in background if not in debug mode.
+unless ($main::options{'debug'} || $main::options{'foreground'}) {
+    open(STDERR, ">> /dev/null");
+    open(STDOUT, ">> /dev/null");
+    if (open(TTY, "/dev/tty")) {
+        # ioctl(TTY, TIOCNOTTY(), 0);
+        ioctl(TTY, 0x20007471, 0);    # XXX s/b TIOCNOTTY
+        close(TTY);
+    }
+    setpgrp 0, 0;
+    my $child_pid = fork;
+    if ($child_pid) {
+        $log->syslog('info', 'Starting archived daemon, PID %s', $child_pid);
+        exit 0;
+    } elsif (not defined $child_pid) {
+        die sprintf 'Cannot fork: %s', $ERRNO;
+    }
+}
+
+# Create and write the PID file.
+$process->write_pid(initial => 1);
+# If process is running in foreground, don't write STDERR to a dedicated file.
+unless ($main::options{foreground}) {
+    $process->direct_stderr_to_file;
+}
+
+# setting log_level using conf unless it is set by calling option
+if ($main::options{'log_level'}) {
+    $log->{level} = $main::options{'log_level'};
+    $log->syslog('info',
+        "Configuration file read, log level set using options : $main::options{'log_level'}"
+    );
+} else {
+    $log->{level} = $Conf::Conf{'log_level'};
+    $log->syslog('info',
+        "Configuration file read, default log level $Conf::Conf{'log_level'}"
+    );
+}
+
+my $log_facility = $Conf::Conf{'log_facility'} || $Conf::Conf{'syslog'};
+$log->openlog($log_facility, $Conf::Conf{'log_socket_type'});
+
+## Set the User ID & Group ID for the process
+$GID = $EGID = (getgrnam(Sympa::Constants::GROUP))[2];
+$UID = $EUID = (getpwnam(Sympa::Constants::USER))[2];
+
+## Required on FreeBSD to change ALL IDs(effective UID + real UID + saved UID)
+POSIX::setuid((getpwnam(Sympa::Constants::USER))[2]);
+POSIX::setgid((getgrnam(Sympa::Constants::GROUP))[2]);
+
+## Check if the UID has correctly been set (useful on OS X)
+unless (($GID == (getgrnam(Sympa::Constants::GROUP))[2])
+    && ($UID == (getpwnam(Sympa::Constants::USER))[2])) {
+    die
+        "Failed to change process user ID and group ID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via sudo.\n";
+}
+
+## Sets the UMASK
+umask(oct($Conf::Conf{'umask'}));
+
+foreach my $robot (@{Conf::get_robots_list()}) {
+    my $arc_dir = Conf::get_robot_conf($robot, 'arc_path');
+    unless ($arc_dir) {
+        die sprintf
+            'Robot %s has no archives directory. Check arc_path parameter in this robot.conf and in sympa.conf',
+            $robot;
+    }
+}
+
+## Change to list root
+unless (chdir($Conf::Conf{'home'})) {
+    die sprintf 'Unable to change directory to %s: %s', $Conf::Conf{'home'},
+        $!;
+}
+
+Sympa::Language->instance->set_lang($Conf::Conf{'lang'}, 'en');
+
+$log->syslog('notice', 'Archived %s Started', Sympa::Constants::VERSION);
+
+my $spindle = Sympa::Spindle::StoreArchive->new;
+
+# Catch signals, in order to exit cleanly, whenever possible.
+$SIG{'TERM'} = 'sigterm';
+$SIG{'INT'}  = 'sigterm';
+
+while (not $spindle->{finish}) {
+    $spindle->spin;
+    last if $spindle->{finish};
+
+    # Sleep for a while if archive spool is empty.
+    sleep $Conf::Conf{'sleep'};
+}
+
+# Purge grouped notifications.
+Sympa::Alarm->instance->flush(purge => 1);
+
+# Free zombie sendmail processes.
+Sympa::Process->instance->reap_child;
+
+$log->syslog('notice', 'Archived exited normally due to signal');
+$process->remove_pid(final => 1);
+
+exit 0;
+
+# When we catch signal, just change the value of the loop variable.
+sub sigterm {
+    my $sig = shift;
+    $log->syslog('notice',
+        'Signal %s received, still processing current task', $sig);
+    $spindle->{finish} = $sig;
+}
+
+# Moved to Sympa::Spindle::StoreArchive::_twist().
+#sub process_message;
+
+# Moved to Sympa::Spindle::StoreArchive::_do_command().
+#sub do_command;
+
+# Moved to Sympa::Archive::html_remove().  Use do_remove_arc() instead.
+#sub remove;
+
+# Moved to Sympa::Spindle::StoreArchive::_do_remove_arc().
+#sub do_remove_arc;
+
+# Moved to Sympa::Archive::html_rebuild().  Use do_rebuildarc() instead.
+#sub rebuild;
+
+# Moved to Sympa::Spindle::StoreArchive::_do_rebuildarc().
+#sub do_rebuildarc;
+
+# Moved to Sympa::Spindle::StoreArchive::_mail2arc().
+#sub mail2arc;
+
+# Moved to Sympa::Archive::_set_hidden_mode().
+#sub set_hidden_mode;
+
+# Moved to Sympa::Archive::_unset_hidden_mode().
+#sub unset_hidden_mode;
+
+# Moved to Sympa::Archive::_save_idx().
+#sub save_idx;
+
+# Moved to Sympa::Archive::_create_idx().
+#sub create_idx;
+
+# DEPRECATED.
+# Use Sympa::Archive::_get_tag().
+#sub get_tag;
+
+# Checks if directory exists and we have write and read accec to it.
+# DEPRECATED.  No longer used.
+#sub directory_check;
+
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+archived, archived.pl - Mailing List Archiving Daemon for Sympa
+
+=head1 SYNOPSIS
+
+S<B<archived.pl> [ B<--foreground> ] [ B<--debug> ]>
+
+=head1 DESCRIPTION
+
+B<Archived> is a program which scan permanently the archive spool
+and feeds the web archives, converting messages to the HTML format and
+linking them. Original mails are also kept (in I<arctxt/> directory> for
+later rebuilding of archives.
+
+The HTML conversion is achieved by the means of the B<MHonArc> program.
+
+Archives are accessed via B<wwsympa.fcgi> and B<sympa.pl>,
+which proposes access control;
+therefore archives should not be located in a public web directory.
+
+=head1 OPTIONS
+
+These programs follow the usual GNU command line syntax,
+with long options starting with two dashes (C<-->).  A summary of
+options is included below.
+
+=over 5
+
+=item B<-F>, B<--foreground>
+
+Do not detach TTY.
+
+=item B<-f>, B<--config=>I<file>
+
+Force archived to use an alternative configuration file instead
+of F<--CONFIG-->.
+
+=item B<-d>, B<--debug>
+
+Run the program in a debug mode.
+
+=item B<-h>, B<--help>
+
+Print this help message.
+
+=back
+
+=head1 FILES
+
+F<--spooldir--/outgoing/> outgoing Sympa directory.
+
+F<--defaultdir--/mhonarc-ressources.tt2> template of MHonArc resource file.
+
+F<--CONFIG--> Sympa configuration file.
+
+F<--piddir--/archived.pid> this file contains the process ID
+of F<archived.pl>.
+
+=head1 MORE DOCUMENTATION
+
+The full documentation in HTML and PDF formats can be found in
+L<http://www.sympa.org/manual/>.
+
+The mailing lists (with web archives) can be accessed at
+L<http://listes.renater.fr/sympa/lists/informatique/sympa>.
+
+=head1 HISTORY
+
+This program was originally written by:
+
+=over 4
+
+=item Serge Aumont
+
+ComitE<233> RE<233>seau des UniversitE<233>s
+
+=item Olivier SalaE<252>n
+
+ComitE<233> RE<233>seau des UniversitE<233>s
+
+=back
+
+This manual page was initially written by
+JE<233>rE<244>me Marant <jerome.marant@IDEALX.org>
+for the Debian GNU/Linux system.
+
+=head1 LICENSE
+
+You may distribute this software under the terms of the GNU General
+Public License Version 2.  For more details see F<README> file.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license can be found under
+L<http://www.gnu.org/licenses/fdl.html>.
+
+=head1 BUGS
+
+Report bugs to Sympa bug tracker.
+See L<http://www.sympa.org/tracking>.
+
+=head1 SEE ALSO
+
+L<sympa_msg(8)>, L<bounced(8)>, L<mhonarc(1)>, L<sympa.conf(5)>.
+
+L<Sympa::Spindle::StoreArchive>.
+
+=cut

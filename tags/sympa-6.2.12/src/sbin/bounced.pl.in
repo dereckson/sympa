@@ -1,0 +1,348 @@
+#!--PERL--
+# -*- indent-tabs-mode: nil; -*-
+# vim:ft=perl:et:sw=4
+# $Id$
+
+# Sympa - SYsteme de Multi-Postage Automatique
+#
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015 GIP RENATER
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+## Worl Wide Sympa is a front-end to Sympa Mailing Lists Manager
+## Copyright Comite Reseau des Universites
+
+## Patch 2001.07.24 by nablaphi <nablaphi@bigfoot.com>
+## Change the Getopt::Std to Getopt::Long
+
+use lib split(/:/, $ENV{SYMPALIB} || ''), '--modulesdir--';
+use strict;
+use warnings;
+use English qw(-no_match_vars);
+use Getopt::Long;
+use Pod::Usage;
+use POSIX qw();
+
+use Sympa::Alarm;
+use Conf;
+use Sympa::Constants;
+use Sympa::Crash;    # Show traceback.
+use Sympa::DatabaseManager;
+use Sympa::Log;
+use Sympa::Process;
+use Sympa::Spindle::ProcessBounce;
+
+my $process = Sympa::Process->instance;
+$process->init(pidname => 'bounced');
+
+## Check options
+my %options;
+unless (
+    GetOptions(
+        \%main::options, 'config|f=s',   'debug|d', 'help|h',
+        'log_level=s',   'foreground|F', 'version|v',
+    )
+    ) {
+    pod2usage(-exitval => 1, -output => \*STDERR);
+}
+if ($main::options{'help'}) {
+    pod2usage(0);
+} elsif ($main::options{'version'}) {
+    printf "Sympa %s\n", Sympa::Constants::VERSION;
+    exit 0;
+}
+
+if ($main::options{'debug'}) {
+    $main::options{'log_level'} = 2 unless $main::options{'log_level'};
+    $main::options{'foreground'} = 1;
+}
+
+my $log = Sympa::Log->instance;
+$log->{log_to_stderr} = 'all' if $main::options{'foreground'};
+
+# Load sympa.conf
+unless (Conf::load()) {
+    die sprintf
+        "Unable to load sympa configuration, file %s has errors.\n",
+        Conf::get_sympa_conf();
+}
+
+# Check database connectivity
+unless (Sympa::DatabaseManager->instance) {
+    die sprintf
+        "Database %s defined in sympa.conf has not the right structure or is unreachable.\n",
+        $Conf::Conf{'db_name'};
+}
+
+## Put ourselves in background if not in debug mode.
+unless ($main::options{'debug'} || $main::options{'foreground'}) {
+    open(STDERR, ">> /dev/null");
+    open(STDOUT, ">> /dev/null");
+    if (open(TTY, "/dev/tty")) {
+        ioctl(TTY, 0x20007471, 0);    # XXX s/b TIOCNOTTY()
+        close(TTY);
+    }
+    setpgrp 0, 0;
+    my $child_pid = fork;
+    if ($child_pid) {
+        $log->syslog('info', 'Starting bounced daemon, PID %s', $child_pid);
+        exit 0;
+    } elsif (not defined $child_pid) {
+        die sprintf 'Cannot fork: %s', $ERRNO;
+    }
+}
+
+# Create and write the PID file.
+$process->write_pid(initial => 1);
+# If process is running in foreground, don't write STDERR to a dedicated file.
+unless ($main::options{foreground}) {
+    $process->direct_stderr_to_file;
+}
+
+if ($main::options{'log_level'}) {
+    $log->{level} = $main::options{'log_level'};
+    $log->syslog(
+        'info',
+        'Configuration file read, log level set using options: %s',
+        $main::options{'log_level'}
+    );
+} else {
+    $log->{level} = $Conf::Conf{'log_level'};
+    $log->syslog(
+        'info',
+        'Configuration file read, default log level %s',
+        $Conf::Conf{'log_level'}
+    );
+}
+
+my $log_facility = $Conf::Conf{'log_facility'} || $Conf::Conf{'syslog'};
+$log->openlog($log_facility, $Conf::Conf{'log_socket_type'});
+
+## Set the User ID & Group ID for the process
+$GID = $EGID = (getgrnam(Sympa::Constants::GROUP))[2];
+$UID = $EUID = (getpwnam(Sympa::Constants::USER))[2];
+
+## Required on FreeBSD to change ALL IDs
+## (effective UID + real UID + saved UID)
+POSIX::setuid((getpwnam(Sympa::Constants::USER))[2]);
+POSIX::setgid((getgrnam(Sympa::Constants::GROUP))[2]);
+
+## Check if the UID has correctly been set (useful on OS X)
+unless (($GID == (getgrnam(Sympa::Constants::GROUP))[2])
+    && ($UID == (getpwnam(Sympa::Constants::USER))[2])) {
+    die
+        "Failed to change process user ID and group ID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via sudo.\n";
+}
+
+## Sets the UMASK
+umask(oct($Conf::Conf{'umask'}));
+
+## Change to list root
+unless (chdir($Conf::Conf{'home'})) {
+    die sprintf "Unable to change directory to %s: %s", $Conf::Conf{'home'},
+        $!;
+}
+
+$log->syslog('notice', 'Bounced %s Started', Sympa::Constants::VERSION());
+
+my $spindle = Sympa::Spindle::ProcessBounce->new;
+
+## Catch signals, in order to exit cleanly, whenever possible.
+$SIG{'TERM'} = 'sigterm';
+$SIG{'INT'}  = 'sigterm';
+
+while (not $spindle->{finish}) {
+    $spindle->spin;
+    last if $spindle->{finish};
+
+    # If the spool was empty, sleep for a while.
+    sleep $Conf::Conf{'sleep'};
+}
+
+# Purge grouped notifications
+Sympa::Alarm->instance->flush(purge => 1);
+
+$log->syslog('notice', 'Bounced exited normally due to signal');
+$process->remove_pid(final => 1);
+
+exit(0);
+
+# When we catch signal, just change the value of the loop variable.
+sub sigterm {
+    my ($sig) = @_;
+    $log->syslog('notice',
+        'Signal %s received, still processing current task', $sig);
+    $spindle->{finish} = $sig;
+}
+
+## copy the bounce to the appropriate filename
+# Moved: Use Sympa::Tracking::store().
+#sub store_bounce;
+
+# Moved to Sympa::Spindle::ProcessBounce::_twist().
+#sub process_message;
+
+# Old name: Bounce::rfc1891().
+# Moved to Sympa::Spindle::ProcessBounce::_parse_dsn().
+#sub _parse_dsn;
+
+# Moved to Sympa::Spindle::ProcessBounce::_parse_multipart_report().
+#sub _parse_multipart_report;
+
+# Moved to Sympa::Spindle::ProcessBounce::_decode_utf_8_addr_xtext().
+#sub _decode_utf_8_addr_xtext;
+
+# Moved to %Sympa::Spindle::ProcessBounce::equiv.
+#my %equiv;
+
+# Old name: Bounce::corrige().
+# Moved to Sympa::Spindle::ProcessBounce::_corrige().
+#sub _corrige;
+
+# Old name: Bounce::anabounce().
+# Moved to Sympa::Spindle::ProcessBounce::_anabounce().
+#sub _anabounce;
+
+# Moved to Sympa::Spindle::ProcessBounce::_canonicalize_status().
+#sub _canonicalize_status;
+
+# Moved: Now a subroutine of Sympa::Tracking::store().
+#sub _update_subscriber_bounce_history;
+
+# If bounce can't be handled correctly, saves it to the "bad" subdirectory of
+# the bounce spool.
+#DEPRECATED.  Use Sympa::Spool::Bounce::quarantine().
+# sub quarantine;
+
+#DEPRECATED.  Use Sympa::Spool::Bounce::remove().
+# sub remove;
+
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+bounced, bounced.pl - Mailing List Bounce Processing Daemon for Sympa
+
+=head1 SYNOPSIS
+
+S<B<bounced> [ B<--foreground> ] [ B<--debug> ]>
+
+=head1 DESCRIPTION
+
+Bounced is a program which scans permanently the bounce spool and
+processes bounces (non-delivery messages), looking or bad addresses.
+Bouncing addresses are tagged in database ; last bounce is kept for
+each bouncing address.
+
+List owners will latter access bounces information via WWSympa.
+
+=head1 OPTIONS
+
+These programs follow the usual GNU command line syntax,
+with long options starting with two dashes (C<-->).  A summary of
+options is included below.
+
+=over 5
+
+=item B<-F>, B<--foreground>
+
+Do not detach TTY.
+
+=item B<-f>, B<--config=>I<file>
+
+Force bounced to use an alternative configuration file instead
+of F<--CONFIG-->.
+
+=item B<-d>, B<--debug>
+
+Run the program in a debug mode.
+
+=item B<-h>, B<--help>
+
+Print this help message.
+
+=item B<--log_level=>I<level>
+
+Sets daemon log level.
+
+=back
+
+=head1 FILES
+
+F<--CONFIG--> Sympa configuration file.
+
+F<--libexecdir--/bouncequeue> bounce spooler, referenced from sendmail alias file
+
+F<--spooldir--/bounce> incoming bounces directory
+
+F<--piddir--/bounced.pid> this file contains the process ID
+of F<bounced.pl>.
+
+=head1 MORE DOCUMENTATION
+
+The full documentation can be
+found in L<http://www.sympa.org/manual/>.
+
+The mailing lists (with web archives) can be accessed at
+L<http://listes.renater.fr/sympa/lists/informatique/sympa>.
+
+=head1 HISTORY
+
+This program was originally written by:
+
+=over 4
+
+=item Serge Aumont
+
+ComitE<233> RE<233>seau des UniversitE<233>s
+
+=item Olivier SalaE<252>n
+
+ComitE<233> RE<233>seau des UniversitE<233>s
+
+=back
+
+This manual page was initially written by
+JE<233>rE<244>me Marant <jerome.marant@IDEALX.org>
+for the Debian GNU/Linux system.
+
+=head1 LICENSE
+
+You may distribute this software under the terms of the GNU General
+Public License Version 2.  For more details see F<README> file.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A
+copy of the license can be found under
+L<http://www.gnu.org/licenses/fdl.html>.
+
+=head1 BUGS
+
+Report bugs to Sympa bug tracker.
+See L<http://www.sympa.org/tracking>.
+
+=head1 SEE ALSO
+
+L<sympa_msg(8)>, L<wwsympa(8)>, L<mhonarc(1)>, L<sympa.conf(5)>.
+
+L<Sympa::Spindle::ProcessBounce>.
+
+=cut
