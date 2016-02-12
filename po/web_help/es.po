@@ -25,19 +25,20 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2007-11-13 14:50+0200\n"
-"PO-Revision-Date: 2014-05-23 10:04+0200\n"
-"Last-Translator: sbriongos <sbriongos@umh.es>\n"
+"PO-Revision-Date: 2015-09-01 10:22+0000\n"
+"Last-Translator: system user <>\n"
 "Language-Team: Español\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"X-Generator: Pootle 2.7\n"
+"X-POOTLE-MTIME: 1441102955.000000\n"
 
 #: default/web_tt2/help_admin.tt2:3
 msgid "Mailing lists - Owner and moderator guide"
-msgstr "Listas de correo - Guía para propietarios y moderadores"
+msgstr "Listas de correo - Guía para el dueño y el moderador"
 
 #: default/web_tt2/help_admin.tt2:5
 msgid "Introduction: who is in charge of managing mailing lists?"
@@ -55,7 +56,7 @@ msgstr "listmaster;"
 
 #: default/web_tt2/help_admin.tt2:9
 msgid "owner;"
-msgstr "propietario;"
+msgstr "dueño;"
 
 #: default/web_tt2/help_admin.tt2:10
 msgid "moderator;"
@@ -117,7 +118,7 @@ msgstr ""
 "Si no se muestra el enlace, significa que no tienes privilegios suficientes "
 "para crear una lista."
 
-#. (conf.host)
+#. ('',conf.host)
 #: default/web_tt2/help_admin.tt2:22
 msgid ""
 "Give your list a <strong>name</strong> (only enter the name without the '@' "
@@ -136,6 +137,7 @@ msgstr ""
 "No utilices ningún espacio, acnetos o caracteres especiales para los nombres "
 "de listas: esos caracteres pueden causar problemas."
 
+#. ('',conf.host)
 #: default/web_tt2/help_admin.tt2:24
 msgid ""
 "Choose an explicit yet short name: think of the subscribers who will have to "
@@ -161,8 +163,8 @@ msgid ""
 msgstr ""
 "Elige un <strong>tipo de lista</strong> dentro de los tipos predefinidos "
 "(los tipos predefinidos son solo ejemplos de configuraciones típicas que "
-"pueden cambiarse por los propietarios de la lista después de la creación; es "
-"incluso posible configurar la lista bajo las opciones ofrecidasen el módulo "
+"pueden cambiarse por los dueños de la lista después de la creación; es "
+"incluso posible configurar la lista bajo las opciones ofrecidas en el módulo "
 "de administración de la lista, preguntando a los listmasters)."
 
 #: default/web_tt2/help_admin.tt2:26
@@ -280,8 +282,7 @@ msgid ""
 "to it!"
 msgstr ""
 "<strong>Por último, suscríbete a tu lista</strong>: crear una lista o ser su "
-"propietario o moderador no significa que automáticamente estés suscrito a "
-"ella."
+"dueño o moderador no significa que automáticamente estés suscrito a ella."
 
 #: default/web_tt2/help_admin.tt2:47
 msgid "Managing a list"
@@ -289,7 +290,7 @@ msgstr "Gestionar una lista"
 
 #: default/web_tt2/help_admin.tt2:49
 msgid "To manage a list you own, do as follows:"
-msgstr "Para gestionar una lista de la que eres propietario, haz lo siguiente:"
+msgstr "Para gestionar una lista de la que eres dueño, haz lo siguiente:"
 
 #. (path_cgi)
 #: default/web_tt2/help_admin.tt2:51
@@ -323,8 +324,8 @@ msgid ""
 "To browse the sections of the administration module, click on the links "
 "below the 'Admin' link, in the left menu."
 msgstr ""
-"Para navegar por las secciones del módulo de administración, pincha en los "
-"enlaces situados bajo el enlace 'Admin', en el menú lateral izquierdo."
+"Para mostrar las secciones del módulo de administración, haz clic en los "
+"enlaces situados bajo el enlace 'Administración', en el menú izquierdo."
 
 #: default/web_tt2/help_admin.tt2:58
 msgid "Those different sections allow you to:"
@@ -338,7 +339,7 @@ msgstr "<a href=\"%1/help/listconfig\">configurar la lista</a>;"
 #: default/web_tt2/help_admin.tt2:61
 msgid "<a href=\"#customize\">customize files related to the list</a>;"
 msgstr ""
-"<a href=\"#customize\">personalizar los ficheros relacionados con la lista</"
+"<a href=\"#customize\">personalizar los archivos relacionados con la lista</"
 "a>;"
 
 #: default/web_tt2/help_admin.tt2:62
@@ -416,7 +417,7 @@ msgid ""
 "From this page, you can <strong>edit a number of files relating to your "
 "list</strong>, among which:"
 msgstr ""
-"Desde esta página, puedes <strong>editar una serie de ficheros relacionados "
+"Desde esta página, puedes <strong>editar una serie de archivos relacionados "
 "con la lista</strong>, entre ellos:"
 
 #: default/web_tt2/help_admin.tt2:83
@@ -502,7 +503,7 @@ msgstr ""
 
 #: default/web_tt2/help_admin.tt2:94
 msgid "miscellaneous files:"
-msgstr "ficheros varios:"
+msgstr "archivos varios:"
 
 #: default/web_tt2/help_admin.tt2:96
 msgid ""
@@ -564,9 +565,9 @@ msgid ""
 "<strong>'Subject' field</strong> (subject line) and the <strong>message "
 "body</strong>."
 msgstr ""
-"Por defecto, Sympa utiliza ficheros predefinidos; en este caso, los ficheros "
+"Por defecto, Sympa utiliza archivos predefinidos; en este caso, los archivos "
 "específicos correspondientes a tu lista están vacíos. <strong>Para editar un "
-"fichero, elígelo desde la lista dessplegable y pincha en el botón 'Editar'</"
+"archivo, elígelo desde la lista desplegable y pincha en el botón 'Editar'</"
 "strong>. Tendrás la posibilidad de cambiar el <strong>campo 'From'</strong> "
 "(remitente), el <strong>campo 'Subject'</strong> (asunto) y el "
 "<strong>cuerpo del mensaje</strong>."
@@ -620,10 +621,10 @@ msgid ""
 "will still be unwritable. If you want to make them writable, you will have "
 "to <a href=\"%1/help/shared#acces\">change access rights</a> for each folder."
 msgstr ""
-"Ten cuidado: si creaste directorios antes de cambiar estos permisos, los "
-"directorios seguirán sin poder escribirse en ellos. Si quieres que tengan "
+"Ten cuidado: si creaste carpetas antes de cambiar estos permisos, las "
+"carpetas seguirán sin poder escribirse en ellas. Si quieres que tengan "
 "permisos de escritura, tendrás que <a href=\"%1/help/shared#acces\">cambiar "
-"los permisos de acceso</a> para cada directorio."
+"los permisos de acceso</a> para cada carpeta."
 
 #. (path_cgi)
 #: default/web_tt2/help_admin.tt2:112
@@ -676,7 +677,7 @@ msgid ""
 "This section lets you browse the <strong>list of all the list subscribers</"
 "strong>. For each subscriber, the following information is available:"
 msgstr ""
-"Esta sección te permite navegar por el <strong>listado de suscriptores de la "
+"Esta sección te permite mostrar el <strong>listado de suscriptores de la "
 "lista</strong>. Cada suscriptor dispondŕa de la siguiente información:"
 
 #: default/web_tt2/help_admin.tt2:121
@@ -845,7 +846,7 @@ msgstr ""
 
 #: default/web_tt2/help_admin.tt2:147
 msgid "the subscriber's <strong>list password</strong>;"
-msgstr "el <strong>password de lista</strong> del suscriptor;"
+msgstr "la <strong>contraseña de lista</strong> del suscriptor;"
 
 #: default/web_tt2/help_admin.tt2:148
 msgid "a <strong>link to the information page</strong> of the list;"
@@ -1130,9 +1131,9 @@ msgid ""
 "strong>' button at the bottom of the page."
 msgstr ""
 "Activando la casilla '<strong>Añadir a la lista negra</strong>' añade al "
-"autor del mensaje a la lista negra de esa lista de distribución, además de "
-"omitir la notificación. Puedes manejar la lista negra a través del botón "
-"'<strong>Editar lista negra</strong>' en la parte inferior de la página."
+"autor del mensaje a la lista negra de esa lista de correo y además omitir la "
+"notificación de rechazo. Puedes gestionar la lista negra a través del botón "
+"'<strong>editar la lista negra</strong>' en la parte inferior de la página."
 
 #: default/web_tt2/help_admin.tt2:199
 msgid ""
@@ -1177,7 +1178,7 @@ msgstr ""
 "También es posible <strong>procesar mensajes tras su distribución a la "
 "lista</strong>; esto puede ser útil cuando una lista no está moderada. Si "
 "quieres <strong>borrar un mensaje</strong>,<a href=\"%1/help/arc#arcsearch"
-"\">búscalo en el archivo online de mensajes</a> y pincha en el botón "
+"\">búscalo en el archivo we de mensajes</a> y pincha en el botón "
 "'<strong>Marcer este mail para borrado</strong>' en la esquina superior "
 "derecha del mensaje. Se mostrará un mensaje de confirmación; pincha en 'OK'. "
 "El mensaje se borrará tras unos segundos.<strong>Ten cuidado: ¡¡¡esta "
@@ -1195,10 +1196,10 @@ msgid ""
 "To download those archives, <strong>select the months</strong> that interest "
 "you in the list and click on the '<strong>Download Zip file</strong>' button."
 msgstr ""
-"El gestor de listas de correo Sympa puede generar <strong> ficheros "
+"El gestor de listas de correo Sympa puede generar <strong> archivos "
 "comprimidos descargables (formato .ZIP) de los mensajes enviados a la lista</"
 "strong>. Para descargar esos archivos, <strong>selecciona el mes</strong> "
-"que te interesa en la lista y pincha en el botón '<strong>Descargar fichero "
+"que te interesa en la lista y pincha en el botón '<strong>Descargar archivo "
 "ZIP</strong>'."
 
 #: default/web_tt2/help_admin.tt2:207
@@ -1223,15 +1224,15 @@ msgid ""
 "your choice (Notepad, WordPad, Vim, etc.) to open them. <strong>Each file "
 "represents an entire message (full header)</strong>."
 msgstr ""
-"Recibirás un fichero del tipo '<strong>nombredelalista_archive.zip</strong>' "
-"que contiene <strong>un directorio llamado nombredelalista_año-mes</strong>"
-"(ejemplo: <em class=\"example\">lista_ejemplo_2009-06</em>por cada mes. "
-"Dentro de cada directorio, <strong>el nombre de los ficheros son números</"
+"Recibirás un archivo del tipo '<strong>nombredelalista_archive.zip</strong>' "
+"que contiene <strong>una carpeta llamada nombredelalista_año-mes</strong>"
+"(ejemplo: <em class=\"example\">lista_ejemplo_2005-06</em>por cada mes. "
+"Dentro de cada carpeta, <strong>el nombre de los archivos son números</"
 "strong> correspondiendo a la posición del mensaje según posición cronológica "
-"de fecha de envió (ejemplo: el fichero nombrado '1' contiene el primer "
-"mensaje enviado del mes). Los ficheros de mensaje <strong>no tienen "
+"de fecha de envió (ejemplo: el archivo con nombre '1' contiene el primer "
+"mensaje enviado del mes). Los archivos de mensaje <strong>no tienen "
 "extensión</strong>; utiliza un editor de textos de tu elección (Bloc de "
-"Notas, WordPad, Vim, etc.) para abrirlo. <strong>Cada fichero representa un "
+"Notas, WordPad, Vim, etc.) para abrirlo. <strong>Cada archivo representa un "
 "mensaje completo (con todas las cabeceras)</strong>."
 
 #: default/web_tt2/help_admin.tt2:209
@@ -1255,7 +1256,7 @@ msgid ""
 msgstr ""
 "<strong>Ten cuidado: ¡¡¡esta operación es irreversible!!!. Cuando pinchas en "
 "'Borrar meses seleccionados', ten en cuenta que no solo estas borrando un "
-"fichero, ¡¡¡sino también el archivo de mensajes del mes seleccionado!!!</"
+"archivo, ¡¡¡sino también el archivo de mensajes del mes seleccionado!!!</"
 "strong>"
 
 #: default/web_tt2/help_admin.tt2:213
@@ -1359,8 +1360,8 @@ msgid ""
 "<strong>All subscribers are immediately unsubscribed</strong> automatically "
 "(including owners and moderators)."
 msgstr ""
-"<strong>Todos los suscriptores son automáticamente desuscritos</strong> "
-"(incluyendo propietarios y moderadores)."
+"<strong>Todos los suscriptores son automáticamente dados de baja</strong> "
+"(incluyendo dueños y moderadores)."
 
 #: default/web_tt2/help_admin.tt2:232
 msgid ""
@@ -1401,7 +1402,7 @@ msgid ""
 "<strong>If you want the list and all the associated files to be deleted "
 "permanently</strong>, you will have to ask the listmasters."
 msgstr ""
-"<strong>Si quieres que todos los ficheros asociados se borren "
+"<strong>Si quieres que todos los archivos asociados se borren "
 "permanentemente</strong>, debes preguntar a los listmasters."
 
 #: default/web_tt2/help_admin.tt2:240 default/web_tt2/help_sendmsg.tt2:40
@@ -1417,7 +1418,7 @@ msgid ""
 msgstr ""
 "Con la intención de hacer las listas dinámicas, <strong>debes involucrarte "
 "activamente</strong> en sus intercambios: si una lista no está controlada ni "
-"animada por sus propietarios, puede ocasionar una pérdida de calidad en los "
+"animada por sus dueños, puede ocasionar una pérdida de calidad en los "
 "mensajes e incluso sus suscriptores acaben fugándose..."
 
 #: default/web_tt2/help_admin.tt2:242
@@ -1429,13 +1430,13 @@ msgid ""
 "as many links on the <a target=\"_blank\" href=\"http://en.wikipedia.org/"
 "wiki/Netiquette\">page of the Wikipedia dedicated to the Netiquette</a>."
 msgstr ""
-"<strong>El uso del correo electrónico en general y el uso de listas de "
-"correo implica un conjunto de reglas precisas y necesarias para compartir "
-"comunicaciones agradables: el \"Netiquette\"</strong>. Como moderador o "
-"propietario de una lista, tu rol consiste en que los suscriptores las "
-"respeten. Encontrará los principios generales de la Netiquette, así como "
-"muchos links en la <a target=\"_blank\" href=\"http://en.wikipedia.org/wiki/"
-"Netiquette\">página de la Wikipedia dedicada a la Netiquette</a>."
+"<strong>El uso del correo electrónico en general y para las listas de correo "
+"implica un conjunto de reglas precisas y necesarias para compartir "
+"comunicaciones agradables: la \"Netiqueta\"</strong>. Como moderador o dueño "
+"de una lista, tu rol consiste en que los suscriptores las respeten. "
+"Encontrarás los principios generales de la Netiqueta, así como muchos "
+"enlaces en la <a target=\"_blank\" href=\"https://es.wikipedia.org/wiki/"
+"Netiqueta\">página de la Wikipedia dedicada a la Netiqueta</a>."
 
 #: default/web_tt2/help_admin.tt2:243
 msgid ""
@@ -1503,23 +1504,20 @@ msgstr ""
 "administración de la lista."
 
 #: default/web_tt2/help_admin.tt2:257
-#, fuzzy
 msgid ""
 "When available, the 'Owner and moderator charter' provides list owners and "
 "moderators with all the necessary information to carry out their roles. This "
 "Charter involves all the rights and responsibilities of owners and "
 "moderators."
 msgstr ""
-"En caso de ser necesario, las <a target=\"_blank\" title=\"Ejemplo de "
-"condiciones de uso aplicables a propietarios y moderadores(Francés)\" href="
-"\"http://listes.cru.fr/cnil/charte.proprio.html\">condiciones de uso de "
-"moderadores y propietarios</a> proporciona la información necesaria para que "
-"propietarios y moderadores puedan desempeñar sus roles. Estas condiciones de "
-"uso indican todos los derechos y obligaciones de moderadores y propietarios."
+"Cuando esté disponible, la 'Carta a dueño y moderador' proporciona la "
+"información necesaria para que dueños y moderadores puedan desempeñar sus "
+"roles. Estas condiciones de uso indican todos los derechos y obligaciones de "
+"moderadores y dueños."
 
 #: default/web_tt2/help_arc.tt2:3
 msgid "Reading the list archive online"
-msgstr "Leer el archivo online de la lista"
+msgstr "Lectura del archivo web de la lista"
 
 #: default/web_tt2/help_arc.tt2:4
 msgid "To read the messages sent to a list</strong>, you have two options:"
@@ -1536,13 +1534,13 @@ msgid ""
 "read the list archive <strong>online</strong> (through the mailing list web "
 "interface)."
 msgstr ""
-"leer el archivo <strong>online</strong> de la lista (a través de la interfaz "
-"web de la lista)"
+"leer el archivo de la lista <strong>en Internet</strong> (a través de la "
+"interfaz web de la lista)"
 
 #: default/web_tt2/help_arc.tt2:10
 msgid "<strong>To read the list archive online</strong>, do as follows:"
 msgstr ""
-"<strong>Para leer el archivo online de la lista</strong>, haz lo siguiente:"
+"<strong>Para leer el archivo web de la lista</strong>, haz lo siguiente:"
 
 #. (path_cgi)
 #: default/web_tt2/help_arc.tt2:12 default/web_tt2/help_arc.tt2:77
@@ -1625,10 +1623,10 @@ msgid ""
 "to a given message are displayed just below the thread's first message and "
 "are indented for better readability."
 msgstr ""
-"<strong>Por defecto, los mensajes se muestran como hilos</strong>: se "
-"<strong>agregan de acuerdo a sus asusntos</strong>. De esta forma, todas las "
-"respuestas a un mismo mensaje se muestran justo debajo del primer mensaje "
-"del hilo y se introducen sangrías para una mejor  legibilidad."
+"<strong>Por defecto, los mensajes se muestran por conversaciones</strong>: "
+"se <strong>agregan de acuerdo a su asunto</strong>. De esta forma, todas las "
+"respuestas a un mismo mensaje se muestran justo debajo del primer mensaje de "
+"la conversación y se introducen sangrías para una mejor legibilidad."
 
 #: default/web_tt2/help_arc.tt2:30
 msgid ""
@@ -1637,7 +1635,8 @@ msgid ""
 "same thread."
 msgstr ""
 "Ten cuidado: es posible que dos mensajes tengan el mismo asunto sin estar "
-"relacionados; sin embargo, se mostrarán como si perteneciesen al mismo hilo."
+"relacionados; sin embargo, se mostrarán como si perteneciesen a la misma "
+"conversación."
 
 #: default/web_tt2/help_arc.tt2:32
 msgid ""
@@ -1654,7 +1653,7 @@ msgid ""
 "'Thread' will apply again."
 msgstr ""
 "Ten cuidado: esta opción se aplicará siempre que leas mensajes de un mes en "
-"particular, pero si cambias de mes, la opción por defecto 'Thread' se "
+"particular, pero si cambias de mes, la opción por defecto 'Conversación' se "
 "aplicará de nuevo."
 
 #: default/web_tt2/help_arc.tt2:35
@@ -1667,9 +1666,9 @@ msgid ""
 "browse through the messages sent to the list by clicking on the arrows "
 "surrounding the words 'Chronological' and 'Thread':"
 msgstr ""
-"<strong>Para leer un  mensaje, pincha en su asunto</strong>. A partir de ahí "
-"podrás moverte entre los mensajes enviados a la lista utilizando las flechas "
-"alrededor de las palabras 'Cronológico' y 'Thread':"
+"<strong>Para leer un mensaje, haz clic en su asunto</strong>. A partir de "
+"ahí podrás navegar entre los mensajes enviados a la lista utilizando las "
+"flechas alrededor de las palabras 'Cronológico' y 'Conversación':"
 
 #: default/web_tt2/help_arc.tt2:38
 msgid ""
@@ -1684,25 +1683,26 @@ msgid ""
 "By clicking on the arrows surrounding the word 'Thread', you read messages "
 "as a thread (i.e. gathered according to their subject)."
 msgstr ""
-"Pinchando en las flechas alrededor de la palabra 'Hilo', lees los menajes "
-"como hilos (i.e. agrupados según su asunto)."
+"Pinchando en las flechas alrededor de la palabra 'Conversación', lees los "
+"menajes como conversaciones (es decir, agrupados según su asunto)."
 
 #: default/web_tt2/help_arc.tt2:40
 msgid "The left arrows let you browse through older messages."
 msgstr ""
-"Las flechas izquierdas te permite navegar por los mensajes más antiguos."
+"Las flechas de la izquierda te permite navegar por los mensajes más antiguos."
 
 #: default/web_tt2/help_arc.tt2:41
 msgid "The right arrows let you browse through newer messages."
-msgstr "Las flechas derechas te permiten navegar por los mensajes más nuevos."
+msgstr ""
+"Las flechas de la derecha te permiten navegar por los mensajes más nuevos."
 
 #: default/web_tt2/help_arc.tt2:44
 msgid ""
 "Other messages belonging to the same thread as the message displayed are "
 "listed at its bottom</strong>. Click on their subject to read them."
 msgstr ""
-"El resto de mensajes pertenecientes al mismo hilo se mostrarán listados en "
-"el inferior de la página</strong>. Pincha en sus asuntos para leerlos."
+"El resto de mensajes pertenecientes a la misma conversación se mostrarán "
+"listados debajo</strong>. Pincha en sus asuntos para leerlos."
 
 #: default/web_tt2/help_arc.tt2:46
 msgid ""
@@ -1713,11 +1713,11 @@ msgid ""
 "displaying the message you just read</strong>, and not to the page "
 "displaying the latest messages."
 msgstr ""
-"Para volver al índice de mensajes, pincha en 'Cronológico' o 'Hilo'</strong> "
-"según quieras mostrar el índice cronológicamente o por hilos. Cuando hay "
-"muchos mensajes mostrados en una misma página, <strong>se te dirige a la "
-"página índice mostrando el mensaje que acabas de leer</strong>, y no a la "
-"página mostrando el último mensaje."
+"Para volver al índice de mensajes, pincha en 'Cronológico' o 'Conversación'</"
+"strong> según quieras mostrar el índice cronológicamente o por "
+"conversaciones. Cuando hay muchos mensajes mostrados en una misma página, "
+"<strong>se te dirige a la página índice mostrando el mensaje que acabas de "
+"leer</strong>, y no a la página mostrando el último mensaje."
 
 #: default/web_tt2/help_arc.tt2:48
 msgid ""
@@ -2114,7 +2114,7 @@ msgstr ""
 
 #: default/web_tt2/help_editfile.tt2:24
 msgid "Other files/pages description:"
-msgstr "Descripción de otros ficheros/páginas:"
+msgstr "Descripción de otros archivos/páginas:"
 
 #: default/web_tt2/help_editfile.tt2:28
 msgid ""
@@ -2150,7 +2150,7 @@ msgstr ""
 "el\n"
 "fin de el mensaje "
 
-#: default/web_tt2/help_editlist.tt2:184 default/web_tt2/help_editlist.tt2:6
+#: default/web_tt2/help_editlist.tt2:6
 msgid ":"
 msgstr ":"
 
@@ -2328,10 +2328,10 @@ msgid ""
 "only taken into account when the owner has the auth parameter."
 msgstr ""
 "Este parámetro es un item confidencial para generar las claves de "
-"autentificación para comandos administrativos (ADD, DELETE, etc.). Este "
-"parámetro debe manenerse oculto, incluso respecto a los dueños de listas. El "
-"cookie se aplica a todos los dueños de listas, y sólo se lo toma en cuenta "
-"cuando el dueño tuenen el parámetro auth.  "
+"autenticación para los comandos (ADD, DELETE, etc.). Este parámetro debe "
+"manenerse oculto, incluso para los dueños. La cookie se aplica a todos los "
+"dueños de listas, y solo se toma en cuenta cuando el dueño tiene el "
+"parámetro auth."
 
 #: default/web_tt2/help_editlist.tt2:69
 msgid ""
@@ -2341,9 +2341,9 @@ msgid ""
 "at the same time."
 msgstr ""
 "Este parámetro es opcional. El encabezado especificado será añadido al "
-"encabezado de los mensajes distribuidos a través de la lista. Desde el "
-"release 1.2.2 de Sympa, es posible poner simultáneamente varias líneas de "
-"encabezados personalizados en el fichero de configuración.  "
+"encabezado de los mensajes distribuidos a través de la lista. Desde la "
+"revisión 1.2.2 de Sympa, es posible poner simultáneamente varias líneas de "
+"encabezados personalizados en el archivo de configuración.  "
 
 #: default/web_tt2/help_editlist.tt2:71
 msgid ""
@@ -2419,8 +2419,8 @@ msgid ""
 msgstr ""
 "FYI: si una lista es moderada; cualquier editor puede distribuir o rechazar "
 "un mensaje sin el  conocimiento o consentimiento de los demás editores. Los "
-"mensajes que no fueron distribuidos ni rechazados permanecerán en el spool "
-"hasta que alguien tome una decisión."
+"mensajes que no fueron distribuidos ni rechazados permanecerán en el "
+"contenedor hasta que alguien tome una decisión."
 
 #: default/web_tt2/help_editlist.tt2:87
 msgid ""
@@ -2466,47 +2466,41 @@ msgid ""
 "Domain name of the list, default is the robot domain name set in the related "
 "robot.conf file or in file /etc/sympa.conf."
 msgstr ""
-"Nombre de dominio de la lista, por omisión se  utiliza el que se define en "
-"el fichero robot.conf correspondiente o en el fichero /etc/sympa.conf"
+"Nombre de dominio de la lista, por defecto se utiliza el que se define en el "
+"archivo robot.conf correspondiente o en el fichero /etc/sympa.conf"
 
 #: default/web_tt2/help_editlist.tt2:101
-#, fuzzy
 msgid ""
 "Include subscribers from this file.  The file should contain one e-mail "
 "address per line (lines beginning with a \"#\" are ignored)."
 msgstr ""
-"Este parámetro será interpretado sólo si el valor de user_data_source es "
-"<i>include</i>. El fichero debe contener una dirección de correo por línea "
-"(y se ignoran las líneas que empiezan por un \"#\")"
+"Incluye suscriptores de este archivo.  El archivo debe contener una "
+"dirección de e-mail por línea (las líneas que empiezan con un \"#\" son "
+"ignoradas)"
 
 #: default/web_tt2/help_editlist.tt2:103
-#, fuzzy
 msgid ""
 "This paragraph defines parameters for a two-level query returning a list of "
 "subscribers. Usually the first-level query returns a list of DNs and the "
 "second-level queries convert the DNs into e-mail addresses. This feature "
 "requires the Net::LDAP (perlldap) PERL module."
 msgstr ""
-"Este párrafo define parámetros para una solicitud a dos niveles que devuelve "
-"una lista de suscriptores.Habitualmente la solicitud de primer nivel "
+"Este párrafo define parámetros para una consulta a dos niveles que devuelve "
+"una lista de suscriptores. Habitualmente la consulta de primer nivel "
 "devuelve una lista de DNs y la de segundo nivel convierte los DNs en "
-"direcciones de correo. Este párrafo se utiliza sólo si user_data_source "
-"tiene por valor <i>include</i>. Esta funcionalidad requiere el módulo PERL "
-"Net::LDAP (perlldap). "
+"direcciones de correo. Esta funcionalidad requiere el módulo PERL Net::LDAP "
+"(perlldap). "
 
 #: default/web_tt2/help_editlist.tt2:105
-#, fuzzy
 msgid ""
 "This paragraph defines parameters for a query returning a list of "
 "subscribers. This feature requires the Net::LDAP (perlldap) PERL module."
 msgstr ""
-"Este párrafo define los parámetros para una solicitud que devuelve una lista "
-"de suscriptores. Este párrafo se utiliza sólo si user_data_source tiene por "
-"valor <i>include</i>. Esta funcionalidad requiere el módulo PERL Net::LDAP "
+"Este párrafo define los parámetros para una consulta que devuelve una lista "
+"de suscriptores. Esta funcionalidad requiere el módulo PERL Net::LDAP "
 "(perlldap)."
 
 #: default/web_tt2/help_editlist.tt2:107
-#, fuzzy
 msgid ""
 "Include subscribers from other list. All subscribers of list listname become "
 "subscribers of the current list. You may include as many lists as required, "
@@ -2516,15 +2510,13 @@ msgid ""
 "list B and then list B in list A, since this will give rise to an infinite "
 "loop."
 msgstr ""
-"Este parámetro será interpretado sólo si el valor de user_data_source es "
-"<i>include</i>. Todos los suscriptores de la lista \"listname\" se vuelven   "
-"suscriptores de la lista corriente. Puedes incluir tantas listas como "
-"necesario, utilizando una línea \"include_list listname\" para cada lista "
-"incluída.  Cualquier lista puede ser incluída; la definición del   "
-"user_data_source de la lista incluidano es relevalte, por lo cual se pueden "
-"incluir listas definidas por la inclusi&on de otras listas. Cuidado, sin "
-"embargo, a no incuir la lista A en la lista B y la  lista B en la lista A, "
-"ya que eso daría lugar a un bucle infinito."
+"Incluye suscriptores de otra lista. Todos los suscriptores de la lista "
+"\"nombrelista\" se vuelven suscriptores de la lista actual. Puedes incluir "
+"tantas listas como sea necesario, utilizando una línea \"include_list "
+"nombrelista\" para cada lista incluída. Cualquier lista puede ser incluída; "
+"por lo cual se pueden incluir listas definidas por la inclusión de otras "
+"listas. Tenga cuidado, sin embargo, de no incluir la lista A en la lista B y "
+"la lista B en la lista A, ya que eso daría lugar a un bucle infinito."
 
 #: default/web_tt2/help_editlist.tt2:109
 msgid ""
@@ -2554,14 +2546,12 @@ msgstr ""
 "conotrolado por el escenario 'review'."
 
 #: default/web_tt2/help_editlist.tt2:112
-#, fuzzy
 msgid ""
 "This parameter is used to begin a paragraph defining the SQL query "
 "parameters. "
 msgstr ""
-"Este parámetro será interpretado sólo si el valor de user_data_source es "
-"<i>include</i>, y se lo usa para empezar un párrafo que define los "
-"parámetros de la solicitud SQL. "
+"Este parámetro es utilizado para iniciar un párrafo definiendo los "
+"parámetros de consulta SQL. "
 
 #: default/web_tt2/help_editlist.tt2:114
 msgid ""
@@ -2584,11 +2574,11 @@ msgid ""
 "owner of the list, you can choose other owners for the mailing list. "
 "Privileged owners may edit a few more options than other owners. "
 msgstr ""
-"L@s dueñ@s administran los suscriptores de la lista. Pueden revisar los "
-"suscriptores, agregar o borrar direcciones de la lista de correo. Si eres "
-"dueño privilegiado de la lista, puedes agregar o suprimir otros dueños de la "
-"lista. Los dueños privilegiados pueden edirar algunas otras opciones que no "
-"pueden los otros dueños.   "
+"Los dueños gestionan los suscriptores de la lista. Pueden revisar los "
+"suscriptores, agregar o borrar direcciones de correo electrónico de la lista "
+"de correo. Si eres dueño privilegiado de la lista, puedes agregar o suprimir "
+"otros dueños de la lista. Los dueños privilegiados pueden editar algunas "
+"opciones más que el resto de dueños.   "
 
 #: default/web_tt2/help_editlist.tt2:120
 msgid ""
@@ -2597,8 +2587,8 @@ msgid ""
 "The z priority will freeze the message in the spool."
 msgstr ""
 "La priodidad con la que Sypa va a procesar los mensajes de esta lista.El "
-"nivel de prioridad se aplica cuando el mensaje pasa por el <i>spool</i>. La "
-"prioridad z dejará el mensaje congelado en el <i>spool</i>."
+"nivel de prioridad se aplica cuando el mensaje pasa por el contenedor. La "
+"prioridad z congelará el mensaje en el contenedor."
 
 #: default/web_tt2/help_editlist.tt2:122
 msgid "This parameter specifies who is authorized to use the remind command."
@@ -2760,9 +2750,9 @@ msgid ""
 "(time-to-live) within Sympa can be controlled using this parameter. The "
 "default value is 3600"
 msgstr ""
-"Sympa maneja una cache de los datos extrídos utilizando el parámetro "
-"include. Su TTL (time-to-live) en Sympa puede ser controlado definiendo este "
-"parámetro (en segundos). Su valor por omisión es de 3600."
+"Sympa maneja una cache con los datos de usuario extraídos utilizando el "
+"parámetro include. Su TTL (time-to-live, tiempo de vida) en Sympa puede ser "
+"controlado usando este parámetro. Su valor por defecto es de 3600."
 
 #: default/web_tt2/help_editlist.tt2:163
 msgid ""
@@ -2905,6 +2895,34 @@ msgstr ""
 "podrá comprobar los logs del servidor para poder encontrar alguna causa del "
 "problema."
 
+#: default/web_tt2/help_faq.tt2:4
+msgid "User and admin FAQ"
+msgstr ""
+
+#. (path_cgi)
+#: default/web_tt2/help.tt2:20 default/web_tt2/help_faq.tt2:6
+msgid ""
+"If you want to perform a particular task, take a look at the list of all <a "
+"href=\"%1/help/introduction#features\">available features</a> in the mailing "
+"list management software Sympa."
+msgstr ""
+"Si deseas realizar una tarea determinada, revisa la lista de <a href=\"%1/"
+"help/introduction#features\">funciones disponibles</a> en el software de "
+"administración de listas de correo Sympa."
+
+#. (path_cgi)
+#: default/web_tt2/help.tt2:21 default/web_tt2/help_faq.tt2:7
+msgid ""
+"If you experience any problem, please refer to the <a href=\"%1/help/faquser"
+"\">users <acronym title=\"Frequently asked questions\">FAQ</acronym></a> or "
+"to the <a href=\"%1/help/faqadmin\">administrators <acronym title="
+"\"Frequently asked questions\">FAQ</acronym></a>."
+msgstr ""
+"Si experimentas cualquier problema, por favor, revisa la <a href=\"%1/help/"
+"faquser\"><acronym title=\"Preguntas Frecuentemente Formuladas\">FAQ</"
+"acronym> del usuario</a> o la <a href=\"%1/help/faqadmin\"><acronym title="
+"\"Preguntas Frecuentemente Formuladas\">FAQ</acronym> del administrador</a>."
+
 #: default/web_tt2/help_faquser.tt2:3
 msgid "Users Frequently Asked Questions"
 msgstr "Preguntas frecuentes (FAQ) de usuarios"
@@ -2924,19 +2942,19 @@ msgid ""
 "Resubmit your request before <a href=\"#contactadmin\">contacting list "
 "owners directly</a>."
 msgstr ""
-"El propietario de la lista olvidó procesar tu solicitud de suscripción</"
-"strong>: errar es huimano, y tu solicitud puede haberse perdido entre otros "
+"El dueño de la lista olvidó procesar tu solicitud de suscripción</strong>: "
+"equivocarse es de humanos, y tu solicitud puede haberse perdido entre otros "
 "muchos mensajes. Vuelve a solicitar la suscripción antes de <a href="
-"\"#contactadmin\">contctar con los propietarios directamente</a>."
+"\"#contactadmin\">contactar con los dueños directamente</a>."
 
 #: default/web_tt2/help_faquser.tt2:9
 msgid ""
 "Subscription to the list is reserved to a certain category of people</"
 "strong>. To know more, <a href=\"#contactadmin\">contact list owners</a>."
 msgstr ""
-"Las suscripcioens a la lista están reservadas a cierto tipo de gente</"
-"strong>. Para saber más, <a href=\"#contactadmin\">contacta con los "
-"propietarios de la lista</a>."
+"Las suscripciones a la lista están reservadas a cierto tipo de gente</"
+"strong>. Para saber más, <a href=\"#contactadmin\">contacta con los dueños "
+"de la lista</a>."
 
 #: default/web_tt2/help_faquser.tt2:12
 msgid "You can not log on to the mailing list web interface"
@@ -2944,16 +2962,14 @@ msgstr "No puedes autenticarte en la interfaz web de las listas de correo."
 
 #. (path_cgi)
 #: default/web_tt2/help_faquser.tt2:15
-#, fuzzy
 msgid ""
 "<strong>You have no password</strong>. To be given a password, follow the <a "
 "href=\"%1/firstpasswd\">First login?</a> link from the homepage. You will "
 "receive your new password by email."
 msgstr ""
-"<strong>No tienes password</strong>. Para obtener un password, utiliza el "
-"enlace <strong>You have no password</strong>. To be given a password, follow "
-"the <a href=\"%1/sendpasswd\">¿Primera conexión?</a> de la página inicail. "
-"Recibirás un nuevo password por email."
+"<strong>No tienes contraseña</strong>. Para obtener una contraseña, sigue el "
+"enlace <a href=\"%1/firstpasswd\">¿Primera conexión?</a> de la página "
+"inicial. Recibirás una contraseña nueva por email."
 
 #. (path_cgi)
 #: default/web_tt2/help_faquser.tt2:16
@@ -2962,9 +2978,9 @@ msgid ""
 "password, you can reset it. To do so, follow the <a href=\"%1/renewpasswd"
 "\">Lost password?</a> link from the homepage."
 msgstr ""
-"<strong>Introduciste un password incorrecto</strong>. Si has olvidado tu "
-"password, puedes reestablecerlo. Para hacerlo, utiliza el enlace <a href=\"%"
-"1/renewpasswd\">¿Contraseña perdida password?</a> de la página de inicio."
+"<strong>Introduciste una contraseña incorrecta</strong>. Si has olvidado tu "
+"contraseña, puedes reestablecerla. Para hacerlo, utiliza el enlace <a href="
+"\"%1/renewpasswd\">¿Contraseña perdida?</a> de la página de inicio."
 
 #: default/web_tt2/help_faquser.tt2:18
 msgid ""
@@ -2980,7 +2996,7 @@ msgid ""
 "into another application (such as your email client) and copy and paste it "
 "into your web browser."
 msgstr ""
-"Para evitar equivocarse al escribir el password, puedes escribirlo en otra "
+"Para evitar equivocarse al escribir la contraseña, puedes escribirlo en otra "
 "aplicación (como tu cliente de correo) y copiarlo y pegarlo dentro del "
 "navegador web."
 
@@ -3015,8 +3031,8 @@ msgstr ""
 #: default/web_tt2/help_faquser.tt2:29
 msgid "Maybe your subscription request was rejected by the list owners."
 msgstr ""
-"Puede que tu solicitud de suscripción fuese rechazada por los propietarios "
-"de la lista."
+"Puede que tu solicitud de suscripción fuese rechazada por los dueños de la "
+"lista."
 
 #. (path_cgi)
 #: default/web_tt2/help_faquser.tt2:31
@@ -3049,8 +3065,8 @@ msgid ""
 "If you have not respected the different rules applying to the mailing list, "
 "the list owners might have \"banned\" you..."
 msgstr ""
-"Si no has respetado las diferentes reglas que se aplicaran en la lista, los "
-"propietarios podrían haberte excluido de la lista..."
+"Si no has respetado las diferentes reglas que se aplican a la lista, los "
+"dueños podrían haberte excluido de la lista..."
 
 #. (path_cgi)
 #: default/web_tt2/help_faquser.tt2:36
@@ -3084,12 +3100,12 @@ msgid ""
 "address causes trouble on a regular basis, you might be unsubscribed by the "
 "list owners or by the system. Thus, you should clean your inbox frequently."
 msgstr ""
-"<strong>La bandeja de entrada de tu correo está llena</strong>. Ten cuidado: "
-"cuando tu bandeja de entrada no está completamente llena, solo recibes "
-"pequeños mensajes, lo cual hace difícil entender cual es el problema... "
-"Además, si tu dirección de correo ocasiona problemas de forma regular, puede "
-"que seas desuscrito por el sistema o por los propietarios de la lista. De "
-"esa forma, deberías limpiar tu bandeja de entrada regularmente."
+"<strong>La bandeja de entrada está llena</strong>. Ten cuidado: cuando tu "
+"bandeja de entrada no está completamente llena, solo recibes pequeños "
+"mensajes, lo cual hace difícil entender cual es el problema... Además, si tu "
+"dirección de correo ocasiona problemas de forma regular, puede que seas dado "
+"de baja por el sistema o por los dueños de la lista. De esa forma, deberías "
+"limpiar tu bandeja de entrada regularmente."
 
 #. (path_cgi)
 #: default/web_tt2/help_faquser.tt2:40
@@ -3219,8 +3235,8 @@ msgstr ""
 "<strong>Estás suscrito a través de una fuente de datos dinámica</strong>"
 "(ejemplos: base de datos, directorio<acronym lang=\"en\" xml:lang=\"en\" "
 "title=\"Lightweight Directory Access Protocol\">LDAP</acronym>, etc.) que no "
-"permite que te desuscribas. <a href=\"#contactadmin\">Consulta con los "
-"propietarios de la lista</a> para conocer más detalles."
+"permite que te des de baja. <a href=\"#contactadmin\">Consulta con los "
+"dueños de la lista</a> para conocer más detalles."
 
 #: default/web_tt2/help_faquser.tt2:68
 msgid ""
@@ -3229,15 +3245,15 @@ msgid ""
 "other messages! Resubmit your request before <a href=\"#contactadmin"
 "\">contacting list owners directly</a>."
 msgstr ""
-"<strong>Los propietarios de la lista se olvidaron de procesar tu solicitud "
-"de desuscripción</strong>: errar es humano, y tu solicitud puede haberse "
-"perdido entre muchos otros mensajes. Vuelve a realizar la solicitud antes de "
-"<a href=\"#contactadmin\">contactar con los propietarios de la lista "
+"<strong>Los dueños de la lista se olvidaron de procesar tu solicitud de "
+"desuscripción</strong>: equivorse es de humanos, y tu solicitud puede "
+"haberse perdido entre muchos otros mensajes. Vuelve a realizar la solicitud "
+"antes de <a href=\"#contactadmin\">contactar con los dueños de la lista "
 "directamente</a>."
 
 #: default/web_tt2/help_faquser.tt2:71
 msgid "You want to contact list owners"
-msgstr "Quieres contactar con los propietarios de la lista"
+msgstr "Quieres contactar con los dueños de la lista"
 
 #. (conf.host)
 #: default/web_tt2/help_faquser.tt2:72
@@ -3250,14 +3266,13 @@ msgid ""
 "nameofthelist-request@%1</strong> (replace 'nameofthelist' by the name of "
 "the list)."
 msgstr ""
-"Los nombres de los propietarios y moderadores de la lista aparecen en el "
-"menú lateral izquierdo. Sin embargo, nunca debes escribir directamente a un "
-"propietario o a un moderador: primero, la persona con la que intentas "
-"contactar puede estar ausente, y de todas formas, es mejor informar a todos "
-"los propietarios y moderadores de tu solicitud. Cuando tingas alguna "
-"cuestión que remarcar, <strong>debes escribir a la siguiente dirección: "
-"nombredelalista-request@%1</strong> (reemplaza 'nombredelalista' por el "
-"nombre de la lista)."
+"Los nombres de los dueños y moderadores de la lista aparecen en el menú "
+"izquierdo. Sin embargo, nunca debes escribir directamente a un dueño o a un "
+"moderador: primero, la persona con la que intentas contactar puede estar "
+"ausente, y de todas formas, es mejor informar a todos los dueños y "
+"moderadores de tu solicitud. Cuando tengas alguna cuestión que remarcar, "
+"<strong>debes escribir a la siguiente dirección: nombredelalista-request@%1</"
+"strong> (reemplaza 'nombredelalista' por el nombre de la lista)."
 
 #: default/web_tt2/help_introduction.tt2:3
 msgid "Mailing lists - General introduction"
@@ -3338,7 +3353,8 @@ msgstr "una lista de correo dedicada a los estudiantes de una clase;"
 #: default/web_tt2/help_introduction.tt2:19
 msgid "mailing list about the latest news in computer security;"
 msgstr ""
-"una lista de correo sobre las últimas noticias sobre seguridad computacional;"
+"una lista de correo sobre las últimas noticias sobre seguridad en "
+"ordenadores;"
 
 #: default/web_tt2/help_introduction.tt2:20
 msgid "mailing list of mutual aid between handymen;"
@@ -3494,8 +3510,8 @@ msgid ""
 "you are not subscribed</a> if that archive is public and if your personal "
 "rights allow you to access those lists,"
 msgstr ""
-"leer el <a href=\"%1/help/arc\">archivo de mensajes online de las listas a "
-"las que no estás suscrito</a>, si ese archivo es público y si tus permisos "
+"leer el <a href=\"%1/help/arc\">archivo web de mensajes de las listas a las "
+"que no estás suscrito</a>, si ese archivo es público y si tus permisos "
 "personales te permiten acceder a esas listas,"
 
 #. (path_cgi)
@@ -3544,7 +3560,7 @@ msgstr ""
 
 #: default/web_tt2/help_introduction.tt2:57
 msgid "manage mailing lists"
-msgstr "manejar listas de correo"
+msgstr "gestionar listas de correo"
 
 #. (path_cgi)
 #: default/web_tt2/help_introduction.tt2:59
@@ -3672,7 +3688,7 @@ msgid ""
 msgstr ""
 "<strong>indica la forma en que el servicio de listas de correo debe usarse</"
 "strong> y <strong>documenta esas reglas en los mensajes</strong> enviados a "
-"suscritpores, moderadores y propietarios;"
+"suscritpores, moderadores y dueños;"
 
 #: default/web_tt2/help_introduction.tt2:90
 msgid "<strong>approve of requests of mailing list creations</strong>;"
@@ -3683,9 +3699,9 @@ msgid ""
 "<strong>temporarily replace list owners</strong> when necessary; on the "
 "other hand, listmasters are not supposed to take the place of moderators."
 msgstr ""
-"<strong>temporalmente replaza los propietarios de la lista</strong> cuando "
-"sea necesario; por otra parte, los listmasters no deberían realizar las "
-"acciones de moderadores"
+"cuando sea necesario, <strong>sustituye temporalmente a los dueños de la "
+"lista</strong>; por otra parte, los listmasters no deberían realizar las "
+"funciones de los moderadores."
 
 #: default/web_tt2/help_introduction.tt2:93
 msgid ""
@@ -3694,15 +3710,15 @@ msgid ""
 "order not to flood listmasters with messages, it is recommended that "
 "subscribers rather turn to list owners."
 msgstr ""
-"Los propietarios de la lista y los moderadores pueden notificar a los "
-"listmasters</strong> cuando encuentren algún problema que no esté "
-"relacionado  con la documentación o con algún comentario. Sin embargo, para "
-"no inundar a los listmasters con mensajes, se recomienda que los "
-"suscriptores se pongan en contacto con los propietarios de la lista"
+"Los dueños de la lista y los moderadores pueden notificar a los listmasters</"
+"strong> cuando encuentren algún problema que no esté relacionado con la "
+"documentación o con algún comentario. Sin embargo, para no inundar a los "
+"listmasters con mensajes, se recomienda que los suscriptores se pongan en "
+"contacto con los dueños de la lista"
 
 #: default/web_tt2/help_introduction.tt2:95
 msgid "Owners"
-msgstr "Propietarios"
+msgstr "Dueños"
 
 #: default/web_tt2/help_introduction.tt2:96
 msgid ""
@@ -3710,8 +3726,8 @@ msgid ""
 "person who requested the list creation or who became responsible for it. "
 "<strong>His/her role</strong>:"
 msgstr ""
-"El propietario de la lista suele ser su creador</strong> o, en su defecto, "
-"la persona que ha solicitado la creación de la lista o quien se haga "
+"El dueño de la lista suele ser su creador</strong> o, en su defecto, la "
+"persona que ha solicitado la creación de la lista o quien se haga "
 "responsable de ella. <strong>Su rol</strong>:"
 
 #. (path_cgi)
@@ -3775,9 +3791,9 @@ msgid ""
 "strong> is reserved to the list's creator; other owners have a 'Normal' "
 "profile, which has fewer prerogatives."
 msgstr ""
-"Una lista puede tener varios propietarios. Sin embargo, el <strong>perfil "
-"'Privilegiado'</strong> se reserva a los creadores de la lista; otros "
-"creadores tienen un perfil 'Normal', el cual tiene menos prerogativas"
+"Una lista puede tener varios dueños. Sin embargo, el <strong>perfil "
+"'Privilegiado'</strong> se reserva al creador de la lista; el resto de "
+"dueños tienen el perfil 'Normal', el cual tiene menos privilegios."
 
 #: default/web_tt2/help_introduction.tt2:108
 msgid "Moderators"
@@ -3794,13 +3810,13 @@ msgid ""
 "is possibly followed by a notice to the sender in order to explain the "
 "reason for that rejection."
 msgstr ""
-"<strong>Los moderadores los nombra el propietario de la lista</strong>. "
-"Ellos se encargan de <a href=\"%1/help/admin#moderate\">controlar la "
-"relevancia de los mensajes</a></strong> enviados a la lista: despues de "
-"leerlos, <strong>eligen si los aceptan o los rechazan.</strong>. El proceso "
-"de moderación ocurre antes de que el mensaje se envie. El rechazo de un "
-"mensaje posiblemente va asociado a una notificación para el remitente con la "
-"intención de explicar la razón del rechazo."
+"<strong>Los moderadores los nombra el dueño de la lista</strong>. Ellos se "
+"encargan de <a href=\"%1/help/admin#moderate\">controlar la relevancia de "
+"los mensajes</a></strong> enviados a la lista: despues de leerlos, "
+"<strong>eligen si los aceptan o los rechazan.</strong>. El proceso de "
+"moderación ocurre antes de que el mensaje se envíe a los suscriptores. El "
+"rechazo de un mensaje posiblemente va asociado a una notificación para el "
+"remitente con la intención de explicar la razón del rechazo."
 
 #: default/web_tt2/help_introduction.tt2:111
 msgid ""
@@ -3808,7 +3824,7 @@ msgid ""
 "list owner is also a moderator."
 msgstr ""
 "Una lista puede tener <strong>uno o varios moderadores</stgrong>; "
-"generalmente, el propietario de la lista es también moderador."
+"generalmente, el dueño de la lista es también un moderador."
 
 #: default/web_tt2/help_introduction.tt2:112
 msgid "This concerns only moderated lists."
@@ -3825,35 +3841,30 @@ msgstr ""
 "normas:"
 
 #: default/web_tt2/help_introduction.tt2:117
-#, fuzzy
 msgid ""
 "In most mailing list services, subscribers receive a 'List subscribers "
 "charter' on subscription. Then they are obliged to respect all the rules "
 "contained in that charter."
 msgstr ""
 "En la mayoría de los servicios de listas de correo, los suscriptores reciben "
-"una <a target=\"_blank\" title=\"Ejemplo de carta de bienvenida(Francés)\" "
-"href=\"http://listes.cru.fr/cnil/charte.abonne.html\">Carta de bienvenida</"
-"a> en la suscripción.  Se encuentran entonces obligados a respetar todas las "
-"reglas contenidas en dicha carta."
+"una 'Carta de bienvenida' en la suscripción. Se encuentran entonces "
+"obligados a respetar todas las reglas contenidas en dicha carta."
 
 #: default/web_tt2/help_introduction.tt2:118
-#, fuzzy
 msgid ""
 "If available, list owners and moderators have to conform to the 'Owner and "
 "moderator charter'."
 msgstr ""
-"Si está disponible, los dueños de lista y moderadores tienen que completar "
-"la 'Carta de dueño y moderador'"
+"Si está disponible, los dueños y moderadores de la lista tienen que estar de "
+"acuerdo con la 'Carta de dueño y moderador'."
 
 #: default/web_tt2/help_introduction.tt2:119
-#, fuzzy
 msgid ""
 "The use of mailing lists naturally means respecting the rules of good "
 "practices as regards to email."
 msgstr ""
-"El uso de listas de correo naturalmente implica respetar las reglas del buen "
-"uso del correo electrónico."
+"El uso de listas de correo naturalmente implica respetar las normas de "
+"buenas prácticas referentes al correo electrónico."
 
 #. (path_cgi)
 #: default/web_tt2/help_introduction.tt2:121
@@ -3864,9 +3875,9 @@ msgid ""
 "moderators</a>."
 msgstr ""
 "Para conocer mas, diríjase a la sección dedicada a <a href=\"%1/help/"
-"sendmsg#rulesuser\"> las buenas prácticas para suscriptores</a> y a la "
-"sección sobre <a href=\"%1/help/admin#rulesadmin\">buenas prácticas de "
-"propietarios y moderadores</a>."
+"sendmsg#rulesuser\">las buenas prácticas para suscriptores</a> y a la "
+"sección sobre <a href=\"%1/help/admin#rulesadmin\">buenas prácticas para "
+"dueños y moderadores</a>."
 
 #: default/web_tt2/help_listconfig.tt2:4
 msgid ""
@@ -3989,17 +4000,17 @@ msgid ""
 "moderators</strong> to the list or <strong>change their personal "
 "information</strong>:"
 msgstr ""
-"En las áres de 'Propietarios' y 'Moderadores', puedes <strong>añadir "
-"propietarios y moderadores</strong> a la lista o <strong>cambiar su "
-"información personal</strong>:"
+"En las áreas de 'Dueños' y 'Moderadores', puedes <strong>añadir dueños y "
+"moderadores</strong> a la lista o <strong>cambiar su información personal</"
+"strong>:"
 
 #: default/web_tt2/help_listconfig.tt2:28
 msgid ""
 "For each owner/moderator, you have to indicate an <strong>email address</"
 "strong> and a <strong>name</strong>."
 msgstr ""
-"Para cada propietario/moderador, debes indicar una <strong>dirección de "
-"correo</strong> y un <strong>nombre</strong>."
+"Para cada dueño/moderador, tienes que indicar una <strong>dirección de "
+"correo electrónico</strong> y un <strong>nombre</strong>."
 
 #: default/web_tt2/help_listconfig.tt2:29
 msgid ""
@@ -4010,8 +4021,8 @@ msgid ""
 msgstr ""
 "También puedes añadir la información que elijas en la casilla "
 "'<strong>Información privada</strong>' (número de teléfono, función, etc.); "
-"esta información solo será accesible para listmasters y los propietarios de "
-"la lista con un perfil 'Privilegiado'."
+"esta información solo será accesible para listmasters y los dueños de la "
+"lista con un perfil 'Privilegiado'."
 
 #: default/web_tt2/help_listconfig.tt2:30
 msgid ""
@@ -4028,8 +4039,8 @@ msgid ""
 "'Normal' profile)."
 msgstr ""
 "El parámetro 'Perfil' no puede cambiarse: el <strong>perfil 'Privilegiado'</"
-"strong> está reservado para el creador de la lista (otros propietarios "
-"tienen perfil 'Normal')."
+"strong> está reservado para el creador de la lista (el resto de dueños "
+"tienen un perfil 'Normal')."
 
 #: default/web_tt2/help_listconfig.tt2:33
 msgid ""
@@ -4037,9 +4048,9 @@ msgid ""
 "automatically subscribed to that list. Thus owners and moderators have to "
 "subscribe themselves to the list."
 msgstr ""
-"Ten cuidado: convertirse en propietario o moderador de una lista no "
-"significa que automáticamente estés suscrito a la misma. De este modo los "
-"moderadores y propietarios deben suscribirse ellos mismos a la lista."
+"Ten cuidado: convertirse en dueño o moderador de una lista no significa que "
+"automáticamente estés suscrito a la misma. De este modo los moderadores y "
+"dueños deben suscribirse ellos mismos a la lista."
 
 #: default/web_tt2/help_listconfig.tt2:34
 msgid ""
@@ -4047,9 +4058,9 @@ msgid ""
 "boxes relating to the person you want to delete and click on the 'Update' "
 "button."
 msgstr ""
-"Para <strong>borrar propietarios/moderadores</strong>, limpia el contenido "
-"de las casillas correspondietnes a las personas que quieres borrar y pincha "
-"en el botón 'Actualizar'."
+"Para <strong>borrar dueños/moderadores</strong>, deja vacío las casillas "
+"correspondientes a las personas que quieres borrar y haz clic en el botón "
+"'Actualizar'."
 
 #: default/web_tt2/help_listconfig.tt2:35
 msgid ""
@@ -4248,12 +4259,12 @@ msgstr "solicitud de subscripción confirmada (auth);"
 #: default/web_tt2/help_listconfig.tt2:66
 msgid "need authentication (notification is sent to owners) (auth_notify);"
 msgstr ""
-"ncesita autentificación (notificación es enviada a los propietarios) "
+"necesita autenticación (una notificación es enviada a los dueños) "
 "(auth_notify);"
 
 #: default/web_tt2/help_listconfig.tt2:67
 msgid "requires authentication then owner approval (auth_owner);"
-msgstr "necesita autentificación y luego permiso del propietario (auth_owner);"
+msgstr "necesita autenticación y luego autorización del dueño (auth_owner);"
 
 #: default/web_tt2/help_listconfig.tt2:68
 msgid "subscribe is impossible (closed);"
@@ -4267,8 +4278,7 @@ msgstr "restringido al dominio local de usuarios (intranet);"
 #: default/web_tt2/help_listconfig.tt2:70
 msgid "local domain users or owner approval (intranetorowner);"
 msgstr ""
-"usuarios del dominio local o tras autorización del propietario "
-"(intranetorowner);"
+"usuarios del dominio local o con autorización del dueño (intranetorowner);"
 
 #: default/web_tt2/help_listconfig.tt2:71
 msgid "for anyone without authentication (open) - <em>default option</em>;"
@@ -4277,7 +4287,7 @@ msgstr ""
 
 #: default/web_tt2/help_listconfig.tt2:72
 msgid "anyone, notification is sent to list owner (open_notify);"
-msgstr "cualquiera, notificación es enviada al propietario (open_notify);"
+msgstr "cualquiera, se envía notificación al dueño de la lista (open_notify);"
 
 #: default/web_tt2/help_listconfig.tt2:73
 msgid "anyone, no welcome message (open_quiet);"
@@ -4293,7 +4303,7 @@ msgstr "requiere ser firmado en S/MIME (smime);"
 
 #: default/web_tt2/help_listconfig.tt2:76
 msgid "requires S/MIME signed or owner approval (smimeorowner)."
-msgstr "cualquiera, autorización es solicitada al propietario (smimeorowner)."
+msgstr "necesita firma S/MIME o autorización del dueño (smimeorowner)."
 
 #: default/web_tt2/help_listconfig.tt2:77
 msgid ""
@@ -4340,7 +4350,7 @@ msgstr "abierta con confirmación de mail, notificación al dueño (open_notify)
 
 #: default/web_tt2/help_listconfig.tt2:85
 msgid "owner approval (owner)."
-msgstr "aprobación del propietario (owner)."
+msgstr "autorización del dueño (owner)."
 
 #: default/web_tt2/help_listconfig.tt2:86
 msgid ""
@@ -4369,7 +4379,7 @@ msgstr "cerrado (closed);"
 
 #: default/web_tt2/help_listconfig.tt2:91
 msgid "list owner, no authentication (owner);"
-msgstr "propietario de la lista, sin autenticación (owner)"
+msgstr "dueño de la lista, sin autenticación (owner)"
 
 #: default/web_tt2/help_listconfig.tt2:112
 #: default/web_tt2/help_listconfig.tt2:92
@@ -4404,7 +4414,7 @@ msgstr "sólo listmaster (listmaster);"
 
 #: default/web_tt2/help_listconfig.tt2:100
 msgid "only owner (and listmaster) (owner) - <em>default option</em>;"
-msgstr "sólo propietario (y listmaster) (owner) - <em>opción por defecto</em>;"
+msgstr "solo el dueño (y listmaster) (owner) - <em>opción por defecto</em>;"
 
 #: default/web_tt2/help_listconfig.tt2:101
 #: default/web_tt2/help_listconfig.tt2:119
@@ -4453,7 +4463,7 @@ msgstr ""
 
 #: default/web_tt2/help_listconfig.tt2:111
 msgid "restricted to list owners (owner);"
-msgstr "restringido a los propietarios (owner);"
+msgstr "reservado a los dueños de la lista (owner);"
 
 #: default/web_tt2/help_listconfig.tt2:113
 #: default/web_tt2/help_listconfig.tt2:120
@@ -4470,7 +4480,8 @@ msgstr ""
 
 #: default/web_tt2/help_listconfig.tt2:117
 msgid "restricted to list owners (owner) - <em>default option</em>;"
-msgstr "restringido a los propietarios (owner) - <em>opción por defecto</em>;"
+msgstr ""
+"reservado a los dueños de la lista (owner) - <em>opción por defecto</em>;"
 
 #: default/web_tt2/help_listconfig.tt2:118
 msgid "moderated for subscribers (editor);"
@@ -4518,9 +4529,9 @@ msgid ""
 "archive</strong> (messages readable on the mailing list web interface). The "
 "following options are available:"
 msgstr ""
-"Desde esta página, puedes <strong>decidir quién puede acceder a la lista "
-"online de archivos</strong> (mensajes lejibles en la interfaz web de la "
-"lista de correo). Están disponibles las siguientes opciones:"
+"Desde esta página, puedes <strong>decidir quién puede acceder al archivo web "
+"de la lista</strong> (mensajes legibles en la interfaz web de la lista de "
+"correo). Están disponibles las siguientes opciones:"
 
 #: default/web_tt2/help_listconfig.tt2:132
 msgid "listmaster (listmaster);"
@@ -4528,7 +4539,7 @@ msgstr "listmaster (listmaster);"
 
 #: default/web_tt2/help_listconfig.tt2:133
 msgid "owner (owner);"
-msgstr "propietario (owner);"
+msgstr "dueño (owner);"
 
 #: default/web_tt2/help_listconfig.tt2:134
 msgid "moderator (moderator);"
@@ -4547,8 +4558,8 @@ msgid ""
 "reached, later messages are not archived."
 msgstr ""
 "La casilla '<strong>Cuota</strong>' te permite definir un <strong>tamaño "
-"máximo para el archivo de mensajes</strong>. Este tamaño está expresado en "
-"kilobytes. Los propietarios de la lista son notificados cuando el tamaño del "
+"máximo para el archivo de los mensajes</strong>. Este tamaño está expresado "
+"en kilobytes. Se notifica a los dueños de la lista cuando el tamaño del "
 "archivo supera el 95&#160;% del tamaño permitido. Cuando se alcanza el "
 "tamaño máximo, los mensajes enviados posteriormente no se archivan."
 
@@ -4647,9 +4658,9 @@ msgid ""
 "This option applies to both the text archive and the online archive, as well "
 "as to the compilations sent to those who chose the 'Digest' delivery mode."
 msgstr ""
-"Esta opción se aplicat tanto al archivo de texto como a la versión online, "
-"así como en las compilaciones que se envían a los usuarios que tengan "
-"activado el modo de envío 'Digest'."
+"Esta opción se aplica tanto al archivo de texto como al archivo web, así "
+"como en las compilaciones que se envían a los usuarios que tengan activado "
+"el modo de envío 'Digest'."
 
 #: default/web_tt2/help_listconfig.tt2:152
 #: default/web_tt2/help_listconfig.tt2:169
@@ -4690,9 +4701,9 @@ msgid ""
 "rate too high'</strong> inviting him/her to delete bouncing subscribers from "
 "the list."
 msgstr ""
-"El <strong>ratio de aviso</strong> indica el ratio de direcciones de correo "
-"con correos rebotados por el cual el propietario de la lista será notificado "
-"con un <strong>aviso titulado 'Tasa de rebotes demasiado alta'</strong> "
+"La <strong>tasa de aviso</strong> indica la tasa de direcciones de correo "
+"electrónicos rebotadas (con errores) por el cual el dueño de la lista "
+"recibirá un <strong>aviso titulado 'Tasa de rebotes demasiado alta'</strong> "
 "invitandándole a borrar dichos suscriptores de la lista."
 
 #: default/web_tt2/help_listconfig.tt2:159
@@ -4754,9 +4765,9 @@ msgid ""
 "precise information about the task."
 msgstr ""
 "la <strong>persona a notificar</strong> cuando una tarea se lleva a cabo: "
-"nadie, los propietarios, el listmaster. La notificación enviada cuando una "
-"tarea se lleva a cabo incluye los nombres de todos los suscriptores "
-"involucrados así como información precisa sobre la tarea."
+"nadie, los dueños, el listmaster. La notificación enviada cuando una tarea "
+"se lleva a cabo incluye los nombres de todos los suscriptores involucrados "
+"así como información precisa sobre la tarea."
 
 #. (path_cgi)
 #: default/web_tt2/help_listconfig.tt2:168
@@ -4984,7 +4995,7 @@ msgstr ""
 #: default/web_tt2/help_mail_commands.tt2:47
 msgid "<code>INDEX <em>list</em></code>: receive the list of the archive files"
 msgstr ""
-"<code>INDEX <em>lista</em></code>: recibe un listado del archivo de ficheros"
+"<code>INDEX <em>lista</em></code>: recibe un listado de ficheros del archivo"
 
 #: default/web_tt2/help_mail_commands.tt2:48
 msgid "<code>GET <em>list file</em></code>: receive a file of the list archive"
@@ -5000,7 +5011,7 @@ msgstr ""
 
 #: default/web_tt2/help_mail_commands.tt2:53
 msgid "Commands for list owners"
-msgstr "Comandos para propietarios de listas"
+msgstr "Comandos para los dueños de lista"
 
 #: default/web_tt2/help_mail_commands.tt2:57
 msgid "<code>ADD <em>list email name</em></code>: add a member to the list"
@@ -5231,10 +5242,10 @@ msgstr ""
 "Todos los mensajes enviados a la lista se mantienen en el archivo de la "
 "lista. <strong>Así que, el simple hecho de enviar un mensaje constituye una "
 "autorización expresa de distribución y reproducción en el archivo</strong>. "
-"Sin embargo, puedes solicitar el borrado de cualquier mensaje enviado, "
+"Sin embargo, puedes solicitar el borrado de cualquier mensaje enviado por ti "
 "directamente desde el archivo de la lista (botón 'Marcar este correo para "
-"borrado') o <a href=\"%1/help/faquser#contactadmin\">contactando con el "
-"propietario de la lista</a>."
+"borrado') o <a href=\"%1/help/faquser#contactadmin\">contactando con los "
+"dueños de la lista</a>."
 
 #: default/web_tt2/help_sendmsg.tt2:35
 msgid ""
@@ -5267,8 +5278,8 @@ msgstr ""
 "Europeo y del Consejo del 24 de Octubre de 1995 en la protección de "
 "individuos en relación al procesamiento de datos personales y de la libertad "
 "de movimiento de dichos datos\" así como leyes nacionales. Para conocer mas "
-"sobre esto, <a href=\"%1/help/faquser#contactadmin\">contacte con los "
-"propietarios de la lista</a>."
+"sobre este tema, <a href=\"%1/help/faquser#contactadmin\">contacte con los "
+"duños de la lista</a>."
 
 #: default/web_tt2/help_sendmsg.tt2:37
 msgid ""
@@ -5494,7 +5505,7 @@ msgstr ""
 
 #: default/web_tt2/help_shared.tt2:18
 msgid "<strong>To browse a folder, click on its name</strong>."
-msgstr "<strong>Para explorar un directorio, pincha sobre su nombre</strong>."
+msgstr "<strong>Para explorar una carpeta, haz clic sobre su nombre</strong>."
 
 #: default/web_tt2/help_shared.tt2:19
 msgid ""
@@ -5547,17 +5558,17 @@ msgid ""
 "access rights to some files/folders</strong>. Both the reading and writing "
 "rights can be restricted:"
 msgstr ""
-"<strong>Los propietarios de la lista o los autores de los documentos</"
-"strong> puden restringir los derechos de acceso a determinados ficheros/"
-"carpetas</strong>. Tanto los derechos de lectura como los de escritura "
-"pueden restringirse:"
+"<strong>Los dueños de la lista o los autores de los documentos</strong> "
+"puden restringir los derechos de acceso a determinados archivos/carpetas</"
+"strong>. Tanto los derechos de lectura como los de escritura pueden "
+"restringirse:"
 
 #: default/web_tt2/help_shared.tt2:29
 msgid ""
 "<strong>When a folder is not writable</strong>, you can neither upload nor "
 "create documents in it."
 msgstr ""
-"<strong>Cuando un directorio no es editable</strong>, puedes tanto subir o "
+"<strong>Cuando una carpeta no es editable</strong>, no puedes ni subir ni "
 "crear documentos en él."
 
 #: default/web_tt2/help_shared.tt2:30
@@ -5565,7 +5576,7 @@ msgid ""
 "<strong>When a folder is not readable</strong>, you can not browse it (you "
 "get an error message)."
 msgstr ""
-"<strong>Cuando un directorio no se puede leer</strong>, no podrás explorarlo "
+"<strong>Cuando una carpeta no se puede leer</strong>, no podrás explorarla "
 "(obtendrás un mensaje de error)."
 
 #: default/web_tt2/help_shared.tt2:32
@@ -5574,9 +5585,9 @@ msgid ""
 "display before them. <strong>By default, documents are sorted ascendingly "
 "according to the 'Document' column</strong>."
 msgstr ""
-"<strong>Los directorios se ordenan de forma separada</strong> a los ficheros "
-"y marcadores, y se muestran antes que ninguno. <strong>Por defecto, los "
-"documentos se ordena de forma ascendente según la columna 'Documento'</"
+"<strong>Las carpetas se ordenan de forma separada</strong> desde los "
+"archivos y marcadores, y se muestran antes que ninguno. <strong>Por defecto, "
+"los documentos se ordenan de forma ascendente según la columna 'Documento'</"
 "strong>."
 
 #: default/web_tt2/help_shared.tt2:33
@@ -5589,9 +5600,9 @@ msgid ""
 msgstr ""
 "Ten cuidado: la ordenación alfanumérica distingue entre mayúsculas y "
 "minúsculas, así que todos los documentos que tengan el primer carácter del "
-"nombre en mayúsculas se mostrarán primeros, en orden alfabético, y luego, "
-"todos los documentos que tengan el primer carácter del nombre en minúsucla, "
-"en orden alfabético. Ocurre lo mismo con los directorios."
+"nombre en mayúsculas se mostrarán primero en orden alfabético y luego, todos "
+"los documentos que tengan el primer carácter del nombre en minúsucla, en "
+"orden alfabético. Ocurre lo mismo con las carpetas."
 
 #: default/web_tt2/help_shared.tt2:34
 msgid ""
@@ -5718,7 +5729,7 @@ msgstr ""
 #: default/web_tt2/help_shared.tt2:64 default/web_tt2/help_shared.tt2:77
 #: default/web_tt2/help_shared.tt2:89
 msgid "<strong>Switch to expert mode</strong>."
-msgstr "<strong>Cambia al modo experto</strong>."
+msgstr "<strong>Cambiar al modo experto</strong>."
 
 #: default/web_tt2/help_shared.tt2:65
 msgid ""
@@ -5728,11 +5739,11 @@ msgid ""
 "button. Your file path then displays in the input box close to the 'Browse' "
 "button."
 msgstr ""
-"<strong>Pincha en el botón \"Explorar\"</strong> debajo de la etiqueta "
-"'Subir un fichero dentro de la carpeta [nombre de la carpeta actual]' y "
-"<strong>elige el fichero</strong> que quieres subir: después de "
-"seleccionarlo, pincha en el botón 'Abrir'. Apareceŕa la ruta del fichero en "
-"la casilla de entrada situada cerca del botón 'Explorar'."
+"<strong>Haz clic en el botón 'Explorar'</strong> bajo la etiqueta 'Subir un "
+"fichero dentro de la carpeta [nombre de la carpeta actual]' y <strong>elige "
+"el fichero</strong> que quieres subir. Después de seleccionarlo, haz clic en "
+"el botón 'Abrir'. Aparecera tu ruta de acceso en la casilla de entrada "
+"situada cerca del botón 'Explorar'."
 
 #: default/web_tt2/help_shared.tt2:66
 msgid "<strong>Click on the 'Publish' button</strong>."
@@ -5746,11 +5757,11 @@ msgid ""
 "you will get the following error message: \"The document repository exceed "
 "disk quota\"."
 msgstr ""
-"Ten cuidado: los propietarios de la listas podrían definir cuotas, lo que "
-"significa que <strong>no se podrá exceder un tamaño máximo en el espacio web "
-"de documentos compartidos</strong>. Si intentas subir o crear un documento "
-"demasiado grande y no queda espacio, se te mostrará el siguiente mensaje de "
-"error: \"El documento excede la cuota de disco del respositorio'."
+"Ten cuidado: los dueños de la listas podrían definir cuotas, lo que "
+"significa que <strong>no se podrá exceder de un tamaño máximo en el espacio "
+"web de documentos compartidos</strong>. Si intentas subir o crear un "
+"documento demasiado grande y no queda espacio, obtendrás el siguiente "
+"mensaje de error: \"El repositorio de documentos excede la cuota de disco'."
 
 #: default/web_tt2/help_shared.tt2:70
 msgid ""
@@ -5856,8 +5867,8 @@ msgid ""
 "are plain text files. On the other hand, it is impossible to create office "
 "documents (.DOC, .XLS, .PPT, .RTF, .ODT, etc.), .PDF, images, etc.</strong>"
 msgstr ""
-"<strong>Importante: los únicos ficheros que puden crearse de forma online en "
-"las listas son ficheros de texto plano. Sin embargo, es imposible crear "
+"<strong>Importante: los únicos archivos que se pueden crear en la web de las "
+"listas son ficheros de texto plano. Sin embargo, es imposible crear "
 "documentos ofimáticos (.DOC, .XLS, .PPT, .RTF, .ODT, etc.), .PDF, imágenes, "
 "etc.</strong>"
 
@@ -5882,7 +5893,7 @@ msgid ""
 "files and folders that are already online:"
 msgstr ""
 "Además de subir y descargar documentos, puedes hacerlo también sobre "
-"ficheros y carpetas que ya estén online:"
+"ficheros y carpetas que ya estén en la web:"
 
 #: default/web_tt2/help_shared.tt2:102
 msgid "by changing their access rights (read and write);"
@@ -5920,7 +5931,7 @@ msgstr ""
 "<strong>Denegar el derecho a escritura en una carpeta</strong> evita la "
 "proliferación de ficheros publicados por personas no autorizadas. Para "
 "mantener el control de la lista, algunas veces es importante denegar el "
-"derecho escritura al directorio raíz del espacio web de documentos "
+"derecho escritura a la carpeta raíz del espacio web de documentos "
 "compartidos. También es posible ofrecer una carpeta modificable y bloquearla "
 "dado un tiempo o nua fecha, por ejemplo para controlar el envío de trabajos "
 "por estudiantes."
@@ -5943,7 +5954,7 @@ msgid ""
 "several confidential documents without having to change read access rights "
 "individually for each of them."
 msgstr ""
-"<strong>Denegar el acceso de lectura a un directorio</strong> posibilita el "
+"<strong>Denegar el acceso de lectura a una carpeta</strong> posibilita el "
 "guardar varios documentos confidenciales sin tener que cambiar los dechos de "
 "acceso individualmente en cada uno."
 
@@ -5966,11 +5977,10 @@ msgid ""
 "owners can change access rights to any document published on the lists; this "
 "does not concern moderators)."
 msgstr ""
-"<strong>Se te permite cambiar los derechos de acceso solo a aquellos "
-"documentos que hayas creado tu mismo</strong> en la lista (una excepción: "
-"los propietarios de la lista pueden cambiar los drechos de acceso de "
-"cualquier documento publicado en la lista; esto no incluye a los "
-"moderadores)."
+"<strong>Está permitido cambiar los derechos de acceso de solo aquellos "
+"documentos que hayas creado tu mismo</strong> en las listas (una excepción: "
+"los dueños de la lista pueden cambiar los drechos de acceso de cualquier "
+"documento publicado en las listas; esto no incluye a los moderadores)."
 
 #: default/web_tt2/help_shared.tt2:116
 msgid ""
@@ -5998,10 +6008,10 @@ msgid ""
 "read rights on this document whatever happens (unless the list owner changes "
 "the document owner)."
 msgstr ""
-"Aunque nos eha mencionado en ninguna de las opciones, percatarse de que el "
+"Aunque no se ha mencionado en ninguna de las opciones, observe que el "
 "propietario del documento (normalmente la persona que lo publicó) siempre "
-"mantiene los derechos de lectura y escritura (salvo que el propietario de la "
-"lista cambie el propietario del documento)."
+"mantiene los derechos de lectura y escritura sobre este documento (salvo que "
+"el dueño de la lista cambie el propietario del documento)."
 
 #: default/web_tt2/help_shared.tt2:120
 msgid ""
@@ -6009,10 +6019,9 @@ msgid ""
 "allow another person to edit it online, or to indicate the actual author of "
 "a document if it has been published by someone else."
 msgstr ""
-"<strong>También puedes cambiar el propietario del documento</strong>, por "
-"ejemplo, para permitir a otra persona que pueda editarlo en línea, o para "
-"indicar el autor actual del documento en caso de haber sido publicado por "
-"otra persona."
+"<strong>También puedes cambiar el propietario del documento</strong>. Por "
+"ejemplo, para permitir a otra persona editarlo en la web, o para indicar el "
+"autor actual del documento si ha sido publicado por alguien más."
 
 #: default/web_tt2/help_shared.tt2:122
 msgid "Editing folders, files or bookmarks"
@@ -6072,12 +6081,12 @@ msgid ""
 msgstr ""
 "Si el documento es un <strong>fichero</strong>, también puedes "
 "<strong>reemplazar el fichero existente por otro que tú elijas</strong>. "
-"Para hacer esto , <strong>pincha en el botón 'Explorar'</strong> debajo del "
+"Para hacer esto, <strong>haz clic en el botón 'Explorar'</strong> bajo el "
 "texto 'Reemplazar el fichero nombredelfichero con tu fichero', y "
 "<strong>selecciona el fichero</strong> que quieres publicar; tras "
-"seleccionarlo, pincha en el botón 'Abrir'. La ruta se muestra en la casilla "
-"situada cerca del botón 'Explorar'. <strong>Pincaha en el botón 'Publicar'</"
-"strong>."
+"seleccionarlo, haz clic en el botón 'Abrir'. La ruta de acceso al fichero se "
+"mostrará en la casilla de entrada situada cerca del botón 'Explorar'. "
+"<strong>Haz clic en el botón 'Publicar'</strong>."
 
 #: default/web_tt2/help_shared.tt2:131
 msgid ""
@@ -6098,10 +6107,10 @@ msgid ""
 "text area, and then <strong>click on the 'Publish' button</strong>."
 msgstr ""
 "Por último, si el documento es un <strong>fichero de texto plano</strong>, "
-"puedes <strong>cambiar su contenido de forma online</strong>: "
-"<strong>introduce o pega el texto</strong> que quieres poner en el fichero "
-"en el área de texto 'Editar el fichero /nombredelfichero', y <strong>pincha "
-"en el botón 'Publicar'</strong>."
+"puedes <strong>cambiar su contenido en la web</strong>: <strong>introduce o "
+"pega el texto</strong> que quieres poner en el archivo en el área de texto "
+"'Editar el archivo /nombredelarchivo', y <strong>pincha en el botón "
+"'Publicar'</strong>."
 
 #: default/web_tt2/help_shared.tt2:134
 msgid ""
@@ -6252,26 +6261,28 @@ msgstr ""
 "acentos y caracteres especiales</strong>."
 
 #: default/web_tt2/help_suspend.tt2:3
-#, fuzzy
 msgid "Manage your subscriptions"
-msgstr "Comprobar tus suscripciones"
+msgstr "Administra tus suscripciones"
 
 #: default/web_tt2/help_suspend.tt2:5
 msgid "How does the suspension work?"
-msgstr ""
+msgstr "¿Cómo funciona la suspensión?"
 
 #: default/web_tt2/help_suspend.tt2:6
-#, fuzzy
 msgid ""
 "In order to <strong>suspend your subscription</strong> to one or more lists, "
 "follow these steps:"
-msgstr "<strong>fecha de la suscripción</strong> a la lista;"
+msgstr ""
+"Para <strong>suspender tu suscripción</strong> a una o más listas, sigue "
+"estos pasos:"
 
 #: default/web_tt2/help_suspend.tt2:8
 msgid ""
 "Select a start date through the calendar that appears when you click on the "
 "\"start date\" field;"
 msgstr ""
+"Selecciona una fecha de inicio a través del calendario que aparece cuando "
+"haces clic en el campo \"fecha inicio\";"
 
 #: default/web_tt2/help_suspend.tt2:9
 msgid ""
@@ -6280,33 +6291,43 @@ msgid ""
 "In this case, you will have to return to this page to resume your "
 "subscription;"
 msgstr ""
+"si deseas, puedes especificar la fecha de cuando quieres que tu suscripción "
+"continúe. Hazlo usando el campo \"fecha fin\". Puedes hacer clic en "
+"\"indefinido\". En este caso, tendrás que volver a esta página para "
+"continuar tu suscripción;"
 
 #: default/web_tt2/help_suspend.tt2:10
 msgid ""
 "Select the lists which you want to suspend your subscription for. The "
 "\"Toogle selection\" button allows you to invert the selection;"
 msgstr ""
+"Selecciona las listas para las que quieres suspender tu suscripción. El "
+"botón \"Toogle selection\" te permite invertir la selección;"
 
 #: default/web_tt2/help_suspend.tt2:11
 msgid "Click on \"Suspend my subscriptions\" to confirm the suspension."
 msgstr ""
+"Haga clic en \"Suspender mis suscripciones\" para confirmar la suspensión."
 
 #: default/web_tt2/help_suspend.tt2:13
-#, fuzzy
 msgid ""
 "<strong>To resume your subscription</strong> to one or more lists, follow "
 "these steps:"
-msgstr "<strong>fecha de la suscripción</strong> a la lista;"
+msgstr ""
+"<strong>Para continuar tu suscripción</strong> a una o más listas, sigue "
+"estos pasos:"
 
 #: default/web_tt2/help_suspend.tt2:15
 msgid ""
 "Select the list(s) you want to reactivate. The \"Toogle selection\" button "
 "allows you to invert the selection;"
 msgstr ""
+"Selecciona la(s) lista(s) que quieres reactivar. El botón \"Toogle selection"
+"\" te permite invertir la selección;"
 
 #: default/web_tt2/help_suspend.tt2:16
 msgid "Click \"Resume\"."
-msgstr ""
+msgstr "Pulsar en \"Continuar\""
 
 #: default/web_tt2/help.tt2:11
 msgid "Subscriber, moderator and owner documentation"
@@ -6338,41 +6359,17 @@ msgstr ""
 "una <a href=\"%1/help/admin\">guía de administrador</a> sobre el uso de "
 "Sympa."
 
-#. (path_cgi)
-#: default/web_tt2/help.tt2:20
-msgid ""
-"If you want to perform a particular task, take a look at the list of all <a "
-"href=\"%1/help/introduction#features\">available features</a> in the mailing "
-"list management software Sympa."
-msgstr ""
-"Si deseas realizar una tarea determinada, revisa la lista de <a href=\"%1/"
-"help/introduction#features\">funciones disponibles</a> en el software de "
-"administración de listas de correo Sympa."
-
-#. (path_cgi)
-#: default/web_tt2/help.tt2:21
-msgid ""
-"If you experience any problem, please refer to the <a href=\"%1/help/faquser"
-"\">users <acronym title=\"Frequently asked questions\">FAQ</acronym></a> or "
-"to the <a href=\"%1/help/faqadmin\">administrators <acronym title="
-"\"Frequently asked questions\">FAQ</acronym></a>."
-msgstr ""
-"Si experimentas cualquier problema, por favor revisa las <a href=\"%1/help/"
-"faquser\"><acronym title=\"Preguntas Frecuentemente Formuladas\">FAQ</"
-"acronym> del usuario</a> o las <a href=\"%1/help/faqadmin\"><acronym title="
-"\"Preguntas Frecuentemente Formuladas\">FAQ</acronym> del administrador</a>."
-
 #: default/web_tt2/help_user_options.tt2:3
 msgid ""
-"This is a description of the receivie modes available in Sympa. These "
+"This is a description of the reception modes available in Sympa. These "
 "options are mutually exclusive, which means that you can't set two different "
 "receive modes at the same time. Only some of the modes might be available to "
 "specific mailing lists."
 msgstr ""
-"Esta es una descipción de los modos de recepción disponibles en Sympa. Estas "
-"opciones se excluyen mutuamente, lo que significa que no puedes configurar "
-"dos modos de recepción simultaneamente. Puede que sólo algunos de los modos "
-"de recepción estés disponibles para tal o tal lista. "
+"Esta es una descripción de los modos de recepción disponibles en Sympa. "
+"Estas opciones se excluyen mutuamente, lo que significa que no puedes "
+"configurar dos modos de recepción simultaneamente. Solo algunos de los modos "
+"podrían estar disponibles para listas de correo específicas. "
 
 #: default/web_tt2/help_user_options.tt2:7
 msgid "Digest"
@@ -6682,11 +6679,11 @@ msgid ""
 msgstr ""
 "<strong> Después de esto, recibirás un mensaje diciéndote si tu solicitud ha "
 "sido aceptada o no</strong>: si la suscripción de la lista está sujeta a "
-"algún tipo de aprobación, el propietario de la lista debe decidir si te "
-"suscribe o no. Si es así, no envíes varias solicitudes: no sirve de nada ya "
-"que obtendrás el mismo resultado. Posiblemente podrás enviar un mensaje "
-"directamente al propietario de la lista (nombredelalista-request@%1) para "
-"eplicar por qué quieres ser suscriptor de la lista..."
+"algún tipo de aprobación, el dueño de la lista debe decidir si te suscribe o "
+"no. Si es así, no envíes varias solicitudes: no sirve de nada ya que "
+"obtendrás el mismo resultado. Ppuedes posiblemente enviar un mensaje "
+"directamente al dueño de la lista (nombredelalista-request@%1) para explicar "
+"por qué quieres ser suscriptor de la lista..."
 
 #: default/web_tt2/help_user.tt2:39
 msgid ""
@@ -6706,9 +6703,8 @@ msgid ""
 "requests."
 msgstr ""
 "Según el tipo de lista (lista con suscriptores sujetos a condiciones o no) y "
-"a la disponibilidad del propietario de la lista, <strong>puede que no "
-"recibas noticias inmediatamente</strong>. No sirve de nada enviar varias "
-"solicitudes."
+"a la disponibilidad del dueño de la lista, <strong>puede que no recibas "
+"noticias inmediatamente</strong>. No sirve de nada enviar varias solicitudes."
 
 #: default/web_tt2/help_user.tt2:41
 msgid ""
@@ -6727,10 +6723,10 @@ msgid ""
 "\"#global_pref\" title=\"How to change your password\">change it online</a> "
 "after logging on to the mailing list environment;"
 msgstr ""
-"tu <strong>password de la lista</strong>. Este password es el mismo para "
+"tu <strong>contraseña de la lista</strong>. Esta contraseña es la misma para "
 "todas las listas a las que estés suscrito con una misma cuenta de correo. "
-"Puedes <a href=\"#global_pref\" title=\"Cómo cambiar tu password\">cambiarlo "
-"online</a> después de acceder al entorno web del servidor de listas de "
+"Puedes <a href=\"#global_pref\" title=\"Cómo cambiar tu contraseña"
+"\">cambiarla en la web</a> después de acceder al servidor de listas de "
 "correo;"
 
 #: default/web_tt2/help_user.tt2:44
@@ -6757,9 +6753,10 @@ msgid ""
 "all your subscription notices to mailing lists</strong>."
 msgstr ""
 "<strong>Debes guardar tu notificación de suscripción</strong>: puede que la "
-"necesites antes para recordar tu password o para enviar un comando preciso a "
-"Sympa (ejemplo: comando signoff). En gteneral, <strong> te recomendamos que "
-"guardes todas tus notificaciones de suscripción a listas de correo</strong>."
+"necesites antes para recordar tu contraseña o para enviar un comando preciso "
+"a Sympa (ejemplo: comando signoff). En gteneral, <strong> te recomendamos "
+"que guardes todas tus notificaciones de suscripción a listas de correo</"
+"strong>."
 
 #: default/web_tt2/help_user.tt2:48
 msgid ""
@@ -6794,8 +6791,8 @@ msgid ""
 msgstr ""
 "Para entrar al entorno de listas de correo, utilice el formulario de "
 "autenticación situado en la columna superior derecha de la interfaz web. "
-"Cuando hayas entrado, ahí se mostrará tu dirección de correo y perfil "
-"(suscriptor, moderador o propietario)."
+"Cuando hayas entrado, ahí se mostrará tu dirección de correo electrónica y "
+"perfil de usuario (suscriptor, moderador o dueño)."
 
 #: default/web_tt2/help_user.tt2:58
 msgid "The authentication process varies according to your personal situation:"
@@ -6817,8 +6814,8 @@ msgstr ""
 "lang=\"en\" title=\"Central Authentication Service\">CAS</acronym>), "
 "preferirás entrar con tu cuenta única. Para hacer eso, pincha en el botón "
 "\"Ir\" al lado del testo '<strong>Autenticación [nombre del sistema "
-"utilizado]</strong>'. Entonces, escribe tu login y password para entrar al "
-"servidor de autenticación."
+"utilizado]</strong>'. Entonces, escribe tu correo electrónico y contraseña "
+"para entrar al servidor de autenticación."
 
 #: default/web_tt2/help_user.tt2:61
 msgid ""
@@ -6839,10 +6836,10 @@ msgid ""
 "'Password' field."
 msgstr ""
 "<strong>Si no se aplica ningún proceso de autenticación única deberás "
-"utilizar tu password de lista.</strong> En ese caso, entra a través del "
+"utilizar tu contraseña de lista.</strong> En ese caso, entra a través del "
 "método clásico: introduce la <strong>dirección de correo con la que te "
-"suscribiste a la lista</strong> como login y tu <strong>password de lista</"
-"strong> en la casilla 'Password'."
+"suscribiste a la lista</strong> como login y tu <strong>contraseña de lista</"
+"strong> en la casilla 'Contraseña'."
 
 #: default/web_tt2/help_user.tt2:63
 msgid ""
@@ -6850,7 +6847,7 @@ msgid ""
 "you've provided your email address, a mail with a validation URL will be "
 "sent at that address."
 msgstr ""
-"Si no recuerdas tu password de lista, pincha en '¿Contraseña perdida?'. "
+"Si no recuerdas tu contraseña de lista, haz clic en '¿Contraseña perdida?'. "
 "Después de indicar tu dirección de correo, recibirás un correo con una URL "
 "de validación."
 
@@ -6861,18 +6858,18 @@ msgid ""
 "strong>' and type in your email address. A confirmation URL will be sent at "
 "that address. Then you will be able to choose your password."
 msgstr ""
-"<strong>Si no se aplica ningún proceso de autenticación único y no tienes un "
-"password de lista todavía</strong>, pincha en <strong>¿Primera conexión?</"
-"strong>' y escribe tu dirección de correo. Recibirás una URL de "
-"confirmación. Entonces podrás elegir tu password."
+"<strong>Si el proceso de autenticación única no se te aplica y no tienes una "
+"contraseña todavía</strong>, haga clic en '<strong>¿Primera conexión?</"
+"strong>' y escribe tu dirección de correo electrónica. Recibirás una URL de "
+"confirmación en esa dirección. Entonces podrás elegir tu contraseña."
 
 #: default/web_tt2/help_user.tt2:68
 msgid ""
 "Remember: the list password is a special password you will only use for the "
 "mailing list service."
 msgstr ""
-"Recuerda: el password de lista es un password especial que solo utilizarás "
-"para el servicio de listas de correo."
+"Recuerda: la contraseña de lista es una contraseña especial que solo "
+"utilizarás para el servicio de listas de correo."
 
 #: default/web_tt2/help_user.tt2:70
 msgid "Checking your subscriptions"
@@ -6964,14 +6961,14 @@ msgid ""
 "subscribers)."
 msgstr ""
 "El <strong> número de personas suscritas</strong> a la lista se muestra "
-"permanentemente en el <strong>menú izquierdo</strong>.<strong>Para revisar "
-"la lista de suscriptores, pincha en el enlace 'Revisar suscriptores'</"
-"strong> en el menú izquierdo (si los propietarios de la lista deciden "
-"denegar el acceso a la lista de suscriptores, este enlace no estará "
-"disponible). La lista de suscriptores muestra las <strong>direcciones de "
-"correo</strong> y <strong>el nombre</strong> de cada uno de los suscriptores "
-"(el nombre se indica dependiendo del método de suscripción utilizado por los "
-"suscriptores)"
+"permanentemente en el <strong>menú izquierdo</strong>. <strong>Para revisar "
+"los miembros de la lista, haz clic en el enlace 'Revisar suscriptores'</"
+"strong> del menú izquierdo (si los dueños de la lista deciden denegar el "
+"acceso al listado de suscriptores, este enlace no estará disponible). El "
+"listado de suscriptores muestra las <strong>direcciones de correo "
+"electrónico</strong> y el <strong>nombre</strong> de cada uno de los "
+"suscriptores (el nombre se indica dependiendo del método de suscripción "
+"utilizado por los suscriptores)."
 
 #: default/web_tt2/help_user.tt2:87
 msgid ""
@@ -6995,10 +6992,10 @@ msgid ""
 "the following address: <strong>nameofthelist-request@%1</strong> (replace "
 "'nameofthelist' by the name of the list in question)."
 msgstr ""
-"<strong>Los nombres de la lista de propietarios y moderadores se muestra en "
-"el menú izquierdo</strong>. Nunca debes escribir directamente a los "
-"propietario o moderadores de la lista. Si quieres realizar alguna pregunta o "
-"hacer algún comentario, debes utilizar la siguiente dirección: "
+"<strong>Los nombres de la lista de dueños y moderadores se muestra en el "
+"menú izquierdo</strong>. Nunca debes escribir directamente a lo dueño o "
+"moderador de la lista. Si quieres realizar alguna pregunta o hacer algún "
+"comentario, deberías utilizar la siguiente dirección: "
 "<strong>nombredelalista-request@%1</strong> (cambia 'nombredelalista' por el "
 "nombre de la lista en cuestión)."
 
@@ -7100,10 +7097,11 @@ msgid ""
 "basis. This digest compiles a group of messages from the list, using plain "
 "text format. The digest frequency is set up by the list owner."
 msgstr ""
-"<strong>digest plain text format</strong>: en vez de recibir los mensajes de "
-"la lista de forma normal, recibirás un resumen. El resumen recopila un grupo "
-"de mensajes de la lista, utilizando formato de texto plano. La frecuencia "
-"del resumen lo establece el propietario de la lista."
+"<strong>resumen en formato de texto plano</strong>: en vez de recibir los "
+"mensajes de la lista de forma normal, recibirás regularmente un resumen de "
+"ellos. El resumen recopila un grupo de mensajes de la lista, utilizando "
+"formato de texto plano. La frecuencia del resumen lo establece el dueño de "
+"la lista."
 
 #: default/web_tt2/help_user.tt2:108
 msgid ""
@@ -7111,9 +7109,9 @@ msgid ""
 "normal manner, you will get a list of them on a regular basis. To read the "
 "messages, you will need to browse the online list archive."
 msgstr ""
-"<strong>modo de listado</strong>: en vez de recibir los mensajes de la lista "
-"de forma normal, tendrás un listado de ellos. Para leer los mensajes, debes "
-"navegar por el archivo online de la lista."
+"<strong>modo resumen</strong>: en vez de recibir los mensajes de la lista de "
+"forma normal, tendrás regularmente un listado de ellos. Para leer los "
+"mensajes, debes navegar por el archivo web de la lista."
 
 #: default/web_tt2/help_user.tt2:109
 msgid ""
@@ -7145,7 +7143,7 @@ msgid ""
 "<acronym lang=\"en\" xml:lang=\"en\" title=\"HyperText Markup Language"
 "\">HTML</acronym>)."
 msgstr ""
-"<strong>modo sólo texto</strong: este modo permite recibir únicamente la "
+"<strong>modo sólo texto</strong>: este modo permite recibir únicamente la "
 "versión en texto (text/plain) de un mensaje enviado en varios formatos "
 "(texto plano y <acronym lang=\"en\" xml:lang=\"en\" title=\"HyperText Markup "
 "Language\">HTML</acronym>)."
@@ -7213,8 +7211,9 @@ msgid ""
 "to review the list members)."
 msgstr ""
 "<strong>listado en la página de revisión de la lista</strong>: tu nombre y "
-"dirección de correo se mostrará en la lista de suscriptores (en caso de que "
-"el propietario permita ver a otros suscriptores dicha lista)."
+"dirección de correo electrónico se mostrarán en el listado de miembros (si "
+"el dueño de la lista permitió a los suscriptores revisar los miembros de la "
+"lista)."
 
 #: default/web_tt2/help_user.tt2:121
 msgid ""
@@ -7334,7 +7333,7 @@ msgstr ""
 
 #: default/web_tt2/help_user.tt2:142
 msgid "your <strong>list password</strong>."
-msgstr "tu <strong>password de lista</strong>."
+msgstr "tu <strong>contraseña de lista</strong>."
 
 #: default/web_tt2/help_user.tt2:144
 msgid ""
@@ -7363,7 +7362,7 @@ msgid ""
 "home\">list environment homepage</a>;"
 msgstr ""
 "<strong>navegar por las diferentes secciones</strong> mostradas en <a href="
-"\"%1/home\">la página de inicio del entorno web</a>"
+"\"%1/home\">el inicio del entorno web de la lista</a>;"
 
 #: default/web_tt2/help_user.tt2:150
 msgid ""
@@ -7402,7 +7401,7 @@ msgstr ""
 
 #: default/web_tt2/help_user.tt2:155
 msgid "Reading a list archive online"
-msgstr "Leer el archivo online de una lista"
+msgstr "Leyendo un archivo web de la lista"
 
 #. (path_cgi)
 #: default/web_tt2/help_user.tt2:156
@@ -7432,20 +7431,17 @@ msgstr ""
 "espacio web compartido de documentos</strong></a>."
 
 #: default/web_tt2/help_user.tt2:164
-#, fuzzy
 msgid "Suspending or resuming your subscription of each list"
-msgstr ""
-"una <a href=\"%1/help/user\">guía de usuario</a> acerca del uso de Sympa;"
+msgstr "Suspendidiento o continuando tu suscripción de cada lista"
 
 #. (path_cgi)
 #: default/web_tt2/help_user.tt2:165
-#, fuzzy
 msgid ""
 "Please refer to the <a href=\"%1/help/suspend\"><strong>subscription "
 "management documentation</strong></a>."
 msgstr ""
-"Por favor revisa la <a href=\"%1/help/arc\"><strong>documentación del "
-"archivo</strong></a>"
+"Por favor revisa la <a href=\"%1/help/suspend\"><strong>documentación de "
+"administración de la suscripción</strong></a>"
 
 #: default/web_tt2/help_user.tt2:167
 msgid "Unsubscribing from lists"
