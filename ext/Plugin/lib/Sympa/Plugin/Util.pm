@@ -19,7 +19,8 @@ our %EXPORT_TAGS =
   , functions => [@obj, @log]
   );
 
-use report;
+use Sympa;
+use Sympa::Report;
 
 =head1 NAME
 
@@ -85,8 +86,8 @@ The object returned offers the following methods:
 
 =head3 $db->do(DBH, QUERY, BINDS)
 
-In "core" named SDM::do_query(), but here with bindings, to remove the need
-for SDM::quote().
+In "core" named do_query(), but here with bindings, to remove the need for
+quote().
 
 =cut
 
@@ -94,7 +95,8 @@ for SDM::quote().
 
    sub prepared($$@)
    {   my $db = shift;
-       SDM::do_prepared_query(@_);
+       my $sdm = Sympa::DatabaseManager->instance;
+       $sdm->do_prepared_query(@_);
    }
 
    sub do($$@)               # I want automatic quoting
@@ -113,22 +115,22 @@ sub default_db() { $default_db || (bless {}, 'SPU_db') }
 
 =head3 $reporter->rejectToWeb(@options);
 
-OO wrapper around C<eport::reject_report_web()>
+OO wrapper around C<Sympa::Report::reject_report_web()>
 
 =head3 $reporter->noticeToWeb(@options);
 
-OO wrapper around C<eport::notice_report_web()>
+OO wrapper around C<Sympa::Report::notice_report_web()>
 
 =head3 $reporter->rejectPerlEmail(@options);
 
-OO wrapper around C<eport::reject_report_msg()>
+OO wrapper around C<Sympa::send_notify_to_user()>
 
 =cut
 
 {  package SPU_report;
-   sub rejectToWeb(@)    { my $self = shift; report::reject_report_web(@_) }
-   sub noticeToWeb(@)    { my $self = shift; report::notice_report_web(@_) }
-   sub rejectPerEmail(@) { my $self = shift; report::reject_report_msg(@_) }
+   sub rejectToWeb(@)    { my $self = shift; Sympa::Report::reject_report_web(@_) }
+   sub noticeToWeb(@)    { my $self = shift; Sympa::Report::notice_report_web(@_) }
+   sub rejectPerEmail(@) { my $self = shift; Sympa::send_notify_to_user($_[4], $_[0], $_[2], {%{$_[3]}, entry => $_[1]}) }
 }
 
 my $report;
@@ -170,17 +172,17 @@ sub plugin($;$) { @_==2 ? ($plugins{$_[0]} = $_[1]) :  $plugins{$_[0]} }
 
 =cut
 
-sub log(@)   { goto &Sympa::Log::Syslog::do_log }
-sub fatal(@) { goto &Sympa::Log::Syslog::fatal_err }
+sub log(@)   { unshift @_, Sympa::Log->instance; goto &Sympa::Log::syslog; }
+sub fatal(@) { die @_; }
 
 sub trace_call(@)          # simplification of method logging
 {   my $sub = (caller 1)[3];
     local $" =  ',';
-    @_ = (debug2 => "$sub(@_)");
-    goto &Sympa::Log::Syslog::do_log;
+    @_ = (Sympa::Log->instance, debug2 => "$sub(@_)");
+    goto &Sympa::Log::syslog;
 }
 
-# These should (have been) modularized via Sympa::Log::Syslog::
+# These should (have been) modularized via Sympa::Log::
 *wwslog     = \&main::wwslog;
 *web_db_log = \&main::web_db_log;
 

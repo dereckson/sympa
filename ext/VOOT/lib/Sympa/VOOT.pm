@@ -10,7 +10,8 @@ use JSON           qw/decode_json/;
 use List::Util     qw/first/;
 
 # Sympa modules
-use Site;
+use Sympa;
+use Sympa::Tools::Text;
 use Sympa::Plugin::Util   qw/:log reporter/;
 use Sympa::VOOT::Consumer ();
 
@@ -86,7 +87,7 @@ sub init($)
     $args->{website}     ||= 'Sympa::VOOT::Website';
     $self->SUPER::init($args);
 
-    my $config = $args->{config} || Site->get_etc_filename('voot.conf');
+    my $config = $args->{config} || Sympa::search_fullpath('*', 'voot.conf');
 
     if(ref $config eq 'HASH')
     {   $self->{SV_config}    = $config;
@@ -264,7 +265,7 @@ sub getListMembers(%)
         my $mem_email = $member->{emails}[0]
             or next MEMBER;
 
-	unless (tools::valid_email($mem_email))
+	unless (Sympa::Tools::Text::valid_email($mem_email))
         {   log(err => "skip malformed address '$mem_email' in $groupid");
             next MEMBER;
         }
@@ -309,12 +310,12 @@ sub reportListError($$)
 
     reporter->rejectToWeb
       ( user => 'sync_include_voot_failed.tt2', $conf
-      , 'sync_include', $list->domain, $conf->{user}, $list->name
+      , 'sync_include', $list->{'domain'}, $conf->{user}, $list->{'name'}
       );
 
     reporter->rejectPerEmail
       ( plugin => 'message_report_voot_failed.tt2', $conf->{user}
-      , $conf, $list->robot, '', $list->name
+      , $conf, $list
       );
 
     1;
