@@ -1,0 +1,18 @@
+[%#
+- The types 'intern_error', 'user_error', 'authorization_reject' are no longer
+  supported.  Use delivery_status_notification.tt2.
+- The type 'plugin' is no longer supported.  Use user_notification.tt2.
+~%]
+Subject: [% FILTER qencode %][%|loc%]Message distribution[%END%][%END%]
+
+[% IF entry == 'moderating_message' -%]
+[%|loc(list.name)%]Your message for list %1 has been forwarded to editor(s)[%END%]
+[% ELSIF entry == 'message_distributed' -%]
+[%|loc(key,list.name)%]Message %1 for list '%2' has been distributed.[%END%]
+[% ELSIF entry == 'message_rejected' -%]
+[%|loc(key,list.name)%]Message %1 for list '%2' has been rejected.[%END%]
+[% ELSIF entry == 'message_confirmed' -%]
+[%|loc(key,list.name)%]Your message for list '%2' with the %1 ID has been confirmed and distributed.[%END%]
+[% ELSE -%]
+[%entry%]
+[% END -%]

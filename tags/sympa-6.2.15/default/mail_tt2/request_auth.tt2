@@ -1,0 +1,37 @@
+[%# $Id$ ~%]
+To: [% to %]
+Subject: [% FILTER qencode %]AUTH [%keyauth%] [%cmd%][%END%]
+
+  [% IF type == 'signoff' -%]
+[%|loc(list.name)-%]You asked for your e-mail address to be removed from list '%1'.[%- END -%]
+
+  [%- ELSIF type == 'subscribe'  -%]
+[%|loc(list.name)-%]You asked for your e-mail address to be added to list '%1'.[%- END -%]
+
+  [%- ELSIF type == 'add' -%]
+[%|loc(list.name)-%]You requested a user subscription in list %1.[%- END -%]
+
+  [%- ELSIF type == 'del' -%]
+[%|loc(list.name)-%]You requested a user removal from list %1.[%- END -%]
+
+  [%- ELSIF type == 'remind' -%]
+[%|loc(list.name)-%]You requested a subscription reminder to be sent to each subscriber of list %1[%- END -%]
+
+  [%- ELSIF type == 'global_remind' -%]
+[%|loc-%]You requested a subscription reminder to be sent to each subscriber of list '*'[%- END -%]
+[%- END -%]	
+
+[% sympa = BLOCK %][% conf.email %]@[% conf.host %][%END%]
+[%|loc(sympa,"AUTH ${keyauth} ${cmd}") %]If you want this action to be taken, please
+
+- reply to this mail
+OR
+- send a message to %1 with subject
+ %2
+OR
+- hit the following mailto[% END %]
+ [% | mailtourl({subject => "AUTH ${keyauth} ${cmd}"}) ~%]
+   [% conf.email %]@[% conf.host %]
+ [%~ END %]
+
+[%|loc-%]If you do not want this action to be taken, you can safely ignore this message.[% END %]
