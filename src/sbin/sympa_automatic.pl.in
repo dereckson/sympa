@@ -1,0 +1,419 @@
+#!--PERL--
+# -*- indent-tabs-mode: nil; -*-
+# vim:ft=perl:et:sw=4
+# $Id$
+
+# Sympa - SYsteme de Multi-Postage Automatique
+#
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015, 2016 GIP RENATER
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use lib split(/:/, $ENV{SYMPALIB} || ''), '--modulesdir--';
+use strict;
+use warnings;
+use English qw(-no_match_vars);
+use Getopt::Long;
+use Pod::Usage;
+use POSIX qw();
+
+use Sympa::Alarm;
+use Conf;
+use Sympa::Constants;
+use Sympa::Crash;    # Show traceback.
+use Sympa::DatabaseManager;
+use Sympa::Log;
+use Sympa::Mailer;
+use Sympa::Process;
+use Sympa::Spindle::ProcessAutomatic;
+use Sympa::Tools::Data;
+
+my $process = Sympa::Process->instance;
+$process->init(pidname => 'sympa_automatic', name => 'sympa/automatic');
+
+## Init random engine
+srand(time());
+
+# Check options.
+my %options;
+unless (
+    GetOptions(
+        \%main::options, 'debug|d', 'log_level=s',  'foreground',
+        'config|f=s',    'mail|m',  'keepcopy|k=s', 'help|h',
+        'version|v',
+    )
+    ) {
+    pod2usage(-exitval => 1, -output => \*STDERR);
+}
+if ($main::options{'help'}) {
+    pod2usage(0);
+} elsif ($main::options{'version'}) {
+    printf "Sympa %s\n", Sympa::Constants::VERSION;
+    exit 0;
+}
+$Conf::sympa_config = $main::options{config};
+
+if ($main::options{'debug'}) {
+    $main::options{'log_level'} = 2 unless $main::options{'log_level'};
+    $main::options{'foreground'} = 1;
+}
+
+my $log = Sympa::Log->instance;
+$log->{log_to_stderr} = 'all' if $main::options{'foreground'};
+
+my $mailer = Sympa::Mailer->instance;
+
+_load();
+
+# Put ourselves in background if we're not in debug mode.
+unless ($main::options{'foreground'}) {
+    $process->daemonize;
+}
+
+$log->openlog($Conf::Conf{'syslog'}, $Conf::Conf{'log_socket_type'});
+
+# Create and write the PID file.
+$process->write_pid(initial => 1);
+# If process is running in foreground, don't write STDERR to a dedicated file.
+unless ($main::options{foreground}) {
+    $process->direct_stderr_to_file;
+}
+
+# Set the User ID & Group ID for the process
+$GID = $EGID = (getgrnam(Sympa::Constants::GROUP))[2];
+$UID = $EUID = (getpwnam(Sympa::Constants::USER))[2];
+
+## Required on FreeBSD to change ALL IDs
+## (effective UID + real UID + saved UID)
+POSIX::setuid((getpwnam(Sympa::Constants::USER))[2]);
+POSIX::setgid((getgrnam(Sympa::Constants::GROUP))[2]);
+
+## Check if the UID has correctly been set (useful on OS X)
+unless (($GID == (getgrnam(Sympa::Constants::GROUP))[2])
+    && ($UID == (getpwnam(Sympa::Constants::USER))[2])) {
+    die
+        "Failed to change process user ID and group ID. Note that on some OS Perl scripts can't change their real UID. In such circumstances Sympa should be run via sudo.\n";
+}
+
+# Sets the UMASK
+umask(oct($Conf::Conf{'umask'}));
+
+## Most initializations have now been done.
+$log->syslog(
+    'notice',
+    'Sympa/automatic %s Started',
+    Sympa::Constants::VERSION()
+);
+
+sleep 1;    ## wait until main process has created required directories
+
+## Do we have right access in the directory
+if ($main::options{'keepcopy'}) {
+    if (!-d $main::options{'keepcopy'}) {
+        $log->syslog(
+            'notice',
+            'Cannot keep a copy of incoming messages: %s is not a directory',
+            $main::options{'keepcopy'}
+        );
+        delete $main::options{'keepcopy'};
+    } elsif (!-w $main::options{'keepcopy'}) {
+        $log->syslog(
+            'notice',
+            'Cannot keep a copy of incoming messages: no write access to %s',
+            $main::options{'keepcopy'}
+        );
+        delete $main::options{'keepcopy'};
+    }
+}
+
+my $spindle = Sympa::Spindle::ProcessAutomatic->new(
+    keepcopy  => $main::options{keepcopy},
+    log_level => $main::options{log_level},
+    log_smtp  => $main::options{mail}
+);
+
+# Catch signals, in order to exit cleanly, whenever possible.
+$SIG{'TERM'} = 'sigterm';
+$SIG{'INT'}  = 'sigterm';    # Interrupt from terminal.
+$SIG{'HUP'}  = 'sighup';
+$SIG{'PIPE'} = 'IGNORE';     # Ignore SIGPIPE ; prevents process from dying
+
+# Main loop.
+# This loop is run foreach HUP signal received.
+# This is the main loop : look for files in the directory, handles
+# them, sleeps a while and continues the good job.
+
+while (not $spindle->{finish} or $spindle->{finish} ne 'term') {
+    $spindle->spin;
+
+    if ($spindle->{finish} and $spindle->{finish} eq 'hup') {
+        # Disconnect from Database
+        Sympa::DatabaseManager->disconnect;
+
+        $log->syslog('notice', "Reloading sympa/automatic daemon");
+        _load();
+        $spindle = Sympa::Spindle::ProcessAutomatic->new(
+            keepcopy  => $main::options{keepcopy},
+            log_level => $main::options{log_level},
+            log_smtp  => $main::options{mail}
+        );
+        next;
+    } elsif ($spindle->{finish}) {
+        last;
+    }
+
+    # If the spool was empty, sleep for a while.
+    sleep $Conf::Conf{'sleep'};
+}
+
+# Purge grouped notifications
+Sympa::Alarm->instance->flush(purge => 1);
+
+## Free zombie sendmail processes.
+#Sympa::Process->instance->reap_child;
+
+$log->syslog('notice', 'Sympa/automatic exited normally due to signal');
+$process->remove_pid(final => 1);
+
+exit(0);
+
+# Load configuration.
+sub _load {
+    ## Load sympa.conf.
+    unless (Conf::load(Conf::get_sympa_conf(), 'no_db')) {    #Site and Robot
+        die sprintf
+            "Unable to load sympa configuration, file %s or one of the vhost robot.conf files contain errors. Exiting.\n",
+            Conf::get_sympa_conf();
+    }
+
+    ## Open the syslog and say we're read out stuff.
+    $log->openlog($Conf::Conf{'syslog'}, $Conf::Conf{'log_socket_type'});
+
+    # Enable SMTP logging if required
+    $mailer->{log_smtp} = $main::options{'mail'}
+        || Sympa::Tools::Data::smart_eq($Conf::Conf{'log_smtp'}, 'on');
+
+    # setting log_level using conf unless it is set by calling option
+    if (defined $main::options{'log_level'}) {
+        $log->{level} = $main::options{'log_level'};
+        $log->syslog(
+            'info',
+            'Configuration file read, log level set using options: %s',
+            $main::options{'log_level'}
+        );
+    } else {
+        $log->{level} = $Conf::Conf{'log_level'};
+        $log->syslog(
+            'info',
+            'Configuration file read, default log level %s',
+            $Conf::Conf{'log_level'}
+        );
+    }
+
+    if (Conf::cookie_changed()) {
+        die sprintf
+            'sympa.conf/cookie parameter has changed. You may have severe inconsitencies into password storage. Restore previous cookie or write some tool to re-encrypt password in database and check spools contents (look at %s/cookies.history file).',
+            $Conf::Conf{'etc'};
+    }
+
+    # Check database connectivity.
+    unless (Sympa::DatabaseManager->instance) {
+        die sprintf
+            "Database %s defined in sympa.conf is unreachable. verify db_xxx parameters in sympa.conf\n",
+            $Conf::Conf{'db_name'};
+    }
+
+    # Now trying to load full config (including database)
+    unless (Conf::load()) {    #FIXME: load Site, then robot cache
+        die sprintf
+            "Unable to load Sympa configuration, file %s or any of the virtual host robot.conf files contain errors. Exiting.\n",
+            Conf::get_sympa_conf();
+    }
+
+    ## Main program
+    if (!chdir($Conf::Conf{'home'})) {
+        die sprintf 'Can\'t chdir to %s: %s', $Conf::Conf{'home'}, $ERRNO;
+        ## Function never returns.
+    }
+
+    ## Check for several files.
+    unless (Conf::checkfiles_as_root()) {
+        die "Missing files\n";
+    }
+}
+
+############################################################
+# sigterm
+############################################################
+#  When we catch signal, just changes the $spindle->{finish}.
+#
+# IN : -
+#
+# OUT : -
+#
+############################################################
+sub sigterm {
+    my $sig = shift;
+    $log->syslog('notice',
+        'Signal %s received, still processing current task', $sig);
+    $spindle->{finish} = 'term';
+}
+
+############################################################
+# sighup
+############################################################
+#  When we catch SIGHUP, changes the value of $spindle->{finish}
+#  and puts the "-mail" logging option
+#
+# IN : -
+#
+# OUT : -
+#
+###########################################################
+sub sighup {
+    if ($mailer->{log_smtp}) {
+        $log->syslog('notice',
+            'signal HUP received, switch of the "-mail" logging option and continue current task'
+        );
+        $mailer->{log_smtp} = undef;
+    } else {
+        $log->syslog('notice',
+            'signal HUP received, switch on the "-mail" logging option and continue current task'
+        );
+        $mailer->{log_smtp} = 1;
+    }
+    $spindle->{finish} = 'hup';
+}
+
+# Moved to Sympa::Spindle::ProcessAutomatic::_twist().
+#sub process_message;
+
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+sympa_automatic, sympa_automatic.pl - Automatic list creation daemon
+
+=head1 SYNOPSIS
+
+S<B<sympa_automatic.pl> [ B<-d, --debug> ] [ B<-f, --file>=I<another.sympa.conf> ]>
+      S<[ B<-k, --keepcopy>=I<directory> ]>
+      S<[ [ B<-m, --mail> ]>
+      S<[ B<-h, --help> ]> [ B<-v, --version> ]
+
+=head1 DESCRIPTION
+
+Sympa_automatic.pl is a program which scans permanently the automatic creation
+spool and processes each message.
+
+If the list a message is bound for has not been there and list creation is
+authorized, it will be created.  Then the message is stored into incoming
+message spool again and wait for processing by F<sympa_msg.pl>.
+
+=head1 OPTIONS
+
+F<sympa_automatic.pl> may run with following options in general.
+
+=over 4
+
+=item B<-d>, B<--debug>
+
+Enable debug mode.
+
+=item B<-f>, B<--config=>I<file>
+
+Force Sympa to use an alternative configuration file instead
+of F<--CONFIG-->.
+
+=item B<--log_level=>I<level>
+
+Sets Sympa log level.
+
+=back
+
+F<sympa_automatic.pl> may run in daemon mode with following options.
+
+=over 4
+
+=item B<--foreground>
+
+The process remains attached to the TTY.
+
+=item B<-k>, B<--keepcopy=>F<directory>
+
+This option tells Sympa to keep a copy of every incoming message, 
+instead of deleting them. `directory' is the directory to 
+store messages.
+
+=item B<-m>, B<--mail>
+
+Sympa will log calls to sendmail, including recipients. This option is
+useful for keeping track of each mail sent (log files may grow faster
+though).
+
+=back
+
+With following options F<sympa_automatic.pl> will print some information and exit.
+
+=over 4
+
+=item B<-h>, B<--help>
+
+Print this help message.
+
+=item B<-v>, B<--version>
+
+Print the version number.
+
+=back
+
+=head1 FILES
+
+F<--CONFIG--> main configuration file.
+
+F<--piddir--/sympa_automatic.pid> this file contains the process ID
+of F<sympa_automatic.pl>.
+
+=head1 SEE ALSO
+
+L<sympa.conf(5)>, L<sympa_msg(8)>.
+
+L<Sympa::Spindle::ProcessAutomatic>.
+
+=head1 HISTORY
+
+F<sympa.pl> was originally written by:
+
+=over 4
+
+=item Serge Aumont
+
+ComitE<233> RE<233>seau des UniversitE<233>s
+
+=item Olivier SalaE<252>n
+
+ComitE<233> RE<233>seau des UniversitE<233>s
+
+=back
+
+As of Sympa 6.2b.4, it was split into three programs:
+F<sympa.pl> command line utility, F<sympa_automatic.pl> daemon and
+F<sympa_msg.pl> daemon.
+
+=cut

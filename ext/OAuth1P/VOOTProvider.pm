@@ -42,10 +42,9 @@ use JSON::XS;
 use Data::Dumper;
 
 #use List;
-use tools;
 #use tt2;
 use Conf;
-use Log;
+use Sympa::Log;
 
 =pod 
 
@@ -96,7 +95,7 @@ Creates a new VOOTProvider object.
 
 =over 
 
-=item * Sympa::Log::Syslog::do_log
+=item * Sympa::Log::syslog()
 
 =back 
 
@@ -107,7 +106,7 @@ sub new {
 	my $pkg = shift;
 	my %param = @_;
 	
-	Sympa::Log::Syslog::do_log('debug2', 'OAuthProvider::new()');
+	Sympa::Log->instance->syslog('debug2', 'OAuthProvider::new()');
 	
 	my $provider = {
 		oauth_provider => new OAuthProvider(
@@ -287,19 +286,19 @@ Get user groups
 ## Get groups for user
 sub getGroups {
 	my $self = shift;
-	Sympa::Log::Syslog::do_log('debug2', 'VOOTProvider::getGroups(%s)', $self->{'user'});
+	Sympa::Log->instance->syslog('debug2', 'VOOTProvider::getGroups(%s)', $self->{'user'});
 	
 	my @entries = ();
 	
-	#foreach my $list (&List::get_which($self->{'user'}, $self->{'robot'}, 'owner')) {
+	#foreach my $list (Sympa::List::get_which($self->{'user'}, $self->{'robot'}, 'owner')) {
 	#	push(@entries, $self->_list_to_group($list, 'admin'));
 	#}
 	
-	#foreach my $list (&List::get_which($self->{'user'}, $self->{'robot'}, 'editor')) {
+	#foreach my $list (Sympa::List::get_which($self->{'user'}, $self->{'robot'}, 'editor')) {
 	#	push(@entries, $self->_list_to_group($list, '???'));
 	#}
 	
-	foreach my $list (&List::get_which($self->{'user'}, $self->{'robot'}, 'member')) {
+	foreach my $list (Sympa::List::get_which($self->{'user'}, $self->{'robot'}, 'member')) {
 		push(@entries, $self->_list_to_group($list, 'member'));
 	}
 	
@@ -312,8 +311,8 @@ sub _list_to_group {
 	my $role = shift;
 	
 	return {
-		id => $list->name,
-		title => $list->subject,
+		id => $list->{'name'},
+		title => $list->{'admin'}{'subject'},
 		description => $list->get_info(),
 		voot_membership_role => $role
 	};
@@ -359,11 +358,11 @@ Get members of a group.
 sub getGroupMembers {
 	my $self = shift;
 	my %param = @_;
-	Sympa::Log::Syslog::do_log('debug2', 'VOOTProvider::getGroupMembers(%s, %s)', $self->{'user'}, $param{'group'});
+	Sympa::Log->instance->syslog('debug2', 'VOOTProvider::getGroupMembers(%s, %s)', $self->{'user'}, $param{'group'});
 	
 	my @entries = ();
 	
-	my $list = new List($param{'group'}, $self->{'robot'});
+	my $list = Sympa::List->new($param{'group'}, $self->{'robot'});
 	if(defined $list) {
 		my $r = Scenario::request_action($list, 'review', 'md5',
 			{'sender' => $self->{'user'}});

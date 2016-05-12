@@ -1,4 +1,4 @@
-<!-- $Id: manage_template.tt2 5269 2008-08-22 15:52:19Z peter.hart $ -->
+<!-- $Id$ -->
 
 <h2>[%|loc%]Modify or delete existing rejection messages[%END%]</h2>
 <p>
@@ -6,7 +6,8 @@
 [% IF available_files %]
 
 <table border="1">
-<table summary="[%|loc%]Listing rejection messages[%END%]" class="listOfItems">
+<table  class="responsive listOfItems">
+<caption>[%|loc%]Listing rejection messages[%END%]</caption>
 	<tr><th colspan="4">[%|loc%]Listing rejection messages[%END%]</th></tr>
 	<tr><th>[%|loc%]Use as default[%END%]</th><th>[%|loc%]Message name[%END%]</th><th colspan="2">[%|loc%]Operation[%END%]</th></tr>
 
@@ -32,10 +33,10 @@
 		[% file %]
 		</td>
                 <td  align="center">
-		<a href="[% path_cgi %]/manage_template/modify/[% list %]/[% file %]" class="MainMenuLinks">[%|loc%]Edit[%END%]</a>
+		<a href="[% 'manage_template/modify' | url_rel([list,file]) %]" class="MainMenuLinks">[%|loc%]Edit[%END%]</a>
 		</td>
 		<td align="center">
-		<a href="[% path_cgi %]/manage_template/delete/[% list %]/[% file %]" class="MainMenuLinks" onclick="return request_confirm('[% FILTER escape_quote %][%|loc(file)%]Do you really want to delete message %1?[%END%][%END%]')">[%|loc%]Delete[%END%]</a>
+		<a href="[% 'manage_template/delete' | url_rel([list,file]) %]" class="MainMenuLinks" onclick="return request_confirm('[% | escape_quote %][%|loc(file)%]Do you really want to delete message %1?[%END%][%END%]')">[%|loc%]Delete[%END%]</a>
 		</td>
 		</tr>
 	[% END %]
@@ -60,7 +61,8 @@
 <!-- <input class="MainMenuLinks" type="submit" name="subaction_default" value="[%|loc%]Default Message[%END%]" /> -->
 
 <textarea name="template_content" cols="50" rows="10" wrap="soft">
-[% content %]</textarea>
+  [%~ content ~%]
+</textarea>
 </p>
 <p>
 <input class="MainMenuLinks" type="submit" name="subaction_save" value="[%|loc%]Save Message[%END%]" />

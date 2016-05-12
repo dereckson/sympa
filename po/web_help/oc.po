@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: oc\n"
 "POT-Creation-Date: 2007-11-13 14:50+0200\n"
-"PO-Revision-Date: 2013-01-23 11:38+0200\n"
+"PO-Revision-Date: 2013-10-22 10:23+0000\n"
 "Last-Translator: Cedric31 <cvalmary@yahoo.fr>\n"
 "Language-Team: occitan <asso.oc@abuledu.org>\n"
 "MIME-Version: 1.0\n"
@@ -28,7 +28,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: oc\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"X-Generator: Pootle 2.5.1\n"
+"X-POOTLE-MTIME: 1382437391.000000\n"
 
 #: default/web_tt2/help_admin.tt2:3
 msgid "Mailing lists - Owner and moderator guide"
@@ -98,7 +99,7 @@ msgid ""
 "required to create a list."
 msgstr ""
 
-#. (conf.host)
+#. ('',conf.host)
 #: default/web_tt2/help_admin.tt2:22
 msgid ""
 "Give your list a <strong>name</strong> (only enter the name without the '@' "
@@ -112,6 +113,7 @@ msgid ""
 "characters might cause problems."
 msgstr ""
 
+#. ('',conf.host)
 #: default/web_tt2/help_admin.tt2:24
 msgid ""
 "Choose an explicit yet short name: think of the subscribers who will have to "
@@ -1613,7 +1615,7 @@ msgstr ""
 "Pè de messatge : Identic al<em>Encap de messatge </em> mas estacat en fin de "
 "messatge."
 
-#: default/web_tt2/help_editlist.tt2:184 default/web_tt2/help_editlist.tt2:6
+#: default/web_tt2/help_editlist.tt2:6
 msgid ":"
 msgstr ""
 
@@ -2351,6 +2353,33 @@ msgid ""
 "As a last resort, <strong>contact the listmaster</strong>, who will check "
 "the mail server logs in order to find the cause of the problem."
 msgstr ""
+
+#: default/web_tt2/help_faq.tt2:4
+msgid "User and admin FAQ"
+msgstr ""
+
+#. (path_cgi)
+#: default/web_tt2/help.tt2:20 default/web_tt2/help_faq.tt2:6
+msgid ""
+"If you want to perform a particular task, take a look at the list of all <a "
+"href=\"%1/help/introduction#features\">available features</a> in the mailing "
+"list management software Sympa."
+msgstr ""
+"Se volètz efectuar un prètzfach particular, consultatz la lista de las <a "
+"href=\"%1/help/introduction#features\">possibilitats ofèrtas</a> pel sistèma "
+"de gestion de listas de difusion Sympa."
+
+#. (path_cgi)
+#: default/web_tt2/help.tt2:21 default/web_tt2/help_faq.tt2:7
+msgid ""
+"If you experience any problem, please refer to the <a href=\"%1/help/faquser"
+"\">users <acronym title=\"Frequently asked questions\">FAQ</acronym></a> or "
+"to the <a href=\"%1/help/faqadmin\">administrators <acronym title="
+"\"Frequently asked questions\">FAQ</acronym></a>."
+msgstr ""
+"Se rencontratz un problèma particular, reportatz-vos dirèctement a la <a "
+"href=\"%1/help/faqadmin\"><acronym title=\"Fèira de las questions, "
+"Frequently asked questions\">FAQ</acronym> dels administrators</a>."
 
 #: default/web_tt2/help_faquser.tt2:3
 msgid "Users Frequently Asked Questions"
@@ -4974,32 +5003,10 @@ msgstr ""
 "una <a href=\"%1/help/admin\">documentacion destinada als administrators</a> "
 "de las listas de difusion."
 
-#. (path_cgi)
-#: default/web_tt2/help.tt2:20
-msgid ""
-"If you want to perform a particular task, take a look at the list of all <a "
-"href=\"%1/help/introduction#features\">available features</a> in the mailing "
-"list management software Sympa."
-msgstr ""
-"Se volètz efectuar un prètzfach particular, consultatz la lista de las <a "
-"href=\"%1/help/introduction#features\">possibilitats ofèrtas</a> pel sistèma "
-"de gestion de listas de difusion Sympa."
-
-#. (path_cgi)
-#: default/web_tt2/help.tt2:21
-msgid ""
-"If you experience any problem, please refer to the <a href=\"%1/help/faquser"
-"\">users <acronym title=\"Frequently asked questions\">FAQ</acronym></a> or "
-"to the <a href=\"%1/help/faqadmin\">administrators <acronym title="
-"\"Frequently asked questions\">FAQ</acronym></a>."
-msgstr ""
-"Se rencontratz un problèma particular, reportatz-vos dirèctement a la <a "
-"href=\"%1/help/faqadmin\"><acronym title=\"Fèira de las questions, "
-"Frequently asked questions\">FAQ</acronym> dels administrators</a>."
-
 #: default/web_tt2/help_user_options.tt2:3
+#, fuzzy
 msgid ""
-"This is a description of the receivie modes available in Sympa. These "
+"This is a description of the reception modes available in Sympa. These "
 "options are mutually exclusive, which means that you can't set two different "
 "receive modes at the same time. Only some of the modes might be available to "
 "specific mailing lists."

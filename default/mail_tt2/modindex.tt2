@@ -1,3 +1,4 @@
+[%# $Id$ ~%]
 From: [% fromlist %]
 Subject: [% FILTER qencode %][%|loc(list.name)%]Moderation spool for list %1[%END%][%END%]
 Content-Type: multipart/mixed; boundary="[% boundary1 %]"
@@ -7,9 +8,7 @@ Content-Disposition: inline
 
 [%|loc(total,list.name,list.host)%]There are %1 messages to be moderated for list %2@%3[%END%]
 
-[%|loc%]You can moderate them using the web interface:[%END%] <[% conf.wwsympa_url %]/modindex/[% list.name %]>
-
-[%|loc%]The messages moderating documentation:[%END%] <[% conf.wwsympa_url %]/help/admin#moderate>
+[%|loc%]The messages moderating documentation:[%END%] <[% 'help/admin' | url_abs %]#moderate>
 
 [% IF spool %]
 --[% boundary1 %]
@@ -25,6 +24,8 @@ Content-Type: message/rfc822
 Content-Transfer-Encoding: 8bit
 Content-Disposition: inline
 X-Sympa-Attach: yes
+
+[% msg %]
 
 [% END %]
 --[% boundary2 %]--

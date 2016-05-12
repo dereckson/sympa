@@ -4,9 +4,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015, 2016 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,11 +25,15 @@
 package Sympa::Fetch;
 
 use strict;
+use warnings;
 
-use Sympa::Logger;
+use Sympa::Log;
+
+my $log = Sympa::Log->instance;
 
 # request a document using https, return status and content
 sub get_https {
+    $log->syslog('debug2', '(%s, %s, %s, %s, %s, %s)', @_);
     my $host        = shift;
     my $port        = shift;
     my $path        = shift;
@@ -40,23 +45,15 @@ sub get_https {
     my $trusted_ca_file = $ssl_data->{'cafile'};
     my $trusted_ca_path = $ssl_data->{'capath'};
 
-    $main::logger->do_log(
-        Sympa::Logger::DEBUG,          'get_https (%s,%s,%s,%s,%s,%s,%s,%s)',
-        $host,            $port,
-        $path,            $client_cert,
-        $client_key,      $key_passwd,
-        $trusted_ca_file, $trusted_ca_path
-    );
-
     unless (-r ($trusted_ca_file) || (-d $trusted_ca_path)) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            "error : incorrect access to cafile $trusted_ca_file or capath $trusted_ca_path"
+        $log->syslog('err',
+            "error : incorrect access to cafile $trusted_ca_file bor capath $trusted_ca_path"
         );
         return undef;
     }
 
     unless (eval "require IO::Socket::SSL") {
-        $main::logger->do_log(Sympa::Logger::ERR,
+        $log->syslog('err',
             "Unable to use SSL library, IO::Socket::SSL required, install IO-Socket-SSL (CPAN) first"
         );
         return undef;
@@ -64,7 +61,7 @@ sub get_https {
     require IO::Socket::SSL;
 
     unless (eval "require LWP::UserAgent") {
-        $main::logger->do_log(Sympa::Logger::ERR,
+        $log->syslog('err',
             "Unable to use LWP library, LWP::UserAgent required, install LWP (CPAN) first"
         );
         return undef;
@@ -88,40 +85,38 @@ sub get_https {
     );
 
     unless ($ssl_socket) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'error %s unable to connect https://%s:%s/',
-            $IO::Socket::SSL::errstr, $host, $port);
+        $log->syslog('err', 'Error %s unable to connect https://%s:%s/',
+            IO::Socket::SSL::errstr(), $host, $port);
         return undef;
     }
-    $main::logger->do_log(Sympa::Logger::DEBUG, 'connected to https://%s:%s/',
-        $IO::Socket::SSL::errstr, $host, $port);
+    $log->syslog('debug', 'Connected to https://%s:%s/',
+        IO::Socket::SSL::errstr(), $host, $port);
 
     if (ref($ssl_socket) eq "IO::Socket::SSL") {
         my $subject_name = $ssl_socket->peer_certificate("subject");
         my $issuer_name  = $ssl_socket->peer_certificate("issuer");
         my $cipher       = $ssl_socket->get_cipher();
-        $main::logger->do_log(Sympa::Logger::DEBUG,
-            'ssl peer certificat %s issued by %s. Cipher used %s',
+        $log->syslog('debug',
+            'SSL peer certificate %s issued by %s. Cipher used %s',
             $subject_name, $issuer_name, $cipher);
     }
 
     print $ssl_socket "GET $path HTTP/1.0\nHost: $host\n\n";
 
-    $main::logger->do_log(Sympa::Logger::DEBUG, "requested GET $path HTTP/1.1");
-
+    $log->syslog('debug', 'Requested GET %s HTTP/1.1', $path);
     #my ($buffer) = $ssl_socket->getlines;
     # print STDERR $buffer;
-    #$main::logger->do_log (Sympa::Logger::DEBUG,"return");
+    #$log->syslog ('debug',"return");
     #return ;
 
-    $main::logger->do_log(Sympa::Logger::DEBUG, "get_https reading answer");
+    $log->syslog('debug', 'Get_https reading answer');
     my @result;
     while (my $line = $ssl_socket->getline) {
         push @result, $line;
     }
 
     $ssl_socket->close(SSL_no_shutdown => 1);
-    $main::logger->do_log(Sympa::Logger::DEBUG, "disconnected");
+    $log->syslog('debug', 'Disconnected');
 
     return (@result);
 }
@@ -135,22 +130,22 @@ sub get_https2 {
     my $ssl_data = shift;
 
     my $trusted_ca_file = $ssl_data->{'cafile'};
-    $trusted_ca_file ||= Sympa::Site->cafile;
+    $trusted_ca_file ||= $Conf::Conf{'cafile'};
     my $trusted_ca_path = $ssl_data->{'capath'};
-    $trusted_ca_path ||= Sympa::Site->capath;
+    $trusted_ca_path ||= $Conf::Conf{'capath'};
 
-    $main::logger->do_log(Sympa::Logger::DEBUG, 'Fetch::get_https2 (%s,%s,%s,%s,%s)',
+    $log->syslog('debug', '(%s, %s, %s, %s, %s)',
         $host, $port, $path, $trusted_ca_file, $trusted_ca_path);
 
     unless (-r ($trusted_ca_file) || (-d $trusted_ca_path)) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            "error : incorrect access to cafile $trusted_ca_file or capath $trusted_ca_path"
+        $log->syslog('err',
+            "error : incorrect access to cafile $trusted_ca_file bor capath $trusted_ca_path"
         );
         return undef;
     }
 
     unless (eval "require IO::Socket::SSL") {
-        $main::logger->do_log(Sympa::Logger::ERR,
+        $log->syslog('err',
             "Unable to use SSL library, IO::Socket::SSL required, install IO-Socket-SSL (CPAN) first"
         );
         return undef;
@@ -158,7 +153,7 @@ sub get_https2 {
     require IO::Socket::SSL;
 
     unless (eval "require LWP::UserAgent") {
-        $main::logger->do_log(Sympa::Logger::ERR,
+        $log->syslog('err',
             "Unable to use LWP library, LWP::UserAgent required, install LWP (CPAN) first"
         );
         return undef;
@@ -179,41 +174,39 @@ sub get_https2 {
     );
 
     unless ($ssl_socket) {
-        $main::logger->do_log(Sympa::Logger::ERR,
-            'error %s unable to connect https://%s:%s/',
-            $IO::Socket::SSL::errstr, $host, $port);
+        $log->syslog('err', 'Error %s unable to connect https://%s:%s/',
+            IO::Socket::SSL::errstr(), $host, $port);
         return undef;
     }
-    $main::logger->do_log(Sympa::Logger::DEBUG, "connected to https://$host:$port/");
+    $log->syslog('debug', 'Connected to https://%s:%s/', $host, $port);
 
-    #	if( ref($ssl_socket) eq "IO::Socket::SSL") {
-    #	   my $subject_name = $ssl_socket->peer_certificate("subject");
-    #	   my $issuer_name = $ssl_socket->peer_certificate("issuer");
-    #	   my $cipher = $ssl_socket->get_cipher();
-    #	   $main::logger->do_log
-    #	   (Sympa::Logger::DEBUG,'ssl peer certificat %s issued by %s. Cipher used %s',
-    #	   $subject_name,$issuer_name,$cipher);
-    #	}
+    #if( ref($ssl_socket) eq "IO::Socket::SSL") {
+    #    my $subject_name = $ssl_socket->peer_certificate("subject");
+    #    my $issuer_name = $ssl_socket->peer_certificate("issuer");
+    #    my $cipher = $ssl_socket->get_cipher();
+    #    $log->syslog('debug',
+    #        'SSL peer certificate %s issued by %s. Cipher used %s',
+    #        $subject_name,$issuer_name,$cipher);
+    #}
 
     my $request = "GET $path HTTP/1.0\nHost: $host\n\n";
     print $ssl_socket "$request\n\n";
 
-    $main::logger->do_log(Sympa::Logger::DEBUG, "requesting  $request");
-
+    $log->syslog('debug', 'Requesting %s', $request);
     #my ($buffer) = $ssl_socket->getlines;
-    # print STDERR $buffer;
-    #$main::logger->do_log (Sympa::Logger::DEBUG,"return");
+    #print STDERR $buffer;
+    #$log->syslog ('debug',"return");
     #return ;
 
-    $main::logger->do_log(Sympa::Logger::DEBUG, "get_https reading answer returns :");
+    $log->syslog('debug', 'Get_https reading answer returns:');
     my @result;
     while (my $line = $ssl_socket->getline) {
-        $main::logger->do_log(Sympa::Logger::DEBUG, "$line");
+        $log->syslog('debug', '%s', $line);
         push @result, $line;
     }
 
     $ssl_socket->close(SSL_no_shutdown => 1);
-    $main::logger->do_log(Sympa::Logger::DEBUG, "disconnected");
+    $log->syslog('debug', 'Disconnected');
 
     return (@result);
 }

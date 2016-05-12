@@ -2,7 +2,7 @@
 
 <h2>[%|loc%]Copying template[%END%]</h2><br />
 <p>
-<form id="cp_template" action="[% path_cgi %]/copy_template" method="post">
+<form id="cp_template" action="[% 'copy_template' | url_rel %]" method="post">
 <fieldset>
   <legend><strong> [%|loc%]Input template[%END%]</strong> </legend>
   <label>[%|loc%]Template name: [%END%]</label><strong> [% template_name %] </strong><br />
@@ -23,7 +23,7 @@
 <strong> [%|loc%]default[%END%] </strong>
 [%|loc%](This template is the default for all languages unless it is redefined for a specific language)[%END%]
 [%- ELSE -%]
-<strong class="LanguageNeutral"
+<strong class="neutral"
 lang="[%tpl_lang_lang%]" xml:lang="[%tpl_lang_lang%]"
 > [%tpl_lang_title%] </strong>
 [%- END %] <br />
@@ -39,14 +39,13 @@ lang="[%tpl_lang_lang%]" xml:lang="[%tpl_lang_lang%]"
         <option value="list" [% IF scope == 'list' %]selected[% END %]>[%|loc%]list[%END%]</option>
     </select><br />
   <label for="tpl_lang_out">[%|loc%]Language: [%END%] </label>
-    <select id="tpl_lang_out" name="tpl_lang_out" class="LanguageNeutral">
+    <select id="tpl_lang_out" name="tpl_lang_out" class="neutral">
 	<option value="default">[%|loc%]default[%END%]</option>
 	[% FOREACH lg = languages %]
         <option lang="[%lg.key%]" xml:lang="[%lg.key%]"
         value="[%lg.key%]" [% IF tpl_lang_lang == lg.key %]selected[% END %]>[%lg.value.complete%]</option>
 	[%END%]
 	</select><br />
-[% list %]
   <label for="list_out">[%|loc%]Enter list name: [%END%] </label><input id="list_out" type="text" name="list_out" size="20" value="[% list %]" /><br />
 
     <input type="hidden" name="template_name" value="[% template_name %]" />
