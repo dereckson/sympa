@@ -5,9 +5,10 @@
 
 # Sympa - SYsteme de Multi-Postage Automatique
 #
-# Copyright (c) 1997-1999 Institut Pasteur & Christophe Wolfhugel
-# Copyright (c) 1997-2011 Comite Reseau des Universites
-# Copyright (c) 2011-2014 GIP RENATER
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015, 2016 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,18 +23,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use strict;
 use lib '--modulesdir--';
-
+use strict;
+use warnings;
 use English qw(-no_match_vars);
 use Getopt::Long;
 
+use Conf;
 use Sympa::Constants;
-use Sympa::Conf;
 use Sympa::DatabaseManager;
 use Sympa::List;
-use Sympa::VirtualHost;
-use Sympa::Site;
+use Sympa::Message;
+use Sympa::Spool::Archive;
 
 my %month_idx = qw(jan 1
     fev 2
@@ -57,8 +58,8 @@ my %month_idx = qw(jan 1
 my $msg_count = 0;
 
 # load options ?
-#$options{'debug'} = 1;
-#$options{'debug2'} = 1 if ($options{'debug'});
+#$main::options{'debug'} = 1;
+#$main::options{'debug2'} = 1 if ($main::options{'debug'});
 
 $OUTPUT_AUTOFLUSH = 1;
 
@@ -71,7 +72,7 @@ die
     "Usage : $ARGV[-1] [-input-directory=<directory containing individual messages>] <listname> [robot]"
     unless ($#ARGV >= 0);
 my $listname = $ARGV[0];
-my $robot_id = $ARGV[1];
+my $robot    = $ARGV[1];
 
 ## Check UID
 unless ([getpwuid $UID]->[0] eq Sympa::Constants::USER) {
@@ -83,28 +84,25 @@ unless ([getpwuid $UID]->[0] eq Sympa::Constants::USER) {
 }
 
 ## Load sympa config
-unless (Sympa::Site->load) {
+unless (Conf::load()) {
     die 'config_error';
 }
 
-unless (Sympa::DatabaseManager::check_db_connect('just_try') and Sympa::DatabaseManager::probe_db()) {
-    printf STDERR
-        "Database %s defined in sympa.conf has not the right structure or is unreachable. verify db_xxx parameters in sympa.conf\n",
-        Sympa::Site->db_name;
-    exit 1;
+Sympa::DatabaseManager::probe_db();
+
+chdir $Conf::Conf{'home'};
+
+my $list = Sympa::List->new($listname, $robot)
+    or die 'Cannot create List object';
+
+my $home_sympa;
+if ($robot) {
+    $home_sympa = $Conf::Conf{'home'} . '/' . $robot;
+} else {
+    $home_sympa = $Conf::Conf{'home'};
 }
-
-chdir Sympa::Site->home;
-
-my $robot;
-my $list;
-unless ($robot = Sympa::VirtualHost->new($robot_id || Sympa::Site->domain)
-    and $list = Sympa::List->new($listname, $robot)) {
-    die 'Cannot create List object';
-}
-
-my $home_sympa = $robot->home;
-my $dest_dir   = $robot->arc_path . '/' . $list->get_id;
+my $dest_dir =
+    Conf::get_robot_conf($robot, 'arc_path') . '/' . $list->get_list_id();
 
 unless (-d "$home_sympa/$listname") {
     die "No directory for list $listname";
@@ -117,7 +115,7 @@ unless (-d "$home_sympa/$listname/archives") {
 if (-d $dest_dir) {
     print "Web archives already exist for list $listname\nGo on (<CR>|n) ?";
     my $s = <STDIN>;
-    die if $s eq 'n';
+    die if ($s eq 'n');
 } else {
     mkdir $dest_dir, 0755 or die;
 }
@@ -128,12 +126,13 @@ if ($opt{'input-directory'}) {
             $opt{'input-directory'};
     }
 
-    opendir DIR, $opt{'input-directory'} or die;
+    opendir DIR, $opt{'input-directory'} || die;
     foreach my $file (sort grep (!/^\.\.?$/, readdir(DIR))) {
+        my @msgs;    #FIXME: Not used anymore.
+
         open ARCFILE, $opt{'input-directory'} . '/' . $file;
         my @msg = <ARCFILE>;
-
-        #push @msgs, \@msg;
+        push @msgs, \@msg;
         $msg_count++;
         close ARCFILE;
     }
@@ -185,10 +184,15 @@ if ($opt{'input-directory'}) {
 
 print STDERR "\nFound $msg_count messages\n";
 
-## Rebuild web archives
+# Rebuild web archives
 print STDERR "Rebuilding HTML\n";
-my $list_id = $list->get_id;
-`touch $Sympa::Conf::Conf{'queueoutgoing'}/.rebuild.$list_id`;
+my $arc_message = Sympa::Message->new(
+    sprintf("\nrebuildarc %s *\n\n", $list->{'name'}),
+    context => $list->{'domain'},
+    sender  => sprintf('listmaster@%s', $list->{'domain'}),
+    date    => time
+);
+Sympa::Spool::Archive->new->store($arc_message);
 
 print STDERR "\nHave a look in $dest_dir/-/ directory for messages dateless
 Now, you should add a web_archive parameter in the config file to make it accessible from the web\n";
@@ -209,17 +213,15 @@ sub store_messages {
         print '.';
         foreach (@{$msg}) {
             if (/^Date:\s+(.*)$/) {
-
                 #print STDERR "#$_#\n";
                 $date = $1;
 
                 # Date type : Mon, 8 Dec 97 13:33:47 +0100
                 if ($date =~
                     /^\w{2,3},\s+\d{1,2}\s+([\w\x80-\xFF]{2,3})\s+(\d{2,4})/)
-                {    #FIXME
+                {
                     $month = $1;
                     $year  = $2;
-
                     #print STDERR "$month/$year\n";
 
                     # Date type : 8 Dec 97 13:33:47+0100
@@ -246,7 +248,7 @@ sub store_messages {
 
                 # Month format
                 if ($month !~ /^\d+$/) {
-                    $month =~ s/\xe9\xfb/eu/;    #FIXME
+                    $month =~ y/\xe9\xfb/eu/;    #FIXME
                     $month =~ y/A-Z/a-z/;
                     if (!$month_idx{$month}) {
                         $incorrect = 1;
@@ -273,7 +275,7 @@ sub store_messages {
                 last;
             }
         }
-##	close MSG;
+
         # Unknown date format/No date
         if ($incorrect || !$month || !$year) {
             $year  = 'UN';
@@ -298,7 +300,6 @@ sub store_messages {
             ">$dest_dir/$year-$month/arctxt/$nummsg{$year}{$month}";
         print DESTFILE @{$msg};
         close DESTFILE;
-
         #    `mv $m $dest_dir/$year-$month/arctxt/$nummsg{$year}{$month}`;
         $nummsg{$year}{$month}++;
     }

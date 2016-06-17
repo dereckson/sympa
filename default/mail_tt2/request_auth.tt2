@@ -1,7 +1,7 @@
+[%# $Id$ ~%]
 To: [% to %]
-Subject: [% FILTER qencode %][%command%][%END%]
+Subject: [% FILTER qencode %]AUTH [%keyauth%] [%cmd%][%END%]
 
-[% IF list_context -%]
   [% IF type == 'signoff' -%]
 [%|loc(list.name)-%]You asked for your e-mail address to be removed from list '%1'.[%- END -%]
 
@@ -16,21 +16,22 @@ Subject: [% FILTER qencode %][%command%][%END%]
 
   [%- ELSIF type == 'remind' -%]
 [%|loc(list.name)-%]You requested a subscription reminder to be sent to each subscriber of list %1[%- END -%]
-  [%- END -%]
 
-[%- ELSE -%]
-  [% IF type == 'remind' -%]
+  [%- ELSIF type == 'global_remind' -%]
 [%|loc-%]You requested a subscription reminder to be sent to each subscriber of list '*'[%- END -%]
-  [%- END -%]	
-[%- END -%]
+[%- END -%]	
 
-[%|loc(conf.sympa,command)-%]If you want this action to be taken, please
+[% sympa = BLOCK %][% conf.email %]@[% conf.host %][%END%]
+[%|loc(sympa,"AUTH ${keyauth} ${cmd}") %]If you want this action to be taken, please
 
 - reply to this mail
 OR
 - send a message to %1 with subject
  %2
 OR
-- hit the following mailto[% END %] [% FILTER escape_url %]mailto:[%conf.sympa%]?subject=[%command_escaped%][% END %]
+- hit the following mailto[% END %]
+ [% | mailtourl({subject => "AUTH ${keyauth} ${cmd}"}) ~%]
+   [% conf.email %]@[% conf.host %]
+ [%~ END %]
 
 [%|loc-%]If you do not want this action to be taken, you can safely ignore this message.[% END %]

@@ -1,9 +1,8 @@
 <!-- $Id$ -->
-
-<h3>[%|loc%]Manage bouncing list members[%END%] <a class="input" href="[% path_cgi %]/nomenu/help/admin#manage_bounces" title="[%|loc%]Open in a new window[%END%]" onclick="window.open('','wws_help','toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no,width=400,height=200')" target="wws_help">[%|loc%]Help[%END%]</a></h3>
-
+<h2>[%|loc%]Manage bouncing list members[%END%] <a  href="[% 'nomenu/help/admin' | url_rel %]#manage_bounces" title="[%|loc%]Open in a new window[%END%]" onclick="window.open('','wws_help','toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no,width=400,height=200')" target="wws_help"><i class="fa fa-question-circle" title="[%|loc%]Help[%END%]"></i></a></h2>
 <br />
-<a class="actionMenuLinks" href="[% path_cgi %]/dump/[% list %]/bounce">[%|loc%]Dump[%END%]</a>
+[% IF bounce_rate %]
+<a class="actionMenuLinks" href="[% 'dump' | url_rel([list,'bounce']) %]">[%|loc%]Dump[%END%]</a>
 
 <form action="[% path_cgi %]" method="post"> 
 <fieldset>
@@ -21,13 +20,13 @@
     <input type="hidden" name="list" value="[% list %]" />
 </fieldset>  
 </form>	
-<br />
 
 <form action="[% path_cgi %]">
 <fieldset>
   <input type="hidden" name="sortby" value="[% sortby %]" />
   <input type="hidden" name="action" value="reviewbouncing" />
   <input type="hidden" name="list" value="[% list %]" />
+  <label for="size">[%|loc%]Page size[%END%]</label>
   <select name="size" onchange="this.form.submit();">
           <option value="[% size %]" selected="selected">[% size %]</option>
 	  <option value="25">25</option>
@@ -37,17 +36,16 @@
   </select>
 </fieldset>  
 </form>
-<br />
 
-<div class="text_right">
+<div class="text-center">
         [% IF prev_page %]
-	  <a href="[% path_cgi %]/reviewbouncing/[% list %]/[% prev_page %]/[% size %]"><img src="[% icons_url %]/left.png" alt="[%|loc%]Previous page[%END%]"></a>
+	  <a href="[% 'reviewbouncing' | url_rel([list,prev_page,size]) %]"><img src="[% icons_url %]/left.png" alt="[%|loc%]Previous page[%END%]"></a>
         [% END %]
         [% IF page %]
   	  [%|loc(page,total_page)%]page %1 / %2[%END%]
         [% END %]
         [% IF next_page %]
-	  <a href="[% path_cgi %]/reviewbouncing/[% list %]/[% next_page %]/[% size %]"><img src="[% icons_url %]/right.png" alt="[%|loc%]Next page[%END%]"></a>
+	  <a href="[% 'reviewbouncing' | url_rel([list,next_page,size]) %]"><img src="[% icons_url %]/right.png" alt="[%|loc%]Next page[%END%]"></a>
         [% END %]
 </div>
 
@@ -55,15 +53,16 @@
 <fieldset>
      <input type="hidden" name="list" value="[% list %]" /> 	 
      <input type="hidden" name="previous_action" value="reviewbouncing" /> 	 
-  <table summary="[%|loc%]Table which display list bounces[%END%]" class="listOfItems">
+  <table  class="listOfItems">
+  <caption>[%|loc%]Table which display list bounces[%END%]</caption>
       <tr>
-	<th rowspan="2"><a href="#" onclick="toggle_selection(document.myform.email);return false;" title="[%|loc%]Toggle Selection[%END%]">&laquo;&raquo;</a></th>
+	<th rowspan="2"><a href="#" onclick="toggle_selection(document.myform.email);return false;" title="[%|loc%]Toggle Selection[%END%]"><i class="fa fa-check-square-o"></i> </a></th>
         <th rowspan="2">[%|loc%]Email[%END%]</th>
 	<th rowspan="2">[%|loc%]Bounce score[%END%]</th>
 	<th colspan="3">[%|loc%]Details[%END%]</th>
       </tr>
       <tr>
-	<th>[%|loc%]# of bounces[%END%]</th>
+	<th>[%|loc%]Number of bounces[%END%]</th>
 	<th>[%|loc%]First bounce[%END%]</th>
 	<th>[%|loc%]Last bounce[%END%]</th>
       </tr>
@@ -81,7 +80,7 @@
 	    <input type="checkbox" name="email" value="[% u.escaped_email %]" />
 	  </td>
 	  <td>
-	      <a href="[% path_cgi %]/editsubscriber/[% list %]/[% u.escaped_email %]/reviewbouncing">[% u.email %]</a>
+	      <a href="[% 'editsubscriber' | url_rel([list,u.escaped_email,'reviewbouncing']) %]">[% u.email %]</a>
 
 	  </td>
           <td class="text_center 
@@ -110,15 +109,15 @@
 
         [% END %]
       </table>
-  <div class="text_right">
+  <div class="text-center">
         [% IF prev_page %]
-	  <a href="[% path_cgi %]/reviewbouncing/[% list %]/[% prev_page %]/[% size %]"><img src="[% icons_url %]/left.png" alt="[%|loc%]Previous page[%END%]" /></a>
+	  <a href="[% 'reviewbouncing' | url_rel([list,prev_page,size]) %]"><img src="[% icons_url %]/left.png" alt="[%|loc%]Previous page[%END%]" /></a>
         [% END %]
         [% IF page %]
   	  [%|loc(page,total_page)%]page %1 / %2[%END%]
         [% END %]
         [% IF next_page %]
-	  <a href="[% path_cgi %]/reviewbouncing/[% list %]/[% next_page %]/[% size %]"><img src="[% icons_url %]/right.png" alt="[%|loc%]Next page[%END%]" /></a>
+	  <a href="[% 'reviewbouncing' | url_rel([list,next_page,size]) %]"><img src="[% icons_url %]/right.png" alt="[%|loc%]Next page[%END%]" /></a>
         [% END %]
   </div>
   [% IF is_owner %]
@@ -131,4 +130,7 @@
   <input class="MainMenuLinks" type="button" value="[%|loc%]Toggle Selection[%END%]" onclick="toggle_selection(document.myform.email)" />
 </fieldset>
 </form>
+[% ELSE %]
+<p class="small-12 medium-8 medium-centered columns alert-box info text-center">[%|loc%]No bouncing members[%END%]</p>
+[% END %]
 <!-- end reviewbouncing.tt2 -->

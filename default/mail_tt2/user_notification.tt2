@@ -1,3 +1,4 @@
+[%# $Id$ ~%]
 To: [% to %]
 [% IF type == 'auto_notify_bouncers' -%]
 Subject: [% FILTER qencode %][%|loc(list.name)%]Your bouncing address in list %1[%END%][%END%]
@@ -18,28 +19,28 @@ Deleted topic(s) is(are):[%END%]
    [% t %]
 [% END -%]
 
-[%|loc(url)%]To update your topics subscription, go to the following page:
-%1[% END %]
+[%|loc%]To update your topics subscription, go to the following page:[%END%]
+[% 'suboptions' | url_abs([list.name]) %]
 
 
 [% ELSIF type == 'added_as_listadmin' -%]
 Subject: [% FILTER qencode %][%|loc(list.name)%]Management of list %1[%END%][%END%]
 
 [% IF admin_type == 'owner' %]
-[%|loc(delegator,list.name,list.host)%]You have been delegated the responsibility of list owner by %1 for list %2@%3.[%END%]
+[%|loc(delegator,list.name,list.host)%]You have been delegated the responsability of list owner by %1 for list %2@%3.[%END%]
 [% ELSE %]
-[%|loc(delegator,list.name,list.host)%]You have been delegated the responsibility of list moderator by %1 for list %2@%3.[%END%]
+[%|loc(delegator,list.name,list.host)%]You have been delegated the responsability of list moderator by %1 for list %2@%3.[%END%]
 [% END %]
 
-[%|loc%]The list homepage:[%END%] [% conf.wwsympa_url %]/info/[% list.name %]
-[%|loc%]Owner and moderator guide:[%END%] [% conf.wwsympa_url %]/help/admin
+[%|loc%]The list homepage:[%END%] [% 'info' | url_abs([list.name]) %]
+[%|loc%]Owner and moderator guide:[%END%] [% 'help/admin' | url_abs %]
 
 
 [% ELSIF type == 'ticket_to_send' -%]
 Subject: [% FILTER qencode %][%|loc%]Changing your subscriber email address[%END%][%END%]
 
 [%|loc%]You have requested to change your subscriber email address. To confirm your new email address with the SYMPA server, please click the link below:[%END%] 
-  [% conf.wwsympa_url %]/ticket/[% one_time_ticket %]
+  [% 'ticket' | url_abs([one_time_ticket]) %]
 
 
 [% ELSIF type == 'ticket_to_signoff' -%]
@@ -51,7 +52,7 @@ To confirm and get removed from the list, please click the link below: [%END%]
 [% ELSE %]
 [%|loc(list.name)%]You have requested to be removed from list %1. To confirm and get removed from the list, please click the link below: [%END%] 
 [% END %]
-  [% conf.wwsympa_url %]/ticket/[% one_time_ticket %]
+  [% 'ticket' | url_abs([one_time_ticket]) %]
 
 [% ELSIF type == 'ticket_to_family_signoff' -%]
 Subject: [% FILTER qencode %][%|loc(family)%]Unsubscribing from family %1[%END%][%END%]
@@ -62,8 +63,25 @@ To confirm and get removed from all the lists of this family, please click the l
 [% ELSE %]
 [%|loc(family)%]You have requested to be removed from family %1. To confirm and get removed from all the lists of this family, please click the link below: [%END%] 
 [% END %]
-  [% conf.wwsympa_url %]/ticket/[% one_time_ticket %]
+  [% 'ticket' | url_abs([one_time_ticket]) %]
 
+
+[% ELSIF type == 'hundred_percent_error' -%]
+Subject: [% FILTER qencode %][%|loc(list.name)%]No valid receipient in list %1[%END%][%END%]
+
+[%|loc(list.name, conf.listmaster_email, list.domain) %]
+You message to list %1 could not be delivered. All the subscribers to this list have their address in error.
+Please contact the listmaster (%2@%3) to fix this probem before re-posting your message.
+[% END %]
+
+[% ELSIF type == 'plugin' -%]
+[%- TRY -%][%- INCLUDE $entry -%]
+[%- CATCH -%]
+Subject: [%FILTER qencode%][%|loc%]report message error on plugin[%END%][%END%]
+
+ENTRY=[% entry %]
+ERROR=[% error %]
+[% END -%]
 
 [% ELSE -%]
 Subject: [% FILTER qencode %][%list.name%] / [%type%][%END%]

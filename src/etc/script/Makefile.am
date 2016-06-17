@@ -1,9 +1,11 @@
-# Makefile - This Makefile does the Sympa scripts installation
-# RCS Identication ; $Revision$ ; $Date$ 
-#
+# $Id$
+
 # Sympa - SYsteme de Multi-Postage Automatique
-# Copyright (c) 1997, 1998, 1999, 2000, 2001 Comite Reseau des Universites
-# Copyright (c) 1997,1998, 1999 Institut Pasteur & Christophe Wolfhugel
+#
+# Copyright (c) 1997, 1998, 1999 Institut Pasteur & Christophe Wolfhugel
+# Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+# 2006, 2007, 2008, 2009, 2010, 2011 Comite Reseau des Universites
+# Copyright (c) 2011, 2012, 2013, 2014, 2015, 2016 GIP RENATER
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,14 +20,38 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+if SYSV_INIT
 init_SCRIPTS = sympa
+endif
 
-EXTRA_DIST = sympa.in
+if SYSTEMD_UNITS
+units_DATA = \
+	sympa-archive.service \
+	sympa-bounce.service \
+	sympa-outgoing.service \
+	sympa-task.service \
+	sympa.service
+noinst_DATA = \
+	nginx-sympasoap.service \
+	nginx-wwsympa.service \
+	sympa-tmpfiles.conf
+endif
 
-CLEANFILES = $(init_SCRIPTS)
+EXTRA_DIST = \
+	sympa.in \
+	sympa-archive.servicein \
+	sympa-bounce.servicein \
+	sympa-outgoing.servicein \
+	sympa-task.servicein \
+	sympa.servicein \
+	nginx-sympasoap.servicein \
+	nginx-wwsympa.servicein \
+	sympa-tmpfiles.confin
 
-sympa: Makefile
-	rm -f $@
+CLEANFILES = $(init_SCRIPTS) $(units_DATA) $(noinst_DATA)
+
+sympa: sympa.in Makefile
+	@rm -f $@
 	$(AM_V_GEN)$(SED) \
 		-e 's|--CONFIG--|$(CONFIG)|' \
 		-e 's|--WWSCONFIG--|$(WWSCONFIG)|' \
@@ -34,6 +60,23 @@ sympa: Makefile
 		-e 's|--piddir--|$(piddir)|' \
 		-e 's|--lockdir--|$(lockdir)|' \
 		< $(srcdir)/$@.in > $@
-	chmod +x $@
+	@chmod +x $@
 
-sympa: sympa.in
+.servicein.service: Makefile
+	@rm -f $@
+	$(AM_V_GEN)$(SED) \
+		-e 's|--USER--|$(USER)|' \
+		-e 's|--GROUP--|$(GROUP)|' \
+		-e 's|--libexecdir--|$(libexecdir)|' \
+		-e 's|--piddir--|$(piddir)|' \
+		-e 's|--sbindir--|$(sbindir)|' \
+		< $(srcdir)/$@in > $@
+
+.confin.conf: Makefile
+	@rm -f $@
+	$(AM_V_GEN)$(SED) \
+		-e 's|--USER--|$(USER)|' \
+		-e 's|--GROUP--|$(GROUP)|' \
+		-e 's|--piddir--|$(piddir)|' \
+		< $(srcdir)/$@in > $@
+
